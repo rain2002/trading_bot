@@ -3,6 +3,10 @@ venv/
 env/
 .env
 
+# Database (Do not commit the local SQLite database)
+*.sqlite
+*.db
+
 # Python
 __pycache__/
 *.py[cod]
@@ -10,14 +14,10 @@ __pycache__/
 *.so
 .pytest_cache/
 
-# Database
-*.sqlite
-*.db
+# Jupyter Notebook
+.ipynb_checkpoints
 
-# Logs
-*.log
-logs/
-
-# OS Files
+# IDEs
+.vscode/
+.idea/
 .DS_Store
-Thumbs.db
