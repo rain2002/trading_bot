@@ -1,0 +1,27 @@
+[project]
+name = "trading_system"
+version = "0.1.0"
+description = "Quantitative Trading Research and Execution Platform"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "sqlalchemy>=2.0.0",
+    "alembic>=1.12.0",
+    "psycopg2-binary>=2.9.9",
+    "pandas>=2.1.0",
+    "numpy>=1.26.0",
+    "scipy>=1.11.0",
+    "pydantic>=2.4.0",
+    "pydantic-settings>=2.0.0",
+    "yfinance>=0.2.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4.0",
+    "ruff>=0.1.0",
+    "mypy>=1.6.0",
+]
+
+[tool.ruff]
+line-length = 88
