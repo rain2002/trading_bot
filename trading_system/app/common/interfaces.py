@@ -3,10 +3,13 @@ from typing import Any, Dict, List, Optional
 import pandas as pd
 from datetime import datetime
 
-class DataProvider(ABC):
+class PointInTimeDataProvider(ABC):
     @abstractmethod
-    def fetch_historical_data(self, symbol: str, start_date: datetime, end_date: datetime, **kwargs) -> pd.DataFrame:
-        """Fetch historical market data, ensuring no future data leakage."""
+    def get_data_as_of(self, symbol: str, current_time: datetime) -> pd.DataFrame:
+        """
+        Query the data store: "What exact information was actually known at current_time?"
+        This prevents future data leakage and ensures corporate actions are handled correctly.
+        """
         pass
 
 class Dataset(ABC):
@@ -21,8 +24,8 @@ class Dataset(ABC):
 
 class Strategy(ABC):
     @abstractmethod
-    def generate_signal(self, point_in_time_data: Any) -> Dict[str, Any]:
-        """Generate a trading signal strictly based on point-in-time data."""
+    def generate_signals(self, point_in_time_data: Any) -> Dict[str, Any]:
+        """Generate trading signals strictly based on point-in-time data."""
         pass
 
 class Portfolio(ABC):

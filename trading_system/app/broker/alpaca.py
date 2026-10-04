@@ -35,3 +35,14 @@ class AlpacaBrokerAdapter(BrokerAdapter):
     def get_order_status(self, order_id: str) -> str:
         """Fetch true order status from the broker."""
         return "FILLED"
+
+    def get_account_equity(self) -> float:
+        """Fetch total portfolio value (cash + long - short)."""
+        if not self.api_key or self.api_key == "mock":
+            return 100000.0
+            
+        response = requests.get(f"{self.base_url}/v2/account", headers=self.headers)
+        response.raise_for_status()
+        account = response.json()
+        
+        return float(account['equity'])

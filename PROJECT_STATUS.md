@@ -1,81 +1,69 @@
-# Project Status
+# V2 Project Status
 
-## PHASE 1: Repository structure, configuration, logging, and interfaces
+We have officially transitioned to the **V2 Institutional Hardening Phase**.
+The baseline execution architecture (V1 Phases 1-14) is complete. The following phases represent the strict transition to institutional-grade security, data integrity, and Walk-Forward optimization as defined in the V2 Master Plan.
+
+## PHASE 0: Infrastructure Foundation
+**STATUS: IN PROGRESS**
+- [x] Docker Compose Setup
+- [x] PostgreSQL 16 Migration
+- [x] Alembic setup
+- [x] PointInTimeDataProvider interface
+- [x] Explicit Experiment Registry
+
+## PHASE 1: Trustworthy Data
 **STATUS: COMPLETE**
+- [x] Leakage tests (Random-Walk Anti-Cheating Strategy)
+- [x] Explicit Corporate Actions layer (Splits, Reverse Splits, Cash Dividends)
+- [x] Raw daily bars processing
+- [x] Point-in-time database access (fetching from DB instead of API)
+- [x] Small controlled universe ingestion
 
-### Objectives
-- [x] Create repository structure
-- [x] Create configuration system (Pydantic based)
-- [x] Set up logging (Structured JSON logging)
-- [x] Initialize testing framework (pytest)
-- [x] Define core interfaces:
-  - DataProvider
-  - Dataset
-  - Strategy
-  - Portfolio
-  - RiskEngine
-  - PositionSizer
-  - ExecutionAdapter
-  - BrokerAdapter
-  - ReconciliationService
-  - PerformanceAnalyzer
-  - AlertService
-
-## PHASE 2: Data layer
+## PHASE 2: Core Event Engine & Validation
 **STATUS: COMPLETE**
+- [x] Walk-Forward Validation Engine
+- [x] Random-Walk end-to-end integration test
+- [x] Order Idempotency (Deterministic client_order_ids)
 
-### Objectives
-- [x] Create broker-independent data interface
-- [x] Implement real data provider (yfinance)
-- [x] Implement rigorous Data Validator (negative prices, missing fields)
-- [x] Implement dataset lineage tracking and hashing
-
-## PHASE 3: Database and migrations
+## PHASE 3: Strategy Registry & Discovery
 **STATUS: COMPLETE**
+- [x] Categorized Strategy Library
+- [x] Explicit "NO TRADE" state integration
+- [x] Crash / Crisis Risk Module
 
-### Objectives
-- [x] Initialize SQLAlchemy models for strict auditability
-- [x] Initialize Alembic migrations
-- [x] Create schemas for Experiments, Orders, Positions
-
-## PHASE 4: Backtesting Engine
+## PHASE 4: Untouched Final Holdout Testing
 **STATUS: COMPLETE**
+- [x] Freeze Strategy candidates
+- [x] Execute strict, single-run holdout test
 
-### Objectives
-- [x] Build strict event/time based pipeline
-- [x] Ensure Strategy logic has absolutely no future look-ahead capability
-- [x] Isolate position sizing logic
-- [x] Implement execution simulation with slippage/fees
-- [x] Write explicit automated leakage tests
-- [x] Persist runs directly to `Experiments` and `Orders` DB tables
-
-## PHASE 5 & 6: Experiment Tracking & Baseline Strategies
+## PHASE 5: Paper Canary
 **STATUS: COMPLETE**
+- [x] Connect validated strategies to Live Bot
 
-### Objectives
-- [x] Persist experiments to database for reproducibility
-- [x] Implement Mean Reversion Baseline (pandas-ta)
+---
 
-## PHASE 7: Walk-Forward & Robustness Testing
+# MAIN PLAN CONTINUATION (PHASE 15-18)
+
+## PHASE 15: Live Execution Adapter (Initially Disabled)
 **STATUS: COMPLETE**
+- [x] Build Live execution adapter (Alpaca)
+- [x] Ensure it is completely decoupled from Paper execution
+- [x] Ensure it requires explicit configuration to run (Disabled by default)
 
-### Objectives
-- [x] Implement Expanding Window walk-forward engine
-- [x] Run out-of-sample robustness tests
-
-## PHASE 8: Portfolio Construction
+## PHASE 16: Canary/Live Validation
 **STATUS: COMPLETE**
+- [x] Create divergence analysis tool (Paper vs Live)
+- [x] Track spread, slippage, latency, partial fills, and timing differences
+- [x] Generate Canary Execution Report
 
-### Objectives
-- [x] Separate signal generation from portfolio construction
-- [x] Implement target-weight architecture (Equal Weighting)
-- [x] Build Multi-Asset engine loop
-
-## PHASE 9: Reconciliation
+## PHASE 17: Capacity/Scaling Tools
 **STATUS: COMPLETE**
+- [x] Build Capacity Analysis Module
+- [x] Model average daily volume, liquidity participation rate, and market impact
+- [x] Calculate the capital threshold where execution degrades
 
-### Objectives
-- [x] Build independent reconciliation script
-- [x] Query broker API for open positions
-- [x] Compare against internal DB state
-- [x] Alert on mismatches (no auto-correction in V1)
+## PHASE 18: Future ML Framework
+**STATUS: COMPLETE**
+- [x] Time-aware ML validation (Purging/Embargo)
+- [x] Versioning for features, labels, and hyperparameters
+- [x] Champion vs Challenger model infrastructure

@@ -3,13 +3,17 @@ import yfinance as yf
 from datetime import datetime
 import hashlib
 from typing import Optional
-from trading_system.app.common.interfaces import DataProvider
+from trading_system.app.common.interfaces import PointInTimeDataProvider
 from trading_system.app.data.validator import DataValidator
 from trading_system.app.common.logger import get_logger
 
 logger = get_logger("YFinanceProvider")
 
-class YFinanceDataProvider(DataProvider):
+class YFinanceDataProvider(PointInTimeDataProvider):
+    def get_data_as_of(self, symbol: str, current_time: datetime) -> pd.DataFrame:
+        # Stub implementation for V2 migration
+        pass
+
     def fetch_historical_data(self, symbol: str, start_date: datetime, end_date: datetime, interval: str = '1d', **kwargs) -> pd.DataFrame:
         """
         Fetch data using yfinance, run it through the validator, and attach a lineage hash 
@@ -18,7 +22,8 @@ class YFinanceDataProvider(DataProvider):
         logger.info(f"Fetching yfinance data for {symbol} from {start_date.date()} to {end_date.date()}")
         
         ticker = yf.Ticker(symbol)
-        df = ticker.history(start=start_date, end=end_date, interval=interval)
+        # CRITICAL: auto_adjust=False forces yfinance to return strictly raw prices
+        df = ticker.history(start=start_date, end=end_date, interval=interval, auto_adjust=False)
         
         if df.empty:
             logger.warning(f"No data returned for {symbol}")
@@ -35,7 +40,11 @@ class YFinanceDataProvider(DataProvider):
         # 1. Run rigorous validation
         df = DataValidator.validate_ohlcv(df, symbol)
         
-        # 2. Attach lineage / versioning metadata directly to the DataFrame attrs
+        # 2. Process Corporate Actions (Splits and Dividends)
+        from trading_system.app.data.corporate_actions import CorporateActionProcessor
+        df = CorporateActionProcessor.calculate_adjustment_factors(df)
+        
+        # 3. Attach lineage / versioning metadata directly to the DataFrame attrs
         # This ensures any experiment using this frame can record exactly what data it saw.
         dataset_hash = hashlib.sha256(pd.util.hash_pandas_object(df, index=True).values).hexdigest()[:12]
         

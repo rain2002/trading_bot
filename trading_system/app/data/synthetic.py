@@ -1,9 +1,9 @@
 import pandas as pd
 import numpy as np
 from datetime import datetime
-from trading_system.app.common.interfaces import DataProvider
+from trading_system.app.common.interfaces import PointInTimeDataProvider
 
-class SyntheticDataProvider(DataProvider):
+class SyntheticDataProvider(PointInTimeDataProvider):
     def fetch_historical_data(self, symbol: str, start_date: datetime, end_date: datetime, **kwargs) -> pd.DataFrame:
         """Generate a random walk OHLCV dataset for synthetic testing."""
         dates = pd.date_range(start=start_date, end=end_date, freq='B')

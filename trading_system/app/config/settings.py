@@ -6,8 +6,9 @@ class Settings(BaseSettings):
     # Environment Configuration
     ENVIRONMENT: str = Field(default="PAPER", description="PAPER or LIVE")
     
-    # Database Configuration (Using SQLite for the initial dev phase)
-    DATABASE_URL: str = Field(default="sqlite:///trading_db.sqlite", description="Database connection string")
+    # Database Configuration (V2 Upgrade: Migrating from SQLite to PostgreSQL)
+    # This matches the docker-compose.yml defaults
+    DATABASE_URL: str = Field(default="postgresql+psycopg2://quant:quantpassword@localhost:5432/trading_db", description="Database connection string")
     
     # Broker Configuration
     PAPER_API_KEY: Optional[str] = None
@@ -27,7 +28,7 @@ class Settings(BaseSettings):
     MAX_DAILY_LOSS: float = Field(default=0.05, description="Kill switch daily loss threshold (5%)")
 
     class Config:
-        env_file = ".env"
+        env_file = ("../.env", ".env")
         env_file_encoding = "utf-8"
 
 settings = Settings()
