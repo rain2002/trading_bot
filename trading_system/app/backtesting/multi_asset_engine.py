@@ -14,7 +14,7 @@ class MultiAssetBacktester:
     Advanced backtesting engine handling an entire universe of stocks simultaneously, 
     maintaining strict point-in-time constraints across all assets.
     """
-    def __init__(self, data_provider, strategy, portfolio, risk_engine, portfolio_constructor, execution_adapter, db_session: Session):
+    def __init__(self, data_provider, strategy, portfolio, risk_engine, portfolio_constructor, execution_adapter, db_session: Session = None):
         self.data_provider = data_provider
         self.strategy = strategy
         self.portfolio = portfolio
@@ -101,7 +101,9 @@ class MultiAssetBacktester:
             for sym, qty in current_positions.items():
                 if sym in point_in_time_universe and not point_in_time_universe[sym].empty:
                     last_price = point_in_time_universe[sym]['close'].iloc[-1]
-                    total_equity += (qty * last_price)
+                    import math
+                    if not math.isnan(last_price):
+                        total_equity += (qty * last_price)
                     
             # Record equity curve point for performance analysis
             if not hasattr(self, 'equity_curve'):
@@ -124,10 +126,16 @@ class MultiAssetBacktester:
                     continue
                 current_price = point_in_time_universe[sym]['close'].iloc[-1]
                 
+                import math
+                if math.isnan(current_price) or current_price <= 0:
+                    continue
+                    
                 current_qty = current_positions.get(sym, 0.0)
                 current_value = current_qty * current_price
                 
                 value_to_trade = target_value - current_value
+                if math.isnan(value_to_trade):
+                    continue
                 qty_to_trade = int(value_to_trade / current_price)
                 
                 if qty_to_trade != 0:
@@ -158,6 +166,7 @@ class MultiAssetBacktester:
                                 price=float(fill['fill_price']),
                                 status=fill['status']
                             )
+                        if self.db:
                             self.db.add(db_order)
                             
         # Attempt to capture the exact git commit for reproducibility
@@ -180,8 +189,9 @@ class MultiAssetBacktester:
             parameters={"symbols": symbols},
             metrics={"final_equity": total_equity}
         )
-        self.db.add(exp)
-        self.db.commit()
+        if self.db:
+            self.db.add(exp)
+            self.db.commit()
         
         logger.info(f"Multi-Asset Backtest {experiment_id} Complete")
         return self.portfolio
