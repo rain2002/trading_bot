@@ -38,7 +38,11 @@ def execute_llm_live_cycle():
     print("Fetching the complete S&P 500 universe for maximum opportunity scanning...")
     try:
         import pandas as pd
-        table = pd.read_html('https://en.wikipedia.org/wiki/List_of_S%26P_500_companies')
+        import requests
+        headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'}
+        url = 'https://en.wikipedia.org/wiki/List_of_S%26P_500_companies'
+        response = requests.get(url, headers=headers)
+        table = pd.read_html(response.text)
         df = table[0]
         universe = df['Symbol'].tolist()
         # Clean up some tickers that yfinance doesn't like (e.g. BRK.B -> BRK-B)
