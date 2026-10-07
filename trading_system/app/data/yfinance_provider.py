@@ -11,8 +11,11 @@ logger = get_logger("YFinanceProvider")
 
 class YFinanceDataProvider(PointInTimeDataProvider):
     def get_data_as_of(self, symbol: str, current_time: datetime) -> pd.DataFrame:
-        # Stub implementation for V2 migration
-        pass
+        from datetime import timedelta
+        # Fetch 1 year of trailing data up to the current_time
+        start_date = current_time - timedelta(days=365)
+        df = self.fetch_historical_data(symbol, start_date, current_time)
+        return df
 
     def fetch_historical_data(self, symbol: str, start_date: datetime, end_date: datetime, interval: str = '1d', **kwargs) -> pd.DataFrame:
         """

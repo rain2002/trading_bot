@@ -36,6 +36,6 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Run V2 Live Engine
+      - name: Run V2 LLM Brain Engine
         run: |
-          python trading_system/scripts/run_live_bot.py
+          python trading_system/scripts/run_llm_bot.py

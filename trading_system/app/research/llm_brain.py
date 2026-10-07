@@ -1,9 +1,10 @@
 import logging
 from datetime import datetime
 from typing import Dict, Any, List
+import pandas as pd
 from trading_system.app.models.core import Strategy, PortfolioDecision
 from trading_system.app.common.database import SessionLocal
-from trading_system.app.data.openbb_provider import OpenBBDataProvider
+from trading_system.app.data.yfinance_provider import YFinanceDataProvider
 
 logger = logging.getLogger("LLMBrain")
 
@@ -28,7 +29,7 @@ class TradingAgentLLM:
     Coordinates multiple agents (Market Analyst, Risk Manager, Portfolio Allocator).
     """
     def __init__(self):
-        self.data_provider = OpenBBDataProvider()
+        self.data_provider = YFinanceDataProvider()
         
     def run_nightly_research(self, universe: List[str], as_of_time: datetime) -> List[Dict[str, Any]]:
         """
