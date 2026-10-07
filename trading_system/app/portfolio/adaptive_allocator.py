@@ -42,7 +42,9 @@ class AdaptivePortfolioAllocator:
             # logger.info(f"Regime {current_regime}: Reducing all long exposure by 50%.")
             adjusted_weights = {}
             for sym, weight in base_weights.items():
-                if weight > 0:
+                if isinstance(weight, str) and weight == "HOLD":
+                    adjusted_weights[sym] = weight
+                elif weight > 0:
                     adjusted_weights[sym] = weight * 0.5 # De-leverage long positions
                 else:
                     adjusted_weights[sym] = weight # Keep short positions normal
