@@ -50,11 +50,24 @@ def execute_quant_live_cycle():
     generated_signals = brain.run_nightly_research(universe, datetime.now())
     print(f"QUANT Brain generated {len(generated_signals)} signals based on InvestorSkills heuristics.")
     
-    # Convert QUANT signals into target weights
+    # --- DYNAMIC SIZING ENGINE ---
+    # Max exposure: 95% of portfolio (leave 5% cash for safety)
+    # Max single stock exposure: 15%
     target_weights = {}
-    for sig in generated_signals:
-        target_weights[sig["symbol"]] = sig["target_weight"]
-        print(f" -> {sig['symbol']}: {sig['target_weight']*100}% (Confidence: {sig['confidence']}, Rationale: {sig['rationale']})")
+    if generated_signals:
+        total_signals = len(generated_signals)
+        print(f"Dynamic Sizing Engine active. Distributing capital across {total_signals} valid signals...")
+        
+        # Calculate equal weight per signal, capped at 15%
+        calculated_weight = min(0.95 / total_signals, 0.15)
+        
+        for sig in generated_signals:
+            sym = sig["symbol"]
+            target_weights[sym] = calculated_weight
+            print(f" -> {sym}: {calculated_weight*100:.1f}% (Confidence: {sig['confidence']}, Rationale: {sig['rationale']})")
+    else:
+        print("No bullish signals generated today. Moving to 100% Cash.")
+    # ----------------------------
         
     print("\n[3/4] Reconciling QUANT Targets against Broker State...")
     
