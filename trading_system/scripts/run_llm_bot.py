@@ -37,19 +37,13 @@ def execute_llm_live_cycle():
     # Dynamically fetch the entire S&P 500 universe
     print("Fetching the complete S&P 500 universe for maximum opportunity scanning...")
     try:
-        import pandas as pd
-        import requests
-        headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'}
-        url = 'https://en.wikipedia.org/wiki/List_of_S%26P_500_companies'
-        response = requests.get(url, headers=headers)
-        table = pd.read_html(response.text)
-        df = table[0]
-        universe = df['Symbol'].tolist()
-        # Clean up some tickers that yfinance doesn't like (e.g. BRK.B -> BRK-B)
-        universe = [sym.replace('.', '-') for sym in universe]
-        print(f"Successfully loaded {len(universe)} S&P 500 symbols.")
+        import os
+        filepath = os.path.join(os.path.dirname(__file__), "..", "data", "sp500_tickers.txt")
+        with open(filepath, "r") as f:
+            universe = [line.strip().replace('.', '-') for line in f.readlines() if line.strip()]
+        print(f"Successfully loaded {len(universe)} S&P 500 symbols from local dataset.")
     except Exception as e:
-        print(f"Failed to fetch S&P 500, falling back to mega-caps. Error: {e}")
+        print(f"Failed to load S&P 500 file, falling back to mega-caps. Error: {e}")
         universe = ["SPY", "QQQ", "AAPL", "MSFT", "NVDA", "AMZN", "GOOGL", "META"]
     
     # Run the multi-agent research pipeline for today

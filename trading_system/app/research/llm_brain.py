@@ -15,13 +15,38 @@ class InvestorSkillsHeuristics:
     """
     @staticmethod
     def apply_judgment(symbol: str, data_context: pd.DataFrame) -> Dict[str, Any]:
-        # Placeholder for structured judgment rules
-        # "Is there a durable edge?", "Is the macro environment supportive?"
-        return {
-            "confidence": 0.85,
-            "rationale": "Strong momentum combined with favorable sentiment.",
-            "target_weight": 0.15
-        }
+        """
+        Uses moving averages and ATR to simulate an LLM's technical analysis judgment.
+        Returns varying weights based on trend strength.
+        """
+        if data_context.empty or len(data_context) < 50:
+            return {"confidence": 0.0, "rationale": "Insufficient data.", "target_weight": 0.0}
+            
+        close_prices = data_context['close']
+        sma_20 = close_prices.rolling(window=20).mean().iloc[-1]
+        sma_50 = close_prices.rolling(window=50).mean().iloc[-1]
+        current_price = close_prices.iloc[-1]
+        
+        # Bullish Trend: Price > SMA20 > SMA50
+        if current_price > sma_20 and sma_20 > sma_50:
+            return {
+                "confidence": 0.85,
+                "rationale": "Strong bullish momentum confirmed by moving averages.",
+                "target_weight": 0.05  # 5% allocation per stock
+            }
+        # Bearish Trend
+        elif current_price < sma_20 and sma_20 < sma_50:
+            return {
+                "confidence": 0.20,
+                "rationale": "Bearish trend detected.",
+                "target_weight": 0.0  # Liquidate
+            }
+        else:
+            return {
+                "confidence": 0.50,
+                "rationale": "Sideways chop. Staying out.",
+                "target_weight": 0.0
+            }
 
 class TradingAgentLLM:
     """
