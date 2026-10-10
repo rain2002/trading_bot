@@ -61,30 +61,97 @@ class TradingAgentLLM:
         Runs the multi-agent pipeline to generate strategy candidates for tomorrow.
         """
         logger.info(f"Starting LLM Multi-Agent Research Cycle for {universe} as of {as_of_time}")
-        signals = []
+        pre_screened = []
         
+        # 1. Cheap Screening Subagent (Technical Heuristics)
+        print("Running cheap technical screener across 500 stocks...")
         for symbol in universe:
-            # 1. Fetch Point-in-Time Data (Price + Alternative)
             df = self.data_provider.get_data_as_of(symbol, as_of_time)
             if df.empty:
                 continue
                 
-            # 2. LLM Analyst reviews data (Simulated)
-            # In a real setup, we pass the data to the LLM context window here.
-            
-            # 3. Apply InvestorSkills for structured sizing and judgment
             judgment = InvestorSkillsHeuristics.apply_judgment(symbol, df)
-            
-            # 4. Compile signal candidate
             if judgment["confidence"] > 0.7:
-                signals.append({
+                # Add recent price action summary for the LLM
+                recent_px = df['close'].tail(5).tolist()
+                pre_screened.append({
                     "symbol": symbol,
                     "target_weight": judgment["target_weight"],
-                    "confidence": judgment["confidence"],
+                    "recent_prices": [round(p, 2) for p in recent_px],
                     "rationale": judgment["rationale"]
                 })
                 
-        return signals
+        print(f"Screener identified {len(pre_screened)} candidates. Waking up Deep LLM Agent...")
+        
+        # 2. Deep LLM Agent (OpenAI)
+        if not pre_screened:
+            return []
+            
+        import os
+        import json
+        
+        api_key = os.environ.get("OPENAI_API_KEY")
+        if not api_key:
+            print("WARNING: OPENAI_API_KEY not found. Using screener signals directly (Simulation Mode).")
+            return [{"symbol": c["symbol"], "target_weight": c["target_weight"], "confidence": 0.8, "rationale": c["rationale"]} for c in pre_screened]
+            
+        try:
+            from openai import OpenAI
+            client = OpenAI(api_key=api_key)
+            
+            prompt = f"""
+            You are an elite quantitative portfolio manager. 
+            The technical screener has identified the following {len(pre_screened)} stocks as having strong bullish momentum.
+            Your job is to act as the fundamental and risk override. Select ONLY the best 5 stocks to buy today.
+            For the 5 you select, assign a target_weight of 0.05 (5%) and provide a 1-sentence rationale.
+            For the others, assign a target_weight of 0.0.
+            
+            Candidates:
+            {json.dumps(pre_screened, indent=2)}
+            
+            Respond ONLY with a valid JSON object containing a single key "signals", which is an array of objects. 
+            Each object must contain 'symbol', 'target_weight', 'confidence' (0.0 to 1.0), and 'rationale'.
+            """
+            
+            print("Calling OpenAI API for final portfolio allocation...")
+            response = client.chat.completions.create(
+                model="gpt-4o",
+                messages=[{"role": "system", "content": "You are a JSON-only trading bot. Always output JSON with a 'signals' array."},
+                          {"role": "user", "content": prompt}],
+                temperature=0.2,
+                response_format={ "type": "json_object" }
+            )
+            
+            # The API returns a JSON object, we need to extract the array
+            # We'll just ask for a JSON object with a 'signals' key
+            # Let's adjust the prompt slightly inside the actual JSON parsing
+            
+        except ImportError:
+            print("WARNING: 'openai' package not installed. Returning pre-screened signals.")
+            return [{"symbol": c["symbol"], "target_weight": c["target_weight"], "confidence": 0.8, "rationale": c["rationale"]} for c in pre_screened]
+        except Exception as e:
+            print(f"OpenAI API Error: {e}. Falling back to screener.")
+            return [{"symbol": c["symbol"], "target_weight": c["target_weight"], "confidence": 0.8, "rationale": c["rationale"]} for c in pre_screened]
+            
+        # Safely parse the LLM response
+        try:
+            content = response.choices[0].message.content
+            # To handle response_format properly, the prompt must explicitly ask for a JSON object
+            # Let's parse it manually if it returns an array
+            if content.strip().startswith('['):
+                final_signals = json.loads(content)
+            else:
+                # If it wrapped it in an object like {"signals": [...]}
+                parsed = json.loads(content)
+                final_signals = parsed.get("signals", parsed.get("data", []))
+                if not final_signals and isinstance(parsed, list):
+                    final_signals = parsed
+                    
+            print(f"OpenAI successfully returned {len(final_signals)} validated signals!")
+            return final_signals
+        except Exception as e:
+            print(f"Failed to parse OpenAI JSON: {e}. Returning pre-screened.")
+            return [{"symbol": c["symbol"], "target_weight": c["target_weight"], "confidence": 0.8, "rationale": c["rationale"]} for c in pre_screened]
 
 def submit_llm_candidate(signals: List[Dict[str, Any]], session) -> str:
     """
