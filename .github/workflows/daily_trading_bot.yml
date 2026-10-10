@@ -17,7 +17,6 @@ jobs:
     env:
       PAPER_API_KEY: ${{ secrets.PAPER_API_KEY }}
       PAPER_API_SECRET: ${{ secrets.PAPER_API_SECRET }}
-      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
       # We default to an ephemeral SQLite DB since the bot syncs state from Alpaca
       DATABASE_URL: sqlite:///trading_db.sqlite 
       PYTHONPATH: .
