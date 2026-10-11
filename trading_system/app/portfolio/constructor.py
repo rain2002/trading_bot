@@ -42,8 +42,9 @@ class EqualWeightPortfolioConstructor:
         active_symbols = [sym for sym, sig in signals.items() if sig.get('signal') in (1, -1)]
         hold_symbols = [sym for sym, sig in signals.items() if sig.get('signal') == 'HOLD']
         
-        # Calculate weight only for actively targeted assets
-        weight_per_asset = 1.0 / len(active_symbols) if active_symbols else 0.0
+        # Calculate weight only for actively targeted assets, matching Dynamic Sizing (max 95%, max 15% per stock)
+        total_signals = len(active_symbols)
+        weight_per_asset = min(0.95 / total_signals, 0.15) if total_signals > 0 else 0.0
         
         for symbol in active_symbols:
             direction = signals[symbol]['signal']
