@@ -100,7 +100,7 @@ class QuantEngine:
                 
         return signals
 
-def submit_llm_candidate(signals: List[Dict[str, Any]], session) -> str:
+def submit_quant_candidate(signals: List[Dict[str, Any]], session) -> str:
     """
     Takes the output of the Quant Brain and submits it formally to the Strategy Registry
     as a CANDIDATE. It MUST be picked up by the Walk-Forward Validator next.
@@ -140,6 +140,6 @@ if __name__ == "__main__":
     universe = ["SPY", "QQQ", "GLD"]
     generated_signals = brain.run_nightly_research(universe, datetime.now())
     
-    candidate_id = submit_llm_candidate(generated_signals, db)
+    candidate_id = submit_quant_candidate(generated_signals, db)
     print(f"Quant Brain generated candidate: {candidate_id}")
     print("This candidate is now waiting in the database for the Automated Validation Gate.")

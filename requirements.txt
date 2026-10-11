@@ -15,3 +15,5 @@ openbb
 lxml
 html5lib
 requests
+scipy
+python-dotenv
