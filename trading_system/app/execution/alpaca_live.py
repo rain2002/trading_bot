@@ -35,6 +35,8 @@ class AlpacaExecutionAdapter(ExecutionAdapter):
             "type": "market",
             "time_in_force": "gtc"
         }
+        if order.get("client_order_id"):
+            payload["client_order_id"] = order.get("client_order_id")
         
         # Dry Run Mode (If keys aren't provided, log the intent)
         if not self.api_key or self.api_key == "mock":
@@ -54,8 +56,9 @@ class AlpacaExecutionAdapter(ExecutionAdapter):
             json=payload
         )
         
-        if response.status_code != 200:
+        if response.status_code not in (200, 201):
             logger.error(f"Alpaca Order Failed: {response.text}")
+            print(f" -> Alpaca Order Error ({response.status_code}): {response.text}")
             return {"status": "REJECTED"}
             
         data = response.json()

@@ -46,3 +46,16 @@ class AlpacaBrokerAdapter(BrokerAdapter):
         account = response.json()
         
         return float(account['equity'])
+
+    def get_latest_price(self, symbol: str) -> float:
+        """Fetch latest trade price from Alpaca Market Data API."""
+        if not self.api_key or self.api_key == "mock":
+            return 100.0
+        try:
+            url = f"https://data.alpaca.markets/v2/stocks/{symbol}/trades/latest"
+            resp = requests.get(url, headers=self.headers, timeout=5)
+            if resp.status_code == 200:
+                return float(resp.json()["trade"]["p"])
+        except Exception:
+            pass
+        return 0.0

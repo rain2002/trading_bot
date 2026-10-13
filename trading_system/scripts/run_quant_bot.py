@@ -81,15 +81,13 @@ def execute_quant_live_cycle():
         if target_weight == 'HOLD':
             continue
             
-        current_price = 100.0 # Fallback, ideally fetch from broker or OpenBB
-        # Let's fetch actual current price from broker
-        try:
-            current_price = float(broker.client.get_latest_trade(sym).price)
-        except Exception:
-            # Fallback to OpenBB if broker API differs
+        current_price = broker.get_latest_price(sym)
+        if current_price <= 0:
             df = brain.data_provider.get_data_as_of(sym, datetime.now())
             if not df.empty:
-                current_price = df['close'].iloc[-1]
+                current_price = float(df['close'].iloc[-1])
+            else:
+                current_price = 100.0
                 
         target_value = total_equity * target_weight
         
