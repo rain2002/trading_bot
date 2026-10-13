@@ -27,9 +27,10 @@ class AlpacaExecutionAdapter(ExecutionAdapter):
         side = "buy" if quantity > 0 else "sell"
         abs_qty = abs(quantity)
         
-        # Alpaca V2 Order Payload
+        # Alpaca V2 Order Payload (dual class shares use dots e.g. BRK.B instead of BRK-B)
+        alpaca_symbol = symbol.replace('-', '.')
         payload = {
-            "symbol": symbol,
+            "symbol": alpaca_symbol,
             "qty": str(abs_qty),
             "side": side,
             "type": "market",
