@@ -9,6 +9,9 @@ import os
 import logging
 from typing import List, Dict, Any, Optional
 import requests
+from dotenv import load_dotenv
+
+load_dotenv()
 
 logger = logging.getLogger("QuantNotifier")
 

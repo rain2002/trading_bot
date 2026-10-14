@@ -27,8 +27,14 @@ class Settings(BaseSettings):
     MAX_SINGLE_POSITION: float = Field(default=0.20, description="Max weight for a single ticker")
     MAX_DAILY_LOSS: float = Field(default=0.05, description="Kill switch daily loss threshold (5%)")
 
+    # Notifications (Discord & Telegram)
+    DISCORD_WEBHOOK_URL: Optional[str] = None
+    TELEGRAM_BOT_TOKEN: Optional[str] = None
+    TELEGRAM_CHAT_ID: Optional[str] = None
+
     class Config:
         env_file = ("../.env", ".env")
         env_file_encoding = "utf-8"
+        extra = "ignore"
 
 settings = Settings()
