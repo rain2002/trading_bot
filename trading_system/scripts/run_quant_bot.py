@@ -6,6 +6,7 @@ from trading_system.app.research.quant_engine import QuantEngine, InvestorSkills
 from trading_system.app.broker.alpaca import AlpacaBrokerAdapter
 from trading_system.app.execution.alpaca_live import AlpacaExecutionAdapter
 from trading_system.app.risk.basic import BasicRiskEngine
+from trading_system.app.notifications.notifier import QuantNotifier
 
 logger = logging.getLogger("QUANTBot")
 
@@ -77,6 +78,7 @@ def execute_quant_live_cycle():
             target_weights[open_sym] = 0.0
             
     print("\n[4/4] Routing Orders to Risk Engine & Alpaca...")
+    executed_orders_log = []
     for sym, target_weight in target_weights.items():
         if target_weight == 'HOLD':
             continue
@@ -112,9 +114,25 @@ def execute_quant_live_cycle():
             }
             if risk_engine.evaluate_trade(trade_request, current_positions):
                 execution.submit_order(trade_request)
+                executed_orders_log.append({"symbol": sym, "side": side, "qty": qty_to_trade})
                 print(f" -> EXECUTED: {side} {abs(qty_to_trade)} {sym}")
             else:
                 print(f" -> [RISK HALT] Trade rejected by Risk Engine: {sym} {qty_to_trade}")
+
+    print("\n[5/5] Dispatching Daily Quant Summary Notification...")
+    notifier = QuantNotifier()
+    try:
+        updated_equity = broker.get_account_equity()
+        open_pos_count = len(broker.get_positions())
+        notifier.send_daily_summary(
+            equity=updated_equity,
+            cash=total_equity * 0.05,
+            open_positions_count=open_pos_count,
+            executed_orders=executed_orders_log,
+            regime_info="NORMAL (Dynamic Momentum Active)"
+        )
+    except Exception as e:
+        print(f"Notification dispatch failed: {e}")
                 
     print("\nSUCCESS: QUANT BRAIN EXECUTION CYCLE COMPLETE.")
     print("="*50 + "\n")

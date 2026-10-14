@@ -18,6 +18,9 @@ jobs:
     env:
       PAPER_API_KEY: ${{ secrets.PAPER_API_KEY }}
       PAPER_API_SECRET: ${{ secrets.PAPER_API_SECRET }}
+      DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
       # We default to an ephemeral SQLite DB since the bot syncs state from Alpaca
       DATABASE_URL: sqlite:///trading_db.sqlite 
       PYTHONPATH: .
