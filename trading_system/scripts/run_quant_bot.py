@@ -122,13 +122,17 @@ def execute_quant_live_cycle():
     print("\n[5/5] Dispatching Daily Quant Summary Notification...")
     notifier = QuantNotifier()
     try:
-        updated_equity = broker.get_account_equity()
+        acc_details = broker.get_account_details()
         open_pos_count = len(broker.get_positions())
         notifier.send_daily_summary(
-            equity=updated_equity,
-            cash=total_equity * 0.05,
+            equity=acc_details["equity"],
+            cash=acc_details["cash"],
             open_positions_count=open_pos_count,
             executed_orders=executed_orders_log,
+            today_pnl=acc_details["today_pnl"],
+            today_pnl_pct=acc_details["today_pnl_pct"],
+            overall_pnl=acc_details["overall_pnl"],
+            overall_pnl_pct=acc_details["overall_pnl_pct"],
             regime_info="NORMAL (Dynamic Momentum Active)"
         )
     except Exception as e:

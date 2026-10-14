@@ -61,11 +61,26 @@ class QuantNotifier:
         cash: float,
         open_positions_count: int,
         executed_orders: List[Dict[str, Any]],
+        today_pnl: float = 0.0,
+        today_pnl_pct: float = 0.0,
+        overall_pnl: float = 0.0,
+        overall_pnl_pct: float = 0.0,
         regime_info: str = "NORMAL (Conviction Filter Active)",
     ):
         """
-        Formats and dispatches the daily rebalance report to configured channels.
+        Formats and dispatches the daily rebalance report with Today's Return,
+        Overall Return, and Cash Reserve status to configured channels.
         """
+        # Format today's return indicator
+        today_sign = "+" if today_pnl >= 0 else ""
+        today_emoji = "🟢" if today_pnl >= 0 else "🔴"
+        
+        # Format overall return indicator
+        overall_sign = "+" if overall_pnl >= 0 else ""
+        overall_emoji = "🚀" if overall_pnl >= 0 else "🔻"
+
+        cash_pct = (cash / equity * 100) if equity > 0 else 0.0
+
         # Format executed orders preview
         if executed_orders:
             orders_lines = []
@@ -80,18 +95,21 @@ class QuantNotifier:
         else:
             orders_summary = "  ⚪ No orders required today (Portfolio balanced)"
 
+        # Discord message (Discord Flavored Markdown)
         message = (
             f"🤖 **QUANT BOT DAILY REBALANCE REPORT**\n"
             f"━━━━━━━━━━━━━━━━━━━━\n"
-            f"💰 **Total Portfolio Equity:** ${equity:,.2f}\n"
-            f"💵 **Cash Reserve:** ${cash:,.2f}\n"
+            f"💰 **Total Equity:** ${equity:,.2f}\n"
+            f"📈 **Today's Return:** {today_emoji} {today_sign}${today_pnl:,.2f} ({today_sign}{today_pnl_pct:.2f}%)\n"
+            f"🏆 **Overall Return:** {overall_emoji} {overall_sign}${overall_pnl:,.2f} ({overall_sign}{overall_pnl_pct:.2f}%)\n"
+            f"💵 **Cash Reserve:** ${cash:,.2f} ({cash_pct:.1f}% uninvested buffer)\n"
             f"📊 **Active Holdings:** {open_positions_count} stocks\n"
             f"🛡️ **Regime Status:** {regime_info}\n"
             f"━━━━━━━━━━━━━━━━━━━━\n"
             f"🔄 **Orders Executed Today ({len(executed_orders)}):**\n"
             f"{orders_summary}\n"
             f"━━━━━━━━━━━━━━━━━━━━\n"
-            f"✅ *Autonomous Paper Trading System Active*"
+            f"💡 *Cash Reserve is liquid uninvested cash protecting against drawdowns & ready for fresh breakouts.*"
         )
 
         sent_any = False
@@ -101,19 +119,21 @@ class QuantNotifier:
                 print(" -> Discord alert sent successfully.")
 
         if self.tg_token and self.tg_chat_id:
-            # Telegram uses standard Markdown (avoid raw formatting collision)
+            # Telegram message (Standard Markdown)
             tg_message = (
                 f"🤖 *QUANT BOT DAILY REBALANCE REPORT*\n"
                 f"━━━━━━━━━━━━━━━━━━━━\n"
                 f"💰 *Total Equity:* ${equity:,.2f}\n"
-                f"💵 *Cash Reserve:* ${cash:,.2f}\n"
+                f"📈 *Today's Return:* {today_emoji} {today_sign}${today_pnl:,.2f} ({today_sign}{today_pnl_pct:.2f}%)\n"
+                f"🏆 *Overall Return:* {overall_emoji} {overall_sign}${overall_pnl:,.2f} ({overall_sign}{overall_pnl_pct:.2f}%)\n"
+                f"💵 *Cash Reserve:* ${cash:,.2f} ({cash_pct:.1f}% uninvested buffer)\n"
                 f"📊 *Active Holdings:* {open_positions_count} stocks\n"
                 f"🛡️ *Regime:* {regime_info}\n"
                 f"━━━━━━━━━━━━━━━━━━━━\n"
                 f"🔄 *Orders Executed ({len(executed_orders)}):*\n"
                 f"{orders_summary}\n"
                 f"━━━━━━━━━━━━━━━━━━━━\n"
-                f"✅ _Autonomous Paper Trading System Active_"
+                f"💡 _Cash Reserve is uninvested cash protecting against drawdowns & ready for fresh breakouts._"
             )
             if self.send_telegram_message(tg_message):
                 sent_any = True

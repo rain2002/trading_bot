@@ -47,6 +47,41 @@ class AlpacaBrokerAdapter(BrokerAdapter):
         
         return float(account['equity'])
 
+    def get_account_details(self) -> Dict[str, float]:
+        """Fetch comprehensive account metrics including Today PnL and Overall PnL."""
+        if not self.api_key or self.api_key == "mock":
+            return {
+                "equity": 100000.0,
+                "cash": 10000.0,
+                "today_pnl": 0.0,
+                "today_pnl_pct": 0.0,
+                "overall_pnl": 0.0,
+                "overall_pnl_pct": 0.0,
+            }
+        response = requests.get(f"{self.base_url}/v2/account", headers=self.headers)
+        response.raise_for_status()
+        account = response.json()
+        
+        equity = float(account.get("equity", 100000.0))
+        last_equity = float(account.get("last_equity", equity))
+        cash = float(account.get("cash", 0.0))
+        
+        today_pnl = equity - last_equity
+        today_pnl_pct = (today_pnl / last_equity * 100) if last_equity > 0 else 0.0
+        
+        initial_capital = 100000.0
+        overall_pnl = equity - initial_capital
+        overall_pnl_pct = (overall_pnl / initial_capital * 100)
+        
+        return {
+            "equity": equity,
+            "cash": cash,
+            "today_pnl": today_pnl,
+            "today_pnl_pct": today_pnl_pct,
+            "overall_pnl": overall_pnl,
+            "overall_pnl_pct": overall_pnl_pct,
+        }
+
     def get_latest_price(self, symbol: str) -> float:
         """Fetch latest trade price from Alpaca Market Data API."""
         if not self.api_key or self.api_key == "mock":
