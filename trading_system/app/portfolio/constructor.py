@@ -39,8 +39,15 @@ class EqualWeightPortfolioConstructor:
             return target_weights
         
         # Process active signals (1, -1) and explicit HOLD signals
-        active_symbols = [sym for sym, sig in signals.items() if sig.get('signal') in (1, -1)]
+        raw_active = [sym for sym, sig in signals.items() if sig.get('signal') in (1, -1)]
         hold_symbols = [sym for sym, sig in signals.items() if sig.get('signal') == 'HOLD']
+        
+        # Rank by conviction score / confidence and select Top 25 Leaders
+        active_symbols = sorted(
+            raw_active,
+            key=lambda s: signals[s].get('conviction_score', signals[s].get('confidence', 1.0)),
+            reverse=True
+        )[:25]
         
         # Calculate weight only for actively targeted assets, matching Dynamic Sizing (max 95%, max 15% per stock)
         total_signals = len(active_symbols)

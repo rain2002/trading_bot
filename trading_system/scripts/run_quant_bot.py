@@ -51,21 +51,32 @@ def execute_quant_live_cycle():
     generated_signals = brain.run_nightly_research(universe, datetime.now())
     print(f"QUANT Brain generated {len(generated_signals)} signals based on InvestorSkills heuristics.")
     
-    # --- DYNAMIC SIZING ENGINE ---
+    # --- DYNAMIC SIZING ENGINE WITH TOP-25 CONVICTION FILTER ---
     # Max exposure: 95% of portfolio (leave 5% cash for safety)
     # Max single stock exposure: 15%
+    # Max portfolio holdings: 25 top conviction leaders (concentrates alpha)
+    MAX_HOLDINGS = 25
     target_weights = {}
     if generated_signals:
-        total_signals = len(generated_signals)
-        print(f"Dynamic Sizing Engine active. Distributing capital across {total_signals} valid signals...")
+        # Sort candidates descending by conviction score (Risk-Adjusted Momentum)
+        sorted_signals = sorted(
+            generated_signals,
+            key=lambda s: s.get("conviction_score", s.get("confidence", 0)),
+            reverse=True
+        )
+        selected_signals = sorted_signals[:MAX_HOLDINGS]
+        total_selected = len(selected_signals)
         
-        # Calculate equal weight per signal, capped at 15%
-        calculated_weight = min(0.95 / total_signals, 0.15)
+        print(f"\nDynamic Sizing Engine: Filtered {len(generated_signals)} candidates down to Top {total_selected} Conviction Leaders (Max {MAX_HOLDINGS})...")
         
-        for sig in generated_signals:
+        # Calculate dynamic weight per selected asset, capped at 15%
+        calculated_weight = min(0.95 / total_selected, 0.15)
+        
+        for sig in selected_signals:
             sym = sig["symbol"]
             target_weights[sym] = calculated_weight
-            print(f" -> {sym}: {calculated_weight*100:.1f}% (Confidence: {sig['confidence']}, Rationale: {sig['rationale']})")
+            score = sig.get("conviction_score", 0.0)
+            print(f" -> {sym:<6}: {calculated_weight*100:4.1f}% | Score: {score:>5.2f} ({sig['rationale']})")
     else:
         print("No bullish signals generated today. Moving to 100% Cash.")
     # ----------------------------

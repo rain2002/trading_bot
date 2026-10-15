@@ -43,21 +43,43 @@ class InvestorSkillsHeuristics:
         
         # Bullish Trend: Price > SMA_fast > SMA_slow
         if current_price > sma_fast and sma_fast > sma_slow:
+            # 1. Trend Extension (Distance above trend anchor)
+            trend_extension = (current_price - sma_slow) / sma_slow
+            
+            # 2. 20-Day Velocity / Rate of Change
+            lookback_roc = min(20, len(close_prices) - 1)
+            past_price = close_prices.iloc[-lookback_roc]
+            roc_20 = (current_price - past_price) / past_price if past_price > 0 else 0.0
+            
+            # 3. Volatility / Smoothness Adjustment
+            returns_tail = close_prices.pct_change().tail(20)
+            vol_20 = float(returns_tail.std()) * (252 ** 0.5) if len(returns_tail) > 5 else 0.20
+            
+            # 4. Composite Conviction Score (Risk-Adjusted Momentum)
+            # Rewards explosive + steady upside, penalizes wild erratic chop
+            conviction_score = round(float((roc_20 / (vol_20 + 0.05)) * 0.7 + trend_extension * 0.3), 4)
+            confidence = min(0.99, max(0.70, round(0.75 + conviction_score * 0.05, 2)))
+            
             return {
-                "confidence": 0.85,
-                "rationale": "Strong bullish momentum confirmed by moving averages.",
-                "target_weight": 0.05  # 5% allocation per stock
+                "confidence": confidence,
+                "conviction_score": conviction_score,
+                "trend_extension_pct": round(trend_extension * 100, 2),
+                "roc_20_pct": round(roc_20 * 100, 2),
+                "rationale": f"Bullish Leader: ROC20={roc_20*100:.1f}%, TrendExt={trend_extension*100:.1f}%, Score={conviction_score:.2f}",
+                "target_weight": 0.05  # Base reference
             }
         # Bearish Trend
         elif current_price < sma_fast and sma_fast < sma_slow:
             return {
                 "confidence": 0.20,
+                "conviction_score": -1.0,
                 "rationale": f"Bearish trend detected (Price < {fast_sma_window}SMA < {slow_sma_window}SMA).",
                 "target_weight": 0.0  # Liquidate
             }
         else:
             return {
                 "confidence": 0.50,
+                "conviction_score": 0.0,
                 "rationale": "Sideways chop. Staying out.",
                 "target_weight": 0.0
             }
@@ -95,6 +117,7 @@ class QuantEngine:
                     "symbol": symbol,
                     "target_weight": judgment["target_weight"],
                     "confidence": judgment["confidence"],
+                    "conviction_score": judgment.get("conviction_score", judgment["confidence"]),
                     "rationale": judgment["rationale"]
                 })
                 
