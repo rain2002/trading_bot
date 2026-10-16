@@ -8,10 +8,8 @@ alembic
 pytest
 scikit-learn
 joblib
-psycopg2-binary
 streamlit
 plotly
-openbb
 lxml
 html5lib
 requests

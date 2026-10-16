@@ -16,21 +16,56 @@ class AlpacaBrokerAdapter(BrokerAdapter):
         }
         
     def get_positions(self) -> Dict[str, float]:
-        """Fetch actual positions from the broker."""
-        
-        # If we don't have real keys loaded yet, simulate a broker response.
-        # We will intentionally simulate a MISMATCH from our internal Q1 2025 backtest
-        # to prove the Reconciliation Service properly alerts us.
+        """Fetch actual positions from the broker normalized with '-' for dual-class shares."""
         if not self.api_key or self.api_key == "mock":
-            # Real backtest had: DIA: 115.0, QQQ: -211.0, IWM: -498.0
-            # We mock the broker having different numbers and a random stock (AAPL).
             return {"DIA": 115.0, "QQQ": -200.0, "AAPL": 50.0}
             
         response = requests.get(f"{self.base_url}/v2/positions", headers=self.headers)
         response.raise_for_status()
         positions = response.json()
         
-        return {pos['symbol']: float(pos['qty']) for pos in positions}
+        # Normalize symbol so BRK.B becomes BRK-B (consistent with universe)
+        return {pos['symbol'].replace('.', '-'): float(pos['qty']) for pos in positions}
+
+    def get_positions_detailed(self) -> list:
+        """Fetch detailed positions including unrealized PnL % for stop-loss monitoring."""
+        if not self.api_key or self.api_key == "mock":
+            return []
+        try:
+            response = requests.get(f"{self.base_url}/v2/positions", headers=self.headers)
+            response.raise_for_status()
+            positions = response.json()
+            return [
+                {
+                    "symbol": pos['symbol'].replace('.', '-'),
+                    "raw_symbol": pos['symbol'],
+                    "qty": float(pos['qty']),
+                    "market_value": float(pos.get('market_value', 0.0)),
+                    "avg_entry_price": float(pos.get('avg_entry_price', 0.0)),
+                    "current_price": float(pos.get('current_price', 0.0)),
+                    "unrealized_pl": float(pos.get('unrealized_pl', 0.0)),
+                    "unrealized_plpc": float(pos.get('unrealized_plpc', 0.0)),
+                }
+                for pos in positions
+            ]
+        except Exception:
+            return []
+
+    def get_recent_orders(self, limit: int = 50) -> list:
+        """Fetch recent order executions directly from Alpaca."""
+        if not self.api_key or self.api_key == "mock":
+            return []
+        try:
+            response = requests.get(
+                f"{self.base_url}/v2/orders?status=all&limit={limit}",
+                headers=self.headers,
+                timeout=8
+            )
+            if response.status_code == 200:
+                return response.json()
+        except Exception:
+            pass
+        return []
 
     def get_order_status(self, order_id: str) -> str:
         """Fetch true order status from the broker."""
@@ -87,7 +122,8 @@ class AlpacaBrokerAdapter(BrokerAdapter):
         if not self.api_key or self.api_key == "mock":
             return 100.0
         try:
-            url = f"https://data.alpaca.markets/v2/stocks/{symbol}/trades/latest"
+            alpaca_sym = symbol.replace('-', '.')
+            url = f"https://data.alpaca.markets/v2/stocks/{alpaca_sym}/trades/latest"
             resp = requests.get(url, headers=self.headers, timeout=5)
             if resp.status_code == 200:
                 return float(resp.json()["trade"]["p"])

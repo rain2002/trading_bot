@@ -19,10 +19,10 @@ def run_optimization():
     
     provider = YFinanceDataProvider()
     
-    # We will optimize against the SPY ETF as a proxy for the S&P 500 trend
-    # over the last 180 days to capture the current market regime.
+    # We optimize against SPY over 252 trading days (1 full market year)
+    # to capture robust macro regimes, fetching 2 years to warm up slow SMAs.
     end_date = datetime.now()
-    start_date = end_date - timedelta(days=365) # Fetch 1 year to have enough data for 150 SMA
+    start_date = end_date - timedelta(days=730)
     
     print(f"Fetching data for SPY from {start_date.date()} to {end_date.date()}...")
     df = provider.fetch_historical_data("SPY", start_date, end_date)
@@ -32,9 +32,10 @@ def run_optimization():
         return
         
     best_params = {"fast_sma": 20, "slow_sma": 50}
-    best_return = -999.0
+    best_score = -999.0
+    best_return = 0.0
     
-    print("Starting parameter grid search...")
+    print("Starting parameter grid search across 252 trading days...")
     
     # Backtest logic: simple moving average crossover
     for fast in fast_sma_options:
@@ -50,10 +51,10 @@ def run_optimization():
             # Drop NaN rows where SMAs haven't populated yet
             test_df = test_df.dropna()
             
-            # Restrict the backtest to the most recent 90 days of actual trading
-            test_df = test_df.tail(90)
+            # Restrict the backtest to the most recent 252 trading days (1 full market year)
+            test_df = test_df.tail(252)
             
-            if test_df.empty:
+            if len(test_df) < 200:
                 continue
                 
             # Signal: 1 if Price > SMA_Fast > SMA_Slow, else 0
@@ -63,18 +64,24 @@ def run_optimization():
             
             # Calculate strategy returns
             test_df['strategy_return'] = test_df['signal'] * test_df['daily_return']
-            total_return = test_df['strategy_return'].sum() * 100 # In percentage
+            strat_returns = test_df['strategy_return'].dropna()
             
-            print(f"  Tested Fast: {fast:02d} | Slow: {slow:03d} -> 90-Day Return: {total_return:6.2f}%")
+            total_return = strat_returns.sum() * 100 # In percentage
+            vol = float(strat_returns.std()) * (252 ** 0.5) * 100 if len(strat_returns) > 10 else 1.0
+            # Risk-adjusted score (Sharpe proxy)
+            risk_adj_score = (total_return / (vol + 0.01))
             
-            if total_return > best_return:
+            print(f"  Tested Fast: {fast:02d} | Slow: {slow:03d} -> 252-Day Return: {total_return:6.2f}% | Vol: {vol:5.1f}% | Score: {risk_adj_score:5.2f}")
+            
+            if risk_adj_score > best_score:
+                best_score = risk_adj_score
                 best_return = total_return
                 best_params = {"fast_sma": fast, "slow_sma": slow}
                 
     print("\n" + "="*50)
     print(f"OPTIMIZATION COMPLETE.")
     print(f"Current Regime Best Parameters: Fast {best_params['fast_sma']}, Slow {best_params['slow_sma']}")
-    print(f"Simulated 90-Day Return: {best_return:.2f}%")
+    print(f"Simulated 252-Day Return: {best_return:.2f}% (Risk-Adjusted Score: {best_score:.2f})")
     print("="*50)
     
     # Save to config file
