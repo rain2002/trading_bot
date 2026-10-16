@@ -1,5 +1,11 @@
+import sys
+import os
 from datetime import datetime, timedelta
 import logging
+
+# Ensure project root is in sys.path
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
+
 from trading_system.app.config.settings import settings
 from trading_system.app.research.quant_engine import QuantEngine, InvestorSkillsHeuristics
 from trading_system.app.broker.alpaca import AlpacaBrokerAdapter
