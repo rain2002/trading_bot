@@ -6,6 +6,11 @@ import logging
 # Ensure project root is in sys.path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
 
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8")
+if hasattr(sys.stderr, "reconfigure"):
+    sys.stderr.reconfigure(encoding="utf-8")
+
 from trading_system.app.config.settings import settings
 from trading_system.app.research.quant_engine import QuantEngine, InvestorSkillsHeuristics
 from trading_system.app.broker.alpaca import AlpacaBrokerAdapter
@@ -77,10 +82,10 @@ def execute_quant_live_cycle():
         "UNKNOWN":       0.50,  # Cautious default
     }
     MAX_EXPOSURE = REGIME_EXPOSURE.get(regime, 0.50)
-    print(f"  Regime: {regime} → Max Portfolio Exposure: {MAX_EXPOSURE*100:.0f}%")
+    print(f"  Regime: {regime} -> Max Portfolio Exposure: {MAX_EXPOSURE*100:.0f}%")
 
     if regime == "CRASH_WARNING":
-        print("  ⚠️  CRASH WARNING: Moving to 100% cash. No new buys.")
+        print("  [CRASH WARNING] Moving to 100% cash. No new buys.")
 
     # --- STOP-LOSS ENGINE (-8% Max Loss per Position) ---
     print("\n[2c/4] Checking Open Positions for Hard Stop-Loss (-8%)...")
@@ -91,7 +96,7 @@ def execute_quant_live_cycle():
             sym = pos["symbol"]
             plpc = pos.get("unrealized_plpc", 0.0)
             if plpc <= -0.08:
-                print(f"  🛑 [STOP-LOSS] {sym} is down {plpc*100:.2f}% (Limit: -8.0%). Forcing full liquidation.")
+                print(f"  [STOP-LOSS] {sym} is down {plpc*100:.2f}% (Limit: -8.0%). Forcing full liquidation.")
                 stop_loss_liquidations.add(sym)
     except Exception as e:
         print(f"  Stop-loss check encountered error: {e}")
