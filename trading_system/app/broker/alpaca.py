@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Dict, Any, Optional, List
 from trading_system.app.common.interfaces import BrokerAdapter
 import requests
 
@@ -162,3 +162,26 @@ class AlpacaBrokerAdapter(BrokerAdapter):
         except Exception:
             pass
         return 0.0
+
+    def get_portfolio_history(self, period: str = "1M", timeframe: str = "1D") -> Any:
+        """Fetch historical equity curve for the account directly from Alpaca."""
+        if not self.api_key or self.api_key == "mock":
+            return None
+        try:
+            import pandas as pd
+            from datetime import datetime
+            url = f"{self.base_url}/v2/account/portfolio/history?period={period}&timeframe={timeframe}"
+            resp = requests.get(url, headers=self.headers, timeout=10)
+            if resp.status_code == 200:
+                data = resp.json()
+                timestamps = [datetime.fromtimestamp(ts) for ts in data.get("timestamp", [])]
+                df = pd.DataFrame({
+                    "timestamp": timestamps,
+                    "equity": data.get("equity", []),
+                    "profit_loss": data.get("profit_loss", []),
+                    "profit_loss_pct": data.get("profit_loss_pct", [])
+                }).dropna()
+                return df
+        except Exception:
+            pass
+        return None
