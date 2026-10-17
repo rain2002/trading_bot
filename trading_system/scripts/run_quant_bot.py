@@ -141,6 +141,7 @@ def execute_quant_live_cycle():
     executed_orders_log = []
     run_timestamp_tag = datetime.now().strftime('%Y%m%d_%H%M')
     
+    planned_trades = []
     for sym, target_weight in target_weights.items():
         if target_weight == 'HOLD':
             continue
@@ -173,26 +174,57 @@ def execute_quant_live_cycle():
         
         if qty_to_trade != 0:
             side = "BUY" if qty_to_trade > 0 else "SELL"
-            import hashlib
-            order_hash_base = f"QUANT_{run_timestamp_tag}_{sym}_{side}_{abs(qty_to_trade)}"
-            deterministic_id = f"Q-{hashlib.md5(order_hash_base.encode()).hexdigest()[:14]}"
-            
-            trade_request = {
-                "client_order_id": deterministic_id,
+            planned_trades.append({
                 "symbol": sym,
                 "quantity": qty_to_trade,
                 "side": side,
                 "price_hint": current_price
-            }
-            if risk_engine.evaluate_trade(trade_request, current_positions, total_equity=total_equity):
-                result = execution.submit_order(trade_request)
-                if result.get("status") in ("SUBMITTED", "FILLED"):
-                    executed_orders_log.append({"symbol": sym, "side": side, "qty": abs(qty_to_trade)})
-                    print(f" -> EXECUTED: {side} {abs(qty_to_trade)} {sym}")
+            })
+            
+    # INSTITUTIONAL ROUTING: Prioritize SELLS before BUYS
+    # Liquidating/trimming first frees capital, eliminates margin deficits, and reduces exposure
+    planned_trades.sort(key=lambda t: 0 if t["side"] == "SELL" else 1)
+    
+    # Track current invested dollar value in real time
+    try:
+        detailed_positions = broker.get_positions_detailed()
+        current_invested_value = sum(float(p.get("market_value", 0.0)) for p in detailed_positions)
+    except Exception:
+        current_invested_value = sum(abs(qty) * broker.get_latest_price(s) for s, qty in current_positions.items())
+
+    for trade in planned_trades:
+        sym = trade["symbol"]
+        qty_to_trade = trade["quantity"]
+        side = trade["side"]
+        current_price = trade["price_hint"]
+        
+        import hashlib
+        order_hash_base = f"QUANT_{run_timestamp_tag}_{sym}_{side}_{abs(qty_to_trade)}"
+        deterministic_id = f"Q-{hashlib.md5(order_hash_base.encode()).hexdigest()[:14]}"
+        
+        trade_request = {
+            "client_order_id": deterministic_id,
+            "symbol": sym,
+            "quantity": qty_to_trade,
+            "side": side,
+            "price_hint": current_price
+        }
+        if risk_engine.evaluate_trade(trade_request, current_positions, total_equity=total_equity, current_invested_value=current_invested_value):
+            result = execution.submit_order(trade_request)
+            if result.get("status") in ("SUBMITTED", "FILLED"):
+                executed_orders_log.append({"symbol": sym, "side": side, "qty": abs(qty_to_trade)})
+                print(f" -> EXECUTED: {side} {abs(qty_to_trade)} {sym}")
+                # Dynamically update position state & invested value for subsequent orders
+                if side == "SELL":
+                    current_invested_value = max(0.0, current_invested_value - (abs(qty_to_trade) * current_price))
+                    current_positions[sym] = max(0.0, current_positions.get(sym, 0.0) - abs(qty_to_trade))
                 else:
-                    print(f" -> [BROKER REJECT] Order failed for {sym}: {result.get('error', result.get('status'))}")
+                    current_invested_value += abs(qty_to_trade) * current_price
+                    current_positions[sym] = current_positions.get(sym, 0.0) + abs(qty_to_trade)
             else:
-                print(f" -> [RISK HALT] Trade rejected by Risk Engine: {sym} {qty_to_trade}")
+                print(f" -> [BROKER REJECT] Order failed for {sym}: {result.get('error', result.get('status'))}")
+        else:
+            print(f" -> [RISK HALT] Trade rejected by Risk Engine: {sym} {qty_to_trade}")
 
     print("\n[5/5] Dispatching Daily Quant Summary Notification...")
     notifier = QuantNotifier()

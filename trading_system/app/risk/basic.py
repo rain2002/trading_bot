@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Optional
 from trading_system.app.common.interfaces import RiskEngine
 
 
@@ -14,6 +14,7 @@ class BasicRiskEngine(RiskEngine):
       trade_request: dict with keys 'symbol', 'quantity', 'price_hint'
       portfolio_state: dict of {symbol: current_qty}
       total_equity: float — current portfolio value in dollars
+      current_invested_value: Optional[float] — exact total dollar value invested across holdings
     """
 
     def __init__(
@@ -29,6 +30,7 @@ class BasicRiskEngine(RiskEngine):
         trade_request: Any,
         portfolio_state: Any,
         total_equity: float = 100_000.0,
+        current_invested_value: Optional[float] = None,
     ) -> bool:
         """
         Rejects a trade if it would push any single position above max_position_pct
@@ -67,9 +69,12 @@ class BasicRiskEngine(RiskEngine):
             return False
 
         # 2. Total portfolio exposure limit
-        total_current_exposure = sum(
-            abs(qty) * price_hint for sym, qty in portfolio_state.items() if sym != symbol
-        ) + new_dollar_exposure
+        if current_invested_value is not None:
+            total_current_exposure = current_invested_value + (proposed_quantity * price_hint)
+        else:
+            total_current_exposure = sum(
+                abs(qty) * price_hint for sym, qty in portfolio_state.items() if sym != symbol
+            ) + new_dollar_exposure
         max_portfolio_dollar = total_equity * self.max_portfolio_pct
 
         if total_current_exposure > max_portfolio_dollar:
