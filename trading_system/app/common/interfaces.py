@@ -28,6 +28,10 @@ class Strategy(ABC):
         """Generate trading signals strictly based on point-in-time data."""
         pass
 
+    def generate_signal(self, point_in_time_data: Any) -> Any:
+        """Single-asset compatibility hook."""
+        return self.generate_signals(point_in_time_data)
+
 class Portfolio(ABC):
     @abstractmethod
     def update_position(self, symbol: str, quantity: float, price: float) -> None:
@@ -41,7 +45,7 @@ class Portfolio(ABC):
 
 class RiskEngine(ABC):
     @abstractmethod
-    def evaluate_trade(self, trade_request: Any, portfolio_state: Any) -> bool:
+    def evaluate_trade(self, trade_request: Any, portfolio_state: Any, total_equity: float = 100000.0) -> bool:
         """Return True if the trade passes all risk and exposure limits, else False."""
         pass
 
@@ -70,7 +74,7 @@ class BrokerAdapter(ABC):
 
 class ReconciliationService(ABC):
     @abstractmethod
-    def reconcile(self, internal_state: Any, broker_state: Any) -> bool:
+    def reconcile(self, internal_state: Any = None, broker_state: Any = None) -> bool:
         """Compare internal positions/orders against broker state and halt if mismatched."""
         pass
 

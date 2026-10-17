@@ -33,10 +33,18 @@ class QuantitativePerformanceAnalyzer(PerformanceAnalyzer):
         metrics["Total_Return_%"] = round(total_return * 100, 2)
         
         # 2. Annualized Return (Assuming 252 trading days)
-        days = (equity_curve.index[-1] - equity_curve.index[0]).days
+        if isinstance(equity_curve.index, pd.DatetimeIndex):
+            days = (equity_curve.index[-1] - equity_curve.index[0]).days
+        elif hasattr(equity_curve.index[-1] - equity_curve.index[0], 'days'):
+            days = (equity_curve.index[-1] - equity_curve.index[0]).days
+        else:
+            days = len(equity_curve) * (365.25 / 252.0)
+            
         years = days / 365.25 if days > 0 else 0
-        if years > 0:
-            ann_return = (1 + total_return) ** (1 / years) - 1
+        if years > 0 and total_return > -1.0:
+            ann_return = (1.0 + total_return) ** (1.0 / years) - 1.0
+        elif total_return <= -1.0:
+            ann_return = -1.0
         else:
             ann_return = 0.0
         metrics["Annualized_Return_%"] = round(ann_return * 100, 2)

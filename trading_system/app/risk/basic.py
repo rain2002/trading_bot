@@ -39,18 +39,23 @@ class BasicRiskEngine(RiskEngine):
         proposed_quantity = trade_request.get("quantity", 0)
         price_hint = trade_request.get("price_hint", 0.0)
 
-        # Sells reduce exposure — never block them
-        if proposed_quantity < 0:
-            return True
-
-        # Cannot evaluate without a price; skip rather than block
-        if price_hint <= 0:
-            return True
-
         current_qty = portfolio_state.get(symbol, 0.0)
+        
+        # Sells: allow closing/reducing long positions, but block unvetted short sales
+        if proposed_quantity < 0:
+            if current_qty + proposed_quantity < -1e-6:
+                print(f"   [RISK BLOCK] {symbol}: Short selling not permitted in long-only mode.")
+                return False
+            return True
+
+        # Buy orders require valid price hint for exposure calculation
+        if price_hint <= 0:
+            print(f"   [RISK BLOCK] {symbol}: Cannot vet trade without valid price_hint ({price_hint}).")
+            return False
+
+        # 1. Single-stock position limit
         new_qty = current_qty + proposed_quantity
         new_dollar_exposure = abs(new_qty) * price_hint
-
         max_dollar_allowed = total_equity * self.max_position_pct
 
         if new_dollar_exposure > max_dollar_allowed:
@@ -58,6 +63,19 @@ class BasicRiskEngine(RiskEngine):
                 f"   [RISK BLOCK] {symbol}: proposed exposure ${new_dollar_exposure:,.0f} "
                 f"> max allowed ${max_dollar_allowed:,.0f} "
                 f"({self.max_position_pct*100:.0f}% of ${total_equity:,.0f})"
+            )
+            return False
+
+        # 2. Total portfolio exposure limit
+        total_current_exposure = sum(
+            abs(qty) * price_hint for sym, qty in portfolio_state.items() if sym != symbol
+        ) + new_dollar_exposure
+        max_portfolio_dollar = total_equity * self.max_portfolio_pct
+
+        if total_current_exposure > max_portfolio_dollar:
+            print(
+                f"   [RISK BLOCK] {symbol}: Total portfolio exposure ${total_current_exposure:,.0f} "
+                f"exceeds ceiling ${max_portfolio_dollar:,.0f} ({self.max_portfolio_pct*100:.0f}%)"
             )
             return False
 

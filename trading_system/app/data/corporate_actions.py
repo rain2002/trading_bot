@@ -31,26 +31,20 @@ class CorporateActionProcessor:
         df['stock splits'] = df['stock splits'].fillna(0)
         
         # Calculate Split Factor (walking backwards)
-        # If a 2:1 split happens today, all historical prices before today must be divided by 2.
-        # So the split factor for history is 0.5
-        # yfinance reports 'stock splits' as the ratio (e.g., 2.0 for 2:1 split)
-        # We replace 0s with 1s so cumprod works safely
-        split_ratios = df['stock splits'].replace(0.0, 1.0)
-        
-        # To adjust historical prices backwards, we take the reverse cumulative product
-        # but we shift it because the split applies to the prices *before* the ex-date.
-        split_factor = split_ratios.iloc[::-1].cumprod().iloc[::-1]
+        # If a 2:1 split happens today (ratio = 2.0), historical prices prior to today must be halved (* 0.5).
+        # We invert the split ratio (1.0 / ratio) and shift(-1) so that the split applies strictly to days *before* the ex-date.
+        inv_split_ratios = df['stock splits'].apply(lambda r: 1.0 / r if (pd.notnull(r) and r > 0) else 1.0)
+        shifted_inv_splits = inv_split_ratios.shift(-1, fill_value=1.0)
+        split_factor = shifted_inv_splits.iloc[::-1].cumprod().iloc[::-1]
         
         # We also need to adjust for dividends. 
         # (Close - Dividend) / Close gives the ratio drop caused by the dividend.
         # This requires the raw close price of the day BEFORE the dividend.
         prev_close = df['close'].shift(1)
-        div_yield = df['dividends'] / prev_close
-        div_yield = div_yield.fillna(0)
-        
-        # Dividend factor multiplier
-        div_multiplier = 1.0 - div_yield
-        div_factor = div_multiplier.iloc[::-1].cumprod().iloc[::-1]
+        div_yield = (df['dividends'] / prev_close).fillna(0.0)
+        div_multiplier = (1.0 - div_yield).clip(lower=0.0, upper=1.0)
+        shifted_div_multiplier = div_multiplier.shift(-1, fill_value=1.0)
+        div_factor = shifted_div_multiplier.iloc[::-1].cumprod().iloc[::-1]
         
         # Total Adjustment Factor
         df['adj_factor'] = split_factor * div_factor
@@ -60,7 +54,7 @@ class CorporateActionProcessor:
         df['adj_high'] = df['high'] * df['adj_factor']
         df['adj_low'] = df['low'] * df['adj_factor']
         df['adj_close'] = df['close'] * df['adj_factor']
-        df['adj_volume'] = df['volume'] / df['adj_factor']
+        df['adj_volume'] = df['volume'] / df['adj_factor'].replace(0.0, 1.0)
         
         logger.info(f"Calculated corporate action adjustment factors for {len(df)} rows.")
         return df

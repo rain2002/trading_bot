@@ -22,22 +22,30 @@ class AlpacaExecutionAdapter(ExecutionAdapter):
     def submit_order(self, order: Any) -> Any:
         symbol = order.get("symbol")
         quantity = order.get("quantity")
-        
-        # Determine side
-        side = "buy" if quantity > 0 else "sell"
+        if not symbol or not quantity:
+            return {"status": "REJECTED", "reason": "Missing symbol or zero quantity"}
+            
         abs_qty = abs(quantity)
+        if abs_qty == 0:
+            return {"status": "REJECTED", "reason": "Zero quantity"}
+            
+        # Determine side (support explicit side or infer from sign)
+        if "side" in order:
+            side = str(order["side"]).lower()
+        else:
+            side = "buy" if quantity > 0 else "sell"
         
-        # Alpaca V2 Order Payload (dual class shares use dots e.g. BRK.B instead of BRK-B)
+        # Alpaca V2 Order Payload: market orders strictly require time_in_force = "day"
         alpaca_symbol = symbol.replace('-', '.')
         payload = {
             "symbol": alpaca_symbol,
             "qty": str(abs_qty),
             "side": side,
             "type": "market",
-            "time_in_force": "gtc"
+            "time_in_force": "day"
         }
         if order.get("client_order_id"):
-            payload["client_order_id"] = order.get("client_order_id")
+            payload["client_order_id"] = str(order.get("client_order_id"))
         
         # Dry Run Mode (If keys aren't provided, log the intent)
         if not self.api_key or self.api_key == "mock":
@@ -45,22 +53,28 @@ class AlpacaExecutionAdapter(ExecutionAdapter):
             return {
                 "status": "FILLED",
                 "order_id": str(uuid.uuid4()),
-                "filled_quantity": quantity,
+                "filled_quantity": abs_qty if side == "buy" else -abs_qty,
                 "fill_price": order.get("price_hint", 0.0)
             }
             
         logger.info(f"Routing real live order to Alpaca: {side.upper()} {abs_qty} {symbol}")
         
-        response = requests.post(
-            f"{self.base_url}/v2/orders",
-            headers=self.headers,
-            json=payload
-        )
+        try:
+            response = requests.post(
+                f"{self.base_url}/v2/orders",
+                headers=self.headers,
+                json=payload,
+                timeout=10
+            )
+        except requests.exceptions.RequestException as e:
+            logger.error(f"Alpaca Order Network Error: {e}")
+            print(f" -> Alpaca Network Error: {e}")
+            return {"status": "NETWORK_ERROR", "error": str(e)}
         
         if response.status_code not in (200, 201):
-            logger.error(f"Alpaca Order Failed: {response.text}")
+            logger.error(f"Alpaca Order Failed ({response.status_code}): {response.text}")
             print(f" -> Alpaca Order Error ({response.status_code}): {response.text}")
-            return {"status": "REJECTED"}
+            return {"status": "REJECTED", "error": response.text}
             
         data = response.json()
         

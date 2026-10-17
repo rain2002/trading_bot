@@ -56,27 +56,27 @@ def run_optimization():
             # Drop NaN rows where SMAs haven't populated yet
             test_df = test_df.dropna()
             
-            # Restrict the backtest to the most recent 252 trading days (1 full market year)
-            test_df = test_df.tail(252)
+            # Calculate daily returns and signals on full series before windowing
+            test_df['daily_return'] = test_df['close'].pct_change()
+            # Signal: 1 if Price > SMA_Fast > SMA_Slow, else 0 (shifted by 1 to prevent lookahead)
+            test_df['signal'] = ((test_df['close'] > test_df['sma_fast']) & (test_df['sma_fast'] > test_df['sma_slow'])).astype(int).shift(1)
+            test_df['strategy_return'] = test_df['signal'] * test_df['daily_return']
             
-            if len(test_df) < 200:
+            # Restrict the backtest evaluation to the most recent 252 trading days (1 full market year)
+            eval_df = test_df.dropna().tail(252)
+            
+            if len(eval_df) < 200:
                 continue
                 
-            # Signal: 1 if Price > SMA_Fast > SMA_Slow, else 0
-            # Shift by 1 to prevent lookahead bias (trade on next day's open)
-            test_df['signal'] = ((test_df['close'] > test_df['sma_fast']) & (test_df['sma_fast'] > test_df['sma_slow'])).astype(int).shift(1)
-            test_df['daily_return'] = test_df['close'].pct_change()
+            strat_returns = eval_df['strategy_return']
             
-            # Calculate strategy returns
-            test_df['strategy_return'] = test_df['signal'] * test_df['daily_return']
-            strat_returns = test_df['strategy_return'].dropna()
-            
-            total_return = strat_returns.sum() * 100 # In percentage
-            vol = float(strat_returns.std()) * (252 ** 0.5) * 100 if len(strat_returns) > 10 else 1.0
+            # Compounded geometric cumulative return (1 + r).prod() - 1
+            total_return = float(((1.0 + strat_returns).prod() - 1.0) * 100)
+            vol = float(strat_returns.std() * (252 ** 0.5) * 100) if len(strat_returns) > 10 else 1.0
             # Risk-adjusted score (Sharpe proxy)
             risk_adj_score = (total_return / (vol + 0.01))
             
-            print(f"  Tested Fast: {fast:02d} | Slow: {slow:03d} -> 252-Day Return: {total_return:6.2f}% | Vol: {vol:5.1f}% | Score: {risk_adj_score:5.2f}")
+            print(f"  Tested Fast: {fast:02d} | Slow: {slow:03d} -> 252-Day Compounded Return: {total_return:6.2f}% | Vol: {vol:5.1f}% | Score: {risk_adj_score:5.2f}")
             
             if risk_adj_score > best_score:
                 best_score = risk_adj_score

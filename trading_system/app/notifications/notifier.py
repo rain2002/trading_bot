@@ -13,6 +13,8 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+from trading_system.app.config.settings import settings
+
 logger = logging.getLogger("QuantNotifier")
 
 
@@ -27,9 +29,21 @@ class QuantNotifier:
         telegram_bot_token: Optional[str] = None,
         telegram_chat_id: Optional[str] = None,
     ):
-        self.discord_url = discord_webhook_url or os.getenv("DISCORD_WEBHOOK_URL")
-        self.tg_token = telegram_bot_token or os.getenv("TELEGRAM_BOT_TOKEN")
-        self.tg_chat_id = telegram_chat_id or os.getenv("TELEGRAM_CHAT_ID")
+        self.discord_url = (
+            discord_webhook_url
+            or getattr(settings, "DISCORD_WEBHOOK_URL", None)
+            or os.getenv("DISCORD_WEBHOOK_URL")
+        )
+        self.tg_token = (
+            telegram_bot_token
+            or getattr(settings, "TELEGRAM_BOT_TOKEN", None)
+            or os.getenv("TELEGRAM_BOT_TOKEN")
+        )
+        self.tg_chat_id = (
+            telegram_chat_id
+            or getattr(settings, "TELEGRAM_CHAT_ID", None)
+            or os.getenv("TELEGRAM_CHAT_ID")
+        )
 
     def send_discord_message(self, content: str) -> bool:
         if not self.discord_url:
@@ -122,7 +136,9 @@ class QuantNotifier:
                 print(" -> Discord alert sent successfully.")
 
         if self.tg_token and self.tg_chat_id:
-            # Telegram message (Standard Markdown)
+            # Telegram message (Standard Markdown - sanitize underscores to prevent 400 Bad Request)
+            tg_regime = str(regime_info).replace('_', ' ')
+            tg_orders = str(orders_summary).replace('_', ' ')
             tg_message = (
                 f"🤖 *QUANT BOT DAILY REBALANCE REPORT*\n"
                 f"━━━━━━━━━━━━━━━━━━━━\n"
@@ -131,12 +147,12 @@ class QuantNotifier:
                 f"🏆 *Overall Return:* {overall_emoji} {overall_sign}${overall_pnl:,.2f} ({overall_sign}{overall_pnl_pct:.2f}%)\n"
                 f"💵 *Cash Reserve:* ${cash:,.2f} ({cash_pct:.1f}% uninvested buffer)\n"
                 f"📊 *Active Holdings:* {open_positions_count} stocks\n"
-                f"🛡️ *Regime:* {regime_info}\n"
+                f"🛡️ *Regime:* {tg_regime}\n"
                 f"━━━━━━━━━━━━━━━━━━━━\n"
                 f"🔄 *Orders Executed ({len(executed_orders)}):*\n"
-                f"{orders_summary}\n"
+                f"{tg_orders}\n"
                 f"━━━━━━━━━━━━━━━━━━━━\n"
-                f"💡 _Cash Reserve is uninvested cash protecting against drawdowns & ready for fresh breakouts._"
+                f"💡 _Cash Reserve is uninvested cash protecting against drawdowns and ready for fresh breakouts._"
             )
             if self.send_telegram_message(tg_message):
                 sent_any = True

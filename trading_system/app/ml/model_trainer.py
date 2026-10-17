@@ -65,11 +65,13 @@ class QuantMLTrainer:
         acc = accuracy_score(y_test, preds_test)
         prec = precision_score(y_test, preds_test, zero_division=0)
 
-        # Calculate actual simulated trading return on test set
-        # When model predicts BUY (1), take the forward return; else stay 0 (cash)
-        strategy_returns = preds_test * test_returns
-        cum_strategy_return = (1 + strategy_returns).prod() - 1.0
-        cum_buy_and_hold = (1 + test_returns).prod() - 1.0
+        # Calculate simulated trading return on test set
+        # Sample non-overlapping 5-day intervals to avoid compounding overlapping forward return windows
+        non_overlap_idx = np.arange(0, len(test_returns), 5)
+        strategy_returns_no = (preds_test * test_returns).iloc[non_overlap_idx]
+        buy_hold_no = test_returns.iloc[non_overlap_idx]
+        cum_strategy_return = float((1.0 + strategy_returns_no).prod() - 1.0)
+        cum_buy_and_hold = float((1.0 + buy_hold_no).prod() - 1.0)
 
         # Feature importances
         importances = self.model.feature_importances_

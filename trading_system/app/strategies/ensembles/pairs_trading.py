@@ -121,6 +121,6 @@ class StatisticalPairsStrategy:
             "pair": f"{symbol_a}/{symbol_b}",
             "z_score": round(curr_z, 2),
             "action": "HOLD_NEUTRAL",
-            "allocations": {symbol_a: 0.0, symbol_b: 0.0},
-            "rationale": f"Z-Score={curr_z:.2f} inside neutral corridor.",
+            "allocations": {symbol_a: "HOLD", symbol_b: "HOLD"},
+            "rationale": f"Z-Score={curr_z:.2f} inside neutral corridor. Maintaining existing pair positions.",
         }

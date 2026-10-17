@@ -20,7 +20,7 @@ class AlpacaBrokerAdapter(BrokerAdapter):
         if not self.api_key or self.api_key == "mock":
             return {"DIA": 115.0, "QQQ": -200.0, "AAPL": 50.0}
             
-        response = requests.get(f"{self.base_url}/v2/positions", headers=self.headers)
+        response = requests.get(f"{self.base_url}/v2/positions", headers=self.headers, timeout=10)
         response.raise_for_status()
         positions = response.json()
         
@@ -32,7 +32,7 @@ class AlpacaBrokerAdapter(BrokerAdapter):
         if not self.api_key or self.api_key == "mock":
             return []
         try:
-            response = requests.get(f"{self.base_url}/v2/positions", headers=self.headers)
+            response = requests.get(f"{self.base_url}/v2/positions", headers=self.headers, timeout=10)
             response.raise_for_status()
             positions = response.json()
             return [
@@ -67,20 +67,40 @@ class AlpacaBrokerAdapter(BrokerAdapter):
             pass
         return []
 
+    def cancel_all_orders(self) -> bool:
+        """Cancel all open/pending orders on Alpaca to prevent wash trades and duplicate fills."""
+        if not self.api_key or self.api_key == "mock":
+            return True
+        try:
+            resp = requests.delete(f"{self.base_url}/v2/orders", headers=self.headers, timeout=10)
+            return resp.status_code in (200, 204, 207)
+        except Exception:
+            return False
+
     def get_order_status(self, order_id: str) -> str:
         """Fetch true order status from the broker."""
-        return "FILLED"
+        if not self.api_key or self.api_key == "mock":
+            return "FILLED"
+        try:
+            resp = requests.get(f"{self.base_url}/v2/orders/{order_id}", headers=self.headers, timeout=8)
+            if resp.status_code == 200:
+                return resp.json().get("status", "UNKNOWN").upper()
+        except Exception:
+            pass
+        return "UNKNOWN"
 
     def get_account_equity(self) -> float:
         """Fetch total portfolio value (cash + long - short)."""
         if not self.api_key or self.api_key == "mock":
             return 100000.0
             
-        response = requests.get(f"{self.base_url}/v2/account", headers=self.headers)
-        response.raise_for_status()
-        account = response.json()
-        
-        return float(account['equity'])
+        try:
+            response = requests.get(f"{self.base_url}/v2/account", headers=self.headers, timeout=10)
+            response.raise_for_status()
+            account = response.json()
+            return float(account['equity'])
+        except Exception:
+            return 100000.0
 
     def get_account_details(self) -> Dict[str, float]:
         """Fetch comprehensive account metrics including Today PnL and Overall PnL."""
@@ -93,40 +113,52 @@ class AlpacaBrokerAdapter(BrokerAdapter):
                 "overall_pnl": 0.0,
                 "overall_pnl_pct": 0.0,
             }
-        response = requests.get(f"{self.base_url}/v2/account", headers=self.headers)
-        response.raise_for_status()
-        account = response.json()
-        
-        equity = float(account.get("equity", 100000.0))
-        last_equity = float(account.get("last_equity", equity))
-        cash = float(account.get("cash", 0.0))
-        
-        today_pnl = equity - last_equity
-        today_pnl_pct = (today_pnl / last_equity * 100) if last_equity > 0 else 0.0
-        
-        initial_capital = 100000.0
-        overall_pnl = equity - initial_capital
-        overall_pnl_pct = (overall_pnl / initial_capital * 100)
-        
-        return {
-            "equity": equity,
-            "cash": cash,
-            "today_pnl": today_pnl,
-            "today_pnl_pct": today_pnl_pct,
-            "overall_pnl": overall_pnl,
-            "overall_pnl_pct": overall_pnl_pct,
-        }
+        try:
+            response = requests.get(f"{self.base_url}/v2/account", headers=self.headers, timeout=10)
+            response.raise_for_status()
+            account = response.json()
+            
+            equity = float(account.get("equity", 100000.0))
+            last_equity = float(account.get("last_equity", equity))
+            cash = float(account.get("cash", 0.0))
+            
+            today_pnl = equity - last_equity
+            today_pnl_pct = (today_pnl / last_equity * 100) if last_equity > 0 else 0.0
+            
+            initial_capital = 100000.0
+            overall_pnl = equity - initial_capital
+            overall_pnl_pct = (overall_pnl / initial_capital * 100)
+            
+            return {
+                "equity": equity,
+                "cash": cash,
+                "today_pnl": today_pnl,
+                "today_pnl_pct": today_pnl_pct,
+                "overall_pnl": overall_pnl,
+                "overall_pnl_pct": overall_pnl_pct,
+            }
+        except Exception:
+            return {
+                "equity": 100000.0,
+                "cash": 10000.0,
+                "today_pnl": 0.0,
+                "today_pnl_pct": 0.0,
+                "overall_pnl": 0.0,
+                "overall_pnl_pct": 0.0,
+            }
 
     def get_latest_price(self, symbol: str) -> float:
-        """Fetch latest trade price from Alpaca Market Data API."""
+        """Fetch latest trade price from Alpaca Market Data API (with feed=iex for free-tier compatibility)."""
         if not self.api_key or self.api_key == "mock":
             return 100.0
         try:
             alpaca_sym = symbol.replace('-', '.')
-            url = f"https://data.alpaca.markets/v2/stocks/{alpaca_sym}/trades/latest"
+            url = f"https://data.alpaca.markets/v2/stocks/{alpaca_sym}/trades/latest?feed=iex"
             resp = requests.get(url, headers=self.headers, timeout=5)
             if resp.status_code == 200:
-                return float(resp.json()["trade"]["p"])
+                data = resp.json()
+                if "trade" in data and "p" in data["trade"]:
+                    return float(data["trade"]["p"])
         except Exception:
             pass
         return 0.0

@@ -76,13 +76,14 @@ class EventDrivenBacktester:
                         self.portfolio.update_position(symbol, fill['filled_quantity'], fill['fill_price'])
                         
                         # Log to DB
+                        side = "buy" if fill['filled_quantity'] > 0 else "sell"
                         db_order = Order(
                             client_order_id=fill['order_id'],
                             symbol=symbol,
-                            quantity=fill['filled_quantity'],
+                            quantity=abs(fill['filled_quantity']),
+                            side=side,
                             price=fill['fill_price'],
-                            status=fill['status'],
-                            filled_at=datetime.utcnow()
+                            status=fill['status']
                         )
                         self.db.add(db_order)
                         
@@ -103,8 +104,8 @@ class EventDrivenBacktester:
             experiment_id=experiment_id,
             strategy_id=self.strategy.__class__.__name__,
             dataset_version=dataset_version,
-            parameters=json.dumps({"symbol": symbol}),
-            metrics=json.dumps({"final_cash": self.portfolio.cash})
+            parameters={"symbol": symbol},
+            metrics={"final_cash": self.portfolio.cash}
         )
         self.db.add(exp)
         self.db.commit()

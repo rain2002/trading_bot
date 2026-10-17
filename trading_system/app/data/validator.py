@@ -25,10 +25,12 @@ class DataValidator:
             logger.error(f"Dataset for {symbol} missing columns: {missing}")
             raise ValueError(f"Missing required columns: {missing}")
             
-        # 3. Check for negative prices
-        invalid_prices_mask = (df['open'] < 0) | (df['high'] < 0) | (df['low'] < 0) | (df['close'] < 0)
+        # 3. Check for NaNs and non-positive prices
+        nan_mask = df[required_cols].isna().any(axis=1)
+        non_positive_mask = (df['open'] <= 0) | (df['high'] <= 0) | (df['low'] <= 0) | (df['close'] <= 0)
+        invalid_prices_mask = nan_mask | non_positive_mask
         if invalid_prices_mask.any():
-            logger.warning(f"Found {invalid_prices_mask.sum()} rows with negative prices for {symbol}. Dropping.")
+            logger.warning(f"Found {invalid_prices_mask.sum()} rows with NaN or <=0 prices for {symbol}. Dropping.")
             df = df[~invalid_prices_mask]
             
         # 4. Check impossible OHLC relationships (e.g., low > high)

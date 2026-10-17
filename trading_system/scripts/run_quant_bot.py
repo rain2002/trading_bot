@@ -145,13 +145,22 @@ def execute_quant_live_cycle():
         
     print("\n[3/4] Reconciling QUANT Targets against Broker State...")
     
-    # Ensure any open positions no longer wanted or stopped out are liquidated
+    # Cancel any pending/stale orders on broker to prevent wash-trade blocks and duplicate fills
+    print(" -> Canceling any pending orders on broker for clean state...")
+    broker.cancel_all_orders()
+    
+    # Re-sync positions in case fills happened
+    current_positions = broker.get_positions()
+    
+    # Ensure any open positions no longer wanted or stopped out are marked for full liquidation
     for open_sym in current_positions.keys():
         if open_sym not in target_weights or open_sym in stop_loss_liquidations:
             target_weights[open_sym] = 0.0
             
     print("\n[4/4] Routing Orders to Risk Engine & Alpaca...")
     executed_orders_log = []
+    run_timestamp_tag = datetime.now().strftime('%Y%m%d_%H%M')
+    
     for sym, target_weight in target_weights.items():
         if target_weight == 'HOLD':
             continue
@@ -167,31 +176,41 @@ def execute_quant_live_cycle():
             print(f" -> [PRICE REJECT] Could not determine market price for {sym}. Skipping order to protect capital.")
             continue
                 
-        target_value = total_equity * target_weight
-        
         current_qty = current_positions.get(sym, 0.0)
-        current_value = current_qty * current_price
         
-        value_to_trade = target_value - current_value
-        qty_to_trade = int(value_to_trade / current_price)
+        # If target is 0.0, liquidate exactly all held shares without truncation residue
+        if target_weight == 0.0:
+            qty_to_trade = -int(current_qty)
+        else:
+            target_value = total_equity * target_weight
+            current_value = current_qty * current_price
+            value_to_trade = target_value - current_value
+            qty_to_trade = int(value_to_trade / current_price)
+        
+        # Ensure we never sell more shares than currently held (no inadvertent short positions)
+        if qty_to_trade < 0 and abs(qty_to_trade) > current_qty:
+            qty_to_trade = -int(current_qty)
         
         if qty_to_trade != 0:
             side = "BUY" if qty_to_trade > 0 else "SELL"
             import hashlib
-            run_date = datetime.now().date()
-            order_hash_base = f"QUANT_{run_date}_{sym}_{side}_{qty_to_trade}"
-            deterministic_id = f"QUANT-{hashlib.md5(order_hash_base.encode()).hexdigest()[:12]}"
+            order_hash_base = f"QUANT_{run_timestamp_tag}_{sym}_{side}_{abs(qty_to_trade)}"
+            deterministic_id = f"Q-{hashlib.md5(order_hash_base.encode()).hexdigest()[:14]}"
             
             trade_request = {
                 "client_order_id": deterministic_id,
                 "symbol": sym,
                 "quantity": qty_to_trade,
+                "side": side,
                 "price_hint": current_price
             }
             if risk_engine.evaluate_trade(trade_request, current_positions, total_equity=total_equity):
-                execution.submit_order(trade_request)
-                executed_orders_log.append({"symbol": sym, "side": side, "qty": qty_to_trade})
-                print(f" -> EXECUTED: {side} {abs(qty_to_trade)} {sym}")
+                result = execution.submit_order(trade_request)
+                if result.get("status") in ("SUBMITTED", "FILLED"):
+                    executed_orders_log.append({"symbol": sym, "side": side, "qty": abs(qty_to_trade)})
+                    print(f" -> EXECUTED: {side} {abs(qty_to_trade)} {sym}")
+                else:
+                    print(f" -> [BROKER REJECT] Order failed for {sym}: {result.get('error', result.get('status'))}")
             else:
                 print(f" -> [RISK HALT] Trade rejected by Risk Engine: {sym} {qty_to_trade}")
 
