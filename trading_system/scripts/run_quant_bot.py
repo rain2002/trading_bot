@@ -18,6 +18,7 @@ from trading_system.app.execution.alpaca_live import AlpacaExecutionAdapter
 from trading_system.app.risk.basic import BasicRiskEngine
 from trading_system.app.notifications.notifier import QuantNotifier
 from trading_system.app.features.regime import RegimeDetector
+from trading_system.app.strategies.ensembles.ensemble_allocator import EnsembleAllocator
 
 logger = logging.getLogger("QUANTBot")
 
@@ -58,34 +59,33 @@ def execute_quant_live_cycle():
         print(f"Failed to load S&P 500 file, falling back to mega-caps. Error: {e}")
         universe = ["SPY", "QQQ", "AAPL", "MSFT", "NVDA", "AMZN", "GOOGL", "META"]
     
-    # Run the multi-agent research pipeline for today
-    generated_signals = brain.run_nightly_research(universe, datetime.now())
-    print(f"QUANT Brain generated {len(generated_signals)} signals based on InvestorSkills heuristics.")
-    
-    # --- REGIME DETECTION (Market Weather Check) ---
-    print("\n[2b/4] Detecting Market Regime via SPY...")
-    regime = "BULL_NORMAL"
-    try:
-        spy_df = brain.data_provider.get_data_as_of("SPY", datetime.now())
-        if not spy_df.empty and len(spy_df) >= 200:
-            regime = RegimeDetector().detect_regime(spy_df)
-    except Exception as e:
-        print(f"  Regime detection failed, defaulting to BULL_NORMAL: {e}")
+    # Run the multi-strategy research pipeline for today
+    research_results = brain.run_nightly_research(universe, datetime.now())
+    if isinstance(research_results, dict):
+        momentum_signals = research_results.get("momentum", [])
+        mean_rev_signals = research_results.get("mean_reversion", [])
+    else:
+        momentum_signals = research_results or []
+        mean_rev_signals = []
 
-    # Map regime to maximum portfolio exposure
-    REGIME_EXPOSURE = {
-        "BULL_NORMAL":   0.95,  # Full throttle
-        "BULL_VOLATILE": 0.70,  # Reduce risk, high vol
-        "BEAR_NORMAL":   0.30,  # Defensive — only highest conviction
-        "BEAR_VOLATILE": 0.20,  # Highly defensive
-        "CRASH_WARNING": 0.00,  # Move to 100% cash
-        "UNKNOWN":       0.50,  # Cautious default
-    }
-    MAX_EXPOSURE = REGIME_EXPOSURE.get(regime, 0.50)
-    print(f"  Regime: {regime} -> Max Portfolio Exposure: {MAX_EXPOSURE*100:.0f}%")
+    print(f"QUANT Brain generated: {len(momentum_signals)} Momentum Leaders | {len(mean_rev_signals)} Mean-Reversion Dip-Buys")
+    
+    # --- PHASE 2: ENSEMBLE REGIME DETECTION & ALLOCATION ---
+    print("\n[2b/4] Evaluating Macro Weather via Ensemble Allocator (SPY)...")
+    ensemble = EnsembleAllocator(max_total_exposure=0.95, max_single_stock=0.15, max_holdings=25)
+    
+    spy_df = brain.data_provider.get_data_as_of("SPY", datetime.now())
+    regime_info = ensemble.detect_regime(spy_df)
+    regime = regime_info["regime"]
+    MAX_EXPOSURE = regime_info["max_exposure"]
+    strat_weights = regime_info.get("weights", {})
+    
+    print(f"  Detected Regime: {regime}")
+    print(f"  Max Total Exposure: {MAX_EXPOSURE*100:.0f}% (Liquid Cash Reserve: {(1.0-MAX_EXPOSURE)*100:.0f}%)")
+    print(f"  Strategy Mix: Momentum={strat_weights.get('momentum', 0)*100:.0f}% | Dip-Buying={strat_weights.get('mean_reversion', 0)*100:.0f}%")
 
     if regime == "CRASH_WARNING":
-        print("  [CRASH WARNING] Moving to 100% cash. No new buys.")
+        print("  [CRASH WARNING] Moving to 100% Cash Buffer. Preserving capital.")
 
     # --- STOP-LOSS ENGINE (-8% Max Loss per Position) ---
     print("\n[2c/4] Checking Open Positions for Hard Stop-Loss (-8%)...")
@@ -101,46 +101,26 @@ def execute_quant_live_cycle():
     except Exception as e:
         print(f"  Stop-loss check encountered error: {e}")
 
-    # --- DYNAMIC SIZING ENGINE WITH TOP-25 CONVICTION FILTER ---
-    # Max single stock exposure: 15%
-    # Max portfolio holdings: 25 top conviction leaders (concentrates alpha)
-    MAX_HOLDINGS = 25
-    target_weights = {}
+    # --- COMBINE ALLOCATIONS VIA ENSEMBLE ALLOCATOR ---
+    # Filter candidates: exclude any stopped out symbols
+    valid_mom = [s for s in momentum_signals if s["symbol"] not in stop_loss_liquidations]
+    valid_mr = [s for s in mean_rev_signals if s["symbol"] not in stop_loss_liquidations]
+    
+    target_weights = ensemble.combine_allocations(valid_mom, valid_mr, regime_info)
 
-    # Filter candidates: must have strictly positive conviction score and not be stopped out
-    valid_signals = [
-        s for s in (generated_signals or [])
-        if s.get("conviction_score", 0.0) > 0.0 and s["symbol"] not in stop_loss_liquidations
-    ]
-
-    if valid_signals and MAX_EXPOSURE > 0:
-        # Sort candidates descending by conviction score (Risk-Adjusted Momentum)
-        sorted_signals = sorted(
-            valid_signals,
-            key=lambda s: s.get("conviction_score", 0.0),
-            reverse=True
-        )
-        selected_signals = sorted_signals[:MAX_HOLDINGS]
-        total_selected = len(selected_signals)
-        
-        print(f"\nDynamic Sizing Engine: Filtered {len(generated_signals)} candidates down to Top {total_selected} Positive Conviction Leaders (Max {MAX_HOLDINGS})...")
-        
-        # Conviction-proportional sizing (alpha-weighted capital distribution)
-        total_score = sum(s.get("conviction_score", 1.0) for s in selected_signals)
-        
-        for sig in selected_signals:
-            sym = sig["symbol"]
-            score = sig.get("conviction_score", 1.0)
-            # Allocate proportional to conviction score, bounded by single-stock cap (15%)
-            prop_weight = (score / total_score) * MAX_EXPOSURE if total_score > 0 else (MAX_EXPOSURE / total_selected)
-            assigned_weight = min(prop_weight, 0.15)
-            target_weights[sym] = round(assigned_weight, 4)
-            print(f" -> {sym:<6}: {assigned_weight*100:4.1f}% | Score: {score:>5.2f} ({sig['rationale']})")
+    if target_weights:
+        print(f"\nPhase 2 Ensemble: Allocated to Top {len(target_weights)} Holdings (Max 25):")
+        for sym, weight in sorted(target_weights.items(), key=lambda x: x[1], reverse=True):
+            # Check strategy attribution
+            is_mom = any(s["symbol"] == sym for s in valid_mom)
+            is_mr = any(s["symbol"] == sym for s in valid_mr)
+            tag = "MOM+DIP" if (is_mom and is_mr) else ("MOMENTUM" if is_mom else "DIP-BUY")
+            print(f" -> {sym:<6}: {weight*100:4.1f}% | Strategy: [{tag}]")
     else:
         if MAX_EXPOSURE == 0.0:
-            print(f"Market Regime is {regime}. Preserving 100% Cash.")
+            print(f"Market Regime is {regime}. Holding 100% Cash.")
         else:
-            print("No positive conviction signals generated today. Moving to 100% Cash.")
+            print("No qualifying signals today. Holding 100% Cash.")
     # ----------------------------
         
     print("\n[3/4] Reconciling QUANT Targets against Broker State...")
