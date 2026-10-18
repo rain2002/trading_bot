@@ -25,3 +25,8 @@ dev = [
 
 [tool.ruff]
 line-length = 88
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["trading_system/tests"]
+python_files = ["test_*.py"]

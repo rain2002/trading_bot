@@ -21,6 +21,7 @@ class BasicRiskEngine(RiskEngine):
         self,
         max_position_pct: float = 0.15,   # 15% max per single stock
         max_portfolio_pct: float = 0.95,  # 95% max total invested
+        **kwargs
     ):
         self.max_position_pct = max_position_pct
         self.max_portfolio_pct = max_portfolio_pct
