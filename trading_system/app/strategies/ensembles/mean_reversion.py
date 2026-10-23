@@ -46,18 +46,18 @@ class MeanReversionStrategy:
         data["bb_upper"] = sma + (self.bb_std * std)
         data["bb_lower"] = sma - (self.bb_std * std)
 
-        # 2. RSI (Relative Strength Index)
+        # 2. RSI (Relative Strength Index) using Wilder's Exponential Smoothing
         delta = close.diff()
         gain = delta.clip(lower=0)
         loss = -delta.clip(upper=0)
-        avg_gain = gain.rolling(window=self.rsi_window, min_periods=self.rsi_window).mean()
-        avg_loss = loss.rolling(window=self.rsi_window, min_periods=self.rsi_window).mean()
+        avg_gain = gain.ewm(alpha=1.0 / self.rsi_window, min_periods=self.rsi_window, adjust=False).mean()
+        avg_loss = loss.ewm(alpha=1.0 / self.rsi_window, min_periods=self.rsi_window, adjust=False).mean()
 
         rs = avg_gain / avg_loss.replace(0, np.nan)
         data["rsi"] = 100 - (100 / (1 + rs))
 
         # 3. 200 SMA for macro trend anchor
-        data["sma_200"] = close.rolling(window=min(200, len(data))).mean()
+        data["sma_200"] = close.rolling(window=min(200, len(data)), min_periods=min(50, len(data))).mean()
 
         return data
 

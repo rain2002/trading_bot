@@ -148,10 +148,27 @@ class EnsembleAllocator:
         # 3. Filter down to Top max_holdings (25) by combined weight
         top_symbols = sorted(combined_raw.items(), key=lambda x: x[1], reverse=True)[:self.max_holdings]
         
-        # 4. Enforce Single-Stock Cap (15%) and Normalize Total Exposure <= max_exposure
-        final_targets: Dict[str, float] = {}
-        for sym, w in top_symbols:
-            final_targets[sym] = min(w, self.max_single_stock)
+        # 4. Enforce Single-Stock Cap (15%) with iterative redistribution
+        # Redistributes excess weight to uncapped candidates up to max_exposure
+        weights_dict = {sym: w for sym, w in top_symbols}
+        for _ in range(5):
+            excess = 0.0
+            uncapped_syms = []
+            for sym, w in weights_dict.items():
+                if w > self.max_single_stock:
+                    excess += (w - self.max_single_stock)
+                    weights_dict[sym] = self.max_single_stock
+                elif w < self.max_single_stock:
+                    uncapped_syms.append(sym)
+            if excess <= 1e-6 or not uncapped_syms:
+                break
+            add_per_sym = excess / len(uncapped_syms)
+            for sym in uncapped_syms:
+                weights_dict[sym] += add_per_sym
+
+        final_targets: Dict[str, float] = {
+            sym: min(round(w, 4), self.max_single_stock) for sym, w in weights_dict.items()
+        }
 
         total_gross = sum(final_targets.values())
         if total_gross > max_exposure and total_gross > 0:

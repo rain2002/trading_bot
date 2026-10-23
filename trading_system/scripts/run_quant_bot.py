@@ -189,7 +189,10 @@ def execute_quant_live_cycle():
     # Track current invested dollar value in real time
     try:
         detailed_positions = broker.get_positions_detailed()
-        current_invested_value = sum(float(p.get("market_value", 0.0)) for p in detailed_positions)
+        if detailed_positions:
+            current_invested_value = sum(float(p.get("market_value", 0.0)) for p in detailed_positions)
+        else:
+            current_invested_value = sum(abs(qty) * broker.get_latest_price(s) for s, qty in current_positions.items())
     except Exception:
         current_invested_value = sum(abs(qty) * broker.get_latest_price(s) for s, qty in current_positions.items())
 

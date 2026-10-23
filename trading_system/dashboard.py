@@ -232,8 +232,18 @@ elif page == "🏆 30-Day Incubation Scorecard":
                 st.warning(f"⚠️ **Criterion 3: Solvency & Long-Only Buffer** — Normalizing: ${cash:,.2f} (auto-rebalancing on Monday).")
 
         with g2:
-            st.success("✅ **Criterion 4: Execution Idempotency & Clean Order Books** — Passed. Deterministic order hashing `Q-<hash>` active.")
-            st.success("✅ **Criterion 5: Multi-Strategy Long-Only Ensemble** — Passed. Momentum Leaders + RSI Dip-Buys active.")
+            recent_orders = broker.get_recent_orders(limit=10)
+            idempotent_orders = [o for o in recent_orders if str(o.get("client_order_id", "")).startswith("Q-")]
+            if idempotent_orders or not recent_orders:
+                st.success("✅ **Criterion 4: Execution Idempotency & Clean Order Books** — Passed. Deterministic order hashing `Q-<hash>` active.")
+            else:
+                st.info("ℹ️ **Criterion 4: Execution Idempotency** — Active. Monitoring incoming order hashes.")
+
+            short_positions = [p for p in positions if float(p.get("qty", 0)) < 0]
+            if len(positions) <= 25 and len(short_positions) == 0:
+                st.success(f"✅ **Criterion 5: Multi-Strategy Long-Only Ensemble** — Passed. {len(positions)}/25 stocks held, 0 short positions.")
+            else:
+                st.warning(f"⚠️ **Criterion 5: Long-Only Target Cap** — {len(positions)} positions held ({len(short_positions)} shorts).")
             
         st.info("📌 **Incubation Discipline:** During the incubation testing window, avoid manual interventions or ad-hoc strategy tweaks. Let the autonomous pipeline trade every market session through to Day 30.")
     else:

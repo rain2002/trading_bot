@@ -73,9 +73,17 @@ class BasicRiskEngine(RiskEngine):
         if current_invested_value is not None:
             total_current_exposure = current_invested_value + (proposed_quantity * price_hint)
         else:
-            total_current_exposure = sum(
-                abs(qty) * price_hint for sym, qty in portfolio_state.items() if sym != symbol
-            ) + new_dollar_exposure
+            # Fallback estimation when exact invested value is not provided
+            total_other_exposure = 0.0
+            for sym, val in portfolio_state.items():
+                if sym == symbol:
+                    continue
+                if isinstance(val, dict):
+                    mv = val.get("market_value") or (abs(float(val.get("qty", 0))) * float(val.get("price", 0)))
+                    total_other_exposure += abs(float(mv))
+                elif isinstance(val, (int, float)):
+                    total_other_exposure += abs(float(val)) * price_hint
+            total_current_exposure = total_other_exposure + new_dollar_exposure
         max_portfolio_dollar = total_equity * self.max_portfolio_pct
 
         if total_current_exposure > max_portfolio_dollar:

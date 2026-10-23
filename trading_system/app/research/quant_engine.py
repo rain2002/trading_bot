@@ -17,13 +17,16 @@ class InvestorSkillsHeuristics:
     Structured judgment and sizing heuristics for systematic momentum.
     """
     _cached_params: Optional[Dict[str, int]] = None
+    _last_mtime: float = 0.0
 
     @classmethod
-    def get_dynamic_params(cls) -> Dict[str, int]:
-        if cls._cached_params is not None:
+    def get_dynamic_params(cls, force_reload: bool = False) -> Dict[str, int]:
+        config_path = os.path.join(os.path.dirname(__file__), "..", "config", "dynamic_params.json")
+        current_mtime = os.path.getmtime(config_path) if os.path.exists(config_path) else 0.0
+
+        if not force_reload and cls._cached_params is not None and current_mtime <= cls._last_mtime:
             return cls._cached_params
 
-        config_path = os.path.join(os.path.dirname(__file__), "..", "config", "dynamic_params.json")
         fast_sma = 20
         slow_sma = 50
 
@@ -33,6 +36,7 @@ class InvestorSkillsHeuristics:
                     params = json.load(f)
                     fast_sma = params.get("fast_sma", 20)
                     slow_sma = params.get("slow_sma", 50)
+                    cls._last_mtime = current_mtime
             except Exception:
                 pass
 
