@@ -1,6 +1,6 @@
 import pandas as pd
 import yfinance as yf
-from datetime import datetime
+from datetime import datetime, timezone
 import hashlib
 from typing import Optional
 from trading_system.app.common.interfaces import PointInTimeDataProvider
@@ -49,12 +49,12 @@ class YFinanceDataProvider(PointInTimeDataProvider):
         
         # 3. Attach lineage / versioning metadata directly to the DataFrame attrs
         # This ensures any experiment using this frame can record exactly what data it saw.
-        dataset_hash = hashlib.sha256(pd.util.hash_pandas_object(df, index=True).values).hexdigest()[:12]
+        dataset_hash = hashlib.sha256(pd.util.hash_pandas_object(df, index=True).values.tobytes()).hexdigest()[:12]
         
         df.attrs['lineage'] = {
             'provider': 'yfinance',
             'symbol': symbol,
-            'retrieval_timestamp': datetime.utcnow().isoformat() + "Z",
+            'retrieval_timestamp': datetime.now(timezone.utc).isoformat(),
             'start_date': start_date.isoformat(),
             'end_date': end_date.isoformat(),
             'interval': interval,

@@ -18,7 +18,7 @@ class AlpacaBrokerAdapter(BrokerAdapter):
     def get_positions(self) -> Dict[str, float]:
         """Fetch actual positions from the broker normalized with '-' for dual-class shares."""
         if not self.api_key or self.api_key == "mock":
-            return {"DIA": 115.0, "QQQ": -200.0, "AAPL": 50.0}
+            return {"DIA": 115.0, "QQQ": 80.0, "AAPL": 50.0}
             
         response = requests.get(f"{self.base_url}/v2/positions", headers=self.headers, timeout=10)
         response.raise_for_status()

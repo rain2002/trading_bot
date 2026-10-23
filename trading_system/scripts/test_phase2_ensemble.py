@@ -12,7 +12,7 @@ import sys
 import os
 from datetime import datetime, timedelta
 
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
 
 from trading_system.app.data.yfinance_provider import YFinanceDataProvider
 from trading_system.app.strategies.ensembles.mean_reversion import MeanReversionStrategy
@@ -58,11 +58,12 @@ def test_phase2_ensemble():
                 momentum_signals.append({
                     "symbol": sym,
                     "confidence": j["confidence"],
+                    "conviction_score": j.get("conviction_score", 1.0),
                     "rationale": j["rationale"],
                 })
     print(f"  Strategy 1 (Momentum): Generated {len(momentum_signals)} active signals")
     for s in momentum_signals:
-        print(f"    -> {s['symbol']}: Conf={s['confidence']} ({s['rationale']})")
+        print(f"    -> {s['symbol']}: Conf={s['confidence']} | Score={s['conviction_score']} ({s['rationale']})")
 
     # Strategy 2: Mean Reversion Signals
     mr_engine = MeanReversionStrategy()
@@ -82,24 +83,11 @@ def test_phase2_ensemble():
         if s["signal"] != 0:
             print(f"    -> {s['symbol']}: Signal={s['signal']} | {s['rationale']}")
 
-    # Strategy 3: Pairs Trading (KO vs PEP, MSFT vs GOOGL)
-    pairs_engine = StatisticalPairsStrategy()
-    pairs_signals = []
-    candidate_pairs = [("KO", "PEP"), ("MSFT", "GOOGL")]
-    for a, b in candidate_pairs:
-        if a in data_cache and b in data_cache:
-            p_sig = pairs_engine.generate_pair_signals(a, data_cache[a], b, data_cache[b])
-            pairs_signals.append(p_sig)
-            print(f"  Strategy 3 (Pairs Trading {a}/{b}):")
-            print(f"    -> Action: {p_sig['action']} (Z-Score: {p_sig['z_score']})")
-            print(f"    -> Rationale: {p_sig['rationale']}")
-
-    # 3. Dynamic Ensemble Allocation
-    print("\n[4/4] Combining Signals via Ensemble Allocator...")
+    # 3. Dynamic Long-Only Ensemble Allocation
+    print("\n[4/4] Combining Signals via Long-Only Ensemble Allocator...")
     final_weights = allocator.combine_allocations(
         momentum_signals=momentum_signals,
         mean_rev_signals=mean_rev_signals,
-        pairs_signals=pairs_signals,
         regime_info=regime,
     )
 

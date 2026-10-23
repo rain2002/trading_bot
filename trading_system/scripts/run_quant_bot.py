@@ -1,5 +1,6 @@
 import sys
 import os
+import hashlib
 from datetime import datetime, timedelta
 import logging
 
@@ -161,16 +162,16 @@ def execute_quant_live_cycle():
         
         # If target is 0.0, liquidate exactly all held shares without truncation residue
         if target_weight == 0.0:
-            qty_to_trade = -int(current_qty)
+            qty_to_trade = -int(round(current_qty))
         else:
             target_value = total_equity * target_weight
             current_value = current_qty * current_price
             value_to_trade = target_value - current_value
-            qty_to_trade = int(value_to_trade / current_price)
+            qty_to_trade = int(round(value_to_trade / current_price))
         
         # Ensure we never sell more shares than currently held (no inadvertent short positions)
         if qty_to_trade < 0 and abs(qty_to_trade) > current_qty:
-            qty_to_trade = -int(current_qty)
+            qty_to_trade = -int(round(current_qty))
         
         if qty_to_trade != 0:
             side = "BUY" if qty_to_trade > 0 else "SELL"
@@ -198,7 +199,6 @@ def execute_quant_live_cycle():
         side = trade["side"]
         current_price = trade["price_hint"]
         
-        import hashlib
         order_hash_base = f"QUANT_{run_timestamp_tag}_{sym}_{side}_{abs(qty_to_trade)}"
         deterministic_id = f"Q-{hashlib.md5(order_hash_base.encode()).hexdigest()[:14]}"
         
