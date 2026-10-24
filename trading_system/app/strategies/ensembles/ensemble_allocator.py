@@ -10,29 +10,34 @@ Coordinates risk allocation across:
 Strictly Long-Only: No naked shorting, no borrow fees, no inverse ETF volatility decay traps.
 """
 
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 import pandas as pd
 import numpy as np
 
 
 class EnsembleAllocator:
     """
-    Coordinates long-only allocation across Momentum and Mean-Reversion dip buying:
+    Coordinates dynamic long-only allocation across Momentum and Mean-Reversion dip buying:
       - TRENDING BULL: 70% Momentum Leaders, 25% Mean-Reversion Dips, 5% Cash Reserve
       - CHOPPY BULL: 50% Mean-Reversion Dips, 35% Momentum Leaders, 15% Cash Reserve
       - BEAR CORRECTION: 30% Mean-Reversion Dips, 20% Momentum Leaders, 50% Cash Reserve
       - CRASH WARNING: 0% Equities -> 100% Cash Reserve (Full Capital Preservation)
+
+    Dynamic holdings: Does not enforce an arbitrary fixed stock count. Expands and contracts
+    organically based on strategy profitability, high-conviction signals, and market regime.
     """
 
     def __init__(
         self,
         max_total_exposure: float = 0.95,
         max_single_stock: float = 0.15,
-        max_holdings: int = 25,
+        max_holdings: Optional[int] = None,
+        min_position_pct: float = 0.015,
     ):
         self.max_total_exposure = max_total_exposure
         self.max_single_stock = max_single_stock
         self.max_holdings = max_holdings
+        self.min_position_pct = min_position_pct
 
     def detect_regime(self, spy_df: pd.DataFrame) -> Dict[str, Any]:
         """
@@ -106,7 +111,8 @@ class EnsembleAllocator:
         Caps:
           - Total portfolio exposure <= regime_max_exposure (max 95%)
           - Single stock <= 15%
-          - Total holdings <= max_holdings (25)
+          - Total holdings: Dynamic based on conviction & profitability (or capped if max_holdings is set)
+          - Minimum position size hurdle: min_position_pct (default 1.5%)
         """
         max_exposure = regime_info.get("max_exposure", self.max_total_exposure)
         if max_exposure <= 0.0:
@@ -118,9 +124,11 @@ class EnsembleAllocator:
 
         combined_raw: Dict[str, float] = {}
 
-        # 1. Process Momentum Candidates (Filtered to Top Conviction)
+        # 1. Process Momentum Candidates (Filtered to Positive Conviction)
         valid_mom = [s for s in momentum_signals if s.get("conviction_score", 0.0) > 0.0]
-        valid_mom = sorted(valid_mom, key=lambda s: s.get("conviction_score", 0.0), reverse=True)[:self.max_holdings]
+        valid_mom = sorted(valid_mom, key=lambda s: s.get("conviction_score", 0.0), reverse=True)
+        if self.max_holdings is not None:
+            valid_mom = valid_mom[:self.max_holdings]
         
         if valid_mom:
             total_mom_score = sum(s.get("conviction_score", 1.0) for s in valid_mom)
@@ -132,7 +140,9 @@ class EnsembleAllocator:
 
         # 2. Process Mean-Reversion Dip-Buys (signal == 1)
         valid_mr = [s for s in mean_rev_signals if s.get("signal") == 1]
-        valid_mr = sorted(valid_mr, key=lambda s: s.get("confidence", 0.7), reverse=True)[:10]
+        valid_mr = sorted(valid_mr, key=lambda s: s.get("confidence", 0.7), reverse=True)
+        if self.max_holdings is not None:
+            valid_mr = valid_mr[:self.max_holdings]
 
         if valid_mr:
             total_mr_conf = sum(s.get("confidence", 0.7) for s in valid_mr)
@@ -145,12 +155,21 @@ class EnsembleAllocator:
         if not combined_raw:
             return {}
 
-        # 3. Filter down to Top max_holdings (25) by combined weight
-        top_symbols = sorted(combined_raw.items(), key=lambda x: x[1], reverse=True)[:self.max_holdings]
-        
+        # 3. Dynamic Selection: Rank candidates by combined conviction weight
+        candidates = sorted(combined_raw.items(), key=lambda x: x[1], reverse=True)
+        if self.max_holdings is not None:
+            candidates = candidates[:self.max_holdings]
+
+        # Filter out sub-hurdle dust positions (< min_position_pct)
+        if self.min_position_pct > 0.0:
+            candidates = [(sym, w) for sym, w in candidates if w >= self.min_position_pct]
+
+        if not candidates:
+            return {}
+
         # 4. Enforce Single-Stock Cap (15%) with iterative redistribution
         # Redistributes excess weight to uncapped candidates up to max_exposure
-        weights_dict = {sym: w for sym, w in top_symbols}
+        weights_dict = {sym: w for sym, w in candidates}
         for _ in range(5):
             excess = 0.0
             uncapped_syms = []
@@ -169,6 +188,10 @@ class EnsembleAllocator:
         final_targets: Dict[str, float] = {
             sym: min(round(w, 4), self.max_single_stock) for sym, w in weights_dict.items()
         }
+
+        # Filter out positions below min_position_pct if any
+        if self.min_position_pct > 0.0:
+            final_targets = {sym: w for sym, w in final_targets.items() if w >= self.min_position_pct}
 
         total_gross = sum(final_targets.values())
         if total_gross > max_exposure and total_gross > 0:

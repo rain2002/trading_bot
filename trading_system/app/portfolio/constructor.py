@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Dict, Optional
 from trading_system.app.common.logger import get_logger
 
 logger = get_logger("PortfolioConstructor")
@@ -7,9 +7,12 @@ class EqualWeightPortfolioConstructor:
     """
     Takes raw signals from the strategy and converts them into target portfolio weights.
     This architecture explicitly separates "What to trade" from "How much to allocate".
+    Supports dynamic holdings based on conviction and opportunity quality without fixed caps.
     """
-    def __init__(self, rebalance_freq="monthly"):
+    def __init__(self, rebalance_freq: str = "monthly", max_holdings: Optional[int] = None, min_position_pct: float = 0.015):
         self.rebalance_freq = rebalance_freq
+        self.max_holdings = max_holdings
+        self.min_position_pct = min_position_pct
         self.last_rebalance_period = None
 
     def generate_target_weights(self, signals: Dict[str, dict], point_in_time_universe: Dict[str, 'pd.DataFrame'] = None) -> Dict[str, float]:
@@ -42,16 +45,25 @@ class EqualWeightPortfolioConstructor:
         raw_active = [sym for sym, sig in signals.items() if sig.get('signal') in (1, -1)]
         hold_symbols = [sym for sym, sig in signals.items() if sig.get('signal') == 'HOLD']
         
-        # Rank by conviction score / confidence and select Top 25 Leaders
+        # Rank by conviction score / confidence
         active_symbols = sorted(
             raw_active,
             key=lambda s: signals[s].get('conviction_score', signals[s].get('confidence', 1.0)),
             reverse=True
-        )[:25]
+        )
+        if self.max_holdings is not None:
+            active_symbols = active_symbols[:self.max_holdings]
         
         # Calculate weight only for actively targeted assets, matching Dynamic Sizing (max 95%, max 15% per stock)
         total_signals = len(active_symbols)
         weight_per_asset = min(0.95 / total_signals, 0.15) if total_signals > 0 else 0.0
+
+        # Filter out dust allocations below min_position_pct
+        if weight_per_asset < self.min_position_pct and total_signals > 0:
+            max_allowed = int(0.95 / self.min_position_pct)
+            active_symbols = active_symbols[:max_allowed]
+            total_signals = len(active_symbols)
+            weight_per_asset = min(0.95 / total_signals, 0.15) if total_signals > 0 else 0.0
         
         for symbol in active_symbols:
             direction = signals[symbol]['signal']

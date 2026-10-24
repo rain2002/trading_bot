@@ -32,7 +32,7 @@ def test_ensemble_regime_crash_warning_moves_to_100_percent_cash():
 
 
 def test_ensemble_enforces_max_holdings_and_single_stock_cap():
-    """Ensemble must cap holdings at 25 and single stock at 15%."""
+    """Ensemble must cap holdings at 25 when max_holdings is explicitly specified."""
     allocator = EnsembleAllocator(max_total_exposure=0.95, max_single_stock=0.15, max_holdings=25)
     
     # 35 momentum candidates
@@ -53,6 +53,43 @@ def test_ensemble_enforces_max_holdings_and_single_stock_cap():
     for sym, w in targets.items():
         assert w <= 0.15 + 1e-4, f"{sym} weight {w} exceeded 15% cap"
     assert sum(targets.values()) <= 0.95 + 1e-4
+
+
+def test_ensemble_dynamic_allocation_expands_and_contracts_organically():
+    """Ensemble without fixed max_holdings dynamically sizes based on conviction."""
+    allocator = EnsembleAllocator(max_total_exposure=0.95, max_single_stock=0.15, max_holdings=None, min_position_pct=0.015)
+    
+    # Case A: 30 qualifying candidates all meet min_position_pct hurdle
+    mom_signals = [
+        {"symbol": f"MOM{i}", "conviction_score": 2.0}
+        for i in range(30)
+    ]
+    
+    regime_info = {
+        "regime": "BULL_TRENDING",
+        "max_exposure": 0.95,
+        "weights": {"momentum": 0.70, "mean_reversion": 0.30}
+    }
+    
+    targets = allocator.combine_allocations(mom_signals, [], regime_info)
+    # Dynamic expansion beyond 25
+    assert len(targets) == 30
+    for sym, w in targets.items():
+        assert w >= 0.015
+        assert w <= 0.15 + 1e-4
+    assert sum(targets.values()) <= 0.95 + 1e-4
+
+    # Case B: Only 3 qualifying candidates -> contracts organically with 15% single-stock ceiling
+    few_signals = [
+        {"symbol": f"MOM{i}", "conviction_score": 3.0}
+        for i in range(3)
+    ]
+    targets_few = allocator.combine_allocations(few_signals, [], regime_info)
+    assert len(targets_few) == 3
+    for sym, w in targets_few.items():
+        assert w <= 0.15 + 1e-4
+    # 3 * 0.15 = 0.45 total equity exposure, remaining 55% in cash
+    assert sum(targets_few.values()) <= 0.45 + 1e-4
 
 
 def test_basic_risk_engine_blocks_shorting():

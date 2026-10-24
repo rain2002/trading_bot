@@ -240,10 +240,12 @@ elif page == "🏆 30-Day Incubation Scorecard":
                 st.info("ℹ️ **Criterion 4: Execution Idempotency** — Active. Monitoring incoming order hashes.")
 
             short_positions = [p for p in positions if float(p.get("qty", 0)) < 0]
-            if len(positions) <= 25 and len(short_positions) == 0:
-                st.success(f"✅ **Criterion 5: Multi-Strategy Long-Only Ensemble** — Passed. {len(positions)}/25 stocks held, 0 short positions.")
+            if len(positions) > 0 and len(short_positions) == 0:
+                st.success(f"✅ **Criterion 5: Dynamic Multi-Strategy Long-Only Ensemble** — Passed. {len(positions)} high-conviction positions dynamically held, 0 short positions.")
+            elif len(positions) == 0:
+                st.info("ℹ️ **Criterion 5: Dynamic Ensemble** — 100% Cash Buffer (0 active positions).")
             else:
-                st.warning(f"⚠️ **Criterion 5: Long-Only Target Cap** — {len(positions)} positions held ({len(short_positions)} shorts).")
+                st.error(f"❌ **Criterion 5: Shorting Detected** — {len(short_positions)} short positions found.")
             
         st.info("📌 **Incubation Discipline:** During the incubation testing window, avoid manual interventions or ad-hoc strategy tweaks. Let the autonomous pipeline trade every market session through to Day 30.")
     else:
@@ -346,7 +348,7 @@ elif page == "🧠 Quant Brain & Strategy":
     - **Velocity Component ($\text{ROC}_{20}$):** 20-day rate of change rewards strong upward momentum.
     - **Smoothness Adjustment ($\sigma_{20}$):** Penalizes choppy, erratic breakouts with high volatility.
     - **Trend Extension Anchor:** Rewards persistent structural uptrends relative to the institutional moving average.
-    - **Dynamic Sizing:** Weight is proportional to conviction score, capped at **15% max per stock** and **Top 25 holdings**.
+    - **Dynamic Sizing:** Weight is proportional to conviction score, dynamically scaled with **15% max per stock** and **zero naked shorting**.
     """)
 
 # ==========================================

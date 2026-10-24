@@ -73,7 +73,7 @@ def execute_quant_live_cycle():
     
     # --- PHASE 2: ENSEMBLE REGIME DETECTION & ALLOCATION ---
     print("\n[2b/4] Evaluating Macro Weather via Ensemble Allocator (SPY)...")
-    ensemble = EnsembleAllocator(max_total_exposure=0.95, max_single_stock=0.15, max_holdings=25)
+    ensemble = EnsembleAllocator(max_total_exposure=0.95, max_single_stock=0.15, max_holdings=None)
     
     spy_df = brain.data_provider.get_data_as_of("SPY", datetime.now())
     regime_info = ensemble.detect_regime(spy_df)
@@ -110,7 +110,7 @@ def execute_quant_live_cycle():
     target_weights = ensemble.combine_allocations(valid_mom, valid_mr, regime_info)
 
     if target_weights:
-        print(f"\nPhase 2 Ensemble: Allocated to Top {len(target_weights)} Holdings (Max 25):")
+        print(f"\nPhase 2 Ensemble: Allocated to {len(target_weights)} Holdings (Dynamic Conviction Model):")
         for sym, weight in sorted(target_weights.items(), key=lambda x: x[1], reverse=True):
             # Check strategy attribution
             is_mom = any(s["symbol"] == sym for s in valid_mom)
