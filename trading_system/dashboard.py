@@ -351,6 +351,14 @@ elif page == "🧠 Quant Brain & Strategy":
     - **Dynamic Sizing:** Weight is proportional to conviction score, dynamically scaled with **15% max per stock** and **zero naked shorting**.
     """)
 
+    st.markdown("---")
+    st.subheader("Phase 3: Machine Learning Alpha Gate")
+    st.markdown(r"""
+    - **Classifier:** 150-tree Random Forest trained on 10 years of purged walk-forward cross-validation.
+    - **Feature Matrix:** 18 stationary normalized indicators (multi-horizon returns, moving average spreads, normalized ATR, RSI, Bollinger %B, volatility ratios, volume surges).
+    - **Alpha Gating:** Evaluates $P(\text{Alpha}_{5d} > 0.5\%)$. Vetoes false breakouts and bull traps ($P < 0.48$), and modulates conviction weight on confirmed setups ($P \ge 0.50$).
+    """)
+
 # ==========================================
 # PAGE 5: RISK SAFEGUARDS
 # ==========================================

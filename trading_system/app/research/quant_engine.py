@@ -1,6 +1,7 @@
 import os
 import json
 import logging
+import joblib
 from datetime import datetime
 from typing import Dict, Any, List, Optional
 import pandas as pd
@@ -8,6 +9,7 @@ from trading_system.app.models.core import Strategy, PortfolioDecision
 from trading_system.app.common.database import SessionLocal
 from trading_system.app.data.yfinance_provider import YFinanceDataProvider
 from trading_system.app.strategies.ensembles.mean_reversion import MeanReversionStrategy
+from trading_system.app.ml.feature_pipeline import MLFeaturePipeline
 
 logger = logging.getLogger("QuantEngine")
 
@@ -111,15 +113,39 @@ class InvestorSkillsHeuristics:
 
 class QuantEngine:
     """
-    Multi-Engine Quant Brain coordinating Momentum Leaders and Mean-Reversion Dip-Buys.
+    Multi-Engine Quant Brain coordinating Momentum Leaders, Mean-Reversion Dip-Buys,
+    and Phase 3 Machine Learning Alpha Gating (Random Forest).
     """
-    def __init__(self):
+    def __init__(self, enable_ml_gating: bool = True, ml_min_probability: float = 0.48):
         self.data_provider = YFinanceDataProvider()
         self.mean_reversion = MeanReversionStrategy()
+        self.enable_ml_gating = enable_ml_gating
+        self.ml_min_probability = ml_min_probability
+        self.ml_model = None
+        self.ml_pipeline = None
+        if self.enable_ml_gating:
+            self._load_ml_model()
+
+    def _load_ml_model(self):
+        try:
+            model_path = os.path.abspath(
+                os.path.join(os.path.dirname(__file__), "..", "..", "data", "models", "quant_rf_model.joblib")
+            )
+            if os.path.exists(model_path):
+                self.ml_model = joblib.load(model_path)
+                self.ml_pipeline = MLFeaturePipeline()
+                num_feats = len(self.ml_model.feature_names_in_) if hasattr(self.ml_model, "feature_names_in_") else 18
+                logger.info(f"Phase 3 ML Alpha Gate Loaded: {type(self.ml_model).__name__} with {num_feats} features")
+            else:
+                logger.warning(f"ML model artifact not found at {model_path}. Running with ML gating disabled.")
+                self.ml_model = None
+        except Exception as e:
+            logger.warning(f"Failed to load Phase 3 ML model: {e}. Falling back to Phase 2 heuristics.")
+            self.ml_model = None
 
     def run_nightly_research(self, universe: List[str], as_of_time: datetime) -> Dict[str, List[Dict[str, Any]]]:
         """
-        Runs multi-strategy pipeline across universe.
+        Runs multi-strategy pipeline across universe with Phase 3 ML Alpha Gating.
         Returns:
           {
             "momentum": List of positive conviction momentum signals,
@@ -136,29 +162,74 @@ class QuantEngine:
 
         for symbol in universe:
             df = self.data_provider.get_data_as_of(symbol, as_of_time)
-            if df.empty:
+            if df.empty or len(df) < 50:
                 continue
 
             # 1. Momentum Leader Judgment
             judgment = InvestorSkillsHeuristics.apply_judgment(symbol, df, fast_sma, slow_sma)
             if judgment["confidence"] > 0.70 and judgment.get("conviction_score", 0.0) > 0.0:
-                momentum_signals.append({
-                    "symbol": symbol,
-                    "target_weight": judgment["target_weight"],
-                    "confidence": judgment["confidence"],
-                    "conviction_score": judgment.get("conviction_score", 0.0),
-                    "rationale": judgment["rationale"]
-                })
+                raw_conviction = judgment.get("conviction_score", 0.0)
+                ml_prob = None
+                ml_confirmed = True
+
+                # Phase 3 ML Alpha Gate
+                if self.enable_ml_gating and self.ml_model is not None and len(df) >= 200:
+                    try:
+                        feats = self.ml_pipeline.extract_features(df)
+                        feat_cols = list(self.ml_model.feature_names_in_)
+                        latest_feats = feats[feat_cols].iloc[[-1]]
+                        if not latest_feats.isna().any().any():
+                            # Probability of forward 5-day alpha > 0.5%
+                            ml_prob = float(self.ml_model.predict_proba(latest_feats)[0, 1])
+                            if ml_prob < self.ml_min_probability:
+                                # VETO: Low predictive probability of forward return (e.g. false breakout)
+                                ml_confirmed = False
+                            else:
+                                # Modulate conviction score by ML confidence (prob 0.50 -> 1.0x, prob 0.60 -> 1.04x)
+                                raw_conviction = raw_conviction * (0.80 + (ml_prob * 0.40))
+                    except Exception as e:
+                        logger.debug(f"ML gating error for {symbol}: {e}")
+
+                if ml_confirmed:
+                    momentum_signals.append({
+                        "symbol": symbol,
+                        "target_weight": judgment["target_weight"],
+                        "confidence": judgment["confidence"],
+                        "conviction_score": round(raw_conviction, 4),
+                        "ml_prob": round(ml_prob, 4) if ml_prob is not None else None,
+                        "rationale": judgment["rationale"] + (f" | ML Confirmed: {ml_prob*100:.1f}%" if ml_prob is not None else "")
+                    })
 
             # 2. Mean-Reversion Dip-Buy Judgment (Oversold Quality)
             mr_sig = self.mean_reversion.generate_signal(df)
             if mr_sig.get("signal") == 1:
-                mean_rev_signals.append({
-                    "symbol": symbol,
-                    "signal": 1,
-                    "confidence": mr_sig.get("confidence", 0.70),
-                    "rationale": mr_sig.get("rationale", "")
-                })
+                mr_conf = mr_sig.get("confidence", 0.70)
+                ml_prob = None
+                ml_confirmed = True
+
+                if self.enable_ml_gating and self.ml_model is not None and len(df) >= 200:
+                    try:
+                        feats = self.ml_pipeline.extract_features(df)
+                        feat_cols = list(self.ml_model.feature_names_in_)
+                        latest_feats = feats[feat_cols].iloc[[-1]]
+                        if not latest_feats.isna().any().any():
+                            ml_prob = float(self.ml_model.predict_proba(latest_feats)[0, 1])
+                            # In dip buying, if ML probability is extremely low (< 0.40), avoid catching a falling knife
+                            if ml_prob < 0.40:
+                                ml_confirmed = False
+                            else:
+                                mr_conf = mr_conf * (0.80 + (ml_prob * 0.40))
+                    except Exception as e:
+                        logger.debug(f"ML dip-buy gating error for {symbol}: {e}")
+
+                if ml_confirmed:
+                    mean_rev_signals.append({
+                        "symbol": symbol,
+                        "signal": 1,
+                        "confidence": round(mr_conf, 4),
+                        "ml_prob": round(ml_prob, 4) if ml_prob is not None else None,
+                        "rationale": mr_sig.get("rationale", "") + (f" | ML Confirmed: {ml_prob*100:.1f}%" if ml_prob is not None else "")
+                    })
 
         return {
             "momentum": momentum_signals,

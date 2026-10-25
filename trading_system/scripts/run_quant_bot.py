@@ -45,8 +45,8 @@ def execute_quant_live_cycle():
     total_equity = broker.get_account_equity()
     print(f"Broker reports Total Account Equity: ${total_equity:,.2f}")
     
-    print("\n[2/4] Waking up QUANT Trading Agents & Fetching OpenBB Data...")
-    brain = QuantEngine()
+    print("\n[2/4] Waking up QUANT Trading Agents & Phase 3 ML Alpha Gate...")
+    brain = QuantEngine(enable_ml_gating=True, ml_min_probability=0.48)
     
     # Dynamically fetch the entire S&P 500 universe
     print("Fetching the complete S&P 500 universe for maximum opportunity scanning...")
@@ -110,13 +110,15 @@ def execute_quant_live_cycle():
     target_weights = ensemble.combine_allocations(valid_mom, valid_mr, regime_info)
 
     if target_weights:
-        print(f"\nPhase 2 Ensemble: Allocated to {len(target_weights)} Holdings (Dynamic Conviction Model):")
+        print(f"\nPhase 2/3 Ensemble: Allocated to {len(target_weights)} Holdings (Dynamic ML-Gated Model):")
         for sym, weight in sorted(target_weights.items(), key=lambda x: x[1], reverse=True):
             # Check strategy attribution
             is_mom = any(s["symbol"] == sym for s in valid_mom)
             is_mr = any(s["symbol"] == sym for s in valid_mr)
             tag = "MOM+DIP" if (is_mom and is_mr) else ("MOMENTUM" if is_mom else "DIP-BUY")
-            print(f" -> {sym:<6}: {weight*100:4.1f}% | Strategy: [{tag}]")
+            ml_p = next((s.get("ml_prob") for s in valid_mom + valid_mr if s["symbol"] == sym and s.get("ml_prob") is not None), None)
+            ml_tag = f" | ML Prob: {ml_p*100:.1f}%" if ml_p is not None else ""
+            print(f" -> {sym:<6}: {weight*100:4.1f}% | Strategy: [{tag}]{ml_tag}")
     else:
         if MAX_EXPOSURE == 0.0:
             print(f"Market Regime is {regime}. Holding 100% Cash.")
