@@ -40,18 +40,33 @@ code, pre, .mono-font {
     font-family: 'JetBrains Mono', monospace !important;
 }
 
-/* Deep Obsidian Base */
+/* Deep Cyber-Obsidian Canvas with Ambient Ethereal Glow */
 .stApp {
-    background: radial-gradient(circle at 10% 10%, rgba(0, 255, 136, 0.04) 0%, transparent 40%),
-                radial-gradient(circle at 90% 85%, rgba(0, 242, 254, 0.04) 0%, transparent 45%),
-                #070A12;
+    background: radial-gradient(circle at 10% 12%, rgba(0, 255, 136, 0.05) 0%, transparent 45%),
+                radial-gradient(circle at 88% 18%, rgba(168, 85, 247, 0.07) 0%, transparent 48%),
+                radial-gradient(circle at 50% 85%, rgba(0, 242, 254, 0.04) 0%, transparent 55%),
+                #070A12 !important;
+    background-attachment: fixed !important;
 }
 
-/* Sidebar Container */
+/* Subtle Cybernetic Dot Matrix Mesh Overlay */
+.stApp::before {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; width: 100vw; height: 100vh;
+    background-image: radial-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+    background-size: 28px 28px;
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* Glassmorphic Sidebar Container */
 section[data-testid="stSidebar"] {
-    background-color: #060913 !important;
-    border-right: 1px solid rgba(0, 255, 136, 0.16) !important;
-    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.7);
+    background: rgba(6, 9, 19, 0.72) !important;
+    backdrop-filter: blur(28px) saturate(200%) !important;
+    -webkit-backdrop-filter: blur(28px) saturate(200%) !important;
+    border-right: 1px solid rgba(255, 255, 255, 0.08) !important;
+    box-shadow: 10px 0 35px rgba(0, 0, 0, 0.8) !important;
 }
 
 /* ==========================================
@@ -173,10 +188,10 @@ div[data-testid="stSegmentedControl"] button[data-checked="true"] {
 }
 
 .cyber-kpi-card {
-    background: linear-gradient(135deg, rgba(15, 23, 42, 0.85) 0%, rgba(10, 15, 29, 0.9) 100%);
-    border: 1px solid rgba(0, 255, 136, 0.2);
-    border-radius: 12px;
-    padding: 14px 16px;
+    background: linear-gradient(135deg, rgba(22, 28, 48, 0.65) 0%, rgba(10, 14, 28, 0.78) 100%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.10) !important;
+    border-radius: 16px !important;
+    padding: 16px 18px !important;
     height: 138px !important;
     min-height: 138px !important;
     max-height: 138px !important;
@@ -184,17 +199,17 @@ div[data-testid="stSegmentedControl"] button[data-checked="true"] {
     display: flex !important;
     flex-direction: column !important;
     justify-content: space-between !important;
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.05);
-    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    backdrop-filter: blur(28px) saturate(200%) !important;
+    -webkit-backdrop-filter: blur(28px) saturate(200%) !important;
+    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.16) !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
     margin: 0 !important;
     width: 100% !important;
 }
 .cyber-kpi-card:hover {
-    border-color: rgba(0, 255, 136, 0.5);
-    box-shadow: 0 8px 25px rgba(0, 255, 136, 0.15), inset 0 1px 0 rgba(0, 255, 136, 0.2);
-    transform: translateY(-2px);
+    border-color: rgba(0, 255, 136, 0.5) !important;
+    box-shadow: 0 18px 45px rgba(0, 255, 136, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
+    transform: translateY(-3px) scale(1.008) !important;
 }
 
 .kpi-title {
@@ -289,35 +304,37 @@ div[data-testid="stSegmentedControl"] button[data-checked="true"] {
     border: 1px solid rgba(255, 59, 92, 0.32);
 }
 
-/* Standard Generic Cyber Card Container */
+/* Standard Generic Cyber Card Container (Frosted Glass) */
 .cyber-card {
-    background: linear-gradient(135deg, rgba(15, 23, 42, 0.85) 0%, rgba(10, 15, 29, 0.9) 100%);
-    border: 1px solid rgba(0, 255, 136, 0.2);
-    border-radius: 12px;
-    padding: 18px 20px;
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.05);
-    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-    margin-bottom: 12px;
+    background: linear-gradient(135deg, rgba(22, 28, 48, 0.65) 0%, rgba(10, 14, 28, 0.78) 100%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.10) !important;
+    border-radius: 16px !important;
+    padding: 20px 24px !important;
+    backdrop-filter: blur(28px) saturate(200%) !important;
+    -webkit-backdrop-filter: blur(28px) saturate(200%) !important;
+    box-shadow: 0 14px 40px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.16) !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    margin-bottom: 14px !important;
 }
 .cyber-card:hover {
-    border-color: rgba(0, 255, 136, 0.5);
-    box-shadow: 0 8px 25px rgba(0, 255, 136, 0.15), inset 0 1px 0 rgba(0, 255, 136, 0.2);
-    transform: translateY(-2px);
+    border-color: rgba(0, 255, 136, 0.45) !important;
+    box-shadow: 0 18px 45px rgba(0, 255, 136, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.25) !important;
+    transform: translateY(-2px) !important;
 }
 
-/* Top Telemetry Header */
+/* Top Telemetry Header (Floating Glass Command Bar) */
 .hud-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 14px 22px;
-    background: linear-gradient(90deg, rgba(15, 23, 42, 0.92) 0%, rgba(10, 15, 29, 0.95) 100%);
-    border: 1px solid rgba(0, 255, 136, 0.22);
-    border-radius: 12px;
+    padding: 16px 24px;
+    background: linear-gradient(135deg, rgba(22, 28, 48, 0.70) 0%, rgba(10, 14, 28, 0.80) 100%) !important;
+    backdrop-filter: blur(28px) saturate(200%) !important;
+    -webkit-backdrop-filter: blur(28px) saturate(200%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    border-radius: 16px !important;
     margin-bottom: 20px;
-    box-shadow: 0 4px 25px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 16px 45px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.18) !important;
 }
 
 .hud-title {
@@ -623,7 +640,7 @@ if page == "📊 Portfolio Overview":
 
     groww_data_json = json.dumps(packaged_datasets)
 
-    # 2. Standalone Pixel-Perfect Groww Portfolio Card Component
+    # 2. Standalone Pixel-Perfect Futuristic Glassy Hero Portfolio Card Component
     groww_card_html = f"""
     <!DOCTYPE html>
     <html>
@@ -645,18 +662,54 @@ if page == "📊 Portfolio Overview":
         background: transparent;
         font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif;
         color: #FFFFFF;
-        padding: 0;
+        padding: 4px;
         overflow: hidden;
     }}
     
-    .groww-card {{
-        background: #0D0F16;
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        border-radius: 22px;
-        padding: 24px 28px 20px 28px;
-        box-shadow: 0 10px 35px rgba(0, 0, 0, 0.55);
+    /* Hyper-Sleek Glassmorphic Shell with Ambient Aurora Underglow */
+    .glass-hero-card {{
         position: relative;
+        background: linear-gradient(135deg, rgba(20, 26, 44, 0.72) 0%, rgba(10, 13, 24, 0.82) 100%);
+        backdrop-filter: blur(32px) saturate(210%);
+        -webkit-backdrop-filter: blur(32px) saturate(210%);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 24px;
+        padding: 26px 32px 22px 32px;
+        box-shadow: 0 24px 70px rgba(0, 0, 0, 0.75), 
+                    inset 0 1px 1px 0 rgba(255, 255, 255, 0.22),
+                    inset 0 -1px 1px 0 rgba(0, 0, 0, 0.4);
+        overflow: hidden;
         width: 100%;
+    }}
+    
+    /* Ethereal Ambient Radial Aurora Glows */
+    .glass-hero-card::before {{
+        content: '';
+        position: absolute;
+        top: -70px;
+        left: -50px;
+        width: 320px;
+        height: 320px;
+        background: radial-gradient(circle, rgba(168, 85, 247, 0.16) 0%, rgba(139, 92, 246, 0.04) 50%, transparent 70%);
+        pointer-events: none;
+        z-index: 0;
+    }}
+    
+    .glass-hero-card::after {{
+        content: '';
+        position: absolute;
+        bottom: -90px;
+        right: -70px;
+        width: 350px;
+        height: 350px;
+        background: radial-gradient(circle, rgba(0, 242, 254, 0.09) 0%, rgba(0, 255, 136, 0.03) 50%, transparent 70%);
+        pointer-events: none;
+        z-index: 0;
+    }}
+    
+    .card-content-layer {{
+        position: relative;
+        z-index: 1;
     }}
     
     .groww-header {{
@@ -682,73 +735,100 @@ if page == "📊 Portfolio Overview":
         display: flex;
         align-items: center;
         gap: 7px;
-        font-size: 0.88rem;
+        font-size: 0.86rem;
         font-weight: 500;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
         color: #94A3B8;
         height: 20px;
     }}
     
     .dot-purple {{
-        width: 10px;
-        height: 10px;
-        background-color: #8B5CF6;
+        width: 9px;
+        height: 9px;
+        background-color: #A855F7;
         border-radius: 2.5px;
         display: inline-block;
+        box-shadow: 0 0 12px #A855F7, 0 0 24px rgba(168, 85, 247, 0.55);
     }}
     
     .dot-grey {{
-        width: 10px;
-        height: 10px;
-        background-color: #717D96;
+        width: 9px;
+        height: 9px;
+        background-color: #94A3B8;
         border-radius: 2.5px;
         display: inline-block;
+        box-shadow: 0 0 10px rgba(148, 163, 184, 0.4);
     }}
     
     .big-number {{
-        font-size: 2.30rem;
+        font-size: 2.40rem;
         font-weight: 700;
-        letter-spacing: -0.025em;
-        line-height: 1.18;
+        letter-spacing: -0.03em;
+        line-height: 1.15;
         color: #FFFFFF;
         margin: 4px 0 3px 0;
         font-family: 'Space Grotesk', sans-serif;
+        text-shadow: 0 2px 24px rgba(255, 255, 255, 0.16);
     }}
     
     .return-row {{
         display: flex;
         align-items: center;
         gap: 6px;
-        font-size: 0.96rem;
+        height: 24px;
+    }}
+    
+    .return-glass-badge {{
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 3px 11px;
+        border-radius: 20px;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.82rem;
         font-weight: 600;
-        height: 22px;
+        backdrop-filter: blur(10px);
+        transition: all 0.25s ease;
     }}
     
-    .text-green {{
-        color: #00D09C;
+    .badge-green {{
+        background: rgba(0, 255, 136, 0.09);
+        border: 1px solid rgba(0, 255, 136, 0.32);
+        color: #00FF88;
+        box-shadow: 0 0 16px rgba(0, 255, 136, 0.18);
     }}
     
-    .text-red {{
+    .badge-red {{
+        background: rgba(255, 59, 92, 0.10);
+        border: 1px solid rgba(255, 59, 92, 0.35);
         color: #FF3B5C;
+        box-shadow: 0 0 16px rgba(255, 59, 92, 0.20);
     }}
     
     .tf-sub {{
         color: #64748B;
-        font-weight: 400;
-        margin-left: 2px;
+        font-family: 'Space Grotesk', sans-serif;
+        font-size: 0.84rem;
+        font-weight: 500;
+        margin-left: 4px;
+        letter-spacing: 0.02em;
     }}
     
-    /* Currency Switcher */
+    /* Frosted Glass Currency Switcher */
     .currency-pill-box {{
         display: inline-flex;
-        background: rgba(255, 255, 255, 0.04);
-        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.12);
         border-radius: 20px;
         padding: 2px;
         margin-bottom: 6px;
+        backdrop-filter: blur(12px);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
     }}
     
     .curr-btn {{
-        padding: 2px 9px;
+        padding: 3px 10px;
         font-size: 0.70rem;
         font-weight: 600;
         font-family: 'JetBrains Mono', monospace;
@@ -757,21 +837,22 @@ if page == "📊 Portfolio Overview":
         border: none;
         background: transparent;
         cursor: pointer;
-        transition: all 0.2s ease;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     }}
     
     .curr-btn.active {{
-        background: rgba(139, 92, 246, 0.22);
-        color: #C4B5FD;
-        border: 1px solid rgba(139, 92, 246, 0.38);
+        background: rgba(168, 85, 247, 0.25);
+        color: #F3E8FF;
+        border: 1px solid rgba(168, 85, 247, 0.5);
+        box-shadow: 0 0 14px rgba(168, 85, 247, 0.38);
     }}
     
     /* SVG Chart Area */
     .chart-area {{
         position: relative;
         width: 100%;
-        height: 260px;
-        margin-top: 8px;
+        height: 265px;
+        margin-top: 10px;
         margin-bottom: 12px;
     }}
     
@@ -779,111 +860,171 @@ if page == "📊 Portfolio Overview":
         width: 100%;
         height: 100%;
         display: block;
+        overflow: visible;
     }}
     
-    /* Timeframe Selector Pills */
-    .pills-bar {{
+    /* Floating Glass Capsule Dock for Timeframe Pills */
+    .pills-dock-wrapper {{
         display: flex;
         justify-content: center;
         align-items: center;
-        gap: 10px;
         margin-top: 2px;
+    }}
+    
+    .pills-glass-dock {{
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.09);
+        border-radius: 9999px;
+        padding: 4px 6px;
+        backdrop-filter: blur(18px);
+        -webkit-backdrop-filter: blur(18px);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.09), 0 8px 24px rgba(0, 0, 0, 0.4);
     }}
     
     .timeframe-pill {{
         background: transparent;
-        border: 1.5px solid transparent;
+        border: 1px solid transparent;
         color: #94A3B8;
         font-family: 'Space Grotesk', sans-serif;
-        font-size: 0.86rem;
+        font-size: 0.84rem;
         font-weight: 600;
         padding: 5px 16px;
         border-radius: 9999px;
         cursor: pointer;
-        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     }}
     
     .timeframe-pill:hover {{
-        color: #F8FAFC;
-        background: rgba(255, 255, 255, 0.05);
+        color: #FFFFFF;
+        background: rgba(255, 255, 255, 0.07);
+        transform: translateY(-1px);
     }}
     
     .timeframe-pill.active {{
-        border: 1.5px solid rgba(255, 255, 255, 0.88);
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.18) 0%, rgba(255, 255, 255, 0.06) 100%);
+        border: 1px solid rgba(255, 255, 255, 0.45);
         color: #FFFFFF;
-        background: rgba(255, 255, 255, 0.05);
-        box-shadow: 0 0 10px rgba(255, 255, 255, 0.12);
+        font-weight: 700;
+        box-shadow: 0 0 16px rgba(255, 255, 255, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+        transform: translateY(-1px);
     }}
     
-    /* Interactive Cursor Tooltip */
+    /* Futuristic Frosted Tooltip */
     .live-tooltip {{
         position: absolute;
         display: none;
         pointer-events: none;
-        background: rgba(15, 23, 42, 0.94);
-        border: 1px solid rgba(139, 92, 246, 0.4);
-        border-radius: 8px;
-        padding: 7px 12px;
+        background: rgba(14, 18, 32, 0.88);
+        backdrop-filter: blur(20px) saturate(190%);
+        -webkit-backdrop-filter: blur(20px) saturate(190%);
+        border: 1px solid rgba(168, 85, 247, 0.45);
+        border-radius: 10px;
+        padding: 8px 14px;
         font-size: 0.76rem;
         color: #F8FAFC;
         font-family: 'JetBrains Mono', monospace;
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+        box-shadow: 0 14px 40px rgba(0, 0, 0, 0.8), 0 0 20px rgba(168, 85, 247, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.2);
         z-index: 100;
-        line-height: 1.5;
+        line-height: 1.55;
     }}
     </style>
     </head>
     <body>
-    <div class="groww-card">
-        <div class="groww-header">
-            <div class="metric-left">
-                <div class="legend-row">
-                    <span>Current</span> <span class="dot-purple"></span>
-                </div>
-                <div class="big-number" id="current-display">$101,437.23</div>
-                <div class="return-row" id="return-row">
-                    <span id="pnl-span" class="text-green">+$1,437.23 (+1.44%)</span>
-                    <span id="tf-tag" class="tf-sub">All time</span>
-                </div>
-            </div>
-            <div class="metric-right">
-                <div style="display: flex; align-items: center; gap: 8px;">
-                    <div class="currency-pill-box">
-                        <button class="curr-btn active" id="btn-usd" onclick="setCurrency('USD')">$ USD</button>
-                        <button class="curr-btn" id="btn-inr" onclick="setCurrency('INR')">&#8377; INR</button>
-                    </div>
+    <div class="glass-hero-card">
+        <div class="card-content-layer">
+            <div class="groww-header">
+                <div class="metric-left">
                     <div class="legend-row">
-                        <span class="dot-grey"></span> <span>Invested</span>
+                        <span>Current</span> <span class="dot-purple"></span>
+                    </div>
+                    <div class="big-number" id="current-display">$101,437.23</div>
+                    <div class="return-row" id="return-row">
+                        <div id="pnl-badge" class="return-glass-badge badge-green">
+                            <span id="pnl-span">+$1,437.23 (+1.44%)</span>
+                        </div>
+                        <span id="tf-tag" class="tf-sub">All time</span>
                     </div>
                 </div>
-                <div class="big-number" id="invested-display">$100,000.00</div>
+                <div class="metric-right">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <div class="currency-pill-box">
+                            <button class="curr-btn active" id="btn-usd" onclick="setCurrency('USD')">$ USD</button>
+                            <button class="curr-btn" id="btn-inr" onclick="setCurrency('INR')">&#8377; INR</button>
+                        </div>
+                        <div class="legend-row">
+                            <span class="dot-grey"></span> <span>Invested</span>
+                        </div>
+                    </div>
+                    <div class="big-number" id="invested-display">$100,000.00</div>
+                </div>
             </div>
-        </div>
 
-        <div class="chart-area" id="chart-area">
-            <svg class="groww-svg" id="groww-svg" viewBox="0 0 1000 260" preserveAspectRatio="none">
-                <!-- Subtle Dashed Baseline at Bottom -->
-                <line x1="0" y1="250" x2="1000" y2="250" stroke="rgba(255,255,255,0.10)" stroke-width="1.2" stroke-dasharray="4,4" />
-                <!-- Invested Dotted Line -->
-                <path id="path-invested" stroke="#717D96" stroke-width="1.8" stroke-dasharray="3,3" fill="none" d="" />
-                <!-- Current Smooth Solid Line -->
-                <path id="path-current" stroke="#8B5CF6" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round" fill="none" d="" />
-                <!-- Vertical Hover Cursor -->
-                <line id="cursor-line" x1="0" y1="10" x2="0" y2="250" stroke="rgba(255,255,255,0.22)" stroke-width="1.2" stroke-dasharray="2,2" style="display:none;" />
-                <!-- Tracking Circles -->
-                <circle id="cursor-dot-purple" r="5" fill="#8B5CF6" stroke="#FFFFFF" stroke-width="1.8" style="display:none;" />
-                <circle id="cursor-dot-grey" r="3.8" fill="#717D96" stroke="#FFFFFF" stroke-width="1.2" style="display:none;" />
-            </svg>
-            <div class="live-tooltip" id="live-tooltip"></div>
-        </div>
+            <div class="chart-area" id="chart-area">
+                <svg class="groww-svg" id="groww-svg" viewBox="0 0 1000 260" preserveAspectRatio="none">
+                    <defs>
+                        <!-- Neon Violet Drop Shadow Filter -->
+                        <filter id="neon-glow" x="-20%" y="-20%" width="140%" height="140%">
+                            <feDropShadow dx="0" dy="0" stdDeviation="4.5" flood-color="#A855F7" flood-opacity="0.6" />
+                        </filter>
+                        
+                        <!-- Smooth Violet Line Stroke Gradient -->
+                        <linearGradient id="stroke-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                            <stop offset="0%" stop-color="#818CF8" />
+                            <stop offset="50%" stop-color="#A855F7" />
+                            <stop offset="100%" stop-color="#C084FC" />
+                        </linearGradient>
 
-        <div class="pills-bar">
-            <button class="timeframe-pill" onclick="selectTimeframe('1M')">1M</button>
-            <button class="timeframe-pill" onclick="selectTimeframe('6M')">6M</button>
-            <button class="timeframe-pill" onclick="selectTimeframe('1Y')">1Y</button>
-            <button class="timeframe-pill" onclick="selectTimeframe('3Y')">3Y</button>
-            <button class="timeframe-pill" onclick="selectTimeframe('5Y')">5Y</button>
-            <button class="timeframe-pill active" onclick="selectTimeframe('All')">All</button>
+                        <!-- Ethereal Luminous Area Fill Gradient -->
+                        <linearGradient id="area-gradient" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stop-color="#A855F7" stop-opacity="0.24" />
+                            <stop offset="65%" stop-color="#8B5CF6" stop-opacity="0.04" />
+                            <stop offset="100%" stop-color="#8B5CF6" stop-opacity="0.00" />
+                        </linearGradient>
+
+                        <!-- Laser Cursor Beam Gradient -->
+                        <linearGradient id="cursor-beam" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stop-color="#A855F7" stop-opacity="0.8" />
+                            <stop offset="80%" stop-color="#8B5CF6" stop-opacity="0.3" />
+                            <stop offset="100%" stop-color="#8B5CF6" stop-opacity="0.0" />
+                        </linearGradient>
+                    </defs>
+
+                    <!-- Subtle Dashed Baseline at Bottom -->
+                    <line x1="0" y1="248" x2="1000" y2="248" stroke="rgba(255,255,255,0.09)" stroke-width="1.2" stroke-dasharray="4,4" />
+
+                    <!-- Invested Dotted Line -->
+                    <path id="path-invested" stroke="#94A3B8" stroke-width="1.8" stroke-dasharray="5,4" fill="none" d="" />
+
+                    <!-- Ethereal Area Gradient Underneath Current Curve -->
+                    <path id="path-area" fill="url(#area-gradient)" d="" />
+
+                    <!-- Current Smooth Neon Violet Line -->
+                    <path id="path-current" stroke="url(#stroke-gradient)" filter="url(#neon-glow)" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round" fill="none" d="" />
+
+                    <!-- Laser Vertical Cursor -->
+                    <line id="cursor-line" x1="0" y1="6" x2="0" y2="248" stroke="url(#cursor-beam)" stroke-width="1.6" stroke-dasharray="2,2" style="display:none;" />
+
+                    <!-- Tracking Circles -->
+                    <circle id="cursor-halo" r="10" fill="rgba(168, 85, 247, 0.25)" style="display:none;" />
+                    <circle id="cursor-dot-purple" r="5" fill="#E9D5FF" stroke="#A855F7" stroke-width="2" style="display:none;" />
+                    <circle id="cursor-dot-grey" r="4" fill="#94A3B8" stroke="#FFFFFF" stroke-width="1.5" style="display:none;" />
+                </svg>
+                <div class="live-tooltip" id="live-tooltip"></div>
+            </div>
+
+            <div class="pills-dock-wrapper">
+                <div class="pills-glass-dock">
+                    <button class="timeframe-pill" onclick="selectTimeframe('1M')">1M</button>
+                    <button class="timeframe-pill" onclick="selectTimeframe('6M')">6M</button>
+                    <button class="timeframe-pill" onclick="selectTimeframe('1Y')">1Y</button>
+                    <button class="timeframe-pill" onclick="selectTimeframe('3Y')">3Y</button>
+                    <button class="timeframe-pill" onclick="selectTimeframe('5Y')">5Y</button>
+                    <button class="timeframe-pill active" onclick="selectTimeframe('All')">All</button>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -959,9 +1100,10 @@ if page == "📊 Portfolio Overview":
         document.getElementById('current-display').innerHTML = formatCurrency(latestEq, currentCurrency);
         document.getElementById('invested-display').innerHTML = formatCurrency(latestInv, currentCurrency);
         
+        const pnlBadge = document.getElementById('pnl-badge');
         const pnlSpan = document.getElementById('pnl-span');
         const sign = pnl >= 0 ? '+' : '-';
-        pnlSpan.className = pnl >= 0 ? 'text-green' : 'text-red';
+        pnlBadge.className = 'return-glass-badge ' + (pnl >= 0 ? 'badge-green' : 'badge-red');
         pnlSpan.innerHTML = `${{sign}}${{formatCurrency(Math.abs(pnl), currentCurrency)}} (${{pnlPct >= 0 ? '+' : ''}}${{pnlPct.toFixed(2)}}%)`;
         document.getElementById('tf-tag').innerText = activeTimeframe === 'All' ? 'All time' : activeTimeframe;
         
@@ -990,7 +1132,17 @@ if page == "📊 Portfolio Overview":
         for (let i = 0; i < n; i++) {{
             curPoints.push({{ x: getX(i), y: getY(equities[i]) }});
         }}
-        document.getElementById('path-current').setAttribute('d', getSmoothPath(curPoints));
+        const smoothCurveD = getSmoothPath(curPoints);
+        document.getElementById('path-current').setAttribute('d', smoothCurveD);
+        
+        // Ethereal Area Gradient Underneath Current Curve
+        if (curPoints.length > 1) {{
+            const baselineY = 248;
+            const firstX = curPoints[0].x;
+            const lastX = curPoints[curPoints.length - 1].x;
+            const areaPath = `${{smoothCurveD}} L ${{lastX.toFixed(1)}},${{baselineY}} L ${{firstX.toFixed(1)}},${{baselineY}} Z`;
+            document.getElementById('path-area').setAttribute('d', areaPath);
+        }}
         
         // Invested Path (Dotted)
         let dInv = '';
@@ -1002,9 +1154,10 @@ if page == "📊 Portfolio Overview":
         document.getElementById('path-invested').setAttribute('d', dInv);
     }}
 
-    // Mouse Scrubbing Interaction
+    // Laser Scrubbing Interaction
     const chartArea = document.getElementById('chart-area');
     const cursorLine = document.getElementById('cursor-line');
+    const cursorHalo = document.getElementById('cursor-halo');
     const dotPurple = document.getElementById('cursor-dot-purple');
     const dotGrey = document.getElementById('cursor-dot-grey');
     const tooltip = document.getElementById('live-tooltip');
@@ -1046,6 +1199,10 @@ if page == "📊 Portfolio Overview":
         cursorLine.setAttribute('x2', xSvg);
         cursorLine.style.display = 'block';
         
+        cursorHalo.setAttribute('cx', xSvg);
+        cursorHalo.setAttribute('cy', yCurSvg);
+        cursorHalo.style.display = 'block';
+        
         dotPurple.setAttribute('cx', xSvg);
         dotPurple.setAttribute('cy', yCurSvg);
         dotPurple.style.display = 'block';
@@ -1059,21 +1216,23 @@ if page == "📊 Portfolio Overview":
         const pnl = eqVal - invVal;
         const pnlPct = (pnl / invVal) * 100;
         const sign = pnl >= 0 ? '+' : '-';
+        const pnlBadge = document.getElementById('pnl-badge');
         const pnlSpan = document.getElementById('pnl-span');
-        pnlSpan.className = pnl >= 0 ? 'text-green' : 'text-red';
+        pnlBadge.className = 'return-glass-badge ' + (pnl >= 0 ? 'badge-green' : 'badge-red');
         pnlSpan.innerHTML = `${{sign}}${{formatCurrency(Math.abs(pnl), currentCurrency)}} (${{pnlPct >= 0 ? '+' : ''}}${{pnlPct.toFixed(2)}}%)`;
         document.getElementById('tf-tag').innerText = dateStr;
         
         // Tooltip position
         tooltip.style.display = 'block';
-        const tooltipX = Math.min(rect.width - 150, Math.max(10, mouseX - 60));
+        const tooltipX = Math.min(rect.width - 165, Math.max(10, mouseX - 70));
         tooltip.style.left = tooltipX + 'px';
         tooltip.style.top = '10px';
-        tooltip.innerHTML = `<span style="color:#94A3B8;">${{dateStr}}</span><br><b style="color:#C4B5FD;">Current:</b> ${{formatCurrency(eqVal, currentCurrency)}}<br><b style="color:#94A3B8;">Invested:</b> ${{formatCurrency(invVal, currentCurrency)}}`;
+        tooltip.innerHTML = `<span style="color:#A1A1AA; font-size:0.72rem;">${{dateStr}}</span><br><b style="color:#C4B5FD;">Current:</b> ${{formatCurrency(eqVal, currentCurrency)}}<br><b style="color:#94A3B8;">Invested:</b> ${{formatCurrency(invVal, currentCurrency)}}`;
     }});
 
     chartArea.addEventListener('mouseleave', () => {{
         cursorLine.style.display = 'none';
+        cursorHalo.style.display = 'none';
         dotPurple.style.display = 'none';
         dotGrey.style.display = 'none';
         tooltip.style.display = 'none';
@@ -1092,7 +1251,7 @@ if page == "📊 Portfolio Overview":
     </html>
     """
 
-    components.html(groww_card_html, height=450)
+    components.html(groww_card_html, height=480)
 
     # ==============================================================================
     # DYNAMIC ALLOCATION DONUT CHART (VIBRANT) & EXPOSURE TELEMETRY
