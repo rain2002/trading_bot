@@ -1,18 +1,31 @@
-yfinance
-pandas
-pandas-ta
-pydantic
-pydantic-settings
-sqlalchemy
-alembic
-pytest
-scikit-learn
-joblib
-streamlit
-plotly
-lxml
-html5lib
-requests
-scipy
-python-dotenv
-python-dateutil
+# Core Framework & Settings
+pydantic>=2.4.0
+pydantic-settings>=2.0.0
+python-dotenv>=1.0.0
+python-dateutil>=2.9.0
+
+# Database & Storage
+sqlalchemy>=2.0.0
+alembic>=1.12.0
+psycopg2-binary>=2.9.9
+
+# Market Data & Ingestion
+requests>=2.31.0
+yfinance>=0.2.0
+html5lib>=1.1
+
+# Quantitative Analysis & Machine Learning
+numpy>=1.26.0
+pandas>=2.1.0
+pandas-ta>=0.3.14b
+scipy>=1.11.0
+scikit-learn>=1.4.0
+joblib>=1.3.0
+statsmodels>=0.14.0
+
+# Interactive Web Terminal & Visuals
+streamlit>=1.30.0
+plotly>=5.18.0
+
+# Testing & Quality
+pytest>=7.4.0
