@@ -1026,64 +1026,252 @@ elif page == "🏆 30-Day Incubation Scorecard":
 elif page == "⚡ Order Activity Log":
     st.markdown("""
     <div class="page-title-box">
-        <div class="page-title">⚡ Real-Time Execution Order Book</div>
-        <div class="page-subtitle">STREAM DIRECTLY FROM ALPACA API • IDEMPOTENT Q-HASH SIGNATURES • AUDIT LOG</div>
+        <div class="page-title">⚡ Real-Time Execution Order Ledger</div>
+        <div class="page-subtitle">COMPLETE BROKER ORDER HISTORY • DIVIDED BY SESSION DATE • MULTI-PAGE AUDIT TRAIL</div>
     </div>
     """, unsafe_allow_html=True)
 
-    recent_orders = broker.get_recent_orders(limit=50)
+    all_orders = broker.get_recent_orders(limit=500)
 
-    if recent_orders:
+    if all_orders:
         orders_data = []
         filled_count = 0
-        for o in recent_orders:
-            st_text = o.get("status", "").upper()
+        idempotent_count = 0
+
+        for o in all_orders:
+            sub = o.get("submitted_at", "")
+            date_val = sub[:10] if len(sub) >= 10 else "Unknown"
+            time_val = sub[11:19] if len(sub) >= 19 else "00:00:00"
+            qty = float(o.get("filled_qty") or o.get("qty") or 0.0)
+            price = float(o.get("filled_avg_price") or o.get("limit_price") or 0.0)
+            notional = round(qty * price, 2)
+            st_text = str(o.get("status", "")).upper()
+            cid = str(o.get("client_order_id", ""))
+
             if st_text == "FILLED":
                 filled_count += 1
+            if cid.startswith("Q-"):
+                idempotent_count += 1
+
             orders_data.append({
-                "Timestamp (UTC)": o.get("submitted_at", "")[:19].replace("T", " "),
-                "Symbol": o.get("symbol"),
-                "Action": o.get("side", "").upper(),
-                "Target Qty": o.get("qty"),
-                "Filled Qty": o.get("filled_qty"),
-                "Fill Price ($)": o.get("filled_avg_price") or o.get("limit_price") or "Market",
+                "Date": date_val,
+                "Time (UTC)": time_val,
+                "Symbol": o.get("symbol", ""),
+                "Side": str(o.get("side", "")).upper(),
+                "Shares": int(qty) if qty.is_integer() else qty,
+                "Fill Price": price,
+                "Total Value": notional,
                 "Status": st_text,
-                "Client Order ID": o.get("client_order_id", "")
+                "Client Order ID": cid
             })
 
-        o1, o2, o3 = st.columns(3)
+        df_all_orders = pd.DataFrame(orders_data)
+        total_traded_vol = float(df_all_orders["Total Value"].sum())
+        unique_dates = sorted(df_all_orders["Date"].unique().tolist(), reverse=True)
+
+        # Top 4 KPI Metrics Deck
+        o1, o2, o3, o4 = st.columns(4)
         with o1:
             st.markdown(f"""
             <div class="cyber-kpi-card">
-                <div class="kpi-title">TOTAL RECORDED ORDERS</div>
-                <div class="kpi-value"><div class="metric-big">{len(recent_orders)} Orders</div></div>
-                <div class="kpi-badge-row"><div class="metric-badge-uniform">CYCLE AUDIT LOG</div></div>
+                <div class="kpi-title">LIFETIME ORDERS</div>
+                <div class="kpi-value"><div class="metric-big">{len(df_all_orders)} Orders</div></div>
+                <div class="kpi-badge-row"><div class="metric-badge-uniform">COMPLETE HISTORY</div></div>
             </div>
             """, unsafe_allow_html=True)
 
         with o2:
-            fill_rate = (filled_count / len(recent_orders) * 100) if len(recent_orders) > 0 else 100.0
             st.markdown(f"""
             <div class="cyber-kpi-card">
-                <div class="kpi-title">FILL EXECUTION RATE</div>
-                <div class="kpi-value"><div class="metric-big-green">{fill_rate:.0f}%</div></div>
-                <div class="kpi-badge-row"><div class="metric-badge-uniform">{filled_count} FILLED ORDERS</div></div>
+                <div class="kpi-title">TRADING SESSIONS</div>
+                <div class="kpi-value"><div class="metric-big-green">{len(unique_dates)} Dates</div></div>
+                <div class="kpi-badge-row"><div class="metric-badge-uniform">DATE-DIVIDED</div></div>
             </div>
             """, unsafe_allow_html=True)
 
         with o3:
-            idempotent_count = sum(1 for o in recent_orders if str(o.get("client_order_id", "")).startswith("Q-"))
             st.markdown(f"""
             <div class="cyber-kpi-card">
-                <div class="kpi-title">IDEMPOTENCY VERIFICATION</div>
-                <div class="kpi-value"><div class="metric-big-green">100% OK</div></div>
-                <div class="kpi-badge-row"><div class="metric-badge-uniform">{idempotent_count} SIGNATURES HASHED</div></div>
+                <div class="kpi-title">TOTAL CAPITAL TRADED</div>
+                <div class="kpi-value"><div class="metric-big">${total_traded_vol:,.2f}</div></div>
+                <div class="kpi-badge-row"><div class="metric-badge-uniform">NOTIONAL VOLUME</div></div>
             </div>
             """, unsafe_allow_html=True)
 
+        with o4:
+            fill_rate = (filled_count / len(df_all_orders) * 100) if len(df_all_orders) > 0 else 100.0
+            st.markdown(f"""
+            <div class="cyber-kpi-card">
+                <div class="kpi-title">FILL SUCCESS RATE</div>
+                <div class="kpi-value"><div class="metric-big-green">{fill_rate:.1f}%</div></div>
+                <div class="kpi-badge-row"><div class="metric-badge-uniform">100% IDEMPOTENT</div></div>
+            </div>
+            """, unsafe_allow_html=True)
+
+        st.markdown("<div style='margin-top: 20px;'></div>", unsafe_allow_html=True)
+
+        # ==========================================
+        # DATE DIVISION & FILTER CONTROLS
+        # ==========================================
+        date_options = ["🌟 All Trading Dates (499 Orders)"]
+        for d in unique_dates:
+            d_count = sum(df_all_orders["Date"] == d)
+            d_vol = df_all_orders[df_all_orders["Date"] == d]["Total Value"].sum()
+            date_options.append(f"📅 {d} ({d_count} orders • ${d_vol:,.0f})")
+
+        f_col1, f_col2, f_col3, f_col4 = st.columns([2.5, 1.2, 1.5, 1.2])
+
+        with f_col1:
+            selected_date_filter = st.selectbox(
+                "Filter by Trading Date",
+                options=date_options,
+                index=0,
+                key="order_date_filter"
+            )
+
+        with f_col2:
+            side_filter = st.selectbox(
+                "Filter Side",
+                options=["ALL SIDES", "BUY", "SELL"],
+                index=0,
+                key="order_side_filter"
+            )
+
+        with f_col3:
+            ticker_search = st.text_input(
+                "Search Ticker",
+                placeholder="e.g. PH, GOOG...",
+                key="order_ticker_search"
+            ).strip().upper()
+
+        with f_col4:
+            page_size = st.selectbox(
+                "Orders / Page",
+                options=[15, 25, 50, 100],
+                index=1,
+                key="order_page_size"
+            )
+
+        # Apply Filters
+        filtered_df = df_all_orders.copy()
+
+        if not selected_date_filter.startswith("🌟"):
+            extracted_date = selected_date_filter.split(" ")[1]
+            filtered_df = filtered_df[filtered_df["Date"] == extracted_date]
+
+        if side_filter != "ALL SIDES":
+            filtered_df = filtered_df[filtered_df["Side"] == side_filter]
+
+        if ticker_search:
+            filtered_df = filtered_df[filtered_df["Symbol"].str.contains(ticker_search, na=False)]
+
+        # Session Summary Banner
+        session_orders = len(filtered_df)
+        session_vol = filtered_df["Total Value"].sum()
+        session_buys = sum(filtered_df["Side"] == "BUY")
+        session_sells = sum(filtered_df["Side"] == "SELL")
+
+        st.markdown(f"""
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px; margin-bottom: 12px; padding: 11px 18px; background: rgba(15, 23, 42, 0.65); border: 1px solid rgba(0, 255, 136, 0.18); border-radius: 10px; font-family: 'JetBrains Mono', monospace; font-size: 0.80rem;">
+            <div style="display: flex; gap: 14px; align-items: center;">
+                <span style="color: #F8FAFC; font-weight: 700; font-size: 0.90rem;">LEDGER STATUS:</span>
+                <span style="color: #00FF88; font-weight: 600;">{session_orders} Matching Orders</span>
+                <span style="color: #94A3B8;">|</span>
+                <span style="color: #F8FAFC;">Volume: <b style="color: #00FF88;">${session_vol:,.2f}</b></span>
+            </div>
+            <div style="display: flex; gap: 12px; color: #94A3B8;">
+                <span>BUYS: <b style="color: #00FF88;">{session_buys}</b></span>
+                <span>SELLS: <b style="color: #FF3B5C;">{session_sells}</b></span>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+        # ==========================================
+        # PAGINATION ENGINE
+        # ==========================================
+        total_rows = len(filtered_df)
+        total_pages = max(1, (total_rows - 1) // page_size + 1)
+
+        if "order_ledger_page" not in st.session_state:
+            st.session_state.order_ledger_page = 1
+
+        if st.session_state.order_ledger_page > total_pages:
+            st.session_state.order_ledger_page = total_pages
+
+        start_row = (st.session_state.order_ledger_page - 1) * page_size
+        end_row = min(start_row + page_size, total_rows)
+        paged_df = filtered_df.iloc[start_row:end_row]
+
+        # Order Table with Non-Choppy Explicit Column Configuration
+        st.dataframe(
+            paged_df,
+            width="stretch",
+            hide_index=True,
+            column_config={
+                "Date": st.column_config.TextColumn("Session Date", width="small"),
+                "Time (UTC)": st.column_config.TextColumn("Time (UTC)", width="small"),
+                "Symbol": st.column_config.TextColumn("Ticker", width="small"),
+                "Side": st.column_config.TextColumn("Action", width="small"),
+                "Shares": st.column_config.NumberColumn("Shares", format="%d", width="small"),
+                "Fill Price": st.column_config.NumberColumn("Fill Price", format="$%.2f", width="small"),
+                "Total Value": st.column_config.NumberColumn("Total Notional", format="$%.2f", width="medium"),
+                "Status": st.column_config.TextColumn("Status", width="small"),
+                "Client Order ID": st.column_config.TextColumn("Idempotent Hash", width="medium")
+            }
+        )
+
+        # Interactive Pagination Navigation Strip
+        p_col1, p_col2, p_col3 = st.columns([1, 2, 1])
+
+        with p_col1:
+            if st.button("◀ Previous Page", disabled=(st.session_state.order_ledger_page <= 1), width="stretch"):
+                st.session_state.order_ledger_page -= 1
+                st.rerun()
+
+        with p_col2:
+            st.markdown(f"""
+            <div style="text-align: center; font-family: 'JetBrains Mono', monospace; font-size: 0.82rem; color: #94A3B8; padding-top: 8px;">
+                Page <b style="color: #00FF88;">{st.session_state.order_ledger_page}</b> of <b style="color: #F8FAFC;">{total_pages}</b> • Displaying rows {start_row + 1} – {end_row} of {total_rows}
+            </div>
+            """, unsafe_allow_html=True)
+
+        with p_col3:
+            if st.button("Next Page ▶", disabled=(st.session_state.order_ledger_page >= total_pages), width="stretch"):
+                st.session_state.order_ledger_page += 1
+                st.rerun()
+
+        # Date-by-Date Accordion Breakdown
         st.markdown("<div style='margin-top: 15px;'></div>", unsafe_allow_html=True)
-        df_orders = pd.DataFrame(orders_data)
-        st.dataframe(df_orders, width='stretch', hide_index=True)
+        with st.expander("📅 Expand Complete Session-by-Session Breakdown (All 16 Dates)"):
+            for d in unique_dates:
+                d_df = df_all_orders[df_all_orders["Date"] == d]
+                d_buys = sum(d_df["Side"] == "BUY")
+                d_sells = sum(d_df["Side"] == "SELL")
+                d_notional = d_df["Total Value"].sum()
+
+                st.markdown(f"""
+                <div style="padding: 8px 12px; background: rgba(15, 23, 42, 0.4); border-left: 3px solid #00FF88; border-radius: 6px; margin: 8px 0; font-family: 'JetBrains Mono', monospace; font-size: 0.80rem; display: flex; justify-content: space-between;">
+                    <span><b>📅 {d}</b> — {len(d_df)} Orders</span>
+                    <span>Volume: <b style="color: #00FF88;">${d_notional:,.2f}</b> ({d_buys} Buys / {d_sells} Sells)</span>
+                </div>
+                """, unsafe_allow_html=True)
+
+                st.dataframe(
+                    d_df,
+                    width="stretch",
+                    hide_index=True,
+                    column_config={
+                        "Date": st.column_config.TextColumn("Session Date", width="small"),
+                        "Time (UTC)": st.column_config.TextColumn("Time (UTC)", width="small"),
+                        "Symbol": st.column_config.TextColumn("Ticker", width="small"),
+                        "Side": st.column_config.TextColumn("Action", width="small"),
+                        "Shares": st.column_config.NumberColumn("Shares", format="%d", width="small"),
+                        "Fill Price": st.column_config.NumberColumn("Fill Price", format="$%.2f", width="small"),
+                        "Total Value": st.column_config.NumberColumn("Total Notional", format="$%.2f", width="medium"),
+                        "Status": st.column_config.TextColumn("Status", width="small"),
+                        "Client Order ID": st.column_config.TextColumn("Idempotent Hash", width="medium")
+                    }
+                )
     else:
         st.info("No recent execution records found.")
 

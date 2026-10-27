@@ -51,7 +51,7 @@ class AlpacaBrokerAdapter(BrokerAdapter):
         except Exception:
             return []
 
-    def get_recent_orders(self, limit: int = 50) -> list:
+    def get_recent_orders(self, limit: int = 500) -> list:
         """Fetch recent order executions directly from Alpaca."""
         if not self.api_key or self.api_key == "mock":
             return []
