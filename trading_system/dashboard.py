@@ -13,62 +13,58 @@ from trading_system.app.config.settings import settings
 from trading_system.app.broker.alpaca import AlpacaBrokerAdapter
 
 # ==========================================
-# PAGE CONFIGURATION & METADATA
+# PAGE CONFIGURATION
 # ==========================================
 st.set_page_config(
-    page_title="ANTIGRAVITY // Quantum Terminal",
+    page_title="ANTIGRAVITY // Quant Terminal",
     layout="wide",
-    page_icon="⚡",
+    page_icon="🟢",
     initial_sidebar_state="expanded"
 )
 
 # ==========================================
-# FUTURISTIC CYBERPUNK HUD STYLING
+# UNIFORM ELECTRIC EMERALD THEME STYLING
 # ==========================================
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,300;0,400;0,600;0,700;1,400&family=Space+Grotesk:wght@400;500;600;700&display=swap');
 
-/* Global Font & Theme */
+/* Global Font & Clean Dark Theme */
 html, body, [class*="css"] {
-    font-family: 'Space Grotesk', -apple-system, sans-serif !important;
-    color: #E2E8F0;
+    font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif !important;
+    color: #F3F4F6;
 }
 
 code, pre, .mono-font {
     font-family: 'JetBrains Mono', monospace !important;
 }
 
-/* Deep Obsidian Space Background */
+/* Deep Obsidian Base */
 .stApp {
-    background: radial-gradient(circle at 10% 10%, rgba(0, 242, 254, 0.05) 0%, transparent 40%),
-                radial-gradient(circle at 90% 90%, rgba(157, 78, 221, 0.05) 0%, transparent 45%),
-                radial-gradient(circle at 50% 50%, rgba(5, 213, 123, 0.02) 0%, transparent 60%),
-                #070A12;
+    background: radial-gradient(circle at 12% 10%, rgba(0, 245, 117, 0.03) 0%, transparent 40%),
+                radial-gradient(circle at 88% 90%, rgba(0, 245, 117, 0.02) 0%, transparent 40%),
+                #07090D;
 }
 
-/* Futuristic Sidebar */
+/* Sidebar */
 section[data-testid="stSidebar"] {
-    background-color: #05070E !important;
-    border-right: 1px solid rgba(0, 242, 254, 0.15) !important;
-    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.6);
+    background-color: #050609 !important;
+    border-right: 1px solid rgba(0, 245, 117, 0.12) !important;
 }
 
-/* Custom Glassmorphism Card */
+/* Uniform Clean Card Container */
 .cyber-card {
-    background: linear-gradient(135deg, rgba(15, 23, 42, 0.75) 0%, rgba(8, 12, 22, 0.85) 100%);
-    border: 1px solid rgba(0, 242, 254, 0.18);
-    border-radius: 14px;
+    background: #0B0E14;
+    border: 1px solid rgba(0, 245, 117, 0.14);
+    border-radius: 12px;
     padding: 18px 22px;
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.06);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    margin-bottom: 15px;
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.5);
+    transition: all 0.25s ease;
+    margin-bottom: 14px;
 }
 .cyber-card:hover {
-    border-color: rgba(0, 242, 254, 0.5);
-    box-shadow: 0 8px 30px rgba(0, 242, 254, 0.15), inset 0 1px 0 rgba(0, 242, 254, 0.3);
+    border-color: rgba(0, 245, 117, 0.40);
+    box-shadow: 0 6px 24px rgba(0, 245, 117, 0.09);
     transform: translateY(-2px);
 }
 
@@ -77,80 +73,81 @@ section[data-testid="stSidebar"] {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 14px 24px;
-    background: linear-gradient(90deg, rgba(15, 23, 42, 0.9) 0%, rgba(10, 15, 29, 0.9) 100%);
-    border: 1px solid rgba(0, 242, 254, 0.2);
-    border-radius: 14px;
-    margin-bottom: 22px;
-    box-shadow: 0 4px 25px rgba(0, 0, 0, 0.5);
+    padding: 14px 22px;
+    background: #0B0E14;
+    border: 1px solid rgba(0, 245, 117, 0.16);
+    border-radius: 12px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
 }
 
 .hud-title {
-    font-size: 1.4rem;
+    font-size: 1.35rem;
     font-weight: 700;
     letter-spacing: -0.02em;
-    background: linear-gradient(90deg, #00F2FE 0%, #4FACFE 50%, #00FF9D 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
+    color: #FFFFFF;
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
+}
+.hud-title-accent {
+    color: #00F575;
 }
 
 .hud-subtitle {
     font-family: 'JetBrains Mono', monospace;
-    font-size: 0.72rem;
-    color: #64748B;
-    letter-spacing: 0.12em;
+    font-size: 0.70rem;
+    color: #7E8B9B;
+    letter-spacing: 0.10em;
     text-transform: uppercase;
 }
 
-/* Status Badges & Pills */
+/* Uniform Pill Badges */
 .status-pill {
     display: inline-flex;
     align-items: center;
-    gap: 8px;
+    gap: 7px;
     font-family: 'JetBrains Mono', monospace;
-    font-size: 0.75rem;
+    font-size: 0.74rem;
     font-weight: 600;
-    padding: 6px 14px;
-    border-radius: 20px;
-    background: rgba(15, 23, 42, 0.8);
-    border: 1px solid rgba(0, 242, 254, 0.25);
-    color: #94A3B8;
+    padding: 5px 12px;
+    border-radius: 16px;
+    background: rgba(0, 245, 117, 0.08);
+    border: 1px solid rgba(0, 245, 117, 0.22);
+    color: #00F575;
 }
 
 .pulse-dot {
-    width: 8px;
-    height: 8px;
+    width: 7px;
+    height: 7px;
     border-radius: 50%;
-    background-color: #00FF9D;
-    box-shadow: 0 0 10px #00FF9D;
+    background-color: #00F575;
+    box-shadow: 0 0 8px #00F575;
     animation: radar-pulse 2s infinite;
     display: inline-block;
 }
 @keyframes radar-pulse {
-    0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(0, 255, 157, 0.7); }
-    70% { transform: scale(1.2); box-shadow: 0 0 0 8px rgba(0, 255, 157, 0); }
-    100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(0, 255, 157, 0); }
+    0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(0, 245, 117, 0.7); }
+    70% { transform: scale(1.2); box-shadow: 0 0 0 6px rgba(0, 245, 117, 0); }
+    100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(0, 245, 117, 0); }
 }
 
-/* Metric Card Inner Typography */
+/* Metric Typography */
 .metric-meta {
     font-family: 'JetBrains Mono', monospace;
-    font-size: 0.72rem;
+    font-size: 0.70rem;
     font-weight: 600;
     text-transform: uppercase;
-    letter-spacing: 0.12em;
-    color: #64748B;
-    margin-bottom: 6px;
+    letter-spacing: 0.10em;
+    color: #7E8B9B;
+    margin-bottom: 5px;
 }
 
 .metric-big {
-    font-size: 1.9rem;
+    font-size: 1.85rem;
     font-weight: 700;
     letter-spacing: -0.03em;
-    color: #F8FAFC;
+    color: #FFFFFF;
     line-height: 1.15;
 }
 
@@ -159,48 +156,47 @@ section[data-testid="stSidebar"] {
     align-items: center;
     gap: 4px;
     font-family: 'JetBrains Mono', monospace;
-    font-size: 0.76rem;
+    font-size: 0.74rem;
     font-weight: 600;
-    padding: 3px 9px;
-    border-radius: 12px;
+    padding: 2px 8px;
+    border-radius: 10px;
     margin-top: 8px;
 }
-.badge-green {
-    background: rgba(0, 255, 157, 0.1);
-    color: #00FF9D;
-    border: 1px solid rgba(0, 255, 157, 0.25);
+.badge-uniform {
+    background: rgba(0, 245, 117, 0.10);
+    color: #00F575;
+    border: 1px solid rgba(0, 245, 117, 0.22);
 }
-.badge-cyan {
-    background: rgba(0, 242, 254, 0.1);
-    color: #00F2FE;
-    border: 1px solid rgba(0, 242, 254, 0.25);
-}
-.badge-purple {
-    background: rgba(157, 78, 221, 0.12);
-    color: #C084FC;
-    border: 1px solid rgba(157, 78, 221, 0.3);
+.badge-loss {
+    background: rgba(255, 59, 92, 0.10);
+    color: #FF3B5C;
+    border: 1px solid rgba(255, 59, 92, 0.25);
 }
 
 /* Sleek Streamlit Dataframes */
 [data-testid="stDataFrame"] {
-    border-radius: 12px !important;
-    border: 1px solid rgba(0, 242, 254, 0.15) !important;
+    border-radius: 10px !important;
+    border: 1px solid rgba(0, 245, 117, 0.15) !important;
     overflow: hidden !important;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
 }
 
 /* Radio Navigation Buttons */
 div[role="radiogroup"] > label {
-    background: rgba(15, 23, 42, 0.4) !important;
+    background: #090C12 !important;
     border: 1px solid rgba(255, 255, 255, 0.05) !important;
-    border-radius: 10px !important;
-    padding: 10px 14px !important;
-    margin-bottom: 6px !important;
+    border-radius: 8px !important;
+    padding: 9px 12px !important;
+    margin-bottom: 5px !important;
     transition: all 0.2s ease !important;
 }
 div[role="radiogroup"] > label:hover {
-    border-color: rgba(0, 242, 254, 0.35) !important;
-    background: rgba(0, 242, 254, 0.05) !important;
+    border-color: rgba(0, 245, 117, 0.35) !important;
+    background: rgba(0, 245, 117, 0.04) !important;
+}
+
+/* Progress bar in uniform emerald */
+.stProgress > div > div > div > div {
+    background-color: #00F575 !important;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -209,16 +205,16 @@ div[role="radiogroup"] > label:hover {
 # SIDEBAR CONFIGURATION
 # ==========================================
 st.sidebar.markdown("""
-<div style="padding: 10px 0 20px 0; border-bottom: 1px solid rgba(0, 242, 254, 0.15); margin-bottom: 20px;">
-    <div style="font-size: 1.25rem; font-weight: 700; letter-spacing: -0.02em; background: linear-gradient(90deg, #00F2FE, #00FF9D); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
-        ⚡ QUANTUM // OS
+<div style="padding: 10px 0 16px 0; border-bottom: 1px solid rgba(0, 245, 117, 0.15); margin-bottom: 18px;">
+    <div style="font-size: 1.2rem; font-weight: 700; letter-spacing: -0.02em; color: #FFFFFF;">
+        ⚡ <span style="color: #00F575;">ANTIGRAVITY</span>
     </div>
-    <div style="font-family: 'JetBrains Mono', monospace; font-size: 0.70rem; color: #64748B; letter-spacing: 0.1em; margin-top: 4px;">
-        INSTITUTIONAL DESK v2.4
+    <div style="font-family: 'JetBrains Mono', monospace; font-size: 0.68rem; color: #7E8B9B; letter-spacing: 0.08em; margin-top: 3px;">
+        QUANTUM TERMINAL v2.4
     </div>
-    <div style="margin-top: 12px;">
-        <span class="status-pill" style="padding: 3px 10px; font-size: 0.7rem; border-color: rgba(0, 255, 157, 0.3);">
-            <span class="pulse-dot"></span> AUTONOMOUS AGENT ACTIVE
+    <div style="margin-top: 10px;">
+        <span class="status-pill" style="padding: 3px 9px; font-size: 0.68rem;">
+            <span class="pulse-dot"></span> LIVE EXECUTION ONLINE
         </span>
     </div>
 </div>
@@ -228,14 +224,14 @@ api_key = settings.PAPER_API_KEY
 api_secret = settings.PAPER_API_SECRET
 
 if not api_key or not api_secret:
-    st.sidebar.warning("⚠️ API credentials not detected in .env")
+    st.sidebar.warning("⚠️ Credentials not detected in .env")
     api_key = st.sidebar.text_input("Alpaca API Key", type="password")
     api_secret = st.sidebar.text_input("Alpaca API Secret", type="password")
 
 broker = AlpacaBrokerAdapter(api_key=api_key or "mock", api_secret=api_secret or "mock")
 
 page = st.sidebar.radio(
-    "NAVIGATION INTERFACE",
+    "TERMINAL VIEWS",
     [
         "📊 Portfolio Overview",
         "🏆 30-Day Incubation Scorecard",
@@ -248,11 +244,11 @@ page = st.sidebar.radio(
 
 st.sidebar.markdown("---")
 st.sidebar.markdown("""
-<div style="font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; color: #64748B; padding: 6px;">
-    <div>BROKER: ALPACA PAPER API</div>
-    <div>LATENCY: &lt;42ms (REST)</div>
-    <div>ACTIVE SPEC: PHASE 3 ML GATE</div>
-    <div>LONG-ONLY SOLVENCY: 100%</div>
+<div style="font-family: 'JetBrains Mono', monospace; font-size: 0.70rem; color: #7E8B9B; line-height: 1.6; padding: 4px;">
+    <div>BROKER: <span style="color: #00F575;">ALPACA PAPER</span></div>
+    <div>LATENCY: <span style="color: #00F575;">&lt;40ms REST</span></div>
+    <div>ACTIVE ARCH: <span style="color: #00F575;">PHASE 3 ML</span></div>
+    <div>STRATEGY: <span style="color: #00F575;">LONG-ONLY ENSEMBLE</span></div>
 </div>
 """, unsafe_allow_html=True)
 
@@ -276,18 +272,18 @@ invested_pct = (invested_capital / equity * 100) if equity > 0 else 0.0
 st.markdown(f"""
 <div class="hud-header">
     <div>
-        <div class="hud-title">⚡ ANTIGRAVITY QUANTUM TERMINAL</div>
+        <div class="hud-title">⚡ ANTIGRAVITY <span class="hud-title-accent">// QUANTUM TERMINAL</span></div>
         <div class="hud-subtitle">PHASE 2 MULTI-STRATEGY ENSEMBLE • PHASE 3 ML ALPHA GATE • REAL-TIME BROKER TELEMETRY</div>
     </div>
-    <div style="display: flex; gap: 10px; align-items: center;">
-        <span class="status-pill"><span class="pulse-dot"></span> LIVE EXECUTION READY</span>
-        <span class="status-pill">BROKER: PAPER LIVE</span>
+    <div style="display: flex; gap: 8px; align-items: center;">
+        <span class="status-pill"><span class="pulse-dot"></span> AUTONOMOUS AGENTS ACTIVE</span>
+        <span class="status-pill">BROKER: CONNECTED</span>
     </div>
 </div>
 """, unsafe_allow_html=True)
 
 # ==========================================
-# 5-CARD GLASSMORPHIC KPI DECK
+# 5-CARD UNIFORM KPI DECK
 # ==========================================
 k1, k2, k3, k4, k5 = st.columns(5)
 
@@ -295,28 +291,30 @@ with k1:
     st.markdown(f"""
     <div class="cyber-card">
         <div class="metric-meta">TOTAL PORTFOLIO EQUITY</div>
-        <div class="metric-big" style="color: #00F2FE;">${equity:,.2f}</div>
-        <div class="metric-badge badge-cyan">NAV REAL-TIME</div>
+        <div class="metric-big">${equity:,.2f}</div>
+        <div class="metric-badge badge-uniform">REAL-TIME NAV</div>
     </div>
     """, unsafe_allow_html=True)
 
 with k2:
-    badge_class = "badge-green" if today_pnl >= 0 else "badge-crimson"
+    pnl_color = "#00F575" if today_pnl >= 0 else "#FF3B5C"
+    badge_type = "badge-uniform" if today_pnl >= 0 else "badge-loss"
     st.markdown(f"""
     <div class="cyber-card">
         <div class="metric-meta">TODAY'S SESSION P&L</div>
-        <div class="metric-big" style="color: {'#00FF9D' if today_pnl >= 0 else '#FF2A55'};">${today_pnl:+,.2f}</div>
-        <div class="metric-badge {badge_class}">{today_pnl_pct:+.2f}% TODAY</div>
+        <div class="metric-big" style="color: {pnl_color};">${today_pnl:+,.2f}</div>
+        <div class="metric-badge {badge_type}">{today_pnl_pct:+.2f}% TODAY</div>
     </div>
     """, unsafe_allow_html=True)
 
 with k3:
-    badge_class = "badge-green" if overall_pnl >= 0 else "badge-crimson"
+    overall_color = "#00F575" if overall_pnl >= 0 else "#FF3B5C"
+    badge_type_all = "badge-uniform" if overall_pnl >= 0 else "badge-loss"
     st.markdown(f"""
     <div class="cyber-card">
         <div class="metric-meta">CUMULATIVE INCEPTION GAIN</div>
-        <div class="metric-big" style="color: {'#00FF9D' if overall_pnl >= 0 else '#FF2A55'};">${overall_pnl:+,.2f}</div>
-        <div class="metric-badge {badge_class}">{overall_pnl_pct:+.2f}% NET ALPHA</div>
+        <div class="metric-big" style="color: {overall_color};">${overall_pnl:+,.2f}</div>
+        <div class="metric-badge {badge_type_all}">{overall_pnl_pct:+.2f}% NET ALPHA</div>
     </div>
     """, unsafe_allow_html=True)
 
@@ -324,8 +322,8 @@ with k4:
     st.markdown(f"""
     <div class="cyber-card">
         <div class="metric-meta">LIQUID CASH BUFFER</div>
-        <div class="metric-big" style="color: #F8FAFC;">${cash:,.2f}</div>
-        <div class="metric-badge badge-cyan">{cash_pct:.1f}% PRESERVED</div>
+        <div class="metric-big">${cash:,.2f}</div>
+        <div class="metric-badge badge-uniform">{cash_pct:.1f}% PRESERVED</div>
     </div>
     """, unsafe_allow_html=True)
 
@@ -333,8 +331,8 @@ with k5:
     st.markdown(f"""
     <div class="cyber-card">
         <div class="metric-meta">AI ARCHITECTURE TIER</div>
-        <div class="metric-big" style="color: #C084FC;">PHASE 3</div>
-        <div class="metric-badge badge-purple">ML ALPHA GATE ACTIVE</div>
+        <div class="metric-big" style="color: #00F575;">PHASE 3</div>
+        <div class="metric-badge badge-uniform">ML ALPHA GATE ACTIVE</div>
     </div>
     """, unsafe_allow_html=True)
 
@@ -342,7 +340,7 @@ with k5:
 # PAGE 1: PORTFOLIO OVERVIEW
 # ==========================================
 if page == "📊 Portfolio Overview":
-    st.markdown("<div style='margin-top: 10px;'></div>", unsafe_allow_html=True)
+    st.markdown("<div style='margin-top: 8px;'></div>", unsafe_allow_html=True)
     positions = broker.get_positions_detailed()
 
     if positions:
@@ -364,38 +362,39 @@ if page == "📊 Portfolio Overview":
             })
             df_chart = pd.DataFrame(chart_data)
 
-            # Modern futuristic neon color palette
-            cyber_colors = [
-                "#00F2FE", "#00FF9D", "#38BDF8", "#818CF8", "#C084FC",
-                "#F472B6", "#FB7185", "#FBBF24", "#34D399", "#A78BFA",
-                "#60A5FA", "#4ADE80", "#F59E0B", "#2DD4BF", "#E879F9"
+            # Uniform Emerald-to-Slate Monochromatic Palette (Robinhood style coherence)
+            uniform_palette = [
+                "#00F575", "#00DF6B", "#00C961", "#00B357", "#009D4C",
+                "#008742", "#007137", "#005B2D", "#004522", "#0E3B21",
+                "#14311D", "#1A2B20", "#243229", "#2E3B33", "#3B4740",
+                "#475569", "#334155", "#1E293B", "#0F172A"
             ]
 
             fig = px.pie(
                 df_chart,
                 names="Asset",
                 values="Value",
-                title=f"Dynamic Capital Allocation ({len(positions)} High-Conviction Equities + Cash Reserve)",
+                title=f"Capital Allocation ({len(positions)} High-Conviction Stocks + Cash Buffer)",
                 hole=0.68,
-                color_discrete_sequence=cyber_colors
+                color_discrete_sequence=uniform_palette
             )
             fig.update_traces(
                 textposition='inside',
                 textinfo='percent+label',
-                marker=dict(line=dict(color='#070A12', width=2))
+                marker=dict(line=dict(color='#07090D', width=2))
             )
             fig.update_layout(
                 showlegend=False,
                 margin=dict(t=50, b=10, l=10, r=10),
                 paper_bgcolor='rgba(0,0,0,0)',
                 plot_bgcolor='rgba(0,0,0,0)',
-                font=dict(family="Space Grotesk, sans-serif", color="#94A3B8"),
+                font=dict(family="Space Grotesk, sans-serif", color="#7E8B9B"),
                 annotations=[dict(
-                    text=f"<b>EQUITY</b><br>${equity:,.0f}<br><span style='font-size:10px; color:#00F2FE;'>CASH {cash_pct:.1f}%</span>",
+                    text=f"<b>PORTFOLIO</b><br>${equity:,.0f}<br><span style='font-size:11px; color:#00F575;'>CASH {cash_pct:.1f}%</span>",
                     x=0.5, y=0.5,
                     font_size=16,
                     font_family="Space Grotesk",
-                    font_color="#F8FAFC",
+                    font_color="#FFFFFF",
                     showarrow=False
                 )]
             )
@@ -403,30 +402,30 @@ if page == "📊 Portfolio Overview":
 
         with col_stats:
             st.markdown("""
-            <div class="cyber-card" style="margin-top: 25px;">
+            <div class="cyber-card" style="margin-top: 20px;">
                 <div class="metric-meta">PORTFOLIO EXPOSURE TELEMETRY</div>
             """, unsafe_allow_html=True)
-            
+
             st.markdown(f"""
-            <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05); font-family: 'JetBrains Mono', monospace; font-size: 0.85rem;">
-                <span style="color: #94A3B8;">Invested Equities Value:</span>
-                <span style="color: #00F2FE; font-weight: 600;">${invested_capital:,.2f} ({invested_pct:.1f}%)</span>
+            <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05); font-family: 'JetBrains Mono', monospace; font-size: 0.82rem;">
+                <span style="color: #7E8B9B;">Invested Equities Value:</span>
+                <span style="color: #00F575; font-weight: 600;">${invested_capital:,.2f} ({invested_pct:.1f}%)</span>
             </div>
-            <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05); font-family: 'JetBrains Mono', monospace; font-size: 0.85rem;">
-                <span style="color: #94A3B8;">Liquid Cash Reserve:</span>
-                <span style="color: #00FF9D; font-weight: 600;">${cash:,.2f} ({cash_pct:.1f}%)</span>
+            <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05); font-family: 'JetBrains Mono', monospace; font-size: 0.82rem;">
+                <span style="color: #7E8B9B;">Liquid Cash Reserve:</span>
+                <span style="color: #FFFFFF; font-weight: 600;">${cash:,.2f} ({cash_pct:.1f}%)</span>
             </div>
-            <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05); font-family: 'JetBrains Mono', monospace; font-size: 0.85rem;">
-                <span style="color: #94A3B8;">Active Holdings:</span>
-                <span style="color: #F8FAFC; font-weight: 600;">{len(positions)} Stocks (Dynamic Sizing)</span>
+            <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05); font-family: 'JetBrains Mono', monospace; font-size: 0.82rem;">
+                <span style="color: #7E8B9B;">Active Holdings:</span>
+                <span style="color: #FFFFFF; font-weight: 600;">{len(positions)} Stocks (Dynamic Sizing)</span>
             </div>
-            <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05); font-family: 'JetBrains Mono', monospace; font-size: 0.85rem;">
-                <span style="color: #94A3B8;">Single Stock Ceiling:</span>
-                <span style="color: #F8FAFC; font-weight: 600;">15.0% (${equity*0.15:,.2f})</span>
+            <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05); font-family: 'JetBrains Mono', monospace; font-size: 0.82rem;">
+                <span style="color: #7E8B9B;">Single Stock Ceiling:</span>
+                <span style="color: #FFFFFF; font-weight: 600;">15.0% (${equity*0.15:,.2f})</span>
             </div>
-            <div style="display: flex; justify-content: space-between; padding: 8px 0; font-family: 'JetBrains Mono', monospace; font-size: 0.85rem;">
-                <span style="color: #94A3B8;">Max Macro Exposure:</span>
-                <span style="color: #F8FAFC; font-weight: 600;">95.0% (${equity*0.95:,.2f})</span>
+            <div style="display: flex; justify-content: space-between; padding: 8px 0; font-family: 'JetBrains Mono', monospace; font-size: 0.82rem;">
+                <span style="color: #7E8B9B;">Max Macro Exposure:</span>
+                <span style="color: #FFFFFF; font-weight: 600;">95.0% (${equity*0.95:,.2f})</span>
             </div>
             """, unsafe_allow_html=True)
 
@@ -435,10 +434,10 @@ if page == "📊 Portfolio Overview":
             win_rate = (len(winners) / len(df_pos) * 100) if len(df_pos) > 0 else 0.0
 
             st.markdown(f"""
-            <div style="margin-top: 15px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.08);">
-                <div style="display: flex; justify-content: space-between; font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; margin-bottom: 6px;">
-                    <span style="color: #94A3B8;">Win Rate on Open Positions:</span>
-                    <span style="color: #00FF9D; font-weight: 700;">{win_rate:.1f}% ({len(winners)}W / {len(losers)}L)</span>
+            <div style="margin-top: 14px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.06);">
+                <div style="display: flex; justify-content: space-between; font-family: 'JetBrains Mono', monospace; font-size: 0.76rem; margin-bottom: 5px;">
+                    <span style="color: #7E8B9B;">Win Rate on Open Positions:</span>
+                    <span style="color: #00F575; font-weight: 700;">{win_rate:.1f}% ({len(winners)}W / {len(losers)}L)</span>
                 </div>
             </div>
             </div>
@@ -453,8 +452,8 @@ if page == "📊 Portfolio Overview":
 elif page == "🏆 30-Day Incubation Scorecard":
     st.markdown("""
     <div style="margin-bottom: 15px;">
-        <span style="font-size: 1.3rem; font-weight: 700; color: #F8FAFC;">🏆 30-Day Paper Incubation Health Scorecard</span>
-        <div style="font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; color: #64748B;">AUTONOMOUS INCUBATION MONITOR • HANDS-OFF OPERATIONAL STABILITY</div>
+        <span style="font-size: 1.25rem; font-weight: 700; color: #FFFFFF;">🏆 30-Day Paper Incubation Health Scorecard</span>
+        <div style="font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; color: #7E8B9B;">AUTONOMOUS INCUBATION MONITOR • HANDS-OFF OPERATIONAL STABILITY</div>
     </div>
     """, unsafe_allow_html=True)
 
@@ -471,14 +470,13 @@ elif page == "🏆 30-Day Incubation Scorecard":
         drawdown_series = (df_history['equity'] - rolling_max) / rolling_max
         max_drawdown = float(drawdown_series.min() * 100)
 
-        # 4 Sleek Scorecard Cards
         sc1, sc2, sc3, sc4 = st.columns(4)
         with sc1:
             st.markdown(f"""
             <div class="cyber-card">
                 <div class="metric-meta">INCUBATION PROGRESS</div>
-                <div class="metric-big" style="color: #00F2FE;">Day {days_logged} <span style="font-size: 1.1rem; color: #64748B;">/ 30</span></div>
-                <div class="metric-badge badge-cyan">{(days_logged/30)*100:.0f}% COMPLETED</div>
+                <div class="metric-big" style="color: #00F575;">Day {days_logged} <span style="font-size: 1.05rem; color: #7E8B9B;">/ 30</span></div>
+                <div class="metric-badge badge-uniform">{(days_logged/30)*100:.0f}% COMPLETED</div>
             </div>
             """, unsafe_allow_html=True)
 
@@ -487,61 +485,61 @@ elif page == "🏆 30-Day Incubation Scorecard":
             <div class="cyber-card">
                 <div class="metric-meta">INCEPTION BASE CAPITAL</div>
                 <div class="metric-big">${start_equity:,.2f}</div>
-                <div class="metric-badge badge-cyan">ORIGINAL PRINCIPAL</div>
+                <div class="metric-badge badge-uniform">BASE PRINCIPAL</div>
             </div>
             """, unsafe_allow_html=True)
 
         with sc3:
-            badge_class = "badge-green" if net_change >= 0 else "badge-crimson"
+            pnl_c = "#00F575" if net_change >= 0 else "#FF3B5C"
+            b_class = "badge-uniform" if net_change >= 0 else "badge-loss"
             st.markdown(f"""
             <div class="cyber-card">
                 <div class="metric-meta">NET INCUBATION RETURN</div>
-                <div class="metric-big" style="color: {'#00FF9D' if net_change >= 0 else '#FF2A55'};">${net_change:+,.2f}</div>
-                <div class="metric-badge {badge_class}">{net_change_pct:+.2f}% TOTAL RETURN</div>
+                <div class="metric-big" style="color: {pnl_c};">${net_change:+,.2f}</div>
+                <div class="metric-badge {b_class}">{net_change_pct:+.2f}% TOTAL RETURN</div>
             </div>
             """, unsafe_allow_html=True)
 
         with sc4:
             st.markdown(f"""
             <div class="cyber-card">
-                <div class="metric-meta">PEAK-TO-TROUGH DRAWDOWN</div>
-                <div class="metric-big" style="color: {'#00FF9D' if max_drawdown > -5.0 else '#FFB800'};">{max_drawdown:.2f}%</div>
-                <div class="metric-badge badge-green">TOLERANCE &lt; -10.0%</div>
+                <div class="metric-meta">MAX DRAWDOWN</div>
+                <div class="metric-big" style="color: {'#00F575' if max_drawdown > -5.0 else '#FFB800'};">{max_drawdown:.2f}%</div>
+                <div class="metric-badge badge-uniform">TOLERANCE &lt; -10.0%</div>
             </div>
             """, unsafe_allow_html=True)
 
-        # Futuristic Neon Equity Curve
+        # Uniform Robinhood-style Clean Green Line Chart
         fig_equity = go.Figure()
         fig_equity.add_trace(go.Scatter(
             x=df_history["timestamp"],
             y=df_history["equity"],
             mode="lines",
             name="Account Equity",
-            line=dict(color="#00F2FE", width=3),
+            line=dict(color="#00F575", width=2.8),
             fill="tozeroy",
-            fillcolor="rgba(0, 242, 254, 0.06)"
+            fillcolor="rgba(0, 245, 117, 0.06)"
         ))
         fig_equity.add_hline(
             y=100000.0,
             line_dash="dash",
-            line_color="#F59E0B",
+            line_color="#4B5563",
             annotation_text="Base Capital ($100k)",
-            annotation_font_color="#F59E0B"
+            annotation_font_color="#7E8B9B"
         )
         fig_equity.update_layout(
-            title="⚡ Autonomous Portfolio Equity Trajectory (Past Sessions)",
+            title="Portfolio Equity Trajectory (Past Sessions)",
             paper_bgcolor="rgba(0,0,0,0)",
             plot_bgcolor="rgba(0,0,0,0)",
             margin=dict(t=50, b=20, l=10, r=10),
-            height=380,
-            font=dict(family="Space Grotesk, sans-serif", color="#94A3B8"),
-            xaxis=dict(showgrid=True, gridcolor="rgba(255,255,255,0.05)"),
-            yaxis=dict(showgrid=True, gridcolor="rgba(255,255,255,0.05)")
+            height=370,
+            font=dict(family="Space Grotesk, sans-serif", color="#7E8B9B"),
+            xaxis=dict(showgrid=True, gridcolor="rgba(255,255,255,0.04)"),
+            yaxis=dict(showgrid=True, gridcolor="rgba(255,255,255,0.04)")
         )
         st.plotly_chart(fig_equity, use_container_width=True)
 
-        # 5 Hard Graduation Criteria
-        st.markdown("<div style='margin-top: 15px;'></div>", unsafe_allow_html=True)
+        st.markdown("<div style='margin-top: 10px;'></div>", unsafe_allow_html=True)
         st.markdown("### 🎓 5 Hard Institutional Graduation Criteria")
 
         positions = broker.get_positions_detailed()
@@ -586,8 +584,8 @@ elif page == "🏆 30-Day Incubation Scorecard":
 elif page == "📋 Positions & Stop-Loss":
     st.markdown("""
     <div style="margin-bottom: 15px;">
-        <span style="font-size: 1.3rem; font-weight: 700; color: #F8FAFC;">📋 Active Position Telemetry & Stop-Loss Gating</span>
-        <div style="font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; color: #64748B;">REAL-TIME COST BASIS • UNREALIZED P&L • MANDATORY -8% STOP MONITOR</div>
+        <span style="font-size: 1.25rem; font-weight: 700; color: #FFFFFF;">📋 Active Position Telemetry & Stop-Loss Gating</span>
+        <div style="font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; color: #7E8B9B;">REAL-TIME COST BASIS • UNREALIZED P&L • MANDATORY -8% STOP MONITOR</div>
     </div>
     """, unsafe_allow_html=True)
 
@@ -635,8 +633,8 @@ elif page == "📋 Positions & Stop-Loss":
 elif page == "⚡ Order Activity Log":
     st.markdown("""
     <div style="margin-bottom: 15px;">
-        <span style="font-size: 1.3rem; font-weight: 700; color: #F8FAFC;">⚡ Real-Time Execution Order Book</span>
-        <div style="font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; color: #64748B;">STREAM DIRECTLY FROM ALPACA API • IDEMPOTENT Q-HASH SIGNATURES</div>
+        <span style="font-size: 1.25rem; font-weight: 700; color: #FFFFFF;">⚡ Real-Time Execution Order Book</span>
+        <div style="font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; color: #7E8B9B;">STREAM DIRECTLY FROM ALPACA API • IDEMPOTENT Q-HASH SIGNATURES</div>
     </div>
     """, unsafe_allow_html=True)
 
@@ -665,8 +663,8 @@ elif page == "⚡ Order Activity Log":
 elif page == "🧠 Quant Brain & Strategy":
     st.markdown("""
     <div style="margin-bottom: 15px;">
-        <span style="font-size: 1.3rem; font-weight: 700; color: #F8FAFC;">🧠 Autonomous Quant Brain & AI Gating</span>
-        <div style="font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; color: #64748B;">WALK-FORWARD ANCHORS • MATHEMATICAL FORMULA • PHASE 3 RANDOM FOREST CLASSIFIER</div>
+        <span style="font-size: 1.25rem; font-weight: 700; color: #FFFFFF;">🧠 Autonomous Quant Brain & AI Gating</span>
+        <div style="font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; color: #7E8B9B;">WALK-FORWARD ANCHORS • MATHEMATICAL FORMULA • PHASE 3 RANDOM FOREST CLASSIFIER</div>
     </div>
     """, unsafe_allow_html=True)
 
@@ -679,19 +677,19 @@ elif page == "🧠 Quant Brain & Strategy":
             st.markdown(f"""
             <div class="cyber-card">
                 <div class="metric-meta">FAST TREND MOVING AVERAGE WINDOW</div>
-                <div class="metric-big" style="color: #00F2FE;">{params.get('fast_sma', 20)} Days</div>
-                <div class="metric-badge badge-cyan">CONTINUOUS WALK-FORWARD CALIBRATED</div>
+                <div class="metric-big" style="color: #00F575;">{params.get('fast_sma', 20)} Days</div>
+                <div class="metric-badge badge-uniform">CONTINUOUS WALK-FORWARD CALIBRATED</div>
             </div>
             """, unsafe_allow_html=True)
         with p2:
             st.markdown(f"""
             <div class="cyber-card">
                 <div class="metric-meta">SLOW ANCHOR MOVING AVERAGE WINDOW</div>
-                <div class="metric-big" style="color: #C084FC;">{params.get('slow_sma', 50)} Days</div>
-                <div class="metric-badge badge-purple">INSTITUTIONAL REGIME ANCHOR</div>
+                <div class="metric-big" style="color: #00F575;">{params.get('slow_sma', 50)} Days</div>
+                <div class="metric-badge badge-uniform">INSTITUTIONAL REGIME ANCHOR</div>
             </div>
             """, unsafe_allow_html=True)
-    
+
     st.markdown("---")
     st.markdown("### 📐 Risk-Adjusted Momentum Formula")
     st.latex(r"""
@@ -718,8 +716,8 @@ elif page == "🧠 Quant Brain & Strategy":
 elif page == "🛡️ Risk Safeguards":
     st.markdown("""
     <div style="margin-bottom: 15px;">
-        <span style="font-size: 1.3rem; font-weight: 700; color: #F8FAFC;">🛡️ 5-Layer Institutional Risk Defense Grid</span>
-        <div style="font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; color: #64748B;">CAPITAL PRESERVATION ARCHITECTURE • STRICT LONG-ONLY DISCIPLINE</div>
+        <span style="font-size: 1.25rem; font-weight: 700; color: #FFFFFF;">🛡️ 5-Layer Institutional Risk Defense Grid</span>
+        <div style="font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; color: #7E8B9B;">CAPITAL PRESERVATION ARCHITECTURE • STRICT LONG-ONLY DISCIPLINE</div>
     </div>
     """, unsafe_allow_html=True)
 
@@ -731,10 +729,10 @@ elif page == "🛡️ Risk Safeguards":
             <div class="hud-title" style="font-size: 1.05rem;">1. Macro SPY Regime Filter</div>
             <div style="font-size: 0.85rem; color: #94A3B8; margin-top: 8px; line-height: 1.6;">
                 Continuous evaluation of S&P 500 200-day SMA, ATR-14 volatility, and trend ratios before each market open:
-                <br>• <b style="color: #00FF9D;">BULL_NORMAL:</b> 95% Max Exposure (Full Risk-On)
-                <br>• <b style="color: #FBBF24;">BULL_CHOPPY:</b> 85% Max Exposure (15% Cash Shield)
+                <br>• <b style="color: #00F575;">BULL_NORMAL:</b> 95% Max Exposure (Full Risk-On)
+                <br>• <b style="color: #00F575;">BULL_CHOPPY:</b> 85% Max Exposure (15% Cash Shield)
                 <br>• <b style="color: #F97316;">BEAR_CORRECTION:</b> 40% Max Exposure (60% Cash Defense)
-                <br>• <b style="color: #FF2A55;">CRASH_WARNING:</b> 0% Exposure (100% Cash / Treasury Halt)
+                <br>• <b style="color: #FF3B5C;">CRASH_WARNING:</b> 0% Exposure (100% Cash / Treasury Halt)
             </div>
         </div>
 
