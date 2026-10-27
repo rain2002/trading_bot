@@ -158,9 +158,137 @@ div[data-testid="stSegmentedControl"] button[data-checked="true"] {
     font-weight: 700 !important;
 }
 
-/* ==========================================
-   UNIFORM INSTITUTIONAL CARD STYLING
-   ========================================== */
+/* ==============================================================================
+   PIXEL-PERFECT UNIFORM KPI BOXES (IDENTICAL HEIGHTS, WIDTHS, AND BASELINES)
+   ============================================================================== */
+[data-testid="column"] {
+    display: flex !important;
+    flex-direction: column !important;
+}
+[data-testid="column"] > div {
+    flex: 1 1 auto !important;
+    display: flex !important;
+    flex-direction: column !important;
+}
+
+.cyber-kpi-card {
+    background: linear-gradient(135deg, rgba(15, 23, 42, 0.85) 0%, rgba(10, 15, 29, 0.9) 100%);
+    border: 1px solid rgba(0, 255, 136, 0.2);
+    border-radius: 12px;
+    padding: 14px 16px;
+    height: 138px !important;
+    min-height: 138px !important;
+    max-height: 138px !important;
+    box-sizing: border-box !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    margin: 0 !important;
+    width: 100% !important;
+}
+.cyber-kpi-card:hover {
+    border-color: rgba(0, 255, 136, 0.5);
+    box-shadow: 0 8px 25px rgba(0, 255, 136, 0.15), inset 0 1px 0 rgba(0, 255, 136, 0.2);
+    transform: translateY(-2px);
+}
+
+.kpi-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.68rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: #94A3B8;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    line-height: 1.15;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.kpi-value {
+    height: 38px;
+    display: flex;
+    align-items: center;
+    margin: 0;
+    padding: 0;
+}
+
+.kpi-badge-row {
+    height: 24px;
+    display: flex;
+    align-items: center;
+    margin: 0;
+    padding: 0;
+}
+
+/* Metric Typography */
+.metric-big {
+    font-size: 1.70rem;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    color: #F8FAFC;
+    line-height: 1;
+    margin: 0;
+}
+
+.metric-big-green {
+    font-size: 1.70rem;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    color: #00FF88;
+    line-height: 1;
+    margin: 0;
+}
+
+.metric-big-red {
+    font-size: 1.70rem;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    color: #FF3B5C;
+    line-height: 1;
+    margin: 0;
+}
+
+.metric-badge-uniform {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.70rem;
+    font-weight: 600;
+    padding: 3px 9px;
+    border-radius: 12px;
+    margin: 0;
+    background: rgba(0, 255, 136, 0.10);
+    color: #00FF88;
+    border: 1px solid rgba(0, 255, 136, 0.28);
+}
+
+.metric-badge-danger {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.70rem;
+    font-weight: 600;
+    padding: 3px 9px;
+    border-radius: 12px;
+    margin: 0;
+    background: rgba(255, 59, 92, 0.12);
+    color: #FF3B5C;
+    border: 1px solid rgba(255, 59, 92, 0.32);
+}
+
+/* Standard Generic Cyber Card Container */
 .cyber-card {
     background: linear-gradient(135deg, rgba(15, 23, 42, 0.85) 0%, rgba(10, 15, 29, 0.9) 100%);
     border: 1px solid rgba(0, 255, 136, 0.2);
@@ -171,7 +299,6 @@ div[data-testid="stSegmentedControl"] button[data-checked="true"] {
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.05);
     transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     margin-bottom: 12px;
-    height: 100%;
 }
 .cyber-card:hover {
     border-color: rgba(0, 255, 136, 0.5);
@@ -242,71 +369,6 @@ div[data-testid="stSegmentedControl"] button[data-checked="true"] {
     0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(0, 255, 136, 0.7); }
     70% { transform: scale(1.2); box-shadow: 0 0 0 8px rgba(0, 255, 136, 0); }
     100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(0, 255, 136, 0); }
-}
-
-/* Uniform Metric Card Inner Typography */
-.metric-meta {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.70rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.12em;
-    color: #94A3B8;
-    margin-bottom: 6px;
-}
-
-.metric-big {
-    font-size: 1.85rem;
-    font-weight: 700;
-    letter-spacing: -0.03em;
-    color: #F8FAFC;
-    line-height: 1.15;
-}
-
-.metric-big-green {
-    font-size: 1.85rem;
-    font-weight: 700;
-    letter-spacing: -0.03em;
-    color: #00FF88;
-    line-height: 1.15;
-}
-
-.metric-big-red {
-    font-size: 1.85rem;
-    font-weight: 700;
-    letter-spacing: -0.03em;
-    color: #FF3B5C;
-    line-height: 1.15;
-}
-
-.metric-badge-uniform {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.72rem;
-    font-weight: 600;
-    padding: 3px 10px;
-    border-radius: 12px;
-    margin-top: 8px;
-    background: rgba(0, 255, 136, 0.10);
-    color: #00FF88;
-    border: 1px solid rgba(0, 255, 136, 0.28);
-}
-
-.metric-badge-danger {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.72rem;
-    font-weight: 600;
-    padding: 3px 10px;
-    border-radius: 12px;
-    margin-top: 8px;
-    background: rgba(255, 59, 92, 0.12);
-    color: #FF3B5C;
-    border: 1px solid rgba(255, 59, 92, 0.32);
 }
 
 /* Page Dedicated Header */
@@ -443,15 +505,15 @@ if page == "📊 Portfolio Overview":
     </div>
     """, unsafe_allow_html=True)
 
-    # 5-CARD UNIFORM KPI DECK (Clean, Sleek, Unified Aesthetic)
+    # 5-CARD UNIFORM KPI DECK (Clean, Pixel-Perfect Matching Heights & Alignment)
     k1, k2, k3, k4, k5 = st.columns(5)
 
     with k1:
         st.markdown(f"""
-        <div class="cyber-card">
-            <div class="metric-meta">TOTAL PORTFOLIO EQUITY</div>
-            <div class="metric-big">${equity:,.2f}</div>
-            <div class="metric-badge-uniform">NAV REAL-TIME</div>
+        <div class="cyber-kpi-card">
+            <div class="kpi-title">PORTFOLIO TOTAL EQUITY</div>
+            <div class="kpi-value"><div class="metric-big">${equity:,.2f}</div></div>
+            <div class="kpi-badge-row"><div class="metric-badge-uniform">NAV REAL-TIME</div></div>
         </div>
         """, unsafe_allow_html=True)
 
@@ -459,10 +521,10 @@ if page == "📊 Portfolio Overview":
         pnl_class = "metric-big-green" if today_pnl >= 0 else "metric-big-red"
         badge_class = "metric-badge-uniform" if today_pnl >= 0 else "metric-badge-danger"
         st.markdown(f"""
-        <div class="cyber-card">
-            <div class="metric-meta">TODAY'S SESSION P&L</div>
-            <div class="{pnl_class}">${today_pnl:+,.2f}</div>
-            <div class="{badge_class}">{today_pnl_pct:+.2f}% TODAY</div>
+        <div class="cyber-kpi-card">
+            <div class="kpi-title">TODAY'S SESSION P&L</div>
+            <div class="kpi-value"><div class="{pnl_class}">${today_pnl:+,.2f}</div></div>
+            <div class="kpi-badge-row"><div class="{badge_class}">{today_pnl_pct:+.2f}% TODAY</div></div>
         </div>
         """, unsafe_allow_html=True)
 
@@ -470,28 +532,28 @@ if page == "📊 Portfolio Overview":
         all_class = "metric-big-green" if overall_pnl >= 0 else "metric-big-red"
         badge_all_class = "metric-badge-uniform" if overall_pnl >= 0 else "metric-badge-danger"
         st.markdown(f"""
-        <div class="cyber-card">
-            <div class="metric-meta">CUMULATIVE INCEPTION GAIN</div>
-            <div class="{all_class}">${overall_pnl:+,.2f}</div>
-            <div class="{badge_all_class}">{overall_pnl_pct:+.2f}% NET ALPHA</div>
+        <div class="cyber-kpi-card">
+            <div class="kpi-title">INCEPTION NET RETURN</div>
+            <div class="kpi-value"><div class="{all_class}">${overall_pnl:+,.2f}</div></div>
+            <div class="kpi-badge-row"><div class="{badge_all_class}">{overall_pnl_pct:+.2f}% NET ALPHA</div></div>
         </div>
         """, unsafe_allow_html=True)
 
     with k4:
         st.markdown(f"""
-        <div class="cyber-card">
-            <div class="metric-meta">LIQUID CASH BUFFER</div>
-            <div class="metric-big">${cash:,.2f}</div>
-            <div class="metric-badge-uniform">{cash_pct:.1f}% PRESERVED</div>
+        <div class="cyber-kpi-card">
+            <div class="kpi-title">LIQUID CASH BUFFER</div>
+            <div class="kpi-value"><div class="metric-big">${cash:,.2f}</div></div>
+            <div class="kpi-badge-row"><div class="metric-badge-uniform">{cash_pct:.1f}% PRESERVED</div></div>
         </div>
         """, unsafe_allow_html=True)
 
     with k5:
         st.markdown("""
-        <div class="cyber-card">
-            <div class="metric-meta">AI ARCHITECTURE TIER</div>
-            <div class="metric-big">PHASE 3</div>
-            <div class="metric-badge-uniform">ML ALPHA GATE ACTIVE</div>
+        <div class="cyber-kpi-card">
+            <div class="kpi-title">AI ARCHITECTURE TIER</div>
+            <div class="kpi-value"><div class="metric-big">PHASE 3</div></div>
+            <div class="kpi-badge-row"><div class="metric-badge-uniform">ML ALPHA GATE ACTIVE</div></div>
         </div>
         """, unsafe_allow_html=True)
 
@@ -681,7 +743,7 @@ if page == "📊 Portfolio Overview":
         with col_stats:
             st.markdown("""
             <div class="cyber-card" style="margin-top: 25px;">
-                <div class="metric-meta" style="color: #00FF88;">PORTFOLIO EXPOSURE TELEMETRY</div>
+                <div class="kpi-title" style="color: #00FF88; font-size: 0.76rem;">PORTFOLIO EXPOSURE TELEMETRY</div>
             """, unsafe_allow_html=True)
 
             st.markdown(f"""
@@ -749,37 +811,40 @@ elif page == "📋 Positions & Stop-Loss":
         p1, p2, p3, p4 = st.columns(4)
         with p1:
             st.markdown(f"""
-            <div class="cyber-card">
-                <div class="metric-meta">ACTIVE POSITIONS</div>
-                <div class="metric-big">{len(positions)} Stocks</div>
-                <div class="metric-badge-uniform">DYNAMIC LONG-ONLY</div>
+            <div class="cyber-kpi-card">
+                <div class="kpi-title">ACTIVE POSITIONS</div>
+                <div class="kpi-value"><div class="metric-big">{len(positions)} Stocks</div></div>
+                <div class="kpi-badge-row"><div class="metric-badge-uniform">DYNAMIC LONG-ONLY</div></div>
             </div>
             """, unsafe_allow_html=True)
 
         with p2:
             st.markdown(f"""
-            <div class="cyber-card">
-                <div class="metric-meta">PROFITABLE POSITIONS</div>
-                <div class="metric-big-green">{len(winners)} / {len(positions)}</div>
-                <div class="metric-badge-uniform">{win_rate:.1f}% WIN RATE</div>
+            <div class="cyber-kpi-card">
+                <div class="kpi-title">PROFITABLE POSITIONS</div>
+                <div class="kpi-value"><div class="metric-big-green">{len(winners)} / {len(positions)}</div></div>
+                <div class="kpi-badge-row"><div class="metric-badge-uniform">{win_rate:.1f}% WIN RATE</div></div>
             </div>
             """, unsafe_allow_html=True)
 
         with p3:
+            pnl_cls = "metric-big-green" if overall_pnl >= 0 else "metric-big-red"
             st.markdown(f"""
-            <div class="cyber-card">
-                <div class="metric-meta">TOTAL UNREALIZED ALPHA</div>
-                <div class="{'metric-big-green' if overall_pnl >= 0 else 'metric-big-red'}">${overall_pnl:+,.2f}</div>
-                <div class="metric-badge-uniform">{overall_pnl_pct:+.2f}% ON CAPITAL</div>
+            <div class="cyber-kpi-card">
+                <div class="kpi-title">TOTAL UNREALIZED ALPHA</div>
+                <div class="kpi-value"><div class="{pnl_cls}">${overall_pnl:+,.2f}</div></div>
+                <div class="kpi-badge-row"><div class="metric-badge-uniform">{overall_pnl_pct:+.2f}% ON CAPITAL</div></div>
             </div>
             """, unsafe_allow_html=True)
 
         with p4:
+            crit_cls = "metric-big-green" if len(critical) == 0 else "metric-big-red"
+            crit_badge = "metric-badge-uniform" if len(critical) == 0 else "metric-badge-danger"
             st.markdown(f"""
-            <div class="cyber-card">
-                <div class="metric-meta">STOP-LOSS HEALTH</div>
-                <div class="{'metric-big-green' if len(critical) == 0 else 'metric-big-red'}">{len(critical)} Breaches</div>
-                <div class="{'metric-badge-uniform' if len(critical) == 0 else 'metric-badge-danger'}">{'100% HEALTHY' if len(critical) == 0 else 'ACTION REQUIRED'}</div>
+            <div class="cyber-kpi-card">
+                <div class="kpi-title">STOP-LOSS HEALTH</div>
+                <div class="kpi-value"><div class="{crit_cls}">{len(critical)} Breaches</div></div>
+                <div class="kpi-badge-row"><div class="{crit_badge}">{'100% HEALTHY' if len(critical) == 0 else 'ACTION REQUIRED'}</div></div>
             </div>
             """, unsafe_allow_html=True)
 
@@ -847,19 +912,19 @@ elif page == "🏆 30-Day Incubation Scorecard":
         sc1, sc2, sc3, sc4 = st.columns(4)
         with sc1:
             st.markdown(f"""
-            <div class="cyber-card">
-                <div class="metric-meta">INCUBATION PROGRESS</div>
-                <div class="metric-big">Day {days_logged} <span style="font-size: 1.1rem; color: #94A3B8;">/ 30</span></div>
-                <div class="metric-badge-uniform">{(days_logged/30)*100:.0f}% COMPLETED</div>
+            <div class="cyber-kpi-card">
+                <div class="kpi-title">INCUBATION PROGRESS</div>
+                <div class="kpi-value"><div class="metric-big">Day {days_logged} <span style="font-size: 1.05rem; color: #94A3B8;">/ 30</span></div></div>
+                <div class="kpi-badge-row"><div class="metric-badge-uniform">{(days_logged/30)*100:.0f}% COMPLETED</div></div>
             </div>
             """, unsafe_allow_html=True)
 
         with sc2:
             st.markdown(f"""
-            <div class="cyber-card">
-                <div class="metric-meta">INCEPTION BASE CAPITAL</div>
-                <div class="metric-big">${start_equity:,.2f}</div>
-                <div class="metric-badge-uniform">BASE PRINCIPAL</div>
+            <div class="cyber-kpi-card">
+                <div class="kpi-title">INCEPTION BASE CAPITAL</div>
+                <div class="kpi-value"><div class="metric-big">${start_equity:,.2f}</div></div>
+                <div class="kpi-badge-row"><div class="metric-badge-uniform">BASE PRINCIPAL</div></div>
             </div>
             """, unsafe_allow_html=True)
 
@@ -867,19 +932,19 @@ elif page == "🏆 30-Day Incubation Scorecard":
             pnl_class = "metric-big-green" if net_change >= 0 else "metric-big-red"
             badge_class = "metric-badge-uniform" if net_change >= 0 else "metric-badge-danger"
             st.markdown(f"""
-            <div class="cyber-card">
-                <div class="metric-meta">NET INCUBATION RETURN</div>
-                <div class="{pnl_class}">${net_change:+,.2f}</div>
-                <div class="{badge_class}">{net_change_pct:+.2f}% TOTAL RETURN</div>
+            <div class="cyber-kpi-card">
+                <div class="kpi-title">NET INCUBATION RETURN</div>
+                <div class="kpi-value"><div class="{pnl_class}">${net_change:+,.2f}</div></div>
+                <div class="kpi-badge-row"><div class="{badge_class}">{net_change_pct:+.2f}% TOTAL RETURN</div></div>
             </div>
             """, unsafe_allow_html=True)
 
         with sc4:
             st.markdown(f"""
-            <div class="cyber-card">
-                <div class="metric-meta">PEAK-TO-TROUGH DRAWDOWN</div>
-                <div class="metric-big">{max_drawdown:.2f}%</div>
-                <div class="metric-badge-uniform">TOLERANCE &lt; -10.0%</div>
+            <div class="cyber-kpi-card">
+                <div class="kpi-title">PEAK-TO-TROUGH DRAWDOWN</div>
+                <div class="kpi-value"><div class="metric-big">{max_drawdown:.2f}%</div></div>
+                <div class="kpi-badge-row"><div class="metric-badge-uniform">TOLERANCE &lt; -10.0%</div></div>
             </div>
             """, unsafe_allow_html=True)
 
@@ -989,30 +1054,30 @@ elif page == "⚡ Order Activity Log":
         o1, o2, o3 = st.columns(3)
         with o1:
             st.markdown(f"""
-            <div class="cyber-card">
-                <div class="metric-meta">TOTAL RECORDED ORDERS</div>
-                <div class="metric-big">{len(recent_orders)} Orders</div>
-                <div class="metric-badge-uniform">CYCLE AUDIT LOG</div>
+            <div class="cyber-kpi-card">
+                <div class="kpi-title">TOTAL RECORDED ORDERS</div>
+                <div class="kpi-value"><div class="metric-big">{len(recent_orders)} Orders</div></div>
+                <div class="kpi-badge-row"><div class="metric-badge-uniform">CYCLE AUDIT LOG</div></div>
             </div>
             """, unsafe_allow_html=True)
 
         with o2:
             fill_rate = (filled_count / len(recent_orders) * 100) if len(recent_orders) > 0 else 100.0
             st.markdown(f"""
-            <div class="cyber-card">
-                <div class="metric-meta">FILL EXECUTION RATE</div>
-                <div class="metric-big-green">{fill_rate:.0f}%</div>
-                <div class="metric-badge-uniform">{filled_count} FILLED ORDERS</div>
+            <div class="cyber-kpi-card">
+                <div class="kpi-title">FILL EXECUTION RATE</div>
+                <div class="kpi-value"><div class="metric-big-green">{fill_rate:.0f}%</div></div>
+                <div class="kpi-badge-row"><div class="metric-badge-uniform">{filled_count} FILLED ORDERS</div></div>
             </div>
             """, unsafe_allow_html=True)
 
         with o3:
             idempotent_count = sum(1 for o in recent_orders if str(o.get("client_order_id", "")).startswith("Q-"))
             st.markdown(f"""
-            <div class="cyber-card">
-                <div class="metric-meta">IDEMPOTENCY VERIFICATION</div>
-                <div class="metric-big-green">100% OK</div>
-                <div class="metric-badge-uniform">{idempotent_count} SIGNATURES HASHED</div>
+            <div class="cyber-kpi-card">
+                <div class="kpi-title">IDEMPOTENCY VERIFICATION</div>
+                <div class="kpi-value"><div class="metric-big-green">100% OK</div></div>
+                <div class="kpi-badge-row"><div class="metric-badge-uniform">{idempotent_count} SIGNATURES HASHED</div></div>
             </div>
             """, unsafe_allow_html=True)
 
@@ -1041,18 +1106,18 @@ elif page == "🧠 Quant Brain & Strategy":
         p1, p2 = st.columns(2)
         with p1:
             st.markdown(f"""
-            <div class="cyber-card">
-                <div class="metric-meta">FAST TREND MOVING AVERAGE WINDOW</div>
-                <div class="metric-big">{params.get('fast_sma', 20)} Days</div>
-                <div class="metric-badge-uniform">CONTINUOUS WALK-FORWARD CALIBRATED</div>
+            <div class="cyber-kpi-card" style="height: 120px !important; min-height: 120px !important;">
+                <div class="kpi-title">FAST TREND MOVING AVERAGE WINDOW</div>
+                <div class="kpi-value"><div class="metric-big">{params.get('fast_sma', 20)} Days</div></div>
+                <div class="kpi-badge-row"><div class="metric-badge-uniform">CONTINUOUS WALK-FORWARD CALIBRATED</div></div>
             </div>
             """, unsafe_allow_html=True)
         with p2:
             st.markdown(f"""
-            <div class="cyber-card">
-                <div class="metric-meta">SLOW ANCHOR MOVING AVERAGE WINDOW</div>
-                <div class="metric-big">{params.get('slow_sma', 50)} Days</div>
-                <div class="metric-badge-uniform">INSTITUTIONAL REGIME ANCHOR</div>
+            <div class="cyber-kpi-card" style="height: 120px !important; min-height: 120px !important;">
+                <div class="kpi-title">SLOW ANCHOR MOVING AVERAGE WINDOW</div>
+                <div class="kpi-value"><div class="metric-big">{params.get('slow_sma', 50)} Days</div></div>
+                <div class="kpi-badge-row"><div class="metric-badge-uniform">INSTITUTIONAL REGIME ANCHOR</div></div>
             </div>
             """, unsafe_allow_html=True)
 
