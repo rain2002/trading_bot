@@ -24,7 +24,7 @@ st.set_page_config(
 )
 
 # ==========================================
-# UNIFORM SLEEK CYBERPUNK STYLING & SIDEBAR TOGGLE BAR
+# UNIFORM SLEEK CYBERPUNK STYLING & SIDEBAR NAVIGATION
 # ==========================================
 st.markdown("""
 <style>
@@ -70,123 +70,94 @@ section[data-testid="stSidebar"] {
 }
 
 /* ==============================================================================
-   MODERN WEBSITE SIDEBAR PAGE NAVIGATION (NO RADIO BUTTONS!)
+   STANDARD MODERN WEBSITE SIDEBAR NAVIGATION (NO RADIO BUTTONS / NO TOGGLES)
    ============================================================================== */
 
-/* 1. Hide the radio group top label */
-section[data-testid="stSidebar"] div[data-testid="stRadio"] > label,
-section[data-testid="stSidebar"] div[data-testid="stRadio"] label:first-child:not([data-testid="stRadioOption"]) {
-    display: none !important;
-}
-
-/* 2. Style the navigation list container */
-section[data-testid="stSidebar"] div[data-testid="stRadio"],
-section[data-testid="stSidebar"] div[data-testid="stRadioGroup"],
-section[data-testid="stSidebar"] div[role="radiogroup"] {
-    display: flex !important;
-    flex-direction: column !important;
-    gap: 6px !important;
-    width: 100% !important;
+/* Tight vertical spacing between navigation links */
+section[data-testid="stSidebar"] div[data-testid="stVerticalBlock"] > div.stButton,
+section[data-testid="stSidebar"] div.stButton {
+    margin: 0 !important;
     padding: 0 !important;
-    margin: 0 !important;
+    margin-bottom: 4px !important;
+    width: 100% !important;
 }
 
-/* 3. COMPLETELY OBLITERATE AND HIDE THE RADIO CIRCLE DOT! */
-section[data-testid="stSidebar"] [data-testid="stRadioOption"] > div > *:not([data-testid="stMarkdownContainer"]):first-child,
-section[data-testid="stSidebar"] [data-testid="stRadioOption"] > div > div:not([data-testid="stMarkdownContainer"]),
-section[data-testid="stSidebar"] [data-testid="stRadioOption"] > div > div:first-child,
-section[data-testid="stSidebar"] [data-testid="stRadioOption"] div[class*="e1dm8mpf4"],
-section[data-testid="stSidebar"] [data-testid="stRadioOption"] div:first-of-type:not([data-testid="stMarkdownContainer"]),
-section[data-testid="stSidebar"] [data-testid="stRadioOption"] input[type="radio"],
-section[data-testid="stSidebar"] [data-testid="stRadioOption"] svg,
-section[data-testid="stSidebar"] div[data-testid="stRadio"] input[type="radio"],
-section[data-testid="stSidebar"] div[data-testid="stRadio"] [data-baseweb="radio"] > div:first-child,
-section[data-testid="stSidebar"] div[data-testid="stRadio"] [data-baseweb="radio"] input {
-    display: none !important;
-    width: 0 !important;
-    height: 0 !important;
-    opacity: 0 !important;
-    visibility: hidden !important;
-    pointer-events: none !important;
-    position: absolute !important;
-}
-
-/* 4. Style each page navigation item as a sleek, modern SaaS web app page link */
-section[data-testid="stSidebar"] [data-testid="stRadioOption"],
-section[data-testid="stSidebar"] div[data-testid="stRadioGroup"] > label,
-section[data-testid="stSidebar"] div[role="radiogroup"] > label {
+/* Base styling for all sidebar navigation links */
+section[data-testid="stSidebar"] div.stButton > button {
     display: flex !important;
     align-items: center !important;
+    justify-content: flex-start !important;
     width: 100% !important;
-    background: rgba(255, 255, 255, 0.025) !important;
-    border: 1px solid rgba(255, 255, 255, 0.06) !important;
-    border-left: 3.5px solid transparent !important;
-    border-radius: 12px !important;
-    padding: 10px 14px !important;
-    margin: 0 !important;
-    cursor: pointer !important;
-    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
-    box-sizing: border-box !important;
-    backdrop-filter: blur(12px) !important;
-    -webkit-backdrop-filter: blur(12px) !important;
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04) !important;
-}
-
-/* Ensure the inner flex container takes full width without radio circle gap */
-section[data-testid="stSidebar"] [data-testid="stRadioOption"] > div,
-section[data-testid="stSidebar"] [data-testid="stRadioGroup"] > label > div {
-    display: flex !important;
-    align-items: center !important;
-    width: 100% !important;
-    gap: 0 !important;
-}
-
-/* Navigation Item Typography */
-section[data-testid="stSidebar"] [data-testid="stRadioOption"] div[data-testid="stMarkdownContainer"],
-section[data-testid="stSidebar"] [data-testid="stRadioOption"] p,
-section[data-testid="stSidebar"] div[data-testid="stRadioGroup"] label p {
-    font-family: 'Space Grotesk', -apple-system, sans-serif !important;
+    min-height: 42px !important;
+    height: 42px !important;
+    padding: 8px 16px !important;
+    border-radius: 9px !important;
+    font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif !important;
     font-size: 0.88rem !important;
     font-weight: 500 !important;
+    text-align: left !important;
+    letter-spacing: -0.01em !important;
+    transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    cursor: pointer !important;
+    box-sizing: border-box !important;
+}
+
+/* Inactive Page Links (normal website nav item) */
+section[data-testid="stSidebar"] div.stButton > button[kind="secondary"],
+section[data-testid="stSidebar"] div.stButton > button[data-testid="stBaseButton-secondary"],
+section[data-testid="stSidebar"] div.stButton > button:not([kind="primary"]):not([data-testid="stBaseButton-primary"]) {
+    background: rgba(255, 255, 255, 0.02) !important;
     color: #94A3B8 !important;
-    margin: 0 !important;
-    line-height: 1.4 !important;
-    transition: all 0.2s ease !important;
+    border: 1px solid rgba(255, 255, 255, 0.05) !important;
+    border-left: 3.5px solid transparent !important;
+    box-shadow: none !important;
 }
 
-/* Hover State - Smooth SaaS navigation hover */
-section[data-testid="stSidebar"] [data-testid="stRadioOption"]:hover,
-section[data-testid="stSidebar"] div[data-testid="stRadioGroup"] > label:hover,
-section[data-testid="stSidebar"] div[role="radiogroup"] > label:hover {
-    background: rgba(255, 255, 255, 0.07) !important;
-    border-color: rgba(255, 255, 255, 0.14) !important;
-    border-left: 3.5px solid rgba(0, 255, 136, 0.6) !important;
-    transform: translateX(4px) !important;
-}
-
-section[data-testid="stSidebar"] [data-testid="stRadioOption"]:hover p,
-section[data-testid="stSidebar"] div[data-testid="stRadioGroup"] > label:hover p {
+/* Hover effect on inactive links - standard website nav hover */
+section[data-testid="stSidebar"] div.stButton > button[kind="secondary"]:hover,
+section[data-testid="stSidebar"] div.stButton > button[data-testid="stBaseButton-secondary"]:hover,
+section[data-testid="stSidebar"] div.stButton > button:not([kind="primary"]):not([data-testid="stBaseButton-primary"]):hover {
+    background: rgba(255, 255, 255, 0.06) !important;
     color: #FFFFFF !important;
+    border-color: rgba(255, 255, 255, 0.12) !important;
+    border-left: 3.5px solid rgba(0, 255, 136, 0.5) !important;
+    transform: translateX(3px) !important;
 }
 
-/* Active State (Selected Page Link) */
-section[data-testid="stSidebar"] [data-testid="stRadioOption"][data-selected="true"],
-section[data-testid="stSidebar"] [data-testid="stRadioOption"]:has(input:checked),
-section[data-testid="stSidebar"] div[data-testid="stRadioGroup"] > label:has(input:checked),
-section[data-testid="stSidebar"] div[data-testid="stRadioGroup"] > label[data-checked="true"],
-section[data-testid="stSidebar"] div[role="radiogroup"] > label:has(input:checked) {
-    background: linear-gradient(90deg, rgba(0, 255, 136, 0.16) 0%, rgba(0, 242, 254, 0.05) 100%) !important;
-    border: 1px solid rgba(0, 255, 136, 0.45) !important;
-    border-left: 4px solid #00FF88 !important;
-    box-shadow: 0 4px 20px rgba(0, 255, 136, 0.20), inset 0 1px 0 rgba(255, 255, 255, 0.12) !important;
-}
-
-section[data-testid="stSidebar"] [data-testid="stRadioOption"][data-selected="true"] p,
-section[data-testid="stSidebar"] [data-testid="stRadioOption"]:has(input:checked) p,
-section[data-testid="stSidebar"] div[data-testid="stRadioGroup"] > label:has(input:checked) p,
-section[data-testid="stSidebar"] div[data-testid="stRadioGroup"] > label[data-checked="true"] p {
+/* Active Page Link (the page currently open) */
+section[data-testid="stSidebar"] div.stButton > button[kind="primary"],
+section[data-testid="stSidebar"] div.stButton > button[data-testid="stBaseButton-primary"] {
+    background: linear-gradient(90deg, rgba(0, 255, 136, 0.14) 0%, rgba(0, 242, 254, 0.04) 100%) !important;
     color: #00FF88 !important;
-    font-weight: 700 !important;
+    border: 1px solid rgba(0, 255, 136, 0.4) !important;
+    border-left: 3.5px solid #00FF88 !important;
+    font-weight: 600 !important;
+    box-shadow: 0 4px 18px rgba(0, 255, 136, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.10) !important;
+}
+
+section[data-testid="stSidebar"] div.stButton > button[kind="primary"]:hover,
+section[data-testid="stSidebar"] div.stButton > button[data-testid="stBaseButton-primary"]:hover {
+    background: linear-gradient(90deg, rgba(0, 255, 136, 0.20) 0%, rgba(0, 242, 254, 0.08) 100%) !important;
+    color: #00FF88 !important;
+    border-color: rgba(0, 255, 136, 0.6) !important;
+}
+
+/* Align text and emojis inside the button strictly to the left like a real website nav link */
+section[data-testid="stSidebar"] div.stButton > button > div,
+section[data-testid="stSidebar"] div.stButton > button span,
+section[data-testid="stSidebar"] div.stButton > button div[data-testid="stMarkdownContainer"],
+section[data-testid="stSidebar"] div.stButton > button p {
+    font-family: inherit !important;
+    font-size: inherit !important;
+    font-weight: inherit !important;
+    color: inherit !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    text-align: left !important;
+    display: flex !important;
+    justify-content: flex-start !important;
+    align-items: center !important;
+    width: 100% !important;
 }
 
 /* ==========================================
@@ -498,7 +469,7 @@ invested_capital = equity - cash
 invested_pct = (invested_capital / equity * 100) if equity > 0 else 0.0
 
 # ==========================================
-# SIDEBAR NAVIGATION TOGGLE BAR
+# SIDEBAR NAVIGATION MENU (STANDARD PAGE LINKS)
 # ==========================================
 st.sidebar.markdown("""
 <div style="padding: 10px 0 16px 0; border-bottom: 1px solid rgba(0, 255, 136, 0.18); margin-bottom: 16px;">
@@ -529,23 +500,36 @@ st.sidebar.markdown(f"""
 """, unsafe_allow_html=True)
 
 st.sidebar.markdown("""
-<div style="font-family: 'JetBrains Mono', monospace; font-size: 0.70rem; color: #94A3B8; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 8px;">
-    ⚡ TERMINAL PAGES
+<div style="font-family: 'Space Grotesk', -apple-system, sans-serif; font-size: 0.72rem; font-weight: 600; color: #64748B; letter-spacing: 0.10em; text-transform: uppercase; margin-bottom: 8px; padding-left: 2px;">
+    PAGES
 </div>
 """, unsafe_allow_html=True)
 
-page = st.sidebar.radio(
-    label="TERMINAL PAGES",
-    options=[
-        "📊 Portfolio Overview",
-        "📋 Positions & Stop-Loss",
-        "🏆 30-Day Incubation Scorecard",
-        "⚡ Order Activity Log",
-        "🧠 Quant Brain & Strategy",
-        "🛡️ Risk Safeguards"
-    ],
-    label_visibility="collapsed"
-)
+PAGE_OPTIONS = [
+    "📊 Portfolio Overview",
+    "📋 Positions & Stop-Loss",
+    "🏆 30-Day Incubation Scorecard",
+    "⚡ Order Activity Log",
+    "🧠 Quant Brain & Strategy",
+    "🛡️ Risk Safeguards"
+]
+
+if "current_page" not in st.session_state or st.session_state.current_page not in PAGE_OPTIONS:
+    st.session_state.current_page = PAGE_OPTIONS[0]
+
+for p_name in PAGE_OPTIONS:
+    is_active = (st.session_state.current_page == p_name)
+    if st.sidebar.button(
+        p_name,
+        key=f"nav_btn_{p_name}",
+        use_container_width=True,
+        type="primary" if is_active else "secondary"
+    ):
+        if not is_active:
+            st.session_state.current_page = p_name
+            st.rerun()
+
+page = st.session_state.current_page
 
 st.sidebar.markdown("<div style='margin-top: 20px;'></div>", unsafe_allow_html=True)
 st.sidebar.markdown("""
