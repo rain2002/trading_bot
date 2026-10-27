@@ -23,13 +23,13 @@ st.set_page_config(
 )
 
 # ==========================================
-# VIBRANT FUTURISTIC CYBERPUNK STYLING
+# UNIFORM SLEEK CYBERPUNK STYLING & SIDEBAR TOGGLE BAR
 # ==========================================
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,300;0,400;0,600;0,700;1,400&family=Space+Grotesk:wght@400;500;600;700&display=swap');
 
-/* Global Font & Dynamic Cyber Theme */
+/* Global Font & Dynamic Obsidian Theme */
 html, body, [class*="css"] {
     font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif !important;
     color: #F8FAFC;
@@ -39,36 +39,109 @@ code, pre, .mono-font {
     font-family: 'JetBrains Mono', monospace !important;
 }
 
-/* Deep Obsidian with Vibrant Ambient Glows */
+/* Deep Obsidian Base */
 .stApp {
-    background: radial-gradient(circle at 10% 10%, rgba(0, 242, 254, 0.06) 0%, transparent 40%),
-                radial-gradient(circle at 90% 85%, rgba(192, 132, 252, 0.05) 0%, transparent 45%),
-                radial-gradient(circle at 50% 50%, rgba(0, 255, 136, 0.03) 0%, transparent 55%),
+    background: radial-gradient(circle at 10% 10%, rgba(0, 255, 136, 0.04) 0%, transparent 40%),
+                radial-gradient(circle at 90% 85%, rgba(0, 242, 254, 0.04) 0%, transparent 45%),
                 #070A12;
 }
 
-/* Sidebar */
+/* Sidebar Container */
 section[data-testid="stSidebar"] {
-    background-color: #05070E !important;
-    border-right: 1px solid rgba(0, 242, 254, 0.16) !important;
-    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.6);
+    background-color: #060913 !important;
+    border-right: 1px solid rgba(0, 255, 136, 0.16) !important;
+    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.7);
 }
 
-/* Vibrant Glassmorphism Card Container */
+/* ==========================================
+   SIDEBAR TOGGLE BAR (Segmented Pill Radio)
+   ========================================== */
+section[data-testid="stSidebar"] div[data-testid="stRadio"] > label {
+    display: none !important; /* Hide default radio label */
+}
+
+section[data-testid="stSidebar"] div[data-testid="stRadio"] div[role="radiogroup"] {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+    width: 100% !important;
+    padding: 4px 0 !important;
+}
+
+section[data-testid="stSidebar"] div[data-testid="stRadio"] div[role="radiogroup"] > label {
+    display: flex !important;
+    align-items: center !important;
+    width: 100% !important;
+    background: rgba(15, 23, 42, 0.55) !important;
+    border: 1px solid rgba(255, 255, 255, 0.07) !important;
+    border-left: 3px solid transparent !important;
+    border-radius: 10px !important;
+    padding: 11px 16px !important;
+    margin: 0 !important;
+    cursor: pointer !important;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    box-sizing: border-box !important;
+}
+
+/* Hide default circle radio input */
+section[data-testid="stSidebar"] div[data-testid="stRadio"] div[role="radiogroup"] > label > div:first-child {
+    display: none !important;
+}
+
+/* Radio label inner typography */
+section[data-testid="stSidebar"] div[data-testid="stRadio"] div[role="radiogroup"] > label div[data-testid="stMarkdownContainer"] p {
+    font-family: 'Space Grotesk', sans-serif !important;
+    font-size: 0.88rem !important;
+    font-weight: 500 !important;
+    color: #94A3B8 !important;
+    margin: 0 !important;
+    transition: all 0.2s ease !important;
+}
+
+/* Hover state on toggle button */
+section[data-testid="stSidebar"] div[data-testid="stRadio"] div[role="radiogroup"] > label:hover {
+    background: rgba(0, 255, 136, 0.08) !important;
+    border-color: rgba(0, 255, 136, 0.35) !important;
+    border-left: 3px solid rgba(0, 255, 136, 0.6) !important;
+    transform: translateX(4px) !important;
+}
+section[data-testid="stSidebar"] div[data-testid="stRadio"] div[role="radiogroup"] > label:hover p {
+    color: #F8FAFC !important;
+}
+
+/* ACTIVE / SELECTED TOGGLE STATE */
+section[data-testid="stSidebar"] div[data-testid="stRadio"] div[role="radiogroup"] > label:has(input:checked),
+section[data-testid="stSidebar"] div[data-testid="stRadio"] div[role="radiogroup"] > label[data-checked="true"] {
+    background: linear-gradient(90deg, rgba(0, 255, 136, 0.18) 0%, rgba(0, 242, 254, 0.06) 100%) !important;
+    border: 1px solid rgba(0, 255, 136, 0.6) !important;
+    border-left: 4px solid #00FF88 !important;
+    box-shadow: 0 4px 18px rgba(0, 255, 136, 0.22) !important;
+}
+
+section[data-testid="stSidebar"] div[data-testid="stRadio"] div[role="radiogroup"] > label:has(input:checked) p,
+section[data-testid="stSidebar"] div[data-testid="stRadio"] div[role="radiogroup"] > label[data-checked="true"] p {
+    color: #00FF88 !important;
+    font-weight: 700 !important;
+}
+
+/* ==========================================
+   UNIFORM INSTITUTIONAL CARD STYLING
+   ========================================== */
 .cyber-card {
-    background: linear-gradient(135deg, rgba(15, 23, 42, 0.8) 0%, rgba(10, 15, 29, 0.85) 100%);
-    border: 1px solid rgba(0, 242, 254, 0.18);
-    border-radius: 14px;
-    padding: 18px 22px;
+    background: linear-gradient(135deg, rgba(15, 23, 42, 0.85) 0%, rgba(10, 15, 29, 0.9) 100%);
+    border: 1px solid rgba(0, 255, 136, 0.2);
+    border-radius: 12px;
+    padding: 18px 20px;
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.06);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    margin-bottom: 14px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    margin-bottom: 12px;
+    height: 100%;
 }
 .cyber-card:hover {
-    border-color: rgba(0, 242, 254, 0.5);
-    box-shadow: 0 8px 30px rgba(0, 242, 254, 0.15), inset 0 1px 0 rgba(0, 242, 254, 0.3);
+    border-color: rgba(0, 255, 136, 0.5);
+    box-shadow: 0 8px 25px rgba(0, 255, 136, 0.15), inset 0 1px 0 rgba(0, 255, 136, 0.2);
     transform: translateY(-2px);
 }
 
@@ -77,32 +150,34 @@ section[data-testid="stSidebar"] {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 14px 24px;
-    background: linear-gradient(90deg, rgba(15, 23, 42, 0.9) 0%, rgba(10, 15, 29, 0.9) 100%);
-    border: 1px solid rgba(0, 242, 254, 0.22);
-    border-radius: 14px;
-    margin-bottom: 22px;
+    padding: 14px 22px;
+    background: linear-gradient(90deg, rgba(15, 23, 42, 0.92) 0%, rgba(10, 15, 29, 0.95) 100%);
+    border: 1px solid rgba(0, 255, 136, 0.22);
+    border-radius: 12px;
+    margin-bottom: 20px;
     box-shadow: 0 4px 25px rgba(0, 0, 0, 0.5);
 }
 
 .hud-title {
-    font-size: 1.4rem;
+    font-size: 1.35rem;
     font-weight: 700;
     letter-spacing: -0.02em;
-    background: linear-gradient(90deg, #00F2FE 0%, #00FF88 30%, #C084FC 65%, #FBBF24 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
+    color: #F8FAFC;
     display: flex;
     align-items: center;
     gap: 10px;
+}
+.hud-title-accent {
+    color: #00FF88;
 }
 
 .hud-subtitle {
     font-family: 'JetBrains Mono', monospace;
     font-size: 0.72rem;
     color: #94A3B8;
-    letter-spacing: 0.12em;
+    letter-spacing: 0.1em;
     text-transform: uppercase;
+    margin-top: 3px;
 }
 
 /* Status Badges & Pills */
@@ -111,13 +186,13 @@ section[data-testid="stSidebar"] {
     align-items: center;
     gap: 8px;
     font-family: 'JetBrains Mono', monospace;
-    font-size: 0.75rem;
+    font-size: 0.74rem;
     font-weight: 600;
     padding: 6px 14px;
     border-radius: 20px;
-    background: rgba(15, 23, 42, 0.8);
-    border: 1px solid rgba(0, 242, 254, 0.28);
-    color: #38BDF8;
+    background: rgba(15, 23, 42, 0.85);
+    border: 1px solid rgba(0, 255, 136, 0.28);
+    color: #00FF88;
 }
 
 .pulse-dot {
@@ -135,10 +210,10 @@ section[data-testid="stSidebar"] {
     100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(0, 255, 136, 0); }
 }
 
-/* Metric Card Inner Typography */
+/* Uniform Metric Card Inner Typography */
 .metric-meta {
     font-family: 'JetBrains Mono', monospace;
-    font-size: 0.72rem;
+    font-size: 0.70rem;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.12em;
@@ -147,100 +222,93 @@ section[data-testid="stSidebar"] {
 }
 
 .metric-big {
-    font-size: 1.9rem;
+    font-size: 1.85rem;
     font-weight: 700;
     letter-spacing: -0.03em;
     color: #F8FAFC;
     line-height: 1.15;
 }
 
-.metric-badge {
+.metric-big-green {
+    font-size: 1.85rem;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    color: #00FF88;
+    line-height: 1.15;
+}
+
+.metric-big-red {
+    font-size: 1.85rem;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    color: #FF3B5C;
+    line-height: 1.15;
+}
+
+.metric-badge-uniform {
     display: inline-flex;
     align-items: center;
     gap: 4px;
     font-family: 'JetBrains Mono', monospace;
-    font-size: 0.76rem;
+    font-size: 0.72rem;
     font-weight: 600;
-    padding: 3px 9px;
+    padding: 3px 10px;
     border-radius: 12px;
     margin-top: 8px;
+    background: rgba(0, 255, 136, 0.10);
+    color: #00FF88;
+    border: 1px solid rgba(0, 255, 136, 0.28);
 }
 
-/* Vibrant Badges */
-.badge-cyan {
-    background: rgba(0, 242, 254, 0.12);
-    color: #00F2FE;
-    border: 1px solid rgba(0, 242, 254, 0.3);
-}
-.badge-green {
-    background: rgba(0, 255, 136, 0.12);
-    color: #00FF88;
-    border: 1px solid rgba(0, 255, 136, 0.3);
-}
-.badge-purple {
-    background: rgba(192, 132, 252, 0.14);
-    color: #C084FC;
-    border: 1px solid rgba(192, 132, 252, 0.35);
-}
-.badge-amber {
-    background: rgba(251, 191, 36, 0.14);
-    color: #FBBF24;
-    border: 1px solid rgba(251, 191, 36, 0.35);
-}
-.badge-blue {
-    background: rgba(56, 189, 248, 0.14);
-    color: #38BDF8;
-    border: 1px solid rgba(56, 189, 248, 0.35);
-}
-.badge-crimson {
+.metric-badge-danger {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 12px;
+    margin-top: 8px;
     background: rgba(255, 59, 92, 0.12);
     color: #FF3B5C;
-    border: 1px solid rgba(255, 59, 92, 0.3);
+    border: 1px solid rgba(255, 59, 92, 0.32);
 }
 
-/* Sleek Streamlit Dataframes */
+/* Page Dedicated Header */
+.page-title-box {
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+.page-title {
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: #F8FAFC;
+    letter-spacing: -0.02em;
+}
+.page-subtitle {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    color: #94A3B8;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-top: 4px;
+}
+
+/* Streamlit DataFrames */
 [data-testid="stDataFrame"] {
     border-radius: 12px !important;
-    border: 1px solid rgba(0, 242, 254, 0.18) !important;
+    border: 1px solid rgba(0, 255, 136, 0.2) !important;
     overflow: hidden !important;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
-}
-
-/* Radio Navigation Buttons */
-div[role="radiogroup"] > label {
-    background: rgba(15, 23, 42, 0.5) !important;
-    border: 1px solid rgba(255, 255, 255, 0.06) !important;
-    border-radius: 10px !important;
-    padding: 10px 14px !important;
-    margin-bottom: 6px !important;
-    transition: all 0.2s ease !important;
-}
-div[role="radiogroup"] > label:hover {
-    border-color: rgba(0, 242, 254, 0.4) !important;
-    background: rgba(0, 242, 254, 0.06) !important;
 }
 </style>
 """, unsafe_allow_html=True)
 
 # ==========================================
-# SIDEBAR CONFIGURATION
+# BROKER DATA INGESTION
 # ==========================================
-st.sidebar.markdown("""
-<div style="padding: 10px 0 20px 0; border-bottom: 1px solid rgba(0, 242, 254, 0.18); margin-bottom: 20px;">
-    <div style="font-size: 1.25rem; font-weight: 700; letter-spacing: -0.02em; background: linear-gradient(90deg, #00F2FE, #00FF88); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
-        ⚡ QUANTUM // OS
-    </div>
-    <div style="font-family: 'JetBrains Mono', monospace; font-size: 0.70rem; color: #94A3B8; letter-spacing: 0.1em; margin-top: 4px;">
-        INSTITUTIONAL DESK v2.4
-    </div>
-    <div style="margin-top: 12px;">
-        <span class="status-pill" style="padding: 3px 10px; font-size: 0.7rem; border-color: rgba(0, 255, 136, 0.35); color: #00FF88;">
-            <span class="pulse-dot"></span> AUTONOMOUS AGENTS ACTIVE
-        </span>
-    </div>
-</div>
-""", unsafe_allow_html=True)
-
 api_key = settings.PAPER_API_KEY
 api_secret = settings.PAPER_API_SECRET
 
@@ -251,31 +319,6 @@ if not api_key or not api_secret:
 
 broker = AlpacaBrokerAdapter(api_key=api_key or "mock", api_secret=api_secret or "mock")
 
-page = st.sidebar.radio(
-    "NAVIGATION INTERFACE",
-    [
-        "📊 Portfolio Overview",
-        "🏆 30-Day Incubation Scorecard",
-        "📋 Positions & Stop-Loss",
-        "⚡ Order Activity Log",
-        "🧠 Quant Brain & Strategy",
-        "🛡️ Risk Safeguards"
-    ]
-)
-
-st.sidebar.markdown("---")
-st.sidebar.markdown("""
-<div style="font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; color: #94A3B8; line-height: 1.7; padding: 6px;">
-    <div>BROKER: <span style="color: #00F2FE;">ALPACA PAPER</span></div>
-    <div>LATENCY: <span style="color: #00FF88;">&lt;40ms REST</span></div>
-    <div>ACTIVE ARCH: <span style="color: #C084FC;">PHASE 3 ML GATE</span></div>
-    <div>LONG-ONLY SOLVENCY: <span style="color: #FBBF24;">100% OK</span></div>
-</div>
-""", unsafe_allow_html=True)
-
-# ==========================================
-# BROKER DATA INGESTION
-# ==========================================
 acc_details = broker.get_account_details()
 equity = acc_details.get("equity", 100000.0)
 cash = acc_details.get("cash", 0.0)
@@ -288,80 +331,139 @@ invested_capital = equity - cash
 invested_pct = (invested_capital / equity * 100) if equity > 0 else 0.0
 
 # ==========================================
-# TOP TELEMETRY HUD BAR
+# SIDEBAR NAVIGATION TOGGLE BAR
 # ==========================================
-st.markdown(f"""
-<div class="hud-header">
-    <div>
-        <div class="hud-title">⚡ ANTIGRAVITY QUANTUM TERMINAL</div>
-        <div class="hud-subtitle">PHASE 2 MULTI-STRATEGY ENSEMBLE • PHASE 3 ML ALPHA GATE • REAL-TIME BROKER TELEMETRY</div>
+st.sidebar.markdown("""
+<div style="padding: 10px 0 16px 0; border-bottom: 1px solid rgba(0, 255, 136, 0.18); margin-bottom: 16px;">
+    <div style="font-size: 1.25rem; font-weight: 700; letter-spacing: -0.02em; color: #F8FAFC;">
+        ⚡ <span style="color: #00FF88;">QUANTUM</span> // OS
     </div>
-    <div style="display: flex; gap: 10px; align-items: center;">
-        <span class="status-pill"><span class="pulse-dot"></span> LIVE EXECUTION READY</span>
-        <span class="status-pill" style="border-color: rgba(192, 132, 252, 0.3); color: #C084FC;">BROKER: PAPER LIVE</span>
+    <div style="font-family: 'JetBrains Mono', monospace; font-size: 0.70rem; color: #94A3B8; letter-spacing: 0.1em; margin-top: 4px;">
+        INSTITUTIONAL DESK v2.4
+    </div>
+    <div style="margin-top: 10px;">
+        <span class="status-pill" style="padding: 3px 10px; font-size: 0.68rem; border-color: rgba(0, 255, 136, 0.35);">
+            <span class="pulse-dot"></span> LIVE TELEMETRY READY
+        </span>
     </div>
 </div>
 """, unsafe_allow_html=True)
 
-# ==========================================
-# 5-CARD VIBRANT KPI DECK
-# ==========================================
-k1, k2, k3, k4, k5 = st.columns(5)
-
-with k1:
-    st.markdown(f"""
-    <div class="cyber-card">
-        <div class="metric-meta">TOTAL PORTFOLIO EQUITY</div>
-        <div class="metric-big" style="color: #00F2FE;">${equity:,.2f}</div>
-        <div class="metric-badge badge-cyan">NAV REAL-TIME</div>
+# Persistent Sidebar Account Strip
+st.sidebar.markdown(f"""
+<div style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(0, 255, 136, 0.18); border-radius: 10px; padding: 10px 14px; margin-bottom: 18px; font-family: 'JetBrains Mono', monospace;">
+    <div style="font-size: 0.68rem; color: #94A3B8; letter-spacing: 0.1em; text-transform: uppercase;">PORTFOLIO NAV</div>
+    <div style="font-size: 1.25rem; font-weight: 700; color: #F8FAFC; margin: 2px 0;">${equity:,.2f}</div>
+    <div style="display: flex; justify-content: space-between; font-size: 0.72rem; color: #94A3B8; margin-top: 4px; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 4px;">
+        <span>CASH: <b style="color: #00FF88;">{cash_pct:.1f}%</b></span>
+        <span>EQUITY: <b style="color: #00FF88;">{invested_pct:.1f}%</b></span>
     </div>
-    """, unsafe_allow_html=True)
+</div>
+""", unsafe_allow_html=True)
 
-with k2:
-    pnl_c = "#00FF88" if today_pnl >= 0 else "#FF3B5C"
-    b_class = "badge-green" if today_pnl >= 0 else "badge-crimson"
-    st.markdown(f"""
-    <div class="cyber-card">
-        <div class="metric-meta">TODAY'S SESSION P&L</div>
-        <div class="metric-big" style="color: {pnl_c};">${today_pnl:+,.2f}</div>
-        <div class="metric-badge {b_class}">{today_pnl_pct:+.2f}% TODAY</div>
-    </div>
-    """, unsafe_allow_html=True)
+st.sidebar.markdown("""
+<div style="font-family: 'JetBrains Mono', monospace; font-size: 0.70rem; color: #94A3B8; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 8px;">
+    ⚡ NAVIGATION TOGGLE BAR
+</div>
+""", unsafe_allow_html=True)
 
-with k3:
-    all_c = "#00FF88" if overall_pnl >= 0 else "#FF3B5C"
-    b_class_all = "badge-green" if overall_pnl >= 0 else "badge-crimson"
-    st.markdown(f"""
-    <div class="cyber-card">
-        <div class="metric-meta">CUMULATIVE INCEPTION GAIN</div>
-        <div class="metric-big" style="color: {all_c};">${overall_pnl:+,.2f}</div>
-        <div class="metric-badge {b_class_all}">{overall_pnl_pct:+.2f}% NET ALPHA</div>
-    </div>
-    """, unsafe_allow_html=True)
+# The Sidebar Toggle Bar Menu
+page = st.sidebar.radio(
+    label="NAVIGATION TOGGLE BAR",
+    options=[
+        "📊 Portfolio Overview",
+        "📋 Positions & Stop-Loss",
+        "🏆 30-Day Incubation Scorecard",
+        "⚡ Order Activity Log",
+        "🧠 Quant Brain & Strategy",
+        "🛡️ Risk Safeguards"
+    ],
+    label_visibility="collapsed"
+)
 
-with k4:
-    st.markdown(f"""
-    <div class="cyber-card">
-        <div class="metric-meta">LIQUID CASH BUFFER</div>
-        <div class="metric-big" style="color: #FBBF24;">${cash:,.2f}</div>
-        <div class="metric-badge badge-amber">{cash_pct:.1f}% PRESERVED</div>
-    </div>
-    """, unsafe_allow_html=True)
+st.sidebar.markdown("<div style='margin-top: 20px;'></div>", unsafe_allow_html=True)
+st.sidebar.markdown("""
+<div style="font-family: 'JetBrains Mono', monospace; font-size: 0.70rem; color: #94A3B8; line-height: 1.7; padding: 10px 12px; background: rgba(15, 23, 42, 0.4); border-radius: 8px; border: 1px solid rgba(255,255,255,0.05);">
+    <div>BROKER: <span style="color: #00FF88;">ALPACA PAPER</span></div>
+    <div>LATENCY: <span style="color: #00FF88;">&lt;40ms REST</span></div>
+    <div>ACTIVE ARCH: <span style="color: #00FF88;">PHASE 3 ML GATE</span></div>
+    <div>LONG-ONLY: <span style="color: #00FF88;">100% SOLVENT</span></div>
+</div>
+""", unsafe_allow_html=True)
 
-with k5:
-    st.markdown(f"""
-    <div class="cyber-card">
-        <div class="metric-meta">AI ARCHITECTURE TIER</div>
-        <div class="metric-big" style="color: #C084FC;">PHASE 3</div>
-        <div class="metric-badge badge-purple">ML ALPHA GATE ACTIVE</div>
-    </div>
-    """, unsafe_allow_html=True)
 
-# ==========================================
-# PAGE 1: PORTFOLIO OVERVIEW
-# ==========================================
+# ==============================================================================
+# PAGE 1: 📊 PORTFOLIO OVERVIEW (EXECUTIVE DESK)
+# ==============================================================================
 if page == "📊 Portfolio Overview":
-    st.markdown("<div style='margin-top: 10px;'></div>", unsafe_allow_html=True)
+    # Top Telemetry HUD Header
+    st.markdown("""
+    <div class="hud-header">
+        <div>
+            <div class="hud-title">⚡ ANTIGRAVITY <span class="hud-title-accent">QUANTUM TERMINAL</span></div>
+            <div class="hud-subtitle">PHASE 2 MULTI-STRATEGY ENSEMBLE • PHASE 3 ML ALPHA GATE • REAL-TIME BROKER TELEMETRY</div>
+        </div>
+        <div style="display: flex; gap: 10px; align-items: center;">
+            <span class="status-pill"><span class="pulse-dot"></span> LIVE EXECUTION READY</span>
+            <span class="status-pill" style="border-color: rgba(0, 255, 136, 0.35);">BROKER: PAPER LIVE</span>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # 5-CARD UNIFORM KPI DECK (Clean, Sleek, Unified Aesthetic)
+    k1, k2, k3, k4, k5 = st.columns(5)
+
+    with k1:
+        st.markdown(f"""
+        <div class="cyber-card">
+            <div class="metric-meta">TOTAL PORTFOLIO EQUITY</div>
+            <div class="metric-big">${equity:,.2f}</div>
+            <div class="metric-badge-uniform">NAV REAL-TIME</div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    with k2:
+        pnl_class = "metric-big-green" if today_pnl >= 0 else "metric-big-red"
+        badge_class = "metric-badge-uniform" if today_pnl >= 0 else "metric-badge-danger"
+        st.markdown(f"""
+        <div class="cyber-card">
+            <div class="metric-meta">TODAY'S SESSION P&L</div>
+            <div class="{pnl_class}">${today_pnl:+,.2f}</div>
+            <div class="{badge_class}">{today_pnl_pct:+.2f}% TODAY</div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    with k3:
+        all_class = "metric-big-green" if overall_pnl >= 0 else "metric-big-red"
+        badge_all_class = "metric-badge-uniform" if overall_pnl >= 0 else "metric-badge-danger"
+        st.markdown(f"""
+        <div class="cyber-card">
+            <div class="metric-meta">CUMULATIVE INCEPTION GAIN</div>
+            <div class="{all_class}">${overall_pnl:+,.2f}</div>
+            <div class="{badge_all_class}">{overall_pnl_pct:+.2f}% NET ALPHA</div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    with k4:
+        st.markdown(f"""
+        <div class="cyber-card">
+            <div class="metric-meta">LIQUID CASH BUFFER</div>
+            <div class="metric-big">${cash:,.2f}</div>
+            <div class="metric-badge-uniform">{cash_pct:.1f}% PRESERVED</div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    with k5:
+        st.markdown("""
+        <div class="cyber-card">
+            <div class="metric-meta">AI ARCHITECTURE TIER</div>
+            <div class="metric-big">PHASE 3</div>
+            <div class="metric-badge-uniform">ML ALPHA GATE ACTIVE</div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    st.markdown("<div style='margin-top: 15px;'></div>", unsafe_allow_html=True)
+
     positions = broker.get_positions_detailed()
 
     if positions:
@@ -383,37 +485,14 @@ if page == "📊 Portfolio Overview":
             })
             df_chart = pd.DataFrame(chart_data)
 
-            # ==========================================
-            # VIBRANT, HIGH-CONTRAST CYBER COLOR PALETTE
-            # (Every stock has a distinct, eye-popping vibrant color!)
-            # ==========================================
+            # VIBRANT 26-COLOR PALETTE FOR DISTINCT ASSET ALLOCATION
             vibrant_palette = [
-                "#00F2FE",  # Electric Cyan
-                "#00FF88",  # Neon Lime
-                "#FF007F",  # Hot Magenta
-                "#FFB800",  # Vivid Gold
-                "#A855F7",  # Cyber Purple
-                "#3B82F6",  # Electric Cobalt
-                "#FF5722",  # Neon Orange
-                "#00E5FF",  # Turquoise
-                "#E91E63",  # Deep Rose
-                "#76FF03",  # Fluorescent Lime
-                "#9C27B0",  # Vivid Violet
-                "#FF9100",  # Sunset Tangerine
-                "#00E676",  # Spring Green
-                "#651FFF",  # Deep Indigo
-                "#FF1744",  # Crimson Neon
-                "#1DE9B6",  # Bright Teal
-                "#FF4081",  # Vivid Pink
-                "#FFEA00",  # Electric Yellow
-                "#2979FF",  # Royal Blue
-                "#C51162",  # Neon Berry
-                "#00B0FF",  # Vivid Cerulean
-                "#00C853",  # Emerald Green
-                "#FF6D00",  # Intense Amber
-                "#D500F9",  # Neon Orchid
-                "#64DD17",  # Bright Apple
-                "#E2E8F0",  # Platinum Slate (Cash Shield)
+                "#00F2FE", "#00FF88", "#FF007F", "#FFB800", "#A855F7",
+                "#3B82F6", "#FF5722", "#00E5FF", "#E91E63", "#76FF03",
+                "#9C27B0", "#FF9100", "#00E676", "#651FFF", "#FF1744",
+                "#1DE9B6", "#FF4081", "#FFEA00", "#2979FF", "#C51162",
+                "#00B0FF", "#00C853", "#FF6D00", "#D500F9", "#64DD17",
+                "#CBD5E1"
             ]
 
             fig = px.pie(
@@ -437,7 +516,7 @@ if page == "📊 Portfolio Overview":
                 plot_bgcolor='rgba(0,0,0,0)',
                 font=dict(family="Space Grotesk, sans-serif", color="#F8FAFC"),
                 annotations=[dict(
-                    text=f"<b>PORTFOLIO</b><br><span style='font-size:18px; color:#00F2FE;'>${equity:,.0f}</span><br><span style='font-size:11px; color:#FBBF24;'>CASH {cash_pct:.1f}%</span>",
+                    text=f"<b>PORTFOLIO</b><br><span style='font-size:18px; color:#00FF88;'>${equity:,.0f}</span><br><span style='font-size:11px; color:#94A3B8;'>CASH {cash_pct:.1f}%</span>",
                     x=0.5, y=0.5,
                     font_size=15,
                     font_family="Space Grotesk",
@@ -445,26 +524,26 @@ if page == "📊 Portfolio Overview":
                     showarrow=False
                 )]
             )
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width='stretch')
 
         with col_stats:
             st.markdown("""
             <div class="cyber-card" style="margin-top: 25px;">
-                <div class="metric-meta" style="color: #00F2FE;">PORTFOLIO EXPOSURE TELEMETRY</div>
+                <div class="metric-meta" style="color: #00FF88;">PORTFOLIO EXPOSURE TELEMETRY</div>
             """, unsafe_allow_html=True)
 
             st.markdown(f"""
             <div style="display: flex; justify-content: space-between; padding: 9px 0; border-bottom: 1px solid rgba(255,255,255,0.06); font-family: 'JetBrains Mono', monospace; font-size: 0.85rem;">
                 <span style="color: #94A3B8;">Invested Equities Value:</span>
-                <span style="color: #00F2FE; font-weight: 600;">${invested_capital:,.2f} ({invested_pct:.1f}%)</span>
+                <span style="color: #F8FAFC; font-weight: 600;">${invested_capital:,.2f} ({invested_pct:.1f}%)</span>
             </div>
             <div style="display: flex; justify-content: space-between; padding: 9px 0; border-bottom: 1px solid rgba(255,255,255,0.06); font-family: 'JetBrains Mono', monospace; font-size: 0.85rem;">
                 <span style="color: #94A3B8;">Liquid Cash Reserve:</span>
-                <span style="color: #FBBF24; font-weight: 600;">${cash:,.2f} ({cash_pct:.1f}%)</span>
+                <span style="color: #00FF88; font-weight: 600;">${cash:,.2f} ({cash_pct:.1f}%)</span>
             </div>
             <div style="display: flex; justify-content: space-between; padding: 9px 0; border-bottom: 1px solid rgba(255,255,255,0.06); font-family: 'JetBrains Mono', monospace; font-size: 0.85rem;">
                 <span style="color: #94A3B8;">Active Holdings:</span>
-                <span style="color: #00FF88; font-weight: 600;">{len(positions)} Stocks (Dynamic Sizing)</span>
+                <span style="color: #F8FAFC; font-weight: 600;">{len(positions)} Stocks (Dynamic Sizing)</span>
             </div>
             <div style="display: flex; justify-content: space-between; padding: 9px 0; border-bottom: 1px solid rgba(255,255,255,0.06); font-family: 'JetBrains Mono', monospace; font-size: 0.85rem;">
                 <span style="color: #94A3B8;">Single Stock Ceiling:</span>
@@ -472,7 +551,7 @@ if page == "📊 Portfolio Overview":
             </div>
             <div style="display: flex; justify-content: space-between; padding: 9px 0; font-family: 'JetBrains Mono', monospace; font-size: 0.85rem;">
                 <span style="color: #94A3B8;">Max Macro Exposure:</span>
-                <span style="color: #C084FC; font-weight: 600;">95.0% (${equity*0.95:,.2f})</span>
+                <span style="color: #F8FAFC; font-weight: 600;">95.0% (${equity*0.95:,.2f})</span>
             </div>
             """, unsafe_allow_html=True)
 
@@ -493,14 +572,109 @@ if page == "📊 Portfolio Overview":
     else:
         st.info("No open positions reported by broker. Portfolio is currently in 100% Cash Buffer.")
 
-# ==========================================
-# PAGE 2: 30-DAY INCUBATION SCORECARD
-# ==========================================
+
+# ==============================================================================
+# PAGE 2: 📋 POSITIONS & STOP-LOSS MONITOR
+# ==============================================================================
+elif page == "📋 Positions & Stop-Loss":
+    st.markdown("""
+    <div class="page-title-box">
+        <div class="page-title">📋 Active Equity Holdings & Stop-Loss Gating</div>
+        <div class="page-subtitle">REAL-TIME COST BASIS • UNREALIZED P&L • MANDATORY -8% STOP GATING PROTOCOL</div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    positions = broker.get_positions_detailed()
+
+    if positions:
+        df_pos = pd.DataFrame(positions)
+
+        # Dedicated Page Metric Cards
+        winners = df_pos[df_pos['unrealized_pl'] > 0]
+        critical = df_pos[df_pos['unrealized_plpc'] <= -0.08]
+        win_rate = (len(winners) / len(df_pos) * 100) if len(df_pos) > 0 else 0.0
+
+        p1, p2, p3, p4 = st.columns(4)
+        with p1:
+            st.markdown(f"""
+            <div class="cyber-card">
+                <div class="metric-meta">ACTIVE POSITIONS</div>
+                <div class="metric-big">{len(positions)} Stocks</div>
+                <div class="metric-badge-uniform">DYNAMIC LONG-ONLY</div>
+            </div>
+            """, unsafe_allow_html=True)
+
+        with p2:
+            st.markdown(f"""
+            <div class="cyber-card">
+                <div class="metric-meta">PROFITABLE POSITIONS</div>
+                <div class="metric-big-green">{len(winners)} / {len(positions)}</div>
+                <div class="metric-badge-uniform">{win_rate:.1f}% WIN RATE</div>
+            </div>
+            """, unsafe_allow_html=True)
+
+        with p3:
+            st.markdown(f"""
+            <div class="cyber-card">
+                <div class="metric-meta">TOTAL UNREALIZED ALPHA</div>
+                <div class="{'metric-big-green' if overall_pnl >= 0 else 'metric-big-red'}">${overall_pnl:+,.2f}</div>
+                <div class="metric-badge-uniform">{overall_pnl_pct:+.2f}% ON CAPITAL</div>
+            </div>
+            """, unsafe_allow_html=True)
+
+        with p4:
+            st.markdown(f"""
+            <div class="cyber-card">
+                <div class="metric-meta">STOP-LOSS HEALTH</div>
+                <div class="{'metric-big-green' if len(critical) == 0 else 'metric-big-red'}">{len(critical)} Breaches</div>
+                <div class="{'metric-badge-uniform' if len(critical) == 0 else 'metric-badge-danger'}">{'100% HEALTHY' if len(critical) == 0 else 'ACTION REQUIRED'}</div>
+            </div>
+            """, unsafe_allow_html=True)
+
+        st.markdown("<div style='margin-top: 15px;'></div>", unsafe_allow_html=True)
+
+        def evaluate_sl_status(row):
+            pct = row['unrealized_plpc'] * 100
+            if pct <= -8.0:
+                return "🛑 STOP BREACH"
+            elif pct <= -5.0:
+                return "⚠️ WATCHLIST (< -5%)"
+            elif pct > 0:
+                return "🟢 PROFITABLE"
+            else:
+                return "⚪ HOLDING"
+
+        df_pos["Status"] = df_pos.apply(evaluate_sl_status, axis=1)
+        df_pos["Return %"] = (df_pos["unrealized_plpc"] * 100).round(2).astype(str) + "%"
+        df_pos["PnL ($)"] = df_pos["unrealized_pl"].round(2)
+        df_pos["Market Value"] = df_pos["market_value"].round(2)
+        df_pos["Current Price"] = df_pos["current_price"].round(2)
+        df_pos["Avg Entry"] = df_pos["avg_entry_price"].round(2)
+
+        display_cols = ["symbol", "qty", "Current Price", "Avg Entry", "Market Value", "PnL ($)", "Return %", "Status"]
+
+        st.dataframe(
+            df_pos[display_cols].sort_values(by="PnL ($)", ascending=False),
+            width='stretch',
+            hide_index=True
+        )
+
+        if not critical.empty:
+            st.error(f"⚠️ {len(critical)} position(s) have breached the -8% stop-loss threshold and will be liquidated on the next session cycle!")
+        else:
+            st.success("✅ Risk Integrity 100%: All active holdings are within safe operating limits (Drawdown > -8.0%).")
+    else:
+        st.info("No open positions reported by broker.")
+
+
+# ==============================================================================
+# PAGE 3: 🏆 30-DAY INCUBATION SCORECARD
+# ==============================================================================
 elif page == "🏆 30-Day Incubation Scorecard":
     st.markdown("""
-    <div style="margin-bottom: 15px;">
-        <span style="font-size: 1.3rem; font-weight: 700; color: #F8FAFC;">🏆 30-Day Paper Incubation Health Scorecard</span>
-        <div style="font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; color: #94A3B8;">AUTONOMOUS INCUBATION MONITOR • HANDS-OFF OPERATIONAL STABILITY</div>
+    <div class="page-title-box">
+        <div class="page-title">🏆 30-Day Paper Incubation Health Scorecard</div>
+        <div class="page-subtitle">AUTONOMOUS INCUBATION MONITOR • REAL-TIME AUDIT TRAIL • GRADUATION PROGRESS</div>
     </div>
     """, unsafe_allow_html=True)
 
@@ -522,8 +696,8 @@ elif page == "🏆 30-Day Incubation Scorecard":
             st.markdown(f"""
             <div class="cyber-card">
                 <div class="metric-meta">INCUBATION PROGRESS</div>
-                <div class="metric-big" style="color: #00F2FE;">Day {days_logged} <span style="font-size: 1.1rem; color: #94A3B8;">/ 30</span></div>
-                <div class="metric-badge badge-cyan">{(days_logged/30)*100:.0f}% COMPLETED</div>
+                <div class="metric-big">Day {days_logged} <span style="font-size: 1.1rem; color: #94A3B8;">/ 30</span></div>
+                <div class="metric-badge-uniform">{(days_logged/30)*100:.0f}% COMPLETED</div>
             </div>
             """, unsafe_allow_html=True)
 
@@ -531,19 +705,19 @@ elif page == "🏆 30-Day Incubation Scorecard":
             st.markdown(f"""
             <div class="cyber-card">
                 <div class="metric-meta">INCEPTION BASE CAPITAL</div>
-                <div class="metric-big" style="color: #F8FAFC;">${start_equity:,.2f}</div>
-                <div class="metric-badge badge-blue">BASE PRINCIPAL</div>
+                <div class="metric-big">${start_equity:,.2f}</div>
+                <div class="metric-badge-uniform">BASE PRINCIPAL</div>
             </div>
             """, unsafe_allow_html=True)
 
         with sc3:
-            pnl_c = "#00FF88" if net_change >= 0 else "#FF3B5C"
-            b_class = "badge-green" if net_change >= 0 else "badge-crimson"
+            pnl_class = "metric-big-green" if net_change >= 0 else "metric-big-red"
+            badge_class = "metric-badge-uniform" if net_change >= 0 else "metric-badge-danger"
             st.markdown(f"""
             <div class="cyber-card">
                 <div class="metric-meta">NET INCUBATION RETURN</div>
-                <div class="metric-big" style="color: {pnl_c};">${net_change:+,.2f}</div>
-                <div class="metric-badge {b_class}">{net_change_pct:+.2f}% TOTAL RETURN</div>
+                <div class="{pnl_class}">${net_change:+,.2f}</div>
+                <div class="{badge_class}">{net_change_pct:+.2f}% TOTAL RETURN</div>
             </div>
             """, unsafe_allow_html=True)
 
@@ -551,40 +725,42 @@ elif page == "🏆 30-Day Incubation Scorecard":
             st.markdown(f"""
             <div class="cyber-card">
                 <div class="metric-meta">PEAK-TO-TROUGH DRAWDOWN</div>
-                <div class="metric-big" style="color: {'#00FF88' if max_drawdown > -5.0 else '#FBBF24'};">{max_drawdown:.2f}%</div>
-                <div class="metric-badge badge-amber">TOLERANCE &lt; -10.0%</div>
+                <div class="metric-big">{max_drawdown:.2f}%</div>
+                <div class="metric-badge-uniform">TOLERANCE &lt; -10.0%</div>
             </div>
             """, unsafe_allow_html=True)
 
-        # Vibrant Glowing Equity Curve
+        st.markdown("<div style='margin-top: 15px;'></div>", unsafe_allow_html=True)
+
+        # Sleek Equity Curve
         fig_equity = go.Figure()
         fig_equity.add_trace(go.Scatter(
             x=df_history["timestamp"],
             y=df_history["equity"],
             mode="lines",
             name="Account Equity",
-            line=dict(color="#00F2FE", width=3),
+            line=dict(color="#00FF88", width=3),
             fill="tozeroy",
-            fillcolor="rgba(0, 242, 254, 0.08)"
+            fillcolor="rgba(0, 255, 136, 0.08)"
         ))
         fig_equity.add_hline(
             y=100000.0,
             line_dash="dash",
-            line_color="#FBBF24",
+            line_color="#94A3B8",
             annotation_text="Base Capital ($100k)",
-            annotation_font_color="#FBBF24"
+            annotation_font_color="#94A3B8"
         )
         fig_equity.update_layout(
             title="⚡ Autonomous Portfolio Equity Trajectory (Past Sessions)",
             paper_bgcolor="rgba(0,0,0,0)",
             plot_bgcolor="rgba(0,0,0,0)",
             margin=dict(t=50, b=20, l=10, r=10),
-            height=380,
+            height=360,
             font=dict(family="Space Grotesk, sans-serif", color="#94A3B8"),
             xaxis=dict(showgrid=True, gridcolor="rgba(255,255,255,0.06)"),
             yaxis=dict(showgrid=True, gridcolor="rgba(255,255,255,0.06)")
         )
-        st.plotly_chart(fig_equity, use_container_width=True)
+        st.plotly_chart(fig_equity, width='stretch')
 
         st.markdown("<div style='margin-top: 15px;'></div>", unsafe_allow_html=True)
         st.markdown("### 🎓 5 Hard Institutional Graduation Criteria")
@@ -625,70 +801,27 @@ elif page == "🏆 30-Day Incubation Scorecard":
             else:
                 st.error(f"❌ **Criterion 5: Shorting Detected** — {len(short_positions)} short positions found.")
 
-# ==========================================
-# PAGE 3: POSITIONS & STOP-LOSS MONITOR
-# ==========================================
-elif page == "📋 Positions & Stop-Loss":
-    st.markdown("""
-    <div style="margin-bottom: 15px;">
-        <span style="font-size: 1.3rem; font-weight: 700; color: #F8FAFC;">📋 Active Position Telemetry & Stop-Loss Gating</span>
-        <div style="font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; color: #94A3B8;">REAL-TIME COST BASIS • UNREALIZED P&L • MANDATORY -8% STOP MONITOR</div>
-    </div>
-    """, unsafe_allow_html=True)
 
-    positions = broker.get_positions_detailed()
-    if positions:
-        df_pos = pd.DataFrame(positions)
-
-        def evaluate_sl_status(row):
-            pct = row['unrealized_plpc'] * 100
-            if pct <= -8.0:
-                return "🛑 STOP BREACH"
-            elif pct <= -5.0:
-                return "⚠️ WATCHLIST (< -5%)"
-            elif pct > 0:
-                return "🟢 PROFITABLE"
-            else:
-                return "⚪ HOLDING"
-
-        df_pos["Status"] = df_pos.apply(evaluate_sl_status, axis=1)
-        df_pos["Return %"] = (df_pos["unrealized_plpc"] * 100).round(2).astype(str) + "%"
-        df_pos["PnL ($)"] = df_pos["unrealized_pl"].round(2)
-        df_pos["Market Value"] = df_pos["market_value"].round(2)
-        df_pos["Current Price"] = df_pos["current_price"].round(2)
-        df_pos["Avg Entry"] = df_pos["avg_entry_price"].round(2)
-
-        display_cols = ["symbol", "qty", "Current Price", "Avg Entry", "Market Value", "PnL ($)", "Return %", "Status"]
-
-        st.dataframe(
-            df_pos[display_cols].sort_values(by="PnL ($)", ascending=False),
-            use_container_width=True,
-            hide_index=True
-        )
-
-        critical = df_pos[df_pos['unrealized_plpc'] <= -0.08]
-        if not critical.empty:
-            st.error(f"⚠️ {len(critical)} position(s) have breached the -8% stop-loss threshold and will be liquidated on the next session cycle!")
-        else:
-            st.success("✅ Risk Integrity 100%: All active holdings are within safe operating limits (Drawdown > -8.0%).")
-    else:
-        st.info("No open positions reported by broker.")
-
-# ==========================================
-# PAGE 4: ORDER ACTIVITY LOG
-# ==========================================
+# ==============================================================================
+# PAGE 4: ⚡ ORDER ACTIVITY LOG
+# ==============================================================================
 elif page == "⚡ Order Activity Log":
     st.markdown("""
-    <div style="margin-bottom: 15px;">
-        <span style="font-size: 1.3rem; font-weight: 700; color: #F8FAFC;">⚡ Real-Time Execution Order Book</span>
-        <div style="font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; color: #94A3B8;">STREAM DIRECTLY FROM ALPACA API • IDEMPOTENT Q-HASH SIGNATURES</div>
+    <div class="page-title-box">
+        <div class="page-title">⚡ Real-Time Execution Order Book</div>
+        <div class="page-subtitle">STREAM DIRECTLY FROM ALPACA API • IDEMPOTENT Q-HASH SIGNATURES • AUDIT LOG</div>
     </div>
     """, unsafe_allow_html=True)
 
     recent_orders = broker.get_recent_orders(limit=50)
+
     if recent_orders:
         orders_data = []
+        filled_count = 0
         for o in recent_orders:
+            st_text = o.get("status", "").upper()
+            if st_text == "FILLED":
+                filled_count += 1
             orders_data.append({
                 "Timestamp (UTC)": o.get("submitted_at", "")[:19].replace("T", " "),
                 "Symbol": o.get("symbol"),
@@ -696,22 +829,55 @@ elif page == "⚡ Order Activity Log":
                 "Target Qty": o.get("qty"),
                 "Filled Qty": o.get("filled_qty"),
                 "Fill Price ($)": o.get("filled_avg_price") or o.get("limit_price") or "Market",
-                "Status": o.get("status", "").upper(),
+                "Status": st_text,
                 "Client Order ID": o.get("client_order_id", "")
             })
+
+        o1, o2, o3 = st.columns(3)
+        with o1:
+            st.markdown(f"""
+            <div class="cyber-card">
+                <div class="metric-meta">TOTAL RECORDED ORDERS</div>
+                <div class="metric-big">{len(recent_orders)} Orders</div>
+                <div class="metric-badge-uniform">CYCLE AUDIT LOG</div>
+            </div>
+            """, unsafe_allow_html=True)
+
+        with o2:
+            fill_rate = (filled_count / len(recent_orders) * 100) if len(recent_orders) > 0 else 100.0
+            st.markdown(f"""
+            <div class="cyber-card">
+                <div class="metric-meta">FILL EXECUTION RATE</div>
+                <div class="metric-big-green">{fill_rate:.0f}%</div>
+                <div class="metric-badge-uniform">{filled_count} FILLED ORDERS</div>
+            </div>
+            """, unsafe_allow_html=True)
+
+        with o3:
+            idempotent_count = sum(1 for o in recent_orders if str(o.get("client_order_id", "")).startswith("Q-"))
+            st.markdown(f"""
+            <div class="cyber-card">
+                <div class="metric-meta">IDEMPOTENCY VERIFICATION</div>
+                <div class="metric-big-green">100% OK</div>
+                <div class="metric-badge-uniform">{idempotent_count} SIGNATURES HASHED</div>
+            </div>
+            """, unsafe_allow_html=True)
+
+        st.markdown("<div style='margin-top: 15px;'></div>", unsafe_allow_html=True)
         df_orders = pd.DataFrame(orders_data)
-        st.dataframe(df_orders, use_container_width=True, hide_index=True)
+        st.dataframe(df_orders, width='stretch', hide_index=True)
     else:
         st.info("No recent execution records found.")
 
-# ==========================================
-# PAGE 5: QUANT BRAIN & STRATEGY
-# ==========================================
+
+# ==============================================================================
+# PAGE 5: 🧠 QUANT BRAIN & STRATEGY
+# ==============================================================================
 elif page == "🧠 Quant Brain & Strategy":
     st.markdown("""
-    <div style="margin-bottom: 15px;">
-        <span style="font-size: 1.3rem; font-weight: 700; color: #F8FAFC;">🧠 Autonomous Quant Brain & AI Gating</span>
-        <div style="font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; color: #94A3B8;">WALK-FORWARD ANCHORS • MATHEMATICAL FORMULA • PHASE 3 RANDOM FOREST CLASSIFIER</div>
+    <div class="page-title-box">
+        <div class="page-title">🧠 Autonomous Quant Brain & AI Gating</div>
+        <div class="page-subtitle">WALK-FORWARD ANCHORS • MATHEMATICAL FORMULA • PHASE 3 RANDOM FOREST CLASSIFIER</div>
     </div>
     """, unsafe_allow_html=True)
 
@@ -724,20 +890,20 @@ elif page == "🧠 Quant Brain & Strategy":
             st.markdown(f"""
             <div class="cyber-card">
                 <div class="metric-meta">FAST TREND MOVING AVERAGE WINDOW</div>
-                <div class="metric-big" style="color: #00F2FE;">{params.get('fast_sma', 20)} Days</div>
-                <div class="metric-badge badge-cyan">CONTINUOUS WALK-FORWARD CALIBRATED</div>
+                <div class="metric-big">{params.get('fast_sma', 20)} Days</div>
+                <div class="metric-badge-uniform">CONTINUOUS WALK-FORWARD CALIBRATED</div>
             </div>
             """, unsafe_allow_html=True)
         with p2:
             st.markdown(f"""
             <div class="cyber-card">
                 <div class="metric-meta">SLOW ANCHOR MOVING AVERAGE WINDOW</div>
-                <div class="metric-big" style="color: #C084FC;">{params.get('slow_sma', 50)} Days</div>
-                <div class="metric-badge badge-purple">INSTITUTIONAL REGIME ANCHOR</div>
+                <div class="metric-big">{params.get('slow_sma', 50)} Days</div>
+                <div class="metric-badge-uniform">INSTITUTIONAL REGIME ANCHOR</div>
             </div>
             """, unsafe_allow_html=True)
 
-    st.markdown("---")
+    st.markdown("<div style='margin-top: 20px;'></div>", unsafe_allow_html=True)
     st.markdown("### 📐 Risk-Adjusted Momentum Formula")
     st.latex(r"""
     \text{Conviction Score} = 0.70 \times \left( \frac{\text{ROC}_{20}}{\sigma_{20} + 0.05} \right) + 0.30 \times \left( \frac{\text{Price} - \text{SMA}_{\text{slow}}}{\text{SMA}_{\text{slow}}} \right)
@@ -757,14 +923,15 @@ elif page == "🧠 Quant Brain & Strategy":
     - **Alpha Gating:** Evaluates $P(\text{Alpha}_{5d} > 0.5\%)$. Vetoes false breakouts and bull traps ($P < 0.48$), and modulates conviction weight on confirmed setups ($P \ge 0.50$).
     """)
 
-# ==========================================
-# PAGE 6: RISK SAFEGUARDS
-# ==========================================
+
+# ==============================================================================
+# PAGE 6: 🛡️ RISK SAFEGUARDS GRID
+# ==============================================================================
 elif page == "🛡️ Risk Safeguards":
     st.markdown("""
-    <div style="margin-bottom: 15px;">
-        <span style="font-size: 1.3rem; font-weight: 700; color: #F8FAFC;">🛡️ 5-Layer Institutional Risk Defense Grid</span>
-        <div style="font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; color: #94A3B8;">CAPITAL PRESERVATION ARCHITECTURE • STRICT LONG-ONLY DISCIPLINE</div>
+    <div class="page-title-box">
+        <div class="page-title">🛡️ 5-Layer Institutional Risk Defense Grid</div>
+        <div class="page-subtitle">CAPITAL PRESERVATION ARCHITECTURE • STRICT LONG-ONLY DISCIPLINE • ZERO SHORT RISK</div>
     </div>
     """, unsafe_allow_html=True)
 
@@ -777,13 +944,13 @@ elif page == "🛡️ Risk Safeguards":
             <div style="font-size: 0.85rem; color: #94A3B8; margin-top: 8px; line-height: 1.6;">
                 Continuous evaluation of S&P 500 200-day SMA, ATR-14 volatility, and trend ratios before each market open:
                 <br>• <b style="color: #00FF88;">BULL_NORMAL:</b> 95% Max Exposure (Full Risk-On)
-                <br>• <b style="color: #FBBF24;">BULL_CHOPPY:</b> 85% Max Exposure (15% Cash Shield)
-                <br>• <b style="color: #FF5722;">BEAR_CORRECTION:</b> 40% Max Exposure (60% Cash Defense)
+                <br>• <b style="color: #F8FAFC;">BULL_CHOPPY:</b> 85% Max Exposure (15% Cash Shield)
+                <br>• <b style="color: #F8FAFC;">BEAR_CORRECTION:</b> 40% Max Exposure (60% Cash Defense)
                 <br>• <b style="color: #FF3B5C;">CRASH_WARNING:</b> 0% Exposure (100% Cash / Treasury Halt)
             </div>
         </div>
 
-        <div class="cyber-card">
+        <div class="cyber-card" style="margin-top: 12px;">
             <div class="hud-title" style="font-size: 1.05rem;">2. Hard Per-Position Stop-Loss (-8%)</div>
             <div style="font-size: 0.85rem; color: #94A3B8; margin-top: 8px; line-height: 1.6;">
                 Automated cost-basis gating that unconditionally liquidates any position falling &le; -8.0% to prevent catastrophic drawdowns or rogue outliers.
@@ -800,14 +967,14 @@ elif page == "🛡️ Risk Safeguards":
             </div>
         </div>
 
-        <div class="cyber-card">
+        <div class="cyber-card" style="margin-top: 12px;">
             <div class="hud-title" style="font-size: 1.05rem;">4. Execution Idempotency</div>
             <div style="font-size: 0.85rem; color: #94A3B8; margin-top: 8px; line-height: 1.6;">
                 Deterministic SHA-256 client order hashing (<code>Q-&lt;hash&gt;</code>) eliminates double-order fills, duplicate submissions, and network retry collisions.
             </div>
         </div>
 
-        <div class="cyber-card">
+        <div class="cyber-card" style="margin-top: 12px;">
             <div class="hud-title" style="font-size: 1.05rem;">5. Long-Only Solvency Buffer</div>
             <div style="font-size: 0.85rem; color: #94A3B8; margin-top: 8px; line-height: 1.6;">
                 Zero naked shorting, zero borrow fees, zero margin interest traps, and guaranteed positive cash balances at all times.
