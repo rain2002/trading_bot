@@ -69,69 +69,122 @@ section[data-testid="stSidebar"] {
     box-shadow: 10px 0 35px rgba(0, 0, 0, 0.8) !important;
 }
 
-/* ==========================================
-   SIDEBAR TOGGLE BAR (Segmented Pill Radio)
-   ========================================== */
-section[data-testid="stSidebar"] div[data-testid="stRadio"] > label {
+/* ==============================================================================
+   MODERN WEBSITE SIDEBAR PAGE NAVIGATION (NO RADIO BUTTONS!)
+   ============================================================================== */
+
+/* 1. Hide the radio group top label */
+section[data-testid="stSidebar"] div[data-testid="stRadio"] > label,
+section[data-testid="stSidebar"] div[data-testid="stRadio"] label:first-child:not([data-testid="stRadioOption"]) {
     display: none !important;
 }
 
-section[data-testid="stSidebar"] div[data-testid="stRadio"] div[role="radiogroup"] {
+/* 2. Style the navigation list container */
+section[data-testid="stSidebar"] div[data-testid="stRadio"],
+section[data-testid="stSidebar"] div[data-testid="stRadioGroup"],
+section[data-testid="stSidebar"] div[role="radiogroup"] {
     display: flex !important;
     flex-direction: column !important;
-    gap: 8px !important;
+    gap: 6px !important;
     width: 100% !important;
-    padding: 4px 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
 }
 
-section[data-testid="stSidebar"] div[data-testid="stRadio"] div[role="radiogroup"] > label {
+/* 3. COMPLETELY OBLITERATE AND HIDE THE RADIO CIRCLE DOT! */
+section[data-testid="stSidebar"] [data-testid="stRadioOption"] > div > *:not([data-testid="stMarkdownContainer"]):first-child,
+section[data-testid="stSidebar"] [data-testid="stRadioOption"] > div > div:not([data-testid="stMarkdownContainer"]),
+section[data-testid="stSidebar"] [data-testid="stRadioOption"] > div > div:first-child,
+section[data-testid="stSidebar"] [data-testid="stRadioOption"] div[class*="e1dm8mpf4"],
+section[data-testid="stSidebar"] [data-testid="stRadioOption"] div:first-of-type:not([data-testid="stMarkdownContainer"]),
+section[data-testid="stSidebar"] [data-testid="stRadioOption"] input[type="radio"],
+section[data-testid="stSidebar"] [data-testid="stRadioOption"] svg,
+section[data-testid="stSidebar"] div[data-testid="stRadio"] input[type="radio"],
+section[data-testid="stSidebar"] div[data-testid="stRadio"] [data-baseweb="radio"] > div:first-child,
+section[data-testid="stSidebar"] div[data-testid="stRadio"] [data-baseweb="radio"] input {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+    position: absolute !important;
+}
+
+/* 4. Style each page navigation item as a sleek, modern SaaS web app page link */
+section[data-testid="stSidebar"] [data-testid="stRadioOption"],
+section[data-testid="stSidebar"] div[data-testid="stRadioGroup"] > label,
+section[data-testid="stSidebar"] div[role="radiogroup"] > label {
     display: flex !important;
     align-items: center !important;
     width: 100% !important;
-    background: rgba(15, 23, 42, 0.55) !important;
-    border: 1px solid rgba(255, 255, 255, 0.07) !important;
-    border-left: 3px solid transparent !important;
-    border-radius: 10px !important;
-    padding: 11px 16px !important;
+    background: rgba(255, 255, 255, 0.025) !important;
+    border: 1px solid rgba(255, 255, 255, 0.06) !important;
+    border-left: 3.5px solid transparent !important;
+    border-radius: 12px !important;
+    padding: 10px 14px !important;
     margin: 0 !important;
     cursor: pointer !important;
     transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
     box-sizing: border-box !important;
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04) !important;
 }
 
-section[data-testid="stSidebar"] div[data-testid="stRadio"] div[role="radiogroup"] > label > div:first-child {
-    display: none !important;
+/* Ensure the inner flex container takes full width without radio circle gap */
+section[data-testid="stSidebar"] [data-testid="stRadioOption"] > div,
+section[data-testid="stSidebar"] [data-testid="stRadioGroup"] > label > div {
+    display: flex !important;
+    align-items: center !important;
+    width: 100% !important;
+    gap: 0 !important;
 }
 
-section[data-testid="stSidebar"] div[data-testid="stRadio"] div[role="radiogroup"] > label div[data-testid="stMarkdownContainer"] p {
-    font-family: 'Space Grotesk', sans-serif !important;
+/* Navigation Item Typography */
+section[data-testid="stSidebar"] [data-testid="stRadioOption"] div[data-testid="stMarkdownContainer"],
+section[data-testid="stSidebar"] [data-testid="stRadioOption"] p,
+section[data-testid="stSidebar"] div[data-testid="stRadioGroup"] label p {
+    font-family: 'Space Grotesk', -apple-system, sans-serif !important;
     font-size: 0.88rem !important;
     font-weight: 500 !important;
     color: #94A3B8 !important;
     margin: 0 !important;
+    line-height: 1.4 !important;
     transition: all 0.2s ease !important;
 }
 
-section[data-testid="stSidebar"] div[data-testid="stRadio"] div[role="radiogroup"] > label:hover {
-    background: rgba(0, 255, 136, 0.08) !important;
-    border-color: rgba(0, 255, 136, 0.35) !important;
-    border-left: 3px solid rgba(0, 255, 136, 0.6) !important;
+/* Hover State - Smooth SaaS navigation hover */
+section[data-testid="stSidebar"] [data-testid="stRadioOption"]:hover,
+section[data-testid="stSidebar"] div[data-testid="stRadioGroup"] > label:hover,
+section[data-testid="stSidebar"] div[role="radiogroup"] > label:hover {
+    background: rgba(255, 255, 255, 0.07) !important;
+    border-color: rgba(255, 255, 255, 0.14) !important;
+    border-left: 3.5px solid rgba(0, 255, 136, 0.6) !important;
     transform: translateX(4px) !important;
 }
-section[data-testid="stSidebar"] div[data-testid="stRadio"] div[role="radiogroup"] > label:hover p {
-    color: #F8FAFC !important;
+
+section[data-testid="stSidebar"] [data-testid="stRadioOption"]:hover p,
+section[data-testid="stSidebar"] div[data-testid="stRadioGroup"] > label:hover p {
+    color: #FFFFFF !important;
 }
 
-section[data-testid="stSidebar"] div[data-testid="stRadio"] div[role="radiogroup"] > label:has(input:checked),
-section[data-testid="stSidebar"] div[data-testid="stRadio"] div[role="radiogroup"] > label[data-checked="true"] {
-    background: linear-gradient(90deg, rgba(0, 255, 136, 0.18) 0%, rgba(0, 242, 254, 0.06) 100%) !important;
-    border: 1px solid rgba(0, 255, 136, 0.6) !important;
+/* Active State (Selected Page Link) */
+section[data-testid="stSidebar"] [data-testid="stRadioOption"][data-selected="true"],
+section[data-testid="stSidebar"] [data-testid="stRadioOption"]:has(input:checked),
+section[data-testid="stSidebar"] div[data-testid="stRadioGroup"] > label:has(input:checked),
+section[data-testid="stSidebar"] div[data-testid="stRadioGroup"] > label[data-checked="true"],
+section[data-testid="stSidebar"] div[role="radiogroup"] > label:has(input:checked) {
+    background: linear-gradient(90deg, rgba(0, 255, 136, 0.16) 0%, rgba(0, 242, 254, 0.05) 100%) !important;
+    border: 1px solid rgba(0, 255, 136, 0.45) !important;
     border-left: 4px solid #00FF88 !important;
-    box-shadow: 0 4px 18px rgba(0, 255, 136, 0.22) !important;
+    box-shadow: 0 4px 20px rgba(0, 255, 136, 0.20), inset 0 1px 0 rgba(255, 255, 255, 0.12) !important;
 }
 
-section[data-testid="stSidebar"] div[data-testid="stRadio"] div[role="radiogroup"] > label:has(input:checked) p,
-section[data-testid="stSidebar"] div[data-testid="stRadio"] div[role="radiogroup"] > label[data-checked="true"] p {
+section[data-testid="stSidebar"] [data-testid="stRadioOption"][data-selected="true"] p,
+section[data-testid="stSidebar"] [data-testid="stRadioOption"]:has(input:checked) p,
+section[data-testid="stSidebar"] div[data-testid="stRadioGroup"] > label:has(input:checked) p,
+section[data-testid="stSidebar"] div[data-testid="stRadioGroup"] > label[data-checked="true"] p {
     color: #00FF88 !important;
     font-weight: 700 !important;
 }
@@ -477,12 +530,12 @@ st.sidebar.markdown(f"""
 
 st.sidebar.markdown("""
 <div style="font-family: 'JetBrains Mono', monospace; font-size: 0.70rem; color: #94A3B8; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 8px;">
-    ⚡ NAVIGATION TOGGLE BAR
+    ⚡ TERMINAL PAGES
 </div>
 """, unsafe_allow_html=True)
 
 page = st.sidebar.radio(
-    label="NAVIGATION TOGGLE BAR",
+    label="TERMINAL PAGES",
     options=[
         "📊 Portfolio Overview",
         "📋 Positions & Stop-Loss",
