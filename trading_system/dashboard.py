@@ -57,7 +57,7 @@ section[data-testid="stSidebar"] {
    SIDEBAR TOGGLE BAR (Segmented Pill Radio)
    ========================================== */
 section[data-testid="stSidebar"] div[data-testid="stRadio"] > label {
-    display: none !important; /* Hide default radio label */
+    display: none !important;
 }
 
 section[data-testid="stSidebar"] div[data-testid="stRadio"] div[role="radiogroup"] {
@@ -83,12 +83,10 @@ section[data-testid="stSidebar"] div[data-testid="stRadio"] div[role="radiogroup
     box-sizing: border-box !important;
 }
 
-/* Hide default circle radio input */
 section[data-testid="stSidebar"] div[data-testid="stRadio"] div[role="radiogroup"] > label > div:first-child {
     display: none !important;
 }
 
-/* Radio label inner typography */
 section[data-testid="stSidebar"] div[data-testid="stRadio"] div[role="radiogroup"] > label div[data-testid="stMarkdownContainer"] p {
     font-family: 'Space Grotesk', sans-serif !important;
     font-size: 0.88rem !important;
@@ -98,7 +96,6 @@ section[data-testid="stSidebar"] div[data-testid="stRadio"] div[role="radiogroup
     transition: all 0.2s ease !important;
 }
 
-/* Hover state on toggle button */
 section[data-testid="stSidebar"] div[data-testid="stRadio"] div[role="radiogroup"] > label:hover {
     background: rgba(0, 255, 136, 0.08) !important;
     border-color: rgba(0, 255, 136, 0.35) !important;
@@ -109,7 +106,6 @@ section[data-testid="stSidebar"] div[data-testid="stRadio"] div[role="radiogroup
     color: #F8FAFC !important;
 }
 
-/* ACTIVE / SELECTED TOGGLE STATE */
 section[data-testid="stSidebar"] div[data-testid="stRadio"] div[role="radiogroup"] > label:has(input:checked),
 section[data-testid="stSidebar"] div[data-testid="stRadio"] div[role="radiogroup"] > label[data-checked="true"] {
     background: linear-gradient(90deg, rgba(0, 255, 136, 0.18) 0%, rgba(0, 242, 254, 0.06) 100%) !important;
@@ -121,6 +117,44 @@ section[data-testid="stSidebar"] div[data-testid="stRadio"] div[role="radiogroup
 section[data-testid="stSidebar"] div[data-testid="stRadio"] div[role="radiogroup"] > label:has(input:checked) p,
 section[data-testid="stSidebar"] div[data-testid="stRadio"] div[role="radiogroup"] > label[data-checked="true"] p {
     color: #00FF88 !important;
+    font-weight: 700 !important;
+}
+
+/* ==========================================
+   TIMEFRAME SELECTOR / SEGMENTED CONTROL
+   ========================================== */
+div[data-testid="stSegmentedControl"] {
+    background: rgba(15, 23, 42, 0.75) !important;
+    border: 1px solid rgba(0, 255, 136, 0.22) !important;
+    border-radius: 10px !important;
+    padding: 3px !important;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3) !important;
+}
+
+div[data-testid="stSegmentedControl"] button {
+    font-family: 'JetBrains Mono', monospace !important;
+    font-size: 0.76rem !important;
+    font-weight: 600 !important;
+    color: #94A3B8 !important;
+    background: transparent !important;
+    border: none !important;
+    border-radius: 8px !important;
+    padding: 5px 12px !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+}
+
+div[data-testid="stSegmentedControl"] button:hover {
+    color: #F8FAFC !important;
+    background: rgba(255, 255, 255, 0.06) !important;
+}
+
+div[data-testid="stSegmentedControl"] button[aria-checked="true"],
+div[data-testid="stSegmentedControl"] button[data-checked="true"] {
+    background: rgba(0, 255, 136, 0.20) !important;
+    color: #00FF88 !important;
+    border: 1px solid rgba(0, 255, 136, 0.4) !important;
+    box-shadow: 0 0 12px rgba(0, 255, 136, 0.25) !important;
     font-weight: 700 !important;
 }
 
@@ -367,7 +401,6 @@ st.sidebar.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# The Sidebar Toggle Bar Menu
 page = st.sidebar.radio(
     label="NAVIGATION TOGGLE BAR",
     options=[
@@ -462,8 +495,127 @@ if page == "📊 Portfolio Overview":
         </div>
         """, unsafe_allow_html=True)
 
-    st.markdown("<div style='margin-top: 15px;'></div>", unsafe_allow_html=True)
+    # ==============================================================================
+    # 📈 HERO LINE GRAPH: CAPITAL & RETURNS TRACKER WITH TIMEFRAME DIVISION
+    # (1D | 1W | 1M | 3M | 1Y | 3Y | 5Y | ALL)
+    # ==============================================================================
+    st.markdown("<div style='margin-top: 18px;'></div>", unsafe_allow_html=True)
 
+    tf_header_col1, tf_header_col2 = st.columns([1, 1])
+
+    with tf_header_col1:
+        st.markdown("""
+        <div style="display: flex; align-items: center; gap: 8px; height: 100%;">
+            <span style="font-size: 1.15rem; font-weight: 700; color: #F8FAFC; letter-spacing: -0.02em;">
+                📈 CAPITAL & PERFORMANCE TRAJECTORY
+            </span>
+            <span class="status-pill" style="padding: 2px 8px; font-size: 0.65rem;">ALPACA STREAM</span>
+        </div>
+        """, unsafe_allow_html=True)
+
+    with tf_header_col2:
+        selected_timeframe = st.segmented_control(
+            label="Timeframe Division",
+            options=["1D", "1W", "1M", "3M", "1Y", "3Y", "5Y", "ALL"],
+            default="1D",
+            label_visibility="collapsed",
+            key="overview_hero_timeframe"
+        ) or "1D"
+
+    # Timeframe Resolution Mapping
+    tf_mapping = {
+        "1D": ("1D", "5Min", "Past Day"),
+        "1W": ("1W", "1H", "Past Week"),
+        "1M": ("1M", "1D", "Past Month"),
+        "3M": ("3M", "1D", "Past 3 Months"),
+        "1Y": ("1A", "1D", "Past Year"),
+        "3Y": ("3A", "1D", "Past 3 Years"),
+        "5Y": ("5A", "1D", "Past 5 Years"),
+        "ALL": ("all", "1D", "All-Time Inception")
+    }
+
+    req_period, req_tf, tf_desc = tf_mapping.get(selected_timeframe, ("1D", "5Min", "Past Day"))
+    df_chart_history = broker.get_portfolio_history(period=req_period, timeframe=req_tf)
+
+    if df_chart_history is not None and not df_chart_history.empty:
+        # Filter zero-padding from before account existence
+        df_chart_history = df_chart_history[df_chart_history["equity"] > 0]
+
+        if not df_chart_history.empty:
+            start_equity_tf = float(df_chart_history["equity"].iloc[0])
+            latest_equity_tf = float(df_chart_history["equity"].iloc[-1])
+            tf_return_dollar = latest_equity_tf - start_equity_tf
+            tf_return_pct = (tf_return_dollar / start_equity_tf * 100) if start_equity_tf > 0 else 0.0
+
+            tf_high = float(df_chart_history["equity"].max())
+            tf_low = float(df_chart_history["equity"].min())
+
+            tf_pnl_color = "#00FF88" if tf_return_dollar >= 0 else "#FF3B5C"
+            tf_badge_bg = "rgba(0, 255, 136, 0.12)" if tf_return_dollar >= 0 else "rgba(255, 59, 92, 0.12)"
+            tf_badge_border = "rgba(0, 255, 136, 0.35)" if tf_return_dollar >= 0 else "rgba(255, 59, 92, 0.35)"
+
+            # Period Return Header Callout
+            st.markdown(f"""
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px; margin-bottom: 8px; padding: 12px 18px; background: rgba(15, 23, 42, 0.65); border: 1px solid rgba(0, 255, 136, 0.18); border-radius: 10px; font-family: 'JetBrains Mono', monospace;">
+                <div style="display: flex; align-items: center; gap: 14px;">
+                    <span style="font-size: 1.55rem; font-weight: 700; color: #F8FAFC;">${latest_equity_tf:,.2f}</span>
+                    <span style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 12px; background: {tf_badge_bg}; color: {tf_pnl_color}; border: 1px solid {tf_badge_border}; font-size: 0.85rem; font-weight: 700;">
+                        {tf_return_dollar:+,.2f} ({tf_return_pct:+.2f}%) {tf_desc.upper()}
+                    </span>
+                </div>
+                <div style="font-size: 0.75rem; color: #94A3B8; display: flex; gap: 18px;">
+                    <span>PERIOD LOW: <b style="color: #F8FAFC;">${tf_low:,.2f}</b></span>
+                    <span>PERIOD HIGH: <b style="color: #F8FAFC;">${tf_high:,.2f}</b></span>
+                    <span>BASELINE: <b style="color: #94A3B8;">${start_equity_tf:,.2f}</b></span>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+
+            # High-Resolution Plotly Line Chart
+            df_chart_history["delta"] = df_chart_history["equity"] - start_equity_tf
+
+            fig_trajectory = go.Figure()
+            fig_trajectory.add_trace(go.Scatter(
+                x=df_chart_history["timestamp"],
+                y=df_chart_history["equity"],
+                customdata=df_chart_history["delta"],
+                mode="lines",
+                name="Capital Trajectory",
+                line=dict(color=tf_pnl_color, width=2.8),
+                fill="tozeroy",
+                fillcolor="rgba(0, 255, 136, 0.08)" if tf_return_dollar >= 0 else "rgba(255, 59, 92, 0.08)",
+                hovertemplate="<b>%{x|%b %d, %Y %I:%M %p}</b><br>Account Capital: $%{y:,.2f}<br>Net Period Gain: $%{customdata:+,.2f}<extra></extra>"
+            ))
+
+            fig_trajectory.add_hline(
+                y=start_equity_tf,
+                line_dash="dash",
+                line_color="rgba(148, 163, 184, 0.35)",
+                annotation_text=f"Period Open (${start_equity_tf:,.0f})",
+                annotation_font_color="#94A3B8",
+                annotation_font_size=10,
+                annotation_position="bottom right"
+            )
+
+            fig_trajectory.update_layout(
+                margin=dict(t=15, b=20, l=10, r=10),
+                height=320,
+                paper_bgcolor="rgba(0,0,0,0)",
+                plot_bgcolor="rgba(0,0,0,0)",
+                font=dict(family="Space Grotesk, sans-serif", color="#94A3B8"),
+                xaxis=dict(showgrid=True, gridcolor="rgba(255,255,255,0.05)"),
+                yaxis=dict(showgrid=True, gridcolor="rgba(255,255,255,0.05)")
+            )
+            st.plotly_chart(fig_trajectory, width='stretch')
+        else:
+            st.info("No historical equity records found for the selected timeframe.")
+    else:
+        st.info("Loading portfolio history from broker...")
+
+    # ==============================================================================
+    # DYNAMIC ALLOCATION DONUT CHART (VIBRANT) & EXPOSURE TELEMETRY
+    # ==============================================================================
+    st.markdown("<div style='margin-top: 15px;'></div>", unsafe_allow_html=True)
     positions = broker.get_positions_detailed()
 
     if positions:
@@ -681,6 +833,7 @@ elif page == "🏆 30-Day Incubation Scorecard":
     df_history = broker.get_portfolio_history(period="1M", timeframe="1D")
 
     if df_history is not None and not df_history.empty:
+        df_history = df_history[df_history["equity"] > 0]
         days_logged = len(df_history)
         start_equity = float(df_history['equity'].iloc[0])
         current_eq = float(df_history['equity'].iloc[-1])
