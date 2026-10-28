@@ -37,7 +37,7 @@ def execute_quant_live_cycle():
         
     broker = AlpacaBrokerAdapter(api_key=API_KEY, api_secret=API_SECRET)
     execution = AlpacaExecutionAdapter(api_key=API_KEY, api_secret=API_SECRET)
-    risk_engine = BasicRiskEngine(max_position_pct=0.15, max_portfolio_pct=0.95)
+    risk_engine = BasicRiskEngine(max_position_pct=0.30, max_portfolio_pct=0.95)
     
     print("\n[1/4] Syncing with Broker for LIVE Positions...")
     current_positions = broker.get_positions()
@@ -110,9 +110,11 @@ def execute_quant_live_cycle():
     valid_mr = [s for s in mean_rev_signals if s["symbol"] not in stop_loss_liquidations]
     
     target_weights = ensemble.combine_allocations(valid_mom, valid_mr, regime_info)
+    effective_cap = getattr(ensemble, "last_effective_cap", ensemble.max_single_stock)
+    risk_engine.max_position_pct = max(0.15, effective_cap)
 
     if target_weights:
-        print(f"\nPhase 2/3 Ensemble: Allocated to {len(target_weights)} Holdings (Dynamic ML-Gated Model):")
+        print(f"\nPhase 2/3 Ensemble: Allocated to {len(target_weights)} Holdings (Dynamic Single-Stock Cap: {effective_cap*100:.1f}%):")
         for sym, weight in sorted(target_weights.items(), key=lambda x: x[1], reverse=True):
             # Check strategy attribution
             is_mom = any(s["symbol"] == sym for s in valid_mom)
@@ -201,7 +203,7 @@ def execute_quant_live_cycle():
                 scale = available_buy_capacity / sum_new_buys
                 print(f" -> [CAPITAL SIZING] Scaling new entries by {scale:.2f}x to fit available capacity ({available_buy_capacity*100:.1f}%)...")
                 for s in new_buy_targets:
-                    target_weights[s] = min(round(target_weights[s] * scale, 4), ensemble.max_single_stock)
+                    target_weights[s] = min(round(target_weights[s] * scale, 4), effective_cap)
             
     print("\n[4/4] Routing Orders to Risk Engine & Alpaca...")
     executed_orders_log = []

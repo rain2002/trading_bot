@@ -182,17 +182,39 @@ class EnsembleAllocator:
         if not candidates:
             return {}
 
-        # 4. Enforce Single-Stock Cap (15%) with iterative redistribution
+        # 4. Dynamic Single-Stock Cap Sizing:
+        # When multiple potential stocks qualify (> 4), enforce standard conservative 15% cap
+        # for broad diversification across 6+ holdings.
+        # When few potential stocks qualify (<= 4, e.g. 2-3 stocks), dynamically allow single-stock
+        # sizing to exceed 15% (up to 22-30%) to prevent portfolio starvation, while enforcing
+        # an absolute risk ceiling to prevent evaporating capital on any single company.
+        num_candidates = len(candidates)
+        if num_candidates >= 5:
+            dynamic_cap = self.max_single_stock  # 15.0%
+        elif num_candidates == 4:
+            dynamic_cap = min(0.22, round(max_exposure / num_candidates, 4))  # ~21.25% - 22%
+        elif num_candidates == 3:
+            dynamic_cap = min(0.28, round(max_exposure / num_candidates, 4))  # ~28.0%
+        elif num_candidates == 2:
+            dynamic_cap = min(0.30, round(max_exposure / num_candidates, 4))  # ~30.0% max
+        elif num_candidates == 1:
+            dynamic_cap = 0.25  # Max 25% on a single company; remaining 75% stays cash buffer
+        else:
+            dynamic_cap = self.max_single_stock
+
+        self.last_effective_cap = dynamic_cap
+
+        # Enforce dynamic single-stock cap with iterative redistribution
         # Redistributes excess weight to uncapped candidates up to max_exposure
         weights_dict = {sym: w for sym, w in candidates}
         for _ in range(5):
             excess = 0.0
             uncapped_syms = []
             for sym, w in weights_dict.items():
-                if w > self.max_single_stock:
-                    excess += (w - self.max_single_stock)
-                    weights_dict[sym] = self.max_single_stock
-                elif w < self.max_single_stock:
+                if w > dynamic_cap:
+                    excess += (w - dynamic_cap)
+                    weights_dict[sym] = dynamic_cap
+                elif w < dynamic_cap:
                     uncapped_syms.append(sym)
             if excess <= 1e-6 or not uncapped_syms:
                 break
@@ -201,7 +223,7 @@ class EnsembleAllocator:
                 weights_dict[sym] += add_per_sym
 
         final_targets: Dict[str, float] = {
-            sym: min(round(w, 4), self.max_single_stock) for sym, w in weights_dict.items()
+            sym: min(round(w, 4), dynamic_cap) for sym, w in weights_dict.items()
         }
 
         # Filter out positions below min_position_pct if any
@@ -209,10 +231,10 @@ class EnsembleAllocator:
             final_targets = {sym: w for sym, w in final_targets.items() if w >= self.min_position_pct}
 
         total_gross = sum(final_targets.values())
-        if total_gross > 0 and total_gross < (max_exposure * 0.90) and len(final_targets) >= 3:
-            scale = min(max_exposure / total_gross, 1.35)
+        if total_gross > 0 and total_gross < (max_exposure * 0.90) and len(final_targets) >= 1:
+            scale = min(max_exposure / total_gross, 1.50)
             final_targets = {
-                sym: min(round(w * scale, 4), self.max_single_stock)
+                sym: min(round(w * scale, 4), dynamic_cap)
                 for sym, w in final_targets.items()
             }
         elif total_gross > max_exposure and total_gross > 0:

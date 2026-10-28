@@ -19,7 +19,7 @@ class BasicRiskEngine(RiskEngine):
 
     def __init__(
         self,
-        max_position_pct: float = 0.15,   # 15% max per single stock
+        max_position_pct: float = 0.30,   # Dynamic ceiling: 15% default, up to 30% for high conviction / low candidate count
         max_portfolio_pct: float = 0.95,  # 95% max total invested
         **kwargs
     ):
