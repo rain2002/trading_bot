@@ -182,6 +182,16 @@ class InvestorSkillsHeuristics:
                 "action": "TREND_EXIT"
             }
 
+        # 5. Trailing Profit Lock in Bubble Regimes:
+        # If position has generated significant profit (>= +8%) and starts rolling over below fast SMA,
+        # lock in the gains rather than risking a total round-trip during a bubble pop.
+        if current_plpc >= 0.08 and current_price < sma_fast:
+            return {
+                "should_exit": True,
+                "reason": f"Trailing Profit Lock triggered: Unrealized PnL is +{current_plpc*100:.1f}%, but price (${current_price:.2f}) closed below {fast_sma}SMA (${sma_fast:.2f}). Securing gains.",
+                "action": "PROFIT_LOCK_EXIT"
+            }
+
         # Default: normal consolidation / healthy holding
         return {
             "should_exit": False,

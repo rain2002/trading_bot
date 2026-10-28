@@ -2754,20 +2754,22 @@ elif page == "🛡️ Risk Safeguards":
     with col1:
         st.markdown("""
         <div class="cyber-card">
-            <div class="hud-title" style="font-size: 1.02rem;">1. Macro SPY Regime Filter</div>
+            <div class="hud-title" style="font-size: 1.02rem;">1. Multi-Asset Macro Weather & Crash Radar</div>
             <div style="font-size: 0.82rem; color: #71717A; margin-top: 8px; line-height: 1.6;">
-                Continuous evaluation of S&P 500 200-day SMA, ATR-14 volatility, and trend ratios before each market open:
-                <br>• <b style="color: #82FBBD;">BULL_NORMAL:</b> 95% Max Exposure (Full Risk-On)
-                <br>• <b style="color: #FFFFFF;">BULL_CHOPPY:</b> 85% Max Exposure (15% Cash Shield)
-                <br>• <b style="color: #FFFFFF;">BEAR_CORRECTION:</b> 40% Max Exposure (60% Cash Defense)
-                <br>• <b style="color: #FF9A9C;">CRASH_WARNING:</b> 0% Exposure (100% Cash / Treasury Halt)
+                Continuous evaluation of <b>SPY</b> (200 SMA & Trend Ratio), <b>QQQ</b> (Tech Bubble Dispersion), and <b>VIX</b> (Volatility Panic):
+                <br>• <b style="color: #82FBBD;">BULL_NORMAL:</b> 95% Max Exposure (Full Risk-On Momentum)
+                <br>• <b style="color: #FFFFFF;">BULL_ROTATION:</b> 85% Exposure (QQQ &lt; 50 SMA Tech Fatigue; Value Rotation)
+                <br>• <b style="color: #FFFFFF;">BULL_CHOPPY:</b> 85% Max Exposure (Dip-Buying Focus, 15% Cash Shield)
+                <br>• <b style="color: #FFB800;">VOLATILITY_CAUTION:</b> 60% Exposure (VIX &gt; 22; 40% Cash Defense)
+                <br>• <b style="color: #FF9A9C;">CRASH_WARNING:</b> 0% Exposure (SPY &lt; 200 SMA or VIX &ge; 28; 100% Cash / Treasury Halt)
             </div>
         </div>
 
         <div class="cyber-card" style="margin-top: 12px;">
-            <div class="hud-title" style="font-size: 1.02rem;">2. Hard Per-Position Stop-Loss (-8%)</div>
+            <div class="hud-title" style="font-size: 1.02rem;">2. Dual Protection: Profit-Lock & Stop-Loss (-8%)</div>
             <div style="font-size: 0.82rem; color: #71717A; margin-top: 8px; line-height: 1.6;">
-                Automated cost-basis gating that unconditionally liquidates any position falling &le; -8.0% to prevent catastrophic drawdowns or rogue outliers.
+                • <b>Hard Stop-Loss (-8.0%):</b> Unconditionally liquidates any position falling &le; -8.0% to prevent rogue drawdowns.
+                <br>• <b>Trailing Profit Lock:</b> When unrealized gains reach &ge; +8.0%, locks in gains if price dips below the 20-day SMA, preventing bubble round-trips.
             </div>
         </div>
         """, unsafe_allow_html=True)
@@ -2775,9 +2777,11 @@ elif page == "🛡️ Risk Safeguards":
     with col2:
         st.markdown("""
         <div class="cyber-card">
-            <div class="hud-title" style="font-size: 1.02rem;">3. Dollar-Exposure Ceilings</div>
+            <div class="hud-title" style="font-size: 1.02rem;">3. Dynamic Concentration Ceilings</div>
             <div style="font-size: 0.82rem; color: #71717A; margin-top: 8px; line-height: 1.6;">
-                Strict single-stock exposure cap enforced at <b>15.0% maximum equity</b>. Excess high-conviction weight is iteratively redistributed across remaining uncapped candidates.
+                • <b>&ge; 5 Candidates:</b> Strict <b>15.0%</b> cap ensures broad multi-asset diversification.
+                <br>• <b>3–4 Candidates:</b> Dynamically expands to <b>21.2% – 28.0%</b> to prevent capital starvation.
+                <br>• <b>1–2 Candidates:</b> Sized up to <b>25.0% – 30.0%</b> with remaining capital held in cash to guard against company wipeouts.
             </div>
         </div>
 

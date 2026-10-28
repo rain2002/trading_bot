@@ -72,16 +72,31 @@ def execute_quant_live_cycle():
     print(f"QUANT Brain generated: {len(momentum_signals)} Momentum Leaders | {len(mean_rev_signals)} Mean-Reversion Dip-Buys")
     
     # --- PHASE 2: ENSEMBLE REGIME DETECTION & ALLOCATION ---
-    print("\n[2b/4] Evaluating Macro Weather via Ensemble Allocator (SPY)...")
+    print("\n[2b/4] Evaluating Multi-Asset Macro Radar (SPY, QQQ, VIX)...")
     ensemble = EnsembleAllocator(max_total_exposure=0.95, max_single_stock=0.15, max_holdings=None)
     
     spy_df = brain.data_provider.get_data_as_of("SPY", datetime.now())
-    regime_info = ensemble.detect_regime(spy_df)
+    try:
+        vix_df = brain.data_provider.get_data_as_of("^VIX", datetime.now())
+    except Exception:
+        vix_df = None
+    try:
+        qqq_df = brain.data_provider.get_data_as_of("QQQ", datetime.now())
+    except Exception:
+        qqq_df = None
+
+    regime_info = ensemble.detect_regime(spy_df, vix_df=vix_df, qqq_df=qqq_df)
     regime = regime_info["regime"]
     MAX_EXPOSURE = regime_info["max_exposure"]
     strat_weights = regime_info.get("weights", {})
+    diag = regime_info.get("diagnostics", {})
     
     print(f"  Detected Regime: {regime}")
+    if diag.get("vix"):
+        vix_state = "CALM (< 20)" if diag["vix"] < 20 else ("ELEVATED" if diag["vix"] < 28 else "PANIC (>= 28)")
+        print(f"  VIX Volatility Gauge: {diag['vix']:.2f} [{vix_state}]")
+    if diag.get("tech_fatigue"):
+        print(f"  [SECTOR ROTATION ALERT] QQQ (${diag.get('qqq_price', 0):.2f}) is below 50-SMA (${diag.get('qqq_sma50', 0):.2f}). Tech momentum tiring; prioritizing Value Dip-Buys.")
     print(f"  Max Total Exposure: {MAX_EXPOSURE*100:.0f}% (Liquid Cash Reserve: {(1.0-MAX_EXPOSURE)*100:.0f}%)")
     print(f"  Strategy Mix: Momentum={strat_weights.get('momentum', 0)*100:.0f}% | Dip-Buying={strat_weights.get('mean_reversion', 0)*100:.0f}%")
 

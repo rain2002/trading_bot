@@ -39,9 +39,18 @@ class EnsembleAllocator:
         self.max_holdings = max_holdings
         self.min_position_pct = min_position_pct
 
-    def detect_regime(self, spy_df: pd.DataFrame) -> Dict[str, Any]:
+    def detect_regime(
+        self,
+        spy_df: pd.DataFrame,
+        vix_df: Optional[pd.DataFrame] = None,
+        qqq_df: Optional[pd.DataFrame] = None,
+    ) -> Dict[str, Any]:
         """
-        Determines market weather using SPY 200 SMA, 20 SMA, and 14-day trend ratio.
+        Institutional Multi-Asset Macro Weather & Crash Radar:
+        Analyzes:
+          1. SPY: Broad market trend anchor (200 SMA, 50 SMA, 14-day trend ratio)
+          2. QQQ: Tech / Speculative bubble dispersion canary (50 SMA fatigue)
+          3. VIX: Volatility risk & panic indicator
         """
         if spy_df.empty or len(spy_df) < 50:
             return {
@@ -49,23 +58,55 @@ class EnsembleAllocator:
                 "trend_ratio": 0.0,
                 "max_exposure": 0.50,
                 "weights": {"momentum": 0.50, "mean_reversion": 0.50},
+                "diagnostics": {}
             }
 
         close = spy_df["close"]
-        current_price = close.iloc[-1]
-        sma_200 = close.rolling(window=min(200, len(close))).mean().iloc[-1]
-        sma_20 = close.rolling(window=min(20, len(close))).mean().iloc[-1]
+        current_price = float(close.iloc[-1])
+        sma_200 = float(close.rolling(window=min(200, len(close))).mean().iloc[-1])
+        sma_50 = float(close.rolling(window=min(50, len(close))).mean().iloc[-1])
+        sma_20 = float(close.rolling(window=min(20, len(close))).mean().iloc[-1])
 
         # 14-day trend efficiency ratio
         high = spy_df.get("high", close)
         low = spy_df.get("low", close)
         tr = pd.concat([high - low, (high - close.shift()).abs(), (low - close.shift()).abs()], axis=1).max(axis=1)
-        atr_14 = tr.rolling(14).mean().iloc[-1]
-        price_change_14 = (close.iloc[-1] - close.iloc[-15]) if len(close) > 15 else 0
+        atr_14 = float(tr.rolling(14).mean().iloc[-1])
+        price_change_14 = float(close.iloc[-1] - close.iloc[-15]) if len(close) > 15 else 0.0
         trend_ratio = abs(price_change_14) / (atr_14 * 14 + 1e-6)
 
+        # Macro Volatility Radar (VIX)
+        vix_val = None
+        if vix_df is not None and not vix_df.empty:
+            vix_val = float(vix_df["close"].iloc[-1])
+
+        # Tech / Mega-cap Divergence Radar (QQQ)
+        qqq_below_50 = False
+        qqq_price = None
+        qqq_sma50 = None
+        if qqq_df is not None and not qqq_df.empty and len(qqq_df) >= 50:
+            qqq_price = float(qqq_df["close"].iloc[-1])
+            qqq_sma50 = float(qqq_df["close"].rolling(50).mean().iloc[-1])
+            qqq_below_50 = (qqq_price < qqq_sma50)
+
         is_bull = current_price >= sma_200
-        is_crash = (current_price < sma_200) and (current_price < sma_20 * 0.95)
+
+        # Multi-factor crash conditions:
+        # 1. Structural breakdown: SPY < 200 SMA and below 20 SMA by 5%
+        # 2. Early Volatility Shock: SPY < 50 SMA and VIX >= 28.0 (early exit before 200 SMA)
+        is_crash = (current_price < sma_200 and current_price < sma_20 * 0.95) or \
+                   (vix_val is not None and vix_val >= 28.0 and current_price < sma_50)
+
+        diagnostics = {
+            "spy_price": round(current_price, 2),
+            "spy_sma50": round(sma_50, 2),
+            "spy_sma200": round(sma_200, 2),
+            "trend_ratio": round(float(trend_ratio), 2),
+            "vix": round(vix_val, 2) if vix_val is not None else None,
+            "qqq_price": round(qqq_price, 2) if qqq_price is not None else None,
+            "qqq_sma50": round(qqq_sma50, 2) if qqq_sma50 is not None else None,
+            "tech_fatigue": qqq_below_50,
+        }
 
         if is_crash:
             return {
@@ -73,30 +114,56 @@ class EnsembleAllocator:
                 "trend_ratio": round(float(trend_ratio), 2),
                 "max_exposure": 0.00,  # 100% Cash Reserve
                 "weights": {"momentum": 0.0, "mean_reversion": 0.0},
+                "diagnostics": diagnostics,
             }
-        elif is_bull and trend_ratio > 0.35:
-            # Strong Bull Trend -> Prioritize Momentum
+
+        # Elevated Volatility Caution: VIX elevated between 22.0 and 28.0
+        if vix_val is not None and vix_val >= 22.0:
+            return {
+                "regime": "VOLATILITY_CAUTION",
+                "trend_ratio": round(float(trend_ratio), 2),
+                "max_exposure": 0.60,  # 40% Cash Defense
+                "weights": {"momentum": 0.25, "mean_reversion": 0.75},
+                "diagnostics": diagnostics,
+            }
+
+        if is_bull and trend_ratio > 0.35:
+            # If tech is tiring (QQQ < 50 SMA), tilt towards mean-reversion rotation
+            if qqq_below_50:
+                return {
+                    "regime": "BULL_ROTATION",
+                    "trend_ratio": round(float(trend_ratio), 2),
+                    "max_exposure": 0.85,
+                    "weights": {"momentum": 0.40, "mean_reversion": 0.60},
+                    "diagnostics": diagnostics,
+                }
             return {
                 "regime": "BULL_TRENDING",
                 "trend_ratio": round(float(trend_ratio), 2),
                 "max_exposure": 0.95,
                 "weights": {"momentum": 0.70, "mean_reversion": 0.30},
+                "diagnostics": diagnostics,
             }
         elif is_bull and trend_ratio <= 0.35:
-            # Choppy Bull -> Prioritize Buying Dips (Mean Reversion)
+            # Choppy Bull -> Heavy Mean Reversion Dip-Buying
+            # If tech fatigue is active, reduce momentum allocation and tilt towards value dip-buys
+            mom_weight = 0.25 if qqq_below_50 else 0.35
+            mr_weight = 0.75 if qqq_below_50 else 0.65
             return {
                 "regime": "BULL_CHOPPY",
                 "trend_ratio": round(float(trend_ratio), 2),
                 "max_exposure": 0.85,
-                "weights": {"momentum": 0.35, "mean_reversion": 0.65},
+                "weights": {"momentum": mom_weight, "mean_reversion": mr_weight},
+                "diagnostics": diagnostics,
             }
         else:
-            # Bear Correction -> High Cash Buffer
+            # Bear Correction -> 60% Cash Defense
             return {
                 "regime": "BEAR_CORRECTION",
                 "trend_ratio": round(float(trend_ratio), 2),
                 "max_exposure": 0.40,  # 60% Cash
                 "weights": {"momentum": 0.30, "mean_reversion": 0.70},
+                "diagnostics": diagnostics,
             }
 
     def combine_allocations(
