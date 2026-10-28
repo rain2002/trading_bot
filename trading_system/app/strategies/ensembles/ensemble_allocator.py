@@ -221,4 +221,15 @@ class EnsembleAllocator:
         else:
             final_targets = {sym: round(w, 4) for sym, w in final_targets.items()}
 
+        # Guarantee strict mathematical non-exceedance of max_exposure after rounding
+        current_sum = sum(final_targets.values())
+        if current_sum > max_exposure:
+            overage = current_sum - max_exposure
+            for sym in sorted(final_targets, key=lambda s: final_targets[s], reverse=True):
+                trim = min(round(overage, 4), 0.0001)
+                final_targets[sym] = round(final_targets[sym] - trim, 4)
+                overage -= trim
+                if overage <= 1e-6:
+                    break
+
         return final_targets
