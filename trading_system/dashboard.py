@@ -489,6 +489,56 @@ def format_pct_str(val: float) -> str:
     else:
         return f"-{abs(val):.2f}%"
 
+def create_donut_chart(
+    labels: list,
+    values: list,
+    colors: list,
+    center_text: str,
+    title: str = None,
+    height: int = 250,
+    hole: float = 0.65,
+    show_legend: bool = True
+) -> go.Figure:
+    """Generate a high-contrast Blacklead Studio obsidian donut chart."""
+    fig = go.Figure(data=[go.Pie(
+        labels=labels,
+        values=values,
+        hole=hole,
+        marker=dict(colors=colors, line=dict(color='#070A12', width=1.5)),
+        textposition='inside',
+        textinfo='percent' if len(labels) <= 4 else 'none',
+        hovertemplate="<b>%{label}</b><br>Value: %{value}<br>Share: %{percent}<extra></extra>"
+    )])
+    fig.update_layout(
+        title=dict(
+            text=f"<span style='font-family:Space Grotesk,sans-serif; font-size:12px; font-weight:600; color:#FFFFFF;'>{title}</span>" if title else "",
+            x=0.02,
+            y=0.96
+        ) if title else None,
+        showlegend=show_legend,
+        legend=dict(
+            orientation="h",
+            yanchor="bottom",
+            y=-0.24,
+            xanchor="center",
+            x=0.5,
+            font=dict(family="DM Mono, monospace", size=10, color="#A1A1AA")
+        ),
+        margin=dict(t=35 if title else 10, b=25 if show_legend else 10, l=10, r=10),
+        height=height,
+        paper_bgcolor='rgba(0,0,0,0)',
+        plot_bgcolor='rgba(0,0,0,0)',
+        annotations=[dict(
+            text=center_text,
+            x=0.5, y=0.5,
+            font_size=12,
+            font_family="Space Grotesk, sans-serif",
+            font_color="#FFFFFF",
+            showarrow=False
+        )]
+    )
+    return fig
+
 # ==========================================
 # SIDEBAR NAVIGATION MENU (BL/S® EDITORIAL STYLE)
 # ==========================================
@@ -1528,6 +1578,65 @@ elif page == "📋 Positions & Stop-Loss":
 
         st.markdown("<div style='margin-top: 15px;'></div>", unsafe_allow_html=True)
 
+        # ----------------------------------------------------------------------
+        # DUAL DONUT TELEMETRY DECK: HOLDING HEALTH & CAPITAL CONCENTRATION
+        # ----------------------------------------------------------------------
+        d_col1, d_col2 = st.columns(2)
+
+        with d_col1:
+            prof_count = len(winners)
+            hold_count = len(df_pos[(df_pos['unrealized_plpc'] <= 0) & (df_pos['unrealized_plpc'] > -0.05)])
+            watch_count = len(df_pos[(df_pos['unrealized_plpc'] <= -0.05) & (df_pos['unrealized_plpc'] > -0.08)])
+            breach_count = len(critical)
+
+            h_labels = ["Profitable (> 0%)", "Holding (0 to -5%)", "Watchlist (-5 to -8%)", "Stop Breach (<= -8%)"]
+            h_values = [prof_count, hold_count, watch_count, breach_count]
+            h_colors = ["#82FBBD", "#52525B", "#FBBF24", "#FF9A9C"]
+
+            f_labels = [l for l, v in zip(h_labels, h_values) if v > 0]
+            f_values = [v for v in h_values if v > 0]
+            f_colors = [c for c, v in zip(h_colors, h_values) if v > 0]
+
+            health_center = f"<b>HEALTH</b><br><span style='font-size:18px; color:{'#82FBBD' if breach_count == 0 else '#FF9A9C'};'>{win_rate:.0f}%</span><br><span style='font-size:10px; color:#71717A;'>WIN RATE</span>"
+            fig_health = create_donut_chart(
+                labels=f_labels if f_values else ["Active Holdings"],
+                values=f_values if f_values else [len(positions)],
+                colors=f_colors if f_values else ["#82FBBD"],
+                center_text=health_center,
+                title="HOLDING HEALTH & STOP-LOSS GATING DISTRIBUTION",
+                height=260,
+                hole=0.66
+            )
+            st.plotly_chart(fig_health, width='stretch')
+
+        with d_col2:
+            top_holdings = df_pos.sort_values(by="market_value", ascending=False)
+            if len(top_holdings) > 6:
+                top5 = top_holdings.iloc[:5]
+                others_val = top_holdings.iloc[5:]["market_value"].sum()
+                c_labels = top5["symbol"].tolist() + ["Other Equities"]
+                c_values = top5["market_value"].round(2).tolist() + [round(others_val, 2)]
+            else:
+                c_labels = top_holdings["symbol"].tolist()
+                c_values = top_holdings["market_value"].round(2).tolist()
+
+            pos_palette = ["#00F2FE", "#82FBBD", "#3B82F6", "#A855F7", "#FFB800", "#FF007F", "#71717A"]
+            total_holdings_val = df_pos["market_value"].sum()
+            conc_center = f"<b>INVESTED</b><br><span style='font-size:16px; color:#82FBBD;'>${total_holdings_val:,.0f}</span><br><span style='font-size:10px; color:#71717A;'>{len(positions)} ASSETS</span>"
+
+            fig_conc = create_donut_chart(
+                labels=c_labels,
+                values=c_values,
+                colors=pos_palette[:len(c_labels)],
+                center_text=conc_center,
+                title="ACTIVE EQUITY CAPITAL CONCENTRATION",
+                height=260,
+                hole=0.66
+            )
+            st.plotly_chart(fig_conc, width='stretch')
+
+        st.markdown("<div style='margin-top: 10px;'></div>", unsafe_allow_html=True)
+
         def evaluate_sl_status(row):
             pct = row['unrealized_plpc'] * 100
             if pct <= -8.0:
@@ -1663,7 +1772,44 @@ elif page == "⚡ Manual Order Desk & Execution":
         </div>
         """, unsafe_allow_html=True)
 
-    st.markdown("<div style='margin-top: 18px;'></div>", unsafe_allow_html=True)
+    st.markdown("<div style='margin-top: 14px;'></div>", unsafe_allow_html=True)
+
+    with st.expander("📊 Account Purchasing Power & Portfolio Sizing Donut Telemetry", expanded=False):
+        d_desk1, d_desk2 = st.columns(2)
+        with d_desk1:
+            power_labels = ["Invested Capital", "Liquid Cash Reserve"]
+            power_values = [round(max(0.0, invested_capital), 2), round(max(0.0, cash), 2)]
+            power_colors = ["#82FBBD", "#3B82F6"]
+            power_center = f"<b>EQUITY</b><br><span style='font-size:16px; color:#82FBBD;'>${equity:,.0f}</span><br><span style='font-size:10px; color:#71717A;'>TOTAL NAV</span>"
+            fig_power = create_donut_chart(
+                labels=power_labels,
+                values=power_values,
+                colors=power_colors,
+                center_text=power_center,
+                title="PURCHASING POWER & CAPITAL ALLOCATION",
+                height=240,
+                hole=0.66
+            )
+            st.plotly_chart(fig_power, width='stretch')
+        with d_desk2:
+            open_ord_notional = sum(float(o.get('qty', 0)) * float(o.get('limit_price') or 100) for o in open_orders) if open_orders else 0.0
+            uncommitted_power = max(0.0, buying_power - open_ord_notional)
+            buf_labels = ["Committed in Open Orders", "Uncommitted Buying Power"]
+            buf_values = [round(open_ord_notional, 2), round(uncommitted_power, 2)] if open_orders else [0.0, round(buying_power, 2)]
+            buf_colors = ["#FFB800", "#00F2FE"]
+            buf_center = f"<b>AVAILABLE</b><br><span style='font-size:16px; color:#00F2FE;'>${buying_power:,.0f}</span><br><span style='font-size:10px; color:#71717A;'>BUYING POWER</span>"
+            fig_buf = create_donut_chart(
+                labels=buf_labels,
+                values=buf_values,
+                colors=buf_colors,
+                center_text=buf_center,
+                title="OPEN ORDER COMMITMENT VS UNCOMMITTED LIQUIDITY",
+                height=240,
+                hole=0.66
+            )
+            st.plotly_chart(fig_buf, width='stretch')
+
+    st.markdown("<div style='margin-top: 10px;'></div>", unsafe_allow_html=True)
 
     col_prompt, col_manipulate = st.columns([1.05, 1.25])
 
@@ -2094,6 +2240,61 @@ elif page == "🏆 30-Day Incubation Scorecard":
         st.plotly_chart(fig_equity, width='stretch')
 
         st.markdown("<div style='margin-top: 15px;'></div>", unsafe_allow_html=True)
+
+        # ----------------------------------------------------------------------
+        # DUAL DONUT TELEMETRY DECK: INCUBATION MILESTONES & SESSION WIN RATIO
+        # ----------------------------------------------------------------------
+        inc_c1, inc_c2 = st.columns(2)
+
+        with inc_c1:
+            days_done = min(30, days_logged)
+            days_rem = max(0, 30 - days_logged)
+            m_labels = ["Days Completed", "Days Remaining"]
+            m_values = [days_done, days_rem]
+            m_colors = ["#82FBBD", "#27272A"]
+            m_pct = (days_done / 30) * 100
+            m_center = f"<b>PROGRESS</b><br><span style='font-size:18px; color:#82FBBD;'>{m_pct:.0f}%</span><br><span style='font-size:10px; color:#71717A;'>DAY {days_done}/30</span>"
+
+            fig_inc_prog = create_donut_chart(
+                labels=m_labels,
+                values=m_values,
+                colors=m_colors,
+                center_text=m_center,
+                title="30-DAY INCUBATION TIMELINE PROGRESS",
+                height=250,
+                hole=0.66
+            )
+            st.plotly_chart(fig_inc_prog, width='stretch')
+
+        with inc_c2:
+            daily_deltas = df_history['equity'].diff().dropna()
+            win_days = int((daily_deltas > 0).sum())
+            loss_days = int((daily_deltas < 0).sum())
+            flat_days = int((daily_deltas == 0).sum())
+
+            if win_days == 0 and loss_days == 0:
+                win_days = 1 if net_change >= 0 else 0
+                loss_days = 1 if net_change < 0 else 0
+
+            s_labels = ["Winning Sessions", "Losing Sessions"] + (["Flat Sessions"] if flat_days > 0 else [])
+            s_values = [win_days, loss_days] + ([flat_days] if flat_days > 0 else [])
+            s_colors = ["#82FBBD", "#FF9A9C"] + (["#52525B"] if flat_days > 0 else [])
+            tot_s = max(1, win_days + loss_days)
+            s_win_rate = (win_days / tot_s) * 100
+            s_center = f"<b>DAY WIN RATE</b><br><span style='font-size:18px; color:{'#82FBBD' if s_win_rate >= 50 else '#FF9A9C'};'>{s_win_rate:.0f}%</span><br><span style='font-size:10px; color:#71717A;'>{win_days}W - {loss_days}L</span>"
+
+            fig_inc_win = create_donut_chart(
+                labels=s_labels,
+                values=s_values,
+                colors=s_colors,
+                center_text=s_center,
+                title="DAILY SESSION WIN / LOSS RATIO",
+                height=250,
+                hole=0.66
+            )
+            st.plotly_chart(fig_inc_win, width='stretch')
+
+        st.markdown("<div style='margin-top: 15px;'></div>", unsafe_allow_html=True)
         st.markdown("### 🎓 5 Hard Institutional Graduation Criteria")
 
         positions = broker.get_positions_detailed()
@@ -2221,7 +2422,60 @@ elif page in ("⚡ Order Activity Log", "📜 Order Activity Log"):
             </div>
             """, unsafe_allow_html=True)
 
-        st.markdown("<div style='margin-top: 20px;'></div>", unsafe_allow_html=True)
+        st.markdown("<div style='margin-top: 15px;'></div>", unsafe_allow_html=True)
+
+        # ----------------------------------------------------------------------
+        # DUAL DONUT TELEMETRY DECK: ORDER SIDE & EXECUTION INTEGRITY
+        # ----------------------------------------------------------------------
+        ord_c1, ord_c2 = st.columns(2)
+
+        with ord_c1:
+            buys_count = int((df_all_orders["Side"] == "BUY").sum())
+            sells_count = int((df_all_orders["Side"] == "SELL").sum())
+            side_labels = ["Buy Orders", "Sell Orders"]
+            side_values = [buys_count, sells_count]
+            side_colors = ["#82FBBD", "#FF9A9C"]
+            tot_orders = len(df_all_orders)
+            side_center = f"<b>ORDERS</b><br><span style='font-size:18px; color:#FFFFFF;'>{tot_orders}</span><br><span style='font-size:10px; color:#71717A;'>LIFETIME</span>"
+
+            fig_order_side = create_donut_chart(
+                labels=side_labels,
+                values=side_values,
+                colors=side_colors,
+                center_text=side_center,
+                title="ORDER DIRECTION ALLOCATION (BUYS VS SELLS)",
+                height=250,
+                hole=0.66
+            )
+            st.plotly_chart(fig_order_side, width='stretch')
+
+        with ord_c2:
+            status_counts = df_all_orders["Status"].value_counts().to_dict()
+            stat_labels = list(status_counts.keys())
+            stat_values = list(status_counts.values())
+            stat_colors_map = {
+                "FILLED": "#00F2FE",
+                "NEW": "#82FBBD",
+                "ACCEPTED": "#3B82F6",
+                "CANCELED": "#FF9A9C",
+                "EXPIRED": "#71717A",
+                "REPLACED": "#FFB800"
+            }
+            stat_colors = [stat_colors_map.get(k, "#A1A1AA") for k in stat_labels]
+            fill_center = f"<b>FILL RATE</b><br><span style='font-size:18px; color:#00F2FE;'>{fill_rate:.1f}%</span><br><span style='font-size:10px; color:#71717A;'>{filled_count} FILLED</span>"
+
+            fig_order_stat = create_donut_chart(
+                labels=stat_labels,
+                values=stat_values,
+                colors=stat_colors,
+                center_text=fill_center,
+                title="EXECUTION STATUS & ORDER ROUTING INTEGRITY",
+                height=250,
+                hole=0.66
+            )
+            st.plotly_chart(fig_order_stat, width='stretch')
+
+        st.markdown("<div style='margin-top: 15px;'></div>", unsafe_allow_html=True)
 
         # ==========================================
         # DATE DIVISION & FILTER CONTROLS
@@ -2422,6 +2676,47 @@ elif page == "🧠 Quant Brain & Strategy":
             </div>
             """, unsafe_allow_html=True)
 
+    st.markdown("<div style='margin-top: 15px;'></div>", unsafe_allow_html=True)
+
+    # --------------------------------------------------------------------------
+    # DUAL DONUT TELEMETRY DECK: ALPHA WEIGHTS & FEATURE MATRIX
+    # --------------------------------------------------------------------------
+    qb_c1, qb_c2 = st.columns(2)
+
+    with qb_c1:
+        alpha_labels = ["Velocity Momentum (ROC-20)", "Trend Extension Anchor (SMA)"]
+        alpha_values = [70, 30]
+        alpha_colors = ["#82FBBD", "#3B82F6"]
+        alpha_center = "<b>WEIGHT</b><br><span style='font-size:18px; color:#82FBBD;'>70%</span><span style='font-size:12px; color:#71717A;'>/30%</span><br><span style='font-size:10px; color:#71717A;'>ALPHA SPLIT</span>"
+
+        fig_alpha_weight = create_donut_chart(
+            labels=alpha_labels,
+            values=alpha_values,
+            colors=alpha_colors,
+            center_text=alpha_center,
+            title="CONVICTION SCORE WEIGHT FORMULA SPLIT",
+            height=250,
+            hole=0.66
+        )
+        st.plotly_chart(fig_alpha_weight, width='stretch')
+
+    with qb_c2:
+        ml_labels = ["Multi-Horizon Momentum", "Trend & MA Architecture", "Volatility & ATR Spreads", "Volume & Flow Surges"]
+        ml_values = [35, 25, 20, 20]
+        ml_colors = ["#82FBBD", "#00F2FE", "#A855F7", "#FFB800"]
+        ml_center = "<b>FEATURES</b><br><span style='font-size:18px; color:#A855F7;'>18</span><br><span style='font-size:10px; color:#71717A;'>150 TREES</span>"
+
+        fig_ml_feat = create_donut_chart(
+            labels=ml_labels,
+            values=ml_values,
+            colors=ml_colors,
+            center_text=ml_center,
+            title="RANDOM FOREST FEATURE GROUP IMPORTANCE",
+            height=250,
+            hole=0.66
+        )
+        st.plotly_chart(fig_ml_feat, width='stretch')
+
     st.markdown("<div style='margin-top: 20px;'></div>", unsafe_allow_html=True)
     st.markdown("### 📐 Risk-Adjusted Momentum Formula")
     st.latex(r"""
@@ -2500,3 +2795,44 @@ elif page == "🛡️ Risk Safeguards":
             </div>
         </div>
         """, unsafe_allow_html=True)
+
+    st.markdown("<div style='margin-top: 15px;'></div>", unsafe_allow_html=True)
+
+    # --------------------------------------------------------------------------
+    # DUAL DONUT TELEMETRY DECK: REGIME LIMITS & SINGLE-STOCK CAP
+    # --------------------------------------------------------------------------
+    rs_c1, rs_c2 = st.columns(2)
+
+    with rs_c1:
+        regime_labels = ["Max Equity Exposure Limit", "Mandatory Cash Defense Buffer"]
+        regime_values = [95.0, 5.0]
+        regime_colors = ["#82FBBD", "#27272A"]
+        regime_center = "<b>REGIME</b><br><span style='font-size:18px; color:#82FBBD;'>95%</span><br><span style='font-size:10px; color:#71717A;'>BULL_NORMAL</span>"
+
+        fig_regime = create_donut_chart(
+            labels=regime_labels,
+            values=regime_values,
+            colors=regime_colors,
+            center_text=regime_center,
+            title="MACRO SPY REGIME EXPOSURE VS CASH SHIELD",
+            height=250,
+            hole=0.66
+        )
+        st.plotly_chart(fig_regime, width='stretch')
+
+    with rs_c2:
+        cap_labels = ["Single Stock Max Ceiling", "Uncapped Universe Equity Capacity", "Minimum Cash Buffer"]
+        cap_values = [15.0, 80.0, 5.0]
+        cap_colors = ["#FFB800", "#3B82F6", "#82FBBD"]
+        cap_center = "<b>HARD CAP</b><br><span style='font-size:18px; color:#FFB800;'>15.0%</span><br><span style='font-size:10px; color:#71717A;'>MAX / ASSET</span>"
+
+        fig_cap = create_donut_chart(
+            labels=cap_labels,
+            values=cap_values,
+            colors=cap_colors,
+            center_text=cap_center,
+            title="INSTITUTIONAL SINGLE-STOCK EXPOSURE CEILING",
+            height=250,
+            hole=0.66
+        )
+        st.plotly_chart(fig_cap, width='stretch')
