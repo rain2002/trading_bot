@@ -121,6 +121,7 @@ class AlpacaBrokerAdapter(BrokerAdapter):
             equity = float(account.get("equity", 100000.0))
             last_equity = float(account.get("last_equity", equity))
             cash = float(account.get("cash", 0.0))
+            buying_power = float(account.get("buying_power", cash))
             
             today_pnl = equity - last_equity
             today_pnl_pct = (today_pnl / last_equity * 100) if last_equity > 0 else 0.0
@@ -132,6 +133,7 @@ class AlpacaBrokerAdapter(BrokerAdapter):
             return {
                 "equity": equity,
                 "cash": cash,
+                "buying_power": buying_power,
                 "today_pnl": today_pnl,
                 "today_pnl_pct": today_pnl_pct,
                 "overall_pnl": overall_pnl,
@@ -141,6 +143,7 @@ class AlpacaBrokerAdapter(BrokerAdapter):
             return {
                 "equity": 100000.0,
                 "cash": 10000.0,
+                "buying_power": 10000.0,
                 "today_pnl": 0.0,
                 "today_pnl_pct": 0.0,
                 "overall_pnl": 0.0,
@@ -185,3 +188,248 @@ class AlpacaBrokerAdapter(BrokerAdapter):
         except Exception:
             pass
         return None
+
+    def get_open_orders(self) -> List[Dict[str, Any]]:
+        """Fetch all currently open/active orders from Alpaca."""
+        if not self.api_key or self.api_key == "mock":
+            return []
+        try:
+            response = requests.get(
+                f"{self.base_url}/v2/orders?status=open&limit=500",
+                headers=self.headers,
+                timeout=8
+            )
+            if response.status_code == 200:
+                raw_orders = response.json()
+                results = []
+                for o in raw_orders:
+                    qty = float(o.get("qty") or 0.0)
+                    filled_qty = float(o.get("filled_qty") or 0.0)
+                    lp = float(o.get("limit_price")) if o.get("limit_price") else None
+                    sub = o.get("submitted_at") or o.get("created_at") or ""
+                    results.append({
+                        "id": o.get("id"),
+                        "client_order_id": o.get("client_order_id", ""),
+                        "symbol": str(o.get("symbol", "")).replace('.', '-'),
+                        "raw_symbol": o.get("symbol", ""),
+                        "side": str(o.get("side", "")).upper(),
+                        "qty": int(qty) if qty.is_integer() else qty,
+                        "filled_qty": int(filled_qty) if filled_qty.is_integer() else filled_qty,
+                        "notional": float(o.get("notional")) if o.get("notional") else None,
+                        "type": str(o.get("type", "")).upper(),
+                        "limit_price": lp,
+                        "status": str(o.get("status", "")).upper(),
+                        "submitted_at": sub,
+                        "time_in_force": str(o.get("time_in_force", "")).upper(),
+                    })
+                return results
+        except Exception:
+            pass
+        return []
+
+    def cancel_order(self, order_id: str) -> Dict[str, Any]:
+        """Cancel a specific open order on Alpaca."""
+        if not self.api_key or self.api_key == "mock":
+            return {"success": True, "message": f"Order {order_id} canceled (mock)"}
+        try:
+            resp = requests.delete(f"{self.base_url}/v2/orders/{order_id}", headers=self.headers, timeout=10)
+            if resp.status_code in (200, 204):
+                return {"success": True, "message": f"Order {order_id} successfully canceled"}
+            else:
+                err_text = resp.text
+                try:
+                    err_json = resp.json()
+                    err_text = err_json.get("message", err_text)
+                except Exception:
+                    pass
+                return {"success": False, "error": err_text or f"HTTP {resp.status_code}"}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+    def replace_order(
+        self,
+        order_id: str,
+        new_qty: Optional[float] = None,
+        new_limit_price: Optional[float] = None,
+        time_in_force: str = "day"
+    ) -> Dict[str, Any]:
+        """Modify an existing open order with automatic fallback to cancel-and-replace."""
+        if not self.api_key or self.api_key == "mock":
+            return {"success": True, "message": "Order modified (mock)"}
+        try:
+            # First fetch the existing order details in case cancel-and-replace is required
+            existing_resp = requests.get(f"{self.base_url}/v2/orders/{order_id}", headers=self.headers, timeout=8)
+            existing_data = existing_resp.json() if existing_resp.status_code == 200 else {}
+            
+            patch_payload = {"time_in_force": time_in_force.lower()}
+            if new_qty is not None and float(new_qty) > 0:
+                q_val = float(new_qty)
+                patch_payload["qty"] = str(int(q_val) if q_val.is_integer() else q_val)
+            if new_limit_price is not None and float(new_limit_price) > 0:
+                patch_payload["limit_price"] = str(round(float(new_limit_price), 2))
+                
+            resp = requests.patch(f"{self.base_url}/v2/orders/{order_id}", headers=self.headers, json=patch_payload, timeout=10)
+            if resp.status_code == 200:
+                return {"success": True, "message": "Order successfully modified via PATCH", "order": resp.json()}
+                
+            # If PATCH is rejected (e.g. status is "accepted" outside regular hours), perform cancel-and-replace
+            if existing_data:
+                # Cancel old order
+                requests.delete(f"{self.base_url}/v2/orders/{order_id}", headers=self.headers, timeout=8)
+                
+                # Determine new order parameters
+                symbol = existing_data.get("symbol")
+                side = existing_data.get("side", "buy")
+                order_type = existing_data.get("type", "market")
+                qty = new_qty if new_qty is not None else float(existing_data.get("qty", 1))
+                lp = new_limit_price if new_limit_price is not None else existing_data.get("limit_price")
+                
+                return self.place_order(
+                    symbol=symbol,
+                    qty=qty,
+                    side=side,
+                    order_type=order_type,
+                    limit_price=float(lp) if lp else None,
+                    time_in_force=time_in_force
+                )
+            return {"success": False, "error": resp.text}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+    def place_order(
+        self,
+        symbol: str,
+        qty: Optional[float] = None,
+        notional: Optional[float] = None,
+        side: str = "buy",
+        order_type: str = "market",
+        limit_price: Optional[float] = None,
+        time_in_force: str = "day",
+        client_order_id: Optional[str] = None
+    ) -> Dict[str, Any]:
+        """Submit a manual or bot-prompted order to Alpaca (supports value $ or quantity shares)."""
+        if not symbol:
+            return {"success": False, "error": "Stock symbol must be specified"}
+            
+        alpaca_sym = symbol.strip().upper().replace('-', '.')
+        norm_side = side.strip().lower()
+        norm_type = order_type.strip().lower()
+        norm_tif = time_in_force.strip().lower()
+        
+        payload = {
+            "symbol": alpaca_sym,
+            "side": norm_side,
+            "type": norm_type,
+            "time_in_force": norm_tif
+        }
+        
+        if qty is not None and float(qty) > 0:
+            q_val = float(qty)
+            payload["qty"] = str(int(q_val) if q_val.is_integer() else q_val)
+        elif notional is not None and float(notional) > 0:
+            payload["notional"] = str(round(float(notional), 2))
+        else:
+            return {"success": False, "error": "Must specify either positive quantity (shares) or dollar value ($ notional)"}
+            
+        if norm_type == "limit":
+            if not limit_price or float(limit_price) <= 0:
+                return {"success": False, "error": "Limit orders require a positive limit price"}
+            payload["limit_price"] = str(round(float(limit_price), 2))
+            if "notional" in payload:
+                calc_shares = max(1, int(float(notional) / float(limit_price)))
+                payload.pop("notional")
+                payload["qty"] = str(calc_shares)
+                
+        import time, hashlib
+        if client_order_id:
+            payload["client_order_id"] = str(client_order_id)
+        else:
+            short_hash = hashlib.md5(f"{alpaca_sym}_{norm_side}_{time.time()}".encode()).hexdigest()[:8]
+            payload["client_order_id"] = f"MANUAL-{short_hash}"
+            
+        if not self.api_key or self.api_key == "mock":
+            return {
+                "success": True,
+                "message": f"Order for {alpaca_sym} submitted in mock mode",
+                "order": {
+                    "id": f"mock-{int(time.time())}",
+                    "client_order_id": payload["client_order_id"],
+                    "symbol": alpaca_sym,
+                    "qty": payload.get("qty", "1"),
+                    "notional": payload.get("notional"),
+                    "side": norm_side,
+                    "type": norm_type,
+                    "status": "accepted"
+                }
+            }
+            
+        try:
+            resp = requests.post(
+                f"{self.base_url}/v2/orders",
+                headers=self.headers,
+                json=payload,
+                timeout=10
+            )
+            if resp.status_code in (200, 201):
+                return {
+                    "success": True,
+                    "message": f"Successfully placed {norm_side.upper()} order for {alpaca_sym}",
+                    "order": resp.json()
+                }
+            else:
+                err_msg = resp.text
+                try:
+                    err_json = resp.json()
+                    err_msg = err_json.get("message", err_msg)
+                except Exception:
+                    pass
+                return {"success": False, "error": err_msg}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+    def close_position(self, symbol: str, qty: Optional[float] = None) -> Dict[str, Any]:
+        """Liquidate an open position via market order."""
+        if not self.api_key or self.api_key == "mock":
+            return {"success": True, "message": f"Position in {symbol} closed (mock)"}
+        try:
+            alpaca_sym = symbol.strip().upper().replace('-', '.')
+            url = f"{self.base_url}/v2/positions/{alpaca_sym}"
+            params = {}
+            if qty is not None and float(qty) > 0:
+                params["qty"] = str(qty)
+            resp = requests.delete(url, headers=self.headers, params=params, timeout=10)
+            if resp.status_code in (200, 204):
+                return {"success": True, "message": f"Successfully initiated liquidation for {alpaca_sym}"}
+            else:
+                err_msg = resp.text
+                try:
+                    err_json = resp.json()
+                    err_msg = err_json.get("message", err_msg)
+                except Exception:
+                    pass
+                return {"success": False, "error": err_msg}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+    def get_stock_dictionary(self) -> List[str]:
+        """Fetch the full list of tradable symbols from the bot's S&P 500 universe and holdings."""
+        symbols = set()
+        for core in ["SPY", "QQQ", "DIA", "IWM", "AAPL", "MSFT", "NVDA", "AMZN", "GOOGL", "GOOG", "META", "TSLA"]:
+            symbols.add(core)
+        try:
+            import os
+            sp500_file = os.path.join(os.path.dirname(__file__), "..", "..", "data", "sp500_tickers.txt")
+            if os.path.exists(sp500_file):
+                with open(sp500_file, "r") as f:
+                    for line in f:
+                        s = line.strip().upper().replace('.', '-')
+                        if s:
+                            symbols.add(s)
+        except Exception:
+            pass
+        try:
+            for p in self.get_positions_detailed():
+                symbols.add(p["symbol"])
+        except Exception:
+            pass
+        return sorted(list(symbols))

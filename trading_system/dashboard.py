@@ -462,6 +462,7 @@ broker = AlpacaBrokerAdapter(api_key=api_key or "mock", api_secret=api_secret or
 acc_details = broker.get_account_details()
 equity = acc_details.get("equity", 100000.0)
 cash = acc_details.get("cash", 0.0)
+buying_power = acc_details.get("buying_power", cash)
 today_pnl = acc_details.get("today_pnl", 0.0)
 today_pnl_pct = acc_details.get("today_pnl_pct", 0.0)
 overall_pnl = acc_details.get("overall_pnl", 0.0)
@@ -510,13 +511,27 @@ st.sidebar.markdown("""
 PAGE_OPTIONS = [
     "📊 Portfolio Overview",
     "📋 Positions & Stop-Loss",
+    "⚡ Manual Order Desk & Execution",
     "🏆 30-Day Incubation Scorecard",
-    "⚡ Order Activity Log",
+    "📜 Order Activity Log",
     "🧠 Quant Brain & Strategy",
     "🛡️ Risk Safeguards"
 ]
 
-if "current_page" not in st.session_state or st.session_state.current_page not in PAGE_OPTIONS:
+if "current_page" not in st.session_state:
+    st.session_state.current_page = PAGE_OPTIONS[0]
+
+try:
+    if "page" in st.query_params:
+        qp_page = str(st.query_params["page"]).lower()
+        for opt in PAGE_OPTIONS:
+            if qp_page in opt.lower():
+                st.session_state.current_page = opt
+                break
+except Exception:
+    pass
+
+if st.session_state.current_page not in PAGE_OPTIONS:
     st.session_state.current_page = PAGE_OPTIONS[0]
 
 for p_name in PAGE_OPTIONS:
@@ -533,11 +548,16 @@ for p_name in PAGE_OPTIONS:
 
 page = st.session_state.current_page
 
+# Fetch active open orders count for sidebar telemetry
+open_orders_cached = broker.get_open_orders()
+open_orders_count = len(open_orders_cached)
+
 st.sidebar.markdown("<div style='margin-top: 20px;'></div>", unsafe_allow_html=True)
-st.sidebar.markdown("""
+st.sidebar.markdown(f"""
 <div style="font-family: 'DM Mono', monospace; font-size: 0.68rem; color: #71717A; line-height: 1.7; padding: 10px 12px; background: #0D0E12; border-radius: 8px; border: 1px solid rgba(255,255,255,0.06);">
     <div>BROKER: <span style="color: #82FBBD;">ALPACA PAPER</span></div>
-    <div>LATENCY: <span style="color: #82FBBD;">&lt;40ms REST</span></div>
+    <div>OPEN ORDERS: <span style="color: {'#82FBBD' if open_orders_count > 0 else '#A1A1AA'};">{open_orders_count} QUEUED</span></div>
+    <div>BUYING POWER: <span style="color: #82FBBD;">${buying_power:,.2f}</span></div>
     <div>ACTIVE ARCH: <span style="color: #82FBBD;">PHASE 3 ML GATE</span></div>
     <div>SOLVENCY: <span style="color: #82FBBD;">100% LONG-ONLY</span></div>
 </div>
@@ -1456,8 +1476,406 @@ elif page == "📋 Positions & Stop-Loss":
             st.error(f"⚠️ {len(critical)} position(s) have breached the -8% stop-loss threshold and will be liquidated on the next session cycle!")
         else:
             st.success("✅ Risk Integrity 100%: All active holdings are within safe operating limits (Drawdown > -8.0%).")
+
+        st.markdown("<div style='margin-top: 18px;'></div>", unsafe_allow_html=True)
+        with st.expander("🚨 Manual Position Liquidation Override", expanded=False):
+            st.markdown("<div style='font-size:0.78rem; color:#71717A; margin-bottom: 8px;'>Emergency manual intervention: immediately liquidate any open position via broker market order.</div>", unsafe_allow_html=True)
+            liq_col1, liq_col2 = st.columns([2.5, 1.2])
+            with liq_col1:
+                sel_liq = st.selectbox("Select Position to Liquidate", options=[p["symbol"] for p in positions], key="pos_page_liq_select")
+            with liq_col2:
+                st.markdown("<div style='margin-top: 28px;'></div>", unsafe_allow_html=True)
+                if st.button(f"🚨 Liquidate {sel_liq}", type="secondary", key="pos_page_liq_btn", use_container_width=True):
+                    with st.spinner(f"Liquidating {sel_liq}..."):
+                        c_res = broker.close_position(sel_liq)
+                        if c_res.get("success"):
+                            st.toast(f"✅ Closed {sel_liq} position!", icon="🚨")
+                            st.rerun()
+                        else:
+                            st.error(f"Liquidation failed: {c_res.get('error')}")
     else:
         st.info("No open positions reported by broker.")
+
+
+# ==============================================================================
+# PAGE: ⚡ MANUAL ORDER DESK & EXECUTION
+# ==============================================================================
+elif page == "⚡ Manual Order Desk & Execution":
+    st.markdown("""
+    <div class="page-title-box">
+        <div class="page-title">⚡ Manual Order Desk & Execution Controls</div>
+        <div class="page-subtitle">PROMPT BOT ORDER PLACEMENT • BOT UNIVERSE DICTIONARY • REAL-TIME OPEN ORDER MANIPULATION</div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    open_orders = broker.get_open_orders()
+    stock_dict = broker.get_stock_dictionary()
+    positions = broker.get_positions_detailed()
+    pos_map = {p["symbol"]: p for p in positions}
+
+    # Top KPI Deck
+    o_kpi1, o_kpi2, o_kpi3, o_kpi4 = st.columns(4)
+    with o_kpi1:
+        st.markdown(f"""
+        <div class="cyber-kpi-card">
+            <div class="kpi-title">OPEN ORDERS QUEUED</div>
+            <div class="kpi-value"><div class="{'metric-big-green' if len(open_orders) > 0 else 'metric-big'}">{len(open_orders)} Active</div></div>
+            <div class="kpi-badge-row"><div class="metric-badge-uniform">BROKER REST SYNCED</div></div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    with o_kpi2:
+        st.markdown(f"""
+        <div class="cyber-kpi-card">
+            <div class="kpi-title">BUYING POWER AVAILABLE</div>
+            <div class="kpi-value"><div class="metric-big">${buying_power:,.2f}</div></div>
+            <div class="kpi-badge-row"><div class="metric-badge-mint">NON-MARGIN CASH</div></div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    with o_kpi3:
+        st.markdown(f"""
+        <div class="cyber-kpi-card">
+            <div class="kpi-title">ACTIVE HOLDINGS</div>
+            <div class="kpi-value"><div class="metric-big">{len(positions)} Stocks</div></div>
+            <div class="kpi-badge-row"><div class="metric-badge-uniform">${invested_capital:,.2f} INVESTED</div></div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    with o_kpi4:
+        st.markdown(f"""
+        <div class="cyber-kpi-card">
+            <div class="kpi-title">BOT UNIVERSE DICTIONARY</div>
+            <div class="kpi-value"><div class="metric-big">{len(stock_dict)} Equities</div></div>
+            <div class="kpi-badge-row"><div class="metric-badge-uniform">S&P 500 + MEGA-CAPS</div></div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    st.markdown("<div style='margin-top: 18px;'></div>", unsafe_allow_html=True)
+
+    col_prompt, col_manipulate = st.columns([1.05, 1.25])
+
+    # --------------------------------------------------------------------------
+    # LEFT COLUMN: ⚡ PROMPT BOT ORDER EXECUTION
+    # --------------------------------------------------------------------------
+    with col_prompt:
+        st.markdown("""
+        <div class="cyber-card" style="margin-bottom: 12px;">
+            <div class="kpi-title" style="color: #82FBBD; font-size: 0.76rem; letter-spacing: 0.12em;">// 01. PROMPT BOT ORDER EXECUTION</div>
+            <div style="font-size: 0.78rem; color: #71717A; margin-top: 4px; line-height: 1.4;">
+                Select a stock from the bot's S&P 500 universe dictionary and configure order sizing by either exact dollar value ($) or share quantity.
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+        # Quick Pick Pills
+        st.markdown("<div style='font-family: \"DM Mono\", monospace; font-size: 0.68rem; color: #71717A; text-transform: uppercase; margin-bottom: 4px;'>QUICK PICKS (HIGH CONVICTION)</div>", unsafe_allow_html=True)
+        quick_cols = st.columns(6)
+        quick_tickers = ["NVDA", "AAPL", "MSFT", "AMZN", "GOOGL", "SPY"]
+        if "selected_symbol" not in st.session_state:
+            st.session_state.selected_symbol = "NVDA"
+
+        for idx, q_sym in enumerate(quick_tickers):
+            with quick_cols[idx]:
+                if st.button(q_sym, key=f"quick_{q_sym}", use_container_width=True):
+                    st.session_state.selected_symbol = q_sym
+                    st.rerun()
+
+        # Stock Selector from Bot's Dictionary
+        default_index = 0
+        if st.session_state.selected_symbol in stock_dict:
+            default_index = stock_dict.index(st.session_state.selected_symbol)
+
+        selected_symbol = st.selectbox(
+            "Select Stock from Bot's Universe Dictionary",
+            options=stock_dict,
+            index=default_index,
+            key="symbol_selector",
+            help="Full S&P 500 + Mega-Caps dictionary utilized by Quant Engine and Alpha Gate"
+        )
+        st.session_state.selected_symbol = selected_symbol
+
+        # Fetch live price for selected stock
+        curr_price = broker.get_latest_price(selected_symbol)
+        if curr_price <= 0.0:
+            curr_price = 100.0  # Fallback
+
+        # Check existing position in this stock
+        existing_pos = pos_map.get(selected_symbol)
+        existing_qty = existing_pos["qty"] if existing_pos else 0
+        existing_val = existing_pos["market_value"] if existing_pos else 0.0
+        existing_pnl = existing_pos["unrealized_pl"] if existing_pos else 0.0
+        existing_plpc = (existing_pos["unrealized_plpc"] * 100) if existing_pos else 0.0
+
+        st.markdown(f"""
+        <div style="padding: 10px 14px; background: #070709; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px; margin-bottom: 14px; font-family: 'DM Mono', monospace; font-size: 0.78rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span>TICKER: <b style="color: #FFFFFF; font-size: 0.95rem;">{selected_symbol}</b></span>
+                <span>LIVE PRICE: <b style="color: #82FBBD; font-size: 0.95rem;">${curr_price:,.2f}</b></span>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 6px; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 6px; color: #71717A;">
+                <span>PORTFOLIO STATUS:</span>
+                <span style="color: {'#82FBBD' if existing_qty > 0 else '#A1A1AA'};">
+                    {f"Holding {existing_qty} shares (${existing_val:,.2f} | {existing_plpc:+.2f}%)" if existing_qty > 0 else "No Active Position (0 Shares)"}
+                </span>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+        # Order Parameters
+        order_side_col, order_type_col = st.columns(2)
+        with order_side_col:
+            order_side = st.selectbox("Action / Side", options=["BUY", "SELL"], index=0, key="order_side_select")
+        with order_type_col:
+            order_type = st.selectbox("Order Type", options=["MARKET", "LIMIT"], index=0, key="order_type_select")
+
+        limit_price = None
+        if order_type == "LIMIT":
+            limit_price = st.number_input(
+                "Limit Price ($ USD)",
+                min_value=0.01,
+                value=float(round(curr_price, 2)),
+                step=0.10,
+                format="%.2f",
+                key="limit_price_input"
+            )
+
+        # Sizing Mode: Value ($ Notional) vs Quantity (Shares)
+        size_mode = st.radio(
+            "Order Sizing Mode",
+            options=["By Dollar Value ($ Notional)", "By Quantity (Shares)"],
+            horizontal=True,
+            key="size_mode_radio"
+        )
+
+        calc_notional = 0.0
+        calc_qty = 0.0
+
+        if size_mode == "By Dollar Value ($ Notional)":
+            order_val = st.number_input(
+                "Target Dollar Value ($ USD)",
+                min_value=1.0,
+                max_value=max(100000.0, float(buying_power)),
+                value=min(2500.0, float(buying_power) if buying_power > 0 else 1000.0),
+                step=100.0,
+                format="%.2f",
+                key="dollar_val_input",
+                help="The exact dollar amount of stock to buy or sell"
+            )
+            calc_notional = order_val
+            ref_price = limit_price if (order_type == "LIMIT" and limit_price) else curr_price
+            calc_qty = max(1, int(order_val / ref_price)) if ref_price > 0 else 1
+            st.caption(f"Estimated Shares: ~**{calc_qty} shares** at ${ref_price:,.2f} / share")
+        else:
+            order_qty = st.number_input(
+                "Share Quantity",
+                min_value=1,
+                max_value=50000,
+                value=10,
+                step=1,
+                key="share_qty_input",
+                help="The exact number of whole shares to buy or sell"
+            )
+            calc_qty = float(order_qty)
+            ref_price = limit_price if (order_type == "LIMIT" and limit_price) else curr_price
+            calc_notional = calc_qty * ref_price
+            st.caption(f"Estimated Total Notional: ~**${calc_notional:,.2f}** at ${ref_price:,.2f} / share")
+
+        # Portfolio Impact & Safeguards Check
+        post_weight = ((existing_val + calc_notional) / equity * 100) if equity > 0 else 0.0
+        is_cap_breach = (post_weight > 15.0) and (order_side == "BUY")
+
+        st.markdown(f"""
+        <div style="background: #0D0E12; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px; padding: 10px 14px; margin: 12px 0; font-family: 'DM Mono', monospace; font-size: 0.74rem;">
+            <div style="display: flex; justify-content: space-between; padding-bottom: 4px;">
+                <span style="color: #71717A;">ESTIMATED ORDER NOTIONAL:</span>
+                <span style="color: #FFFFFF; font-weight: 600;">${calc_notional:,.2f}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; padding-bottom: 4px; border-bottom: 1px solid rgba(255,255,255,0.06);">
+                <span style="color: #71717A;">POST-TRADE ALLOCATION:</span>
+                <span style="color: {'#FF9A9C' if is_cap_breach else '#82FBBD'}; font-weight: 600;">{post_weight:.1f}% of Equity (15% Max)</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; padding-top: 4px;">
+                <span style="color: #71717A;">REMAINING CASH BUFFER:</span>
+                <span style="color: #82FBBD; font-weight: 600;">${max(0.0, cash - (calc_notional if order_side == 'BUY' else -calc_notional)):,.2f}</span>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+        if is_cap_breach:
+            st.warning(f"⚠️ Warning: This trade will result in {selected_symbol} exceeding the institutional 15% single-stock ceiling (${equity*0.15:,.2f}).")
+
+        # Order Submission Button
+        btn_label = f"⚡ TRANSMIT {order_side} ORDER FOR {selected_symbol}"
+        if st.button(btn_label, type="primary" if order_side == "BUY" else "secondary", use_container_width=True):
+            # Validation
+            if order_side == "BUY" and calc_notional > buying_power:
+                st.error(f"❌ Order Rejected: Insufficient buying power (${buying_power:,.2f} available vs ${calc_notional:,.2f} required).")
+            elif order_side == "SELL" and existing_qty < calc_qty:
+                st.error(f"❌ Order Rejected: Cannot sell {calc_qty} shares; you only hold {existing_qty} shares (Long-only discipline enforced).")
+            else:
+                with st.spinner(f"Transmitting {order_side} order for {selected_symbol} to Alpaca..."):
+                    if size_mode == "By Dollar Value ($ Notional)" and order_type == "MARKET":
+                        res = broker.place_order(
+                            symbol=selected_symbol,
+                            notional=calc_notional,
+                            side=order_side.lower(),
+                            order_type="market",
+                            time_in_force="day"
+                        )
+                    else:
+                        res = broker.place_order(
+                            symbol=selected_symbol,
+                            qty=calc_qty,
+                            side=order_side.lower(),
+                            order_type=order_type.lower(),
+                            limit_price=limit_price,
+                            time_in_force="day"
+                        )
+
+                    if res.get("success"):
+                        o_data = res.get("order", {})
+                        st.success(f"✅ {res.get('message', 'Order placed successfully!')} (ID: {o_data.get('id', 'N/A')}, Status: {o_data.get('status', 'ACCEPTED').upper()})")
+                        st.toast(f"✅ Order for {selected_symbol} placed!", icon="⚡")
+                        st.rerun()
+                    else:
+                        st.error(f"❌ Order Placement Error: {res.get('error', 'Unknown broker error')}")
+
+    # --------------------------------------------------------------------------
+    # RIGHT COLUMN: 📋 LIVE PLACED ORDERS MANIPULATION
+    # --------------------------------------------------------------------------
+    with col_manipulate:
+        st.markdown(f"""
+        <div class="cyber-card" style="margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <div class="kpi-title" style="color: #82FBBD; font-size: 0.76rem; letter-spacing: 0.12em;">// 02. ACTIVE PLACED ORDERS QUEUE</div>
+                <div style="font-size: 0.78rem; color: #71717A; margin-top: 4px;">
+                    Inspect, modify, or cancel currently queued & pending orders on Alpaca.
+                </div>
+            </div>
+            <div>
+                <span class="status-pill" style="border-color: rgba(130,251,189,0.3); color: #82FBBD;">{len(open_orders)} LIVE</span>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+        if open_orders:
+            b_col1, b_col2 = st.columns([1, 1])
+            with b_col1:
+                if st.button("🚨 Cancel All Open Orders", use_container_width=True, type="secondary"):
+                    with st.spinner("Canceling all open orders on Alpaca..."):
+                        if broker.cancel_all_orders():
+                            st.toast("✅ All open orders canceled!", icon="🗑️")
+                            st.rerun()
+                        else:
+                            st.error("Failed to cancel all orders.")
+            with b_col2:
+                if st.button("🔄 Refresh Orders Queue", use_container_width=True):
+                    st.rerun()
+
+            st.markdown("<div style='margin-top: 10px;'></div>", unsafe_allow_html=True)
+
+            # Render individual orders with cancel & modify buttons
+            for idx, o in enumerate(open_orders):
+                side_color = "#82FBBD" if o["side"] == "BUY" else "#FF9A9C"
+                badge_border = "rgba(130, 251, 189, 0.3)" if o["side"] == "BUY" else "rgba(255, 154, 156, 0.3)"
+                lp_str = f"@ ${o['limit_price']:,.2f}" if o.get("limit_price") else ""
+                sub_time = o.get("submitted_at", "")[11:19] if len(o.get("submitted_at", "")) >= 19 else ""
+                
+                with st.container():
+                    st.markdown(f"""
+                    <div style="background: #0A0B0E; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px; padding: 12px 14px; margin-bottom: 8px; font-family: 'DM Mono', monospace;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <span style="font-size: 1.05rem; font-weight: 700; color: #FFFFFF; font-family: 'Space Grotesk', sans-serif;">{o['symbol']}</span>
+                                <span style="font-size: 0.68rem; padding: 2px 7px; border-radius: 4px; border: 1px solid {badge_border}; color: {side_color}; font-weight: 600;">{o['side']}</span>
+                                <span style="font-size: 0.68rem; color: #71717A;">{o['type']} {lp_str}</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <span style="font-size: 0.68rem; color: #82FBBD; background: rgba(130,251,189,0.08); padding: 2px 6px; border-radius: 4px; border: 1px solid rgba(130,251,189,0.2);">{o['status']}</span>
+                                <span style="font-size: 0.68rem; color: #71717A;">{sub_time} UTC</span>
+                            </div>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; font-size: 0.72rem; color: #71717A; margin-top: 6px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 6px;">
+                            <span>Quantity: <b style="color: #FFFFFF;">{o['qty']} shares</b> (Filled: {o['filled_qty']})</span>
+                            <span style="font-size: 0.66rem; color: #52525B;">ID: {o['client_order_id'][:16] if o['client_order_id'] else o['id'][:12]}</span>
+                        </div>
+                    </div>
+                    """, unsafe_allow_html=True)
+
+                    btn_c1, btn_c2 = st.columns([1, 1.2])
+                    with btn_c1:
+                        if st.button("🗑️ Cancel", key=f"cancel_{o['id']}_{idx}", use_container_width=True):
+                            with st.spinner(f"Canceling order for {o['symbol']}..."):
+                                c_res = broker.cancel_order(o["id"])
+                                if c_res.get("success"):
+                                    st.toast(f"✅ Order for {o['symbol']} canceled!", icon="🗑️")
+                                    st.rerun()
+                                else:
+                                    st.error(f"Failed to cancel: {c_res.get('error')}")
+
+                    with btn_c2:
+                        with st.expander("✏️ Modify Order", expanded=False):
+                            m_qty = st.number_input(
+                                "New Qty",
+                                min_value=1,
+                                value=int(o["qty"]),
+                                step=1,
+                                key=f"mod_qty_{o['id']}_{idx}"
+                            )
+                            m_lp = None
+                            if o["type"] == "LIMIT" or o.get("limit_price"):
+                                m_lp = st.number_input(
+                                    "New Limit Price",
+                                    min_value=0.01,
+                                    value=float(o.get("limit_price") or 100.0),
+                                    step=0.10,
+                                    format="%.2f",
+                                    key=f"mod_lp_{o['id']}_{idx}"
+                                )
+                            if st.button("💾 Apply Modification", key=f"apply_mod_{o['id']}_{idx}", use_container_width=True):
+                                with st.spinner("Modifying order..."):
+                                    mod_res = broker.replace_order(
+                                        order_id=o["id"],
+                                        new_qty=m_qty,
+                                        new_limit_price=m_lp
+                                    )
+                                    if mod_res.get("success"):
+                                        st.toast(f"✅ Order for {o['symbol']} updated!", icon="✏️")
+                                        st.rerun()
+                                    else:
+                                        st.error(f"Modification error: {mod_res.get('error')}")
+
+        else:
+            st.info("No active open orders in the broker queue. All orders filled or cleared.")
+
+        # Bottom Sub-Card: Active Position Liquidator
+        st.markdown("<div style='margin-top: 20px;'></div>", unsafe_allow_html=True)
+        st.markdown("""
+        <div class="cyber-card">
+            <div class="kpi-title" style="color: #FF9A9C; font-size: 0.74rem;">// 03. QUICK POSITION LIQUIDATOR</div>
+            <div style="font-size: 0.78rem; color: #71717A; margin-top: 4px; line-height: 1.4;">
+                Manually exit or close any open equity position via immediate broker market sell.
+            </div>
+        """, unsafe_allow_html=True)
+
+        if positions:
+            pos_symbols = [p["symbol"] for p in positions]
+            close_sym = st.selectbox("Select Position to Liquidate", options=pos_symbols, key="desk_liq_select")
+            chosen_pos = pos_map.get(close_sym)
+            if chosen_pos:
+                st.caption(f"Holds: **{chosen_pos['qty']} shares** | Market Value: **${chosen_pos['market_value']:,.2f}** | PnL: **${chosen_pos['unrealized_pl']:+,.2f} ({chosen_pos['unrealized_plpc']*100:+.2f}%)**")
+                if st.button(f"🚨 MARKET CLOSE {close_sym} POSITION", type="secondary", key="desk_close_pos_btn", use_container_width=True):
+                    with st.spinner(f"Liquidating position in {close_sym}..."):
+                        c_pos_res = broker.close_position(close_sym)
+                        if c_pos_res.get("success"):
+                            st.toast(f"✅ Closed {close_sym} position!", icon="🚨")
+                            st.rerun()
+                        else:
+                            st.error(f"Liquidation error: {c_pos_res.get('error')}")
+        else:
+            st.caption("No open positions available to liquidate.")
+        st.markdown("</div>", unsafe_allow_html=True)
 
 
 # ==============================================================================
@@ -1599,7 +2017,7 @@ elif page == "🏆 30-Day Incubation Scorecard":
 # ==============================================================================
 # PAGE 4: ⚡ ORDER ACTIVITY LOG
 # ==============================================================================
-elif page == "⚡ Order Activity Log":
+elif page in ("⚡ Order Activity Log", "📜 Order Activity Log"):
     st.markdown("""
     <div class="page-title-box">
         <div class="page-title">⚡ Real-Time Execution Order Ledger</div>

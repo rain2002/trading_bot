@@ -182,26 +182,11 @@ class EnsembleAllocator:
         if not candidates:
             return {}
 
-        # 4. Dynamic Single-Stock Cap Sizing:
-        # When multiple potential stocks qualify (> 4), enforce standard conservative 15% cap
-        # for broad diversification across 6+ holdings.
-        # When few potential stocks qualify (<= 4, e.g. 2-3 stocks), dynamically allow single-stock
-        # sizing to exceed 15% (up to 22-30%) to prevent portfolio starvation, while enforcing
-        # an absolute risk ceiling to prevent evaporating capital on any single company.
-        num_candidates = len(candidates)
-        if num_candidates >= 5:
-            dynamic_cap = self.max_single_stock  # 15.0%
-        elif num_candidates == 4:
-            dynamic_cap = min(0.22, round(max_exposure / num_candidates, 4))  # ~21.25% - 22%
-        elif num_candidates == 3:
-            dynamic_cap = min(0.28, round(max_exposure / num_candidates, 4))  # ~28.0%
-        elif num_candidates == 2:
-            dynamic_cap = min(0.30, round(max_exposure / num_candidates, 4))  # ~30.0% max
-        elif num_candidates == 1:
-            dynamic_cap = 0.25  # Max 25% on a single company; remaining 75% stays cash buffer
-        else:
-            dynamic_cap = self.max_single_stock
-
+        # 4. Single-Stock Cap Sizing:
+        # Enforce strict single-stock ceiling (self.max_single_stock, default 15.0%)
+        # Excess conviction weight is redistributed across remaining uncapped candidates.
+        # If few candidates qualify, exposure contracts organically into cash reserve.
+        dynamic_cap = self.max_single_stock
         self.last_effective_cap = dynamic_cap
 
         # Enforce dynamic single-stock cap with iterative redistribution
