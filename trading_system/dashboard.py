@@ -471,6 +471,24 @@ cash_pct = (cash / equity * 100) if equity > 0 else 0.0
 invested_capital = equity - cash
 invested_pct = (invested_capital / equity * 100) if equity > 0 else 0.0
 
+def format_pnl_str(val: float) -> str:
+    """Format dollar P&L cleanly as +$X,XXX.XX or -$X,XXX.XX (ensuring minus sign precedes dollar sign)."""
+    if pd.isna(val):
+        return "$0.00"
+    if val >= 0:
+        return f"+${val:,.2f}"
+    else:
+        return f"-${abs(val):,.2f}"
+
+def format_pct_str(val: float) -> str:
+    """Format percentage returns cleanly as +X.XX% or -X.XX%."""
+    if pd.isna(val):
+        return "0.00%"
+    if val >= 0:
+        return f"+{val:.2f}%"
+    else:
+        return f"-{abs(val):.2f}%"
+
 # ==========================================
 # SIDEBAR NAVIGATION MENU (BL/S® EDITORIAL STYLE)
 # ==========================================
@@ -491,13 +509,19 @@ st.sidebar.markdown("""
 """, unsafe_allow_html=True)
 
 # Persistent Sidebar Account Strip
+nav_pnl_color = "#82FBBD" if today_pnl >= 0 else "#FF9A9C"
+nav_all_color = "#82FBBD" if overall_pnl >= 0 else "#FF9A9C"
 st.sidebar.markdown(f"""
 <div style="background: #0D0E12; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 10px; padding: 12px 14px; margin-bottom: 16px; font-family: 'DM Mono', monospace; box-shadow: 0 4px 16px rgba(0,0,0,0.5);">
     <div style="font-size: 0.64rem; color: #71717A; letter-spacing: 0.12em; text-transform: uppercase;">PORTFOLIO NAV</div>
     <div style="font-size: 1.30rem; font-weight: 700; color: #FFFFFF; margin: 3px 0; font-family: 'Space Grotesk', sans-serif; letter-spacing: -0.03em;">${equity:,.2f}</div>
     <div style="display: flex; justify-content: space-between; font-size: 0.70rem; color: #71717A; margin-top: 5px; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 5px;">
-        <span>CASH: <b style="color: #82FBBD;">{cash_pct:.1f}%</b></span>
-        <span>EQUITY: <b style="color: #82FBBD;">{invested_pct:.1f}%</b></span>
+        <span>SESSION: <b style="color: {nav_pnl_color};">{format_pnl_str(today_pnl)}</b></span>
+        <span>RETURN: <b style="color: {nav_all_color};">{format_pct_str(overall_pnl_pct)}</b></span>
+    </div>
+    <div style="display: flex; justify-content: space-between; font-size: 0.66rem; color: #52525B; margin-top: 4px;">
+        <span>CASH: <b style="color: #A1A1AA;">{cash_pct:.1f}%</b></span>
+        <span>EQUITY: <b style="color: #A1A1AA;">{invested_pct:.1f}%</b></span>
     </div>
 </div>
 """, unsafe_allow_html=True)
@@ -600,8 +624,8 @@ if page == "📊 Portfolio Overview":
         st.markdown(f"""
         <div class="cyber-kpi-card">
             <div class="kpi-title">TODAY'S SESSION P&L</div>
-            <div class="kpi-value"><div class="{pnl_class}">${today_pnl:+,.2f}</div></div>
-            <div class="kpi-badge-row"><div class="{badge_class}">{today_pnl_pct:+.2f}% TODAY</div></div>
+            <div class="kpi-value"><div class="{pnl_class}">{format_pnl_str(today_pnl)}</div></div>
+            <div class="kpi-badge-row"><div class="{badge_class}">{format_pct_str(today_pnl_pct)} TODAY</div></div>
         </div>
         """, unsafe_allow_html=True)
 
@@ -611,8 +635,8 @@ if page == "📊 Portfolio Overview":
         st.markdown(f"""
         <div class="cyber-kpi-card">
             <div class="kpi-title">INCEPTION NET RETURN</div>
-            <div class="kpi-value"><div class="{all_class}">${overall_pnl:+,.2f}</div></div>
-            <div class="kpi-badge-row"><div class="{badge_all_class}">{overall_pnl_pct:+.2f}% NET ALPHA</div></div>
+            <div class="kpi-value"><div class="{all_class}">{format_pnl_str(overall_pnl)}</div></div>
+            <div class="kpi-badge-row"><div class="{badge_all_class}">{format_pct_str(overall_pnl_pct)} NET ALPHA</div></div>
         </div>
         """, unsafe_allow_html=True)
 
@@ -785,6 +809,16 @@ if page == "📊 Portfolio Overview":
         background-color: #82FBBD;
         border-radius: 2px;
         display: inline-block;
+        box-shadow: 0 0 8px rgba(130, 251, 189, 0.4);
+    }}
+    
+    .dot-red {{
+        width: 8px;
+        height: 8px;
+        background-color: #FF9A9C;
+        border-radius: 2px;
+        display: inline-block;
+        box-shadow: 0 0 8px rgba(255, 154, 156, 0.4);
     }}
     
     .dot-grey {{
@@ -956,7 +990,7 @@ if page == "📊 Portfolio Overview":
             <div class="groww-header">
                 <div class="metric-left">
                     <div class="legend-row">
-                        <span>// VALUATION TRAJECTORY</span> <span class="dot-mint" style="margin-left:4px;"></span>
+                        <span>// VALUATION TRAJECTORY</span> <span id="legend-dot" class="dot-mint" style="margin-left:4px;"></span>
                     </div>
                     <div class="big-number" id="current-display">$101,437.23</div>
                     <div class="return-row" id="return-row">
@@ -983,29 +1017,29 @@ if page == "📊 Portfolio Overview":
             <div class="chart-area" id="chart-area">
                 <svg class="groww-svg" id="groww-svg" viewBox="0 0 1000 260" preserveAspectRatio="none">
                     <defs>
-                        <!-- Refined Studio Mint Drop Shadow Filter -->
+                        <!-- Dynamic Studio Mint / Crimson Drop Shadow Filter -->
                         <filter id="neon-glow" x="-20%" y="-20%" width="140%" height="140%">
-                            <feDropShadow dx="0" dy="0" stdDeviation="3.2" flood-color="#82FBBD" flood-opacity="0.38" />
+                            <feDropShadow id="glow-shadow" dx="0" dy="0" stdDeviation="3.2" flood-color="#82FBBD" flood-opacity="0.38" />
                         </filter>
                         
-                        <!-- Smooth Studio Mint Line Stroke Gradient -->
+                        <!-- Dynamic Studio Line Stroke Gradient -->
                         <linearGradient id="stroke-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                            <stop offset="0%" stop-color="#5EEAD4" />
-                            <stop offset="100%" stop-color="#82FBBD" />
+                            <stop id="stroke-stop-0" offset="0%" stop-color="#5EEAD4" />
+                            <stop id="stroke-stop-100" offset="100%" stop-color="#82FBBD" />
                         </linearGradient>
 
                         <!-- Subtle Volumetric Area Fill Gradient -->
                         <linearGradient id="area-gradient" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stop-color="#82FBBD" stop-opacity="0.14" />
-                            <stop offset="70%" stop-color="#82FBBD" stop-opacity="0.02" />
-                            <stop offset="100%" stop-color="#82FBBD" stop-opacity="0.00" />
+                            <stop id="area-stop-0" offset="0%" stop-color="#82FBBD" stop-opacity="0.14" />
+                            <stop id="area-stop-70" offset="70%" stop-color="#82FBBD" stop-opacity="0.02" />
+                            <stop id="area-stop-100" offset="100%" stop-color="#82FBBD" stop-opacity="0.00" />
                         </linearGradient>
 
                         <!-- Vertical Cursor Beam Gradient -->
                         <linearGradient id="cursor-beam" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stop-color="#82FBBD" stop-opacity="0.75" />
-                            <stop offset="75%" stop-color="#82FBBD" stop-opacity="0.2" />
-                            <stop offset="100%" stop-color="#82FBBD" stop-opacity="0.0" />
+                            <stop id="cursor-stop-0" offset="0%" stop-color="#82FBBD" stop-opacity="0.75" />
+                            <stop id="cursor-stop-75" offset="75%" stop-color="#82FBBD" stop-opacity="0.2" />
+                            <stop id="cursor-stop-100" offset="100%" stop-color="#82FBBD" stop-opacity="0.0" />
                         </linearGradient>
                     </defs>
 
@@ -1120,10 +1154,48 @@ if page == "📊 Portfolio Overview":
         const pnlBadge = document.getElementById('pnl-badge');
         const pnlSpan = document.getElementById('pnl-span');
         const sign = pnl >= 0 ? '+' : '-';
-        pnlBadge.className = 'return-glass-badge ' + (pnl >= 0 ? 'badge-green' : 'badge-red');
+        const isPos = pnl >= 0;
+        const themeColor = isPos ? '#82FBBD' : '#FF9A9C';
+        const strokeStart = isPos ? '#5EEAD4' : '#FFA9AA';
+        const areaOp0 = isPos ? '0.14' : '0.18';
+        const areaOp70 = isPos ? '0.02' : '0.03';
+
+        pnlBadge.className = 'return-glass-badge ' + (isPos ? 'badge-green' : 'badge-red');
         pnlSpan.innerHTML = `${{sign}}${{formatCurrency(Math.abs(pnl), currentCurrency)}} (${{pnlPct >= 0 ? '+' : ''}}${{pnlPct.toFixed(2)}}%)`;
         document.getElementById('tf-tag').innerText = activeTimeframe === 'All' ? 'All time' : activeTimeframe;
         
+        // Dynamically update SVG gradients and glows based on positive/negative valuation
+        const strokeStop0 = document.getElementById('stroke-stop-0');
+        const strokeStop100 = document.getElementById('stroke-stop-100');
+        const areaStop0 = document.getElementById('area-stop-0');
+        const areaStop70 = document.getElementById('area-stop-70');
+        const areaStop100 = document.getElementById('area-stop-100');
+        const glowShadow = document.getElementById('glow-shadow');
+        const cursorStop0 = document.getElementById('cursor-stop-0');
+        const cursorStop75 = document.getElementById('cursor-stop-75');
+        const cursorStop100 = document.getElementById('cursor-stop-100');
+        const legendDot = document.getElementById('legend-dot');
+
+        if (strokeStop0) strokeStop0.setAttribute('stop-color', strokeStart);
+        if (strokeStop100) strokeStop100.setAttribute('stop-color', themeColor);
+        if (areaStop0) {{
+            areaStop0.setAttribute('stop-color', themeColor);
+            areaStop0.setAttribute('stop-opacity', areaOp0);
+        }}
+        if (areaStop70) {{
+            areaStop70.setAttribute('stop-color', themeColor);
+            areaStop70.setAttribute('stop-opacity', areaOp70);
+        }}
+        if (areaStop100) areaStop100.setAttribute('stop-color', themeColor);
+        if (glowShadow) glowShadow.setAttribute('flood-color', themeColor);
+        if (cursorStop0) cursorStop0.setAttribute('stop-color', themeColor);
+        if (cursorStop75) cursorStop75.setAttribute('stop-color', themeColor);
+        if (cursorStop100) cursorStop100.setAttribute('stop-color', themeColor);
+        if (legendDot) legendDot.className = isPos ? 'dot-mint' : 'dot-red';
+
+        dotMint.setAttribute('stroke', themeColor);
+        cursorHalo.setAttribute('fill', isPos ? 'rgba(130, 251, 189, 0.18)' : 'rgba(255, 154, 156, 0.18)');
+
         // Scale SVG coordinate system
         const allVals = equities.concat(investedArr);
         const minVal = Math.min(...allVals) * 0.992;
@@ -1233,18 +1305,26 @@ if page == "📊 Portfolio Overview":
         const pnl = eqVal - invVal;
         const pnlPct = (pnl / invVal) * 100;
         const sign = pnl >= 0 ? '+' : '-';
+        const isPointPos = pnl >= 0;
+        const pointColor = isPointPos ? '#82FBBD' : '#FF9A9C';
         const pnlBadge = document.getElementById('pnl-badge');
         const pnlSpan = document.getElementById('pnl-span');
-        pnlBadge.className = 'return-glass-badge ' + (pnl >= 0 ? 'badge-green' : 'badge-red');
+        pnlBadge.className = 'return-glass-badge ' + (isPointPos ? 'badge-green' : 'badge-red');
         pnlSpan.innerHTML = `${{sign}}${{formatCurrency(Math.abs(pnl), currentCurrency)}} (${{pnlPct >= 0 ? '+' : ''}}${{pnlPct.toFixed(2)}}%)`;
         document.getElementById('tf-tag').innerText = dateStr;
+
+        dotMint.setAttribute('stroke', pointColor);
+        cursorHalo.setAttribute('fill', isPointPos ? 'rgba(130, 251, 189, 0.18)' : 'rgba(255, 154, 156, 0.18)');
         
-        // Tooltip position
+        // Tooltip position & content
         tooltip.style.display = 'block';
-        const tooltipX = Math.min(rect.width - 175, Math.max(10, mouseX - 70));
+        const tooltipX = Math.min(rect.width - 195, Math.max(10, mouseX - 85));
         tooltip.style.left = tooltipX + 'px';
         tooltip.style.top = '10px';
-        tooltip.innerHTML = `<span style="color:#71717A; font-family:'DM Mono',monospace; font-size:0.68rem; letter-spacing:0.06em; text-transform:uppercase;">${{dateStr}}</span><br><div style="margin-top:2px; font-family:'Space Grotesk',sans-serif; font-size:0.84rem;"><b style="color:#82FBBD;">Current:</b> ${{formatCurrency(eqVal, currentCurrency)}}</div><div style="font-family:'Space Grotesk',sans-serif; font-size:0.84rem;"><b style="color:#A1A1AA;">Invested:</b> ${{formatCurrency(invVal, currentCurrency)}}</div>`;
+        tooltip.innerHTML = `<span style="color:#71717A; font-family:'DM Mono',monospace; font-size:0.68rem; letter-spacing:0.06em; text-transform:uppercase;">${{dateStr}}</span><br>` +
+            `<div style="margin-top:2px; font-family:'Space Grotesk',sans-serif; font-size:0.84rem;"><b style="color:${{pointColor}};">Valuation:</b> ${{formatCurrency(eqVal, currentCurrency)}}</div>` +
+            `<div style="font-family:'Space Grotesk',sans-serif; font-size:0.84rem;"><b style="color:#71717A;">Invested:</b> ${{formatCurrency(invVal, currentCurrency)}}</div>` +
+            `<div style="font-family:'Space Grotesk',sans-serif; font-size:0.84rem; margin-top:2px; border-top:1px solid rgba(255,255,255,0.08); padding-top:2px;"><b style="color:#71717A;">P&L:</b> <span style="color:${{pointColor}}; font-weight:600;">${{sign}}${{formatCurrency(Math.abs(pnl), currentCurrency)}} (${{pnlPct >= 0 ? '+' : ''}}${{pnlPct.toFixed(2)}}%)</span></div>`;
     }});
 
     chartArea.addEventListener('mouseleave', () => {{
@@ -1368,12 +1448,13 @@ if page == "📊 Portfolio Overview":
             winners = df_pos[df_pos['unrealized_pl'] > 0]
             losers = df_pos[df_pos['unrealized_pl'] < 0]
             win_rate = (len(winners) / len(df_pos) * 100) if len(df_pos) > 0 else 0.0
+            wr_color = "#82FBBD" if win_rate >= 50.0 else "#FF9A9C"
 
             st.markdown(f"""
             <div style="margin-top: 15px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.08);">
                 <div style="display: flex; justify-content: space-between; font-family: 'DM Mono', monospace; font-size: 0.78rem; margin-bottom: 6px;">
                     <span style="color: #71717A;">Win Rate on Open Positions:</span>
-                    <span style="color: #82FBBD; font-weight: 700;">{win_rate:.1f}% ({len(winners)} Green / {len(losers)} Red)</span>
+                    <span style="font-weight: 700;"><b style="color: {wr_color};">{win_rate:.1f}%</b> (<b style="color: #82FBBD;">{len(winners)} Green</b> / <b style="color: #FF9A9C;">{len(losers)} Red</b>)</span>
                 </div>
             </div>
             </div>
@@ -1425,11 +1506,12 @@ elif page == "📋 Positions & Stop-Loss":
 
         with p3:
             pnl_cls = "metric-big-green" if overall_pnl >= 0 else "metric-big-red"
+            badge_cls = "metric-badge-mint" if overall_pnl >= 0 else "metric-badge-danger"
             st.markdown(f"""
             <div class="cyber-kpi-card">
                 <div class="kpi-title">TOTAL UNREALIZED ALPHA</div>
-                <div class="kpi-value"><div class="{pnl_cls}">${overall_pnl:+,.2f}</div></div>
-                <div class="kpi-badge-row"><div class="metric-badge-uniform">{overall_pnl_pct:+.2f}% ON CAPITAL</div></div>
+                <div class="kpi-value"><div class="{pnl_cls}">{format_pnl_str(overall_pnl)}</div></div>
+                <div class="kpi-badge-row"><div class="{badge_cls}">{format_pct_str(overall_pnl_pct)} ON CAPITAL</div></div>
             </div>
             """, unsafe_allow_html=True)
 
@@ -1458,16 +1540,40 @@ elif page == "📋 Positions & Stop-Loss":
                 return "⚪ HOLDING"
 
         df_pos["Status"] = df_pos.apply(evaluate_sl_status, axis=1)
-        df_pos["Return %"] = (df_pos["unrealized_plpc"] * 100).round(2).astype(str) + "%"
-        df_pos["PnL ($)"] = df_pos["unrealized_pl"].round(2)
-        df_pos["Market Value"] = df_pos["market_value"].round(2)
-        df_pos["Current Price"] = df_pos["current_price"].round(2)
-        df_pos["Avg Entry"] = df_pos["avg_entry_price"].round(2)
+        df_pos["Unrealized P&L ($)"] = df_pos["unrealized_pl"]
+        df_pos["Return (%)"] = df_pos["unrealized_plpc"] * 100
+        df_pos["Market Value ($)"] = df_pos["market_value"]
+        df_pos["Current Price ($)"] = df_pos["current_price"]
+        df_pos["Avg Entry ($)"] = df_pos["avg_entry_price"]
+        df_pos["Shares"] = df_pos["qty"]
+        df_pos["Ticker"] = df_pos["symbol"]
 
-        display_cols = ["symbol", "qty", "Current Price", "Avg Entry", "Market Value", "PnL ($)", "Return %", "Status"]
+        display_cols = ["Ticker", "Shares", "Current Price ($)", "Avg Entry ($)", "Market Value ($)", "Unrealized P&L ($)", "Return (%)", "Status"]
+        df_display = df_pos[display_cols].sort_values(by="Unrealized P&L ($)", ascending=False)
+
+        def color_pnl_cells(v):
+            if isinstance(v, (int, float)):
+                if v > 0:
+                    return "color: #82FBBD; font-weight: 600;"
+                elif v < 0:
+                    return "color: #FF9A9C; font-weight: 600;"
+            return ""
+
+        styled_pos_df = (
+            df_display.style
+            .map(color_pnl_cells, subset=["Unrealized P&L ($)", "Return (%)"])
+            .format({
+                "Unrealized P&L ($)": format_pnl_str,
+                "Return (%)": format_pct_str,
+                "Current Price ($)": "${:,.2f}",
+                "Avg Entry ($)": "${:,.2f}",
+                "Market Value ($)": "${:,.2f}",
+                "Shares": "{:,.0f}"
+            })
+        )
 
         st.dataframe(
-            df_pos[display_cols].sort_values(by="PnL ($)", ascending=False),
+            styled_pos_df,
             width='stretch',
             hide_index=True
         )
@@ -1483,6 +1589,12 @@ elif page == "📋 Positions & Stop-Loss":
             liq_col1, liq_col2 = st.columns([2.5, 1.2])
             with liq_col1:
                 sel_liq = st.selectbox("Select Position to Liquidate", options=[p["symbol"] for p in positions], key="pos_page_liq_select")
+                sel_pos_data = next((p for p in positions if p["symbol"] == sel_liq), None)
+                if sel_pos_data:
+                    pnl_v = sel_pos_data.get("unrealized_pl", 0.0)
+                    plpc_v = sel_pos_data.get("unrealized_plpc", 0.0) * 100
+                    pnl_c = "#82FBBD" if pnl_v >= 0 else "#FF9A9C"
+                    st.markdown(f"<div style='font-family:\"DM Mono\",monospace; font-size:0.75rem; color:#71717A; margin-top:-6px; margin-bottom:8px;'>Holding: <b style='color:#FFFFFF;'>{sel_pos_data.get('qty')} shares</b> | Market Val: <b style='color:#FFFFFF;'>${sel_pos_data.get('market_value', 0):,.2f}</b> | P&L: <b style='color:{pnl_c};'>{format_pnl_str(pnl_v)} ({format_pct_str(plpc_v)})</b></div>", unsafe_allow_html=True)
             with liq_col2:
                 st.markdown("<div style='margin-top: 28px;'></div>", unsafe_allow_html=True)
                 if st.button(f"🚨 Liquidate {sel_liq}", type="secondary", key="pos_page_liq_btn", use_container_width=True):
@@ -1615,8 +1727,8 @@ elif page == "⚡ Manual Order Desk & Execution":
             </div>
             <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 6px; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 6px; color: #71717A;">
                 <span>PORTFOLIO STATUS:</span>
-                <span style="color: {'#82FBBD' if existing_qty > 0 else '#A1A1AA'};">
-                    {f"Holding {existing_qty} shares (${existing_val:,.2f} | {existing_plpc:+.2f}%)" if existing_qty > 0 else "No Active Position (0 Shares)"}
+                <span>
+                    {f"Holding {existing_qty} shares (${existing_val:,.2f} | <b style='color: {'#82FBBD' if existing_pnl >= 0 else '#FF9A9C'};'>{format_pnl_str(existing_pnl)} ({format_pct_str(existing_plpc)})</b>)" if existing_qty > 0 else "<span style='color: #71717A;'>No Active Position (0 Shares)</span>"}
                 </span>
             </div>
         </div>
@@ -1864,7 +1976,10 @@ elif page == "⚡ Manual Order Desk & Execution":
             close_sym = st.selectbox("Select Position to Liquidate", options=pos_symbols, key="desk_liq_select")
             chosen_pos = pos_map.get(close_sym)
             if chosen_pos:
-                st.caption(f"Holds: **{chosen_pos['qty']} shares** | Market Value: **${chosen_pos['market_value']:,.2f}** | PnL: **${chosen_pos['unrealized_pl']:+,.2f} ({chosen_pos['unrealized_plpc']*100:+.2f}%)**")
+                chosen_pnl = chosen_pos['unrealized_pl']
+                chosen_plpc = chosen_pos['unrealized_plpc'] * 100
+                chosen_pnl_color = "#82FBBD" if chosen_pnl >= 0 else "#FF9A9C"
+                st.markdown(f"<div style='font-family:\"DM Mono\",monospace; font-size:0.75rem; color:#71717A; margin-bottom:8px;'>Holds: <b style='color:#FFFFFF;'>{chosen_pos['qty']} shares</b> | Market Value: <b style='color:#FFFFFF;'>${chosen_pos['market_value']:,.2f}</b> | PnL: <b style='color:{chosen_pnl_color};'>{format_pnl_str(chosen_pnl)} ({format_pct_str(chosen_plpc)})</b></div>", unsafe_allow_html=True)
                 if st.button(f"🚨 MARKET CLOSE {close_sym} POSITION", type="secondary", key="desk_close_pos_btn", use_container_width=True):
                     with st.spinner(f"Liquidating position in {close_sym}..."):
                         c_pos_res = broker.close_position(close_sym)
@@ -1924,21 +2039,23 @@ elif page == "🏆 30-Day Incubation Scorecard":
 
         with sc3:
             pnl_class = "metric-big-green" if net_change >= 0 else "metric-big-red"
-            badge_class = "metric-badge-uniform" if net_change >= 0 else "metric-badge-danger"
+            badge_class = "metric-badge-mint" if net_change >= 0 else "metric-badge-danger"
             st.markdown(f"""
             <div class="cyber-kpi-card">
                 <div class="kpi-title">NET INCUBATION RETURN</div>
-                <div class="kpi-value"><div class="{pnl_class}">${net_change:+,.2f}</div></div>
-                <div class="kpi-badge-row"><div class="{badge_class}">{net_change_pct:+.2f}% TOTAL RETURN</div></div>
+                <div class="kpi-value"><div class="{pnl_class}">{format_pnl_str(net_change)}</div></div>
+                <div class="kpi-badge-row"><div class="{badge_class}">{format_pct_str(net_change_pct)} TOTAL RETURN</div></div>
             </div>
             """, unsafe_allow_html=True)
 
         with sc4:
+            dd_class = "metric-big-green" if max_drawdown > -8.0 else "metric-big-red"
+            dd_badge = "metric-badge-mint" if max_drawdown > -8.0 else "metric-badge-danger"
             st.markdown(f"""
             <div class="cyber-kpi-card">
                 <div class="kpi-title">PEAK-TO-TROUGH DRAWDOWN</div>
-                <div class="kpi-value"><div class="metric-big">{max_drawdown:.2f}%</div></div>
-                <div class="kpi-badge-row"><div class="metric-badge-uniform">TOLERANCE &lt; -10.0%</div></div>
+                <div class="kpi-value"><div class="{dd_class}">{max_drawdown:.2f}%</div></div>
+                <div class="kpi-badge-row"><div class="{dd_badge}">TOLERANCE &lt; -10.0%</div></div>
             </div>
             """, unsafe_allow_html=True)
 
@@ -1946,14 +2063,16 @@ elif page == "🏆 30-Day Incubation Scorecard":
 
         # Sleek Equity Curve (Blacklead Studio Minimalist Edition)
         fig_equity = go.Figure()
+        curve_color = "#82FBBD" if net_change >= 0 else "#FF9A9C"
+        curve_fill = "rgba(130, 251, 189, 0.08)" if net_change >= 0 else "rgba(255, 154, 156, 0.08)"
         fig_equity.add_trace(go.Scatter(
             x=df_history["timestamp"],
             y=df_history["equity"],
             mode="lines",
             name="Account Equity",
-            line=dict(color="#82FBBD", width=2.4),
+            line=dict(color=curve_color, width=2.4),
             fill="tozeroy",
-            fillcolor="rgba(130, 251, 189, 0.08)"
+            fillcolor=curve_fill
         ))
         fig_equity.add_hline(
             y=100000.0,
@@ -2246,7 +2365,7 @@ elif page in ("⚡ Order Activity Log", "📜 Order Activity Log"):
                 st.markdown(f"""
                 <div style="padding: 8px 12px; background: #0D0E12; border-left: 3px solid #82FBBD; border-radius: 6px; margin: 8px 0; font-family: 'DM Mono', monospace; font-size: 0.80rem; display: flex; justify-content: space-between;">
                     <span><b>📅 {d}</b> — {len(d_df)} Orders</span>
-                    <span>Volume: <b style="color: #82FBBD;">${d_notional:,.2f}</b> ({d_buys} Buys / {d_sells} Sells)</span>
+                    <span>Volume: <b style="color: #82FBBD;">${d_notional:,.2f}</b> (<b style="color: #82FBBD;">{d_buys} Buys</b> / <b style="color: #FF9A9C;">{d_sells} Sells</b>)</span>
                 </div>
                 """, unsafe_allow_html=True)
 
