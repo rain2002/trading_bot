@@ -23,54 +23,50 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# ==========================================
-# UNIFORM SLEEK CYBERPUNK STYLING & SIDEBAR NAVIGATION
-# ==========================================
+# ==============================================================================
+# BLACKLEAD STUDIO (BL/S®) DESIGN SYSTEM & EDITORIAL ARCHITECTURE
+# STYLISH YET SIMPLE TO UNDERSTAND • SIMPLE, REFINED UX
+# ==============================================================================
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,300;0,400;0,600;0,700;1,400&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500&family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap');
 
-/* Global Font & Dynamic Obsidian Theme */
+/* Global Font & High-End Matte Obsidian Theme */
 html, body, [class*="css"] {
     font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif !important;
-    color: #F8FAFC;
+    color: #FFFFFF;
 }
 
 code, pre, .mono-font {
-    font-family: 'JetBrains Mono', monospace !important;
+    font-family: 'DM Mono', 'JetBrains Mono', monospace !important;
 }
 
-/* Deep Cyber-Obsidian Canvas with Ambient Ethereal Glow */
+/* Velvet Matte Obsidian Canvas - Pure Black Architectural Aesthetic */
 .stApp {
-    background: radial-gradient(circle at 10% 12%, rgba(0, 255, 136, 0.05) 0%, transparent 45%),
-                radial-gradient(circle at 88% 18%, rgba(168, 85, 247, 0.07) 0%, transparent 48%),
-                radial-gradient(circle at 50% 85%, rgba(0, 242, 254, 0.04) 0%, transparent 55%),
-                #070A12 !important;
+    background: #050507 !important;
     background-attachment: fixed !important;
 }
 
-/* Subtle Cybernetic Dot Matrix Mesh Overlay */
+/* Delicate Hairline Architectural Grid Mesh */
 .stApp::before {
     content: '';
     position: fixed;
     top: 0; left: 0; width: 100vw; height: 100vh;
-    background-image: radial-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px);
-    background-size: 28px 28px;
+    background-image: radial-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px);
+    background-size: 32px 32px;
     pointer-events: none;
     z-index: 0;
 }
 
-/* Glassmorphic Sidebar Container */
+/* Minimalist Studio Sidebar */
 section[data-testid="stSidebar"] {
-    background: rgba(6, 9, 19, 0.72) !important;
-    backdrop-filter: blur(28px) saturate(200%) !important;
-    -webkit-backdrop-filter: blur(28px) saturate(200%) !important;
-    border-right: 1px solid rgba(255, 255, 255, 0.08) !important;
-    box-shadow: 10px 0 35px rgba(0, 0, 0, 0.8) !important;
+    background: #070709 !important;
+    border-right: 1px solid rgba(255, 255, 255, 0.07) !important;
+    box-shadow: 12px 0 40px rgba(0, 0, 0, 0.9) !important;
 }
 
 /* ==============================================================================
-   STANDARD MODERN WEBSITE SIDEBAR NAVIGATION (NO RADIO BUTTONS / NO TOGGLES)
+   STANDARD MODERN WEBSITE SIDEBAR NAVIGATION (SIMPLE, CLEAN LINKS)
    ============================================================================== */
 
 /* Tight vertical spacing between navigation links */
@@ -78,7 +74,7 @@ section[data-testid="stSidebar"] div[data-testid="stVerticalBlock"] > div.stButt
 section[data-testid="stSidebar"] div.stButton {
     margin: 0 !important;
     padding: 0 !important;
-    margin-bottom: 4px !important;
+    margin-bottom: 3px !important;
     width: 100% !important;
 }
 
@@ -88,16 +84,16 @@ section[data-testid="stSidebar"] div.stButton > button {
     align-items: center !important;
     justify-content: flex-start !important;
     width: 100% !important;
-    min-height: 42px !important;
-    height: 42px !important;
-    padding: 8px 16px !important;
-    border-radius: 9px !important;
+    min-height: 40px !important;
+    height: 40px !important;
+    padding: 8px 14px !important;
+    border-radius: 8px !important;
     font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif !important;
-    font-size: 0.88rem !important;
+    font-size: 0.86rem !important;
     font-weight: 500 !important;
     text-align: left !important;
     letter-spacing: -0.01em !important;
-    transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    transition: all 0.16s ease !important;
     cursor: pointer !important;
     box-sizing: border-box !important;
 }
@@ -106,43 +102,43 @@ section[data-testid="stSidebar"] div.stButton > button {
 section[data-testid="stSidebar"] div.stButton > button[kind="secondary"],
 section[data-testid="stSidebar"] div.stButton > button[data-testid="stBaseButton-secondary"],
 section[data-testid="stSidebar"] div.stButton > button:not([kind="primary"]):not([data-testid="stBaseButton-primary"]) {
-    background: rgba(255, 255, 255, 0.02) !important;
-    color: #94A3B8 !important;
-    border: 1px solid rgba(255, 255, 255, 0.05) !important;
-    border-left: 3.5px solid transparent !important;
+    background: transparent !important;
+    color: #A1A1AA !important;
+    border: 1px solid transparent !important;
+    border-left: 3px solid transparent !important;
     box-shadow: none !important;
 }
 
-/* Hover effect on inactive links - standard website nav hover */
+/* Hover effect on inactive links - clean minimalist studio hover */
 section[data-testid="stSidebar"] div.stButton > button[kind="secondary"]:hover,
 section[data-testid="stSidebar"] div.stButton > button[data-testid="stBaseButton-secondary"]:hover,
 section[data-testid="stSidebar"] div.stButton > button:not([kind="primary"]):not([data-testid="stBaseButton-primary"]):hover {
-    background: rgba(255, 255, 255, 0.06) !important;
+    background: rgba(255, 255, 255, 0.04) !important;
     color: #FFFFFF !important;
-    border-color: rgba(255, 255, 255, 0.12) !important;
-    border-left: 3.5px solid rgba(0, 255, 136, 0.5) !important;
-    transform: translateX(3px) !important;
+    border-color: rgba(255, 255, 255, 0.08) !important;
+    border-left: 3px solid rgba(255, 255, 255, 0.4) !important;
+    transform: translateX(2px) !important;
 }
 
-/* Active Page Link (the page currently open) */
+/* Active Page Link (Blacklead Mint Accent) */
 section[data-testid="stSidebar"] div.stButton > button[kind="primary"],
 section[data-testid="stSidebar"] div.stButton > button[data-testid="stBaseButton-primary"] {
-    background: linear-gradient(90deg, rgba(0, 255, 136, 0.14) 0%, rgba(0, 242, 254, 0.04) 100%) !important;
-    color: #00FF88 !important;
-    border: 1px solid rgba(0, 255, 136, 0.4) !important;
-    border-left: 3.5px solid #00FF88 !important;
+    background: rgba(130, 251, 189, 0.08) !important;
+    color: #82FBBD !important;
+    border: 1px solid rgba(130, 251, 189, 0.28) !important;
+    border-left: 3px solid #82FBBD !important;
     font-weight: 600 !important;
-    box-shadow: 0 4px 18px rgba(0, 255, 136, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.10) !important;
+    box-shadow: 0 2px 14px rgba(130, 251, 189, 0.12) !important;
 }
 
 section[data-testid="stSidebar"] div.stButton > button[kind="primary"]:hover,
 section[data-testid="stSidebar"] div.stButton > button[data-testid="stBaseButton-primary"]:hover {
-    background: linear-gradient(90deg, rgba(0, 255, 136, 0.20) 0%, rgba(0, 242, 254, 0.08) 100%) !important;
-    color: #00FF88 !important;
-    border-color: rgba(0, 255, 136, 0.6) !important;
+    background: rgba(130, 251, 189, 0.12) !important;
+    color: #82FBBD !important;
+    border-color: rgba(130, 251, 189, 0.4) !important;
 }
 
-/* Align text and emojis inside the button strictly to the left like a real website nav link */
+/* Align text and emojis inside the button strictly to the left */
 section[data-testid="stSidebar"] div.stButton > button > div,
 section[data-testid="stSidebar"] div.stButton > button span,
 section[data-testid="stSidebar"] div.stButton > button div[data-testid="stMarkdownContainer"],
@@ -160,46 +156,44 @@ section[data-testid="stSidebar"] div.stButton > button p {
     width: 100% !important;
 }
 
-/* ==========================================
-   TIMEFRAME SELECTOR / SEGMENTED CONTROL
-   ========================================== */
+/* ==============================================================================
+   TIMEFRAME SELECTOR / SEGMENTED CONTROL (MINIMALIST PILLS)
+   ============================================================================== */
 div[data-testid="stSegmentedControl"] {
-    background: rgba(15, 23, 42, 0.75) !important;
-    border: 1px solid rgba(0, 255, 136, 0.22) !important;
-    border-radius: 10px !important;
-    padding: 3px !important;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3) !important;
+    background: #0E0E12 !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 9999px !important;
+    padding: 2px !important;
 }
 
 div[data-testid="stSegmentedControl"] button {
-    font-family: 'JetBrains Mono', monospace !important;
-    font-size: 0.76rem !important;
-    font-weight: 600 !important;
-    color: #94A3B8 !important;
+    font-family: 'DM Mono', monospace !important;
+    font-size: 0.74rem !important;
+    font-weight: 500 !important;
+    color: #A1A1AA !important;
     background: transparent !important;
     border: none !important;
-    border-radius: 8px !important;
-    padding: 5px 12px !important;
+    border-radius: 9999px !important;
+    padding: 4px 10px !important;
     cursor: pointer !important;
-    transition: all 0.2s ease !important;
+    transition: all 0.18s ease !important;
 }
 
 div[data-testid="stSegmentedControl"] button:hover {
-    color: #F8FAFC !important;
+    color: #FFFFFF !important;
     background: rgba(255, 255, 255, 0.06) !important;
 }
 
 div[data-testid="stSegmentedControl"] button[aria-checked="true"],
 div[data-testid="stSegmentedControl"] button[data-checked="true"] {
-    background: rgba(0, 255, 136, 0.20) !important;
-    color: #00FF88 !important;
-    border: 1px solid rgba(0, 255, 136, 0.4) !important;
-    box-shadow: 0 0 12px rgba(0, 255, 136, 0.25) !important;
-    font-weight: 700 !important;
+    background: rgba(255, 255, 255, 0.12) !important;
+    color: #FFFFFF !important;
+    border: 1px solid rgba(255, 255, 255, 0.22) !important;
+    font-weight: 600 !important;
 }
 
 /* ==============================================================================
-   PIXEL-PERFECT UNIFORM KPI BOXES (IDENTICAL HEIGHTS, WIDTHS, AND BASELINES)
+   PIXEL-PERFECT UNIFORM METRIC BOXES (BLACKLEAD ARCHITECTURAL CARDS)
    ============================================================================== */
 [data-testid="column"] {
     display: flex !important;
@@ -212,41 +206,39 @@ div[data-testid="stSegmentedControl"] button[data-checked="true"] {
 }
 
 .cyber-kpi-card {
-    background: linear-gradient(135deg, rgba(22, 28, 48, 0.65) 0%, rgba(10, 14, 28, 0.78) 100%) !important;
-    border: 1px solid rgba(255, 255, 255, 0.10) !important;
-    border-radius: 16px !important;
-    padding: 16px 18px !important;
-    height: 138px !important;
-    min-height: 138px !important;
-    max-height: 138px !important;
+    background: #0D0E12 !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    border-radius: 12px !important;
+    padding: 14px 16px !important;
+    height: 124px !important;
+    min-height: 124px !important;
+    max-height: 124px !important;
     box-sizing: border-box !important;
     display: flex !important;
     flex-direction: column !important;
     justify-content: space-between !important;
-    backdrop-filter: blur(28px) saturate(200%) !important;
-    -webkit-backdrop-filter: blur(28px) saturate(200%) !important;
-    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.16) !important;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
+    transition: all 0.22s ease !important;
     margin: 0 !important;
     width: 100% !important;
 }
 .cyber-kpi-card:hover {
-    border-color: rgba(0, 255, 136, 0.5) !important;
-    box-shadow: 0 18px 45px rgba(0, 255, 136, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
-    transform: translateY(-3px) scale(1.008) !important;
+    border-color: rgba(255, 255, 255, 0.20) !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 8px 26px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
 }
 
 .kpi-title {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.68rem;
-    font-weight: 600;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.66rem;
+    font-weight: 500;
     text-transform: uppercase;
-    letter-spacing: 0.07em;
-    color: #94A3B8;
-    height: 24px;
+    letter-spacing: 0.10em;
+    color: #71717A;
+    height: 20px;
     display: flex;
     align-items: center;
-    line-height: 1.15;
+    line-height: 1.1;
     margin: 0;
     padding: 0;
     overflow: hidden;
@@ -255,7 +247,7 @@ div[data-testid="stSegmentedControl"] button[data-checked="true"] {
 }
 
 .kpi-value {
-    height: 38px;
+    height: 36px;
     display: flex;
     align-items: center;
     margin: 0;
@@ -263,37 +255,37 @@ div[data-testid="stSegmentedControl"] button[data-checked="true"] {
 }
 
 .kpi-badge-row {
-    height: 24px;
+    height: 22px;
     display: flex;
     align-items: center;
     margin: 0;
     padding: 0;
 }
 
-/* Metric Typography */
+/* Metric Typography - High Contrast Studio Display */
 .metric-big {
-    font-size: 1.70rem;
+    font-size: 1.65rem;
     font-weight: 700;
-    letter-spacing: -0.03em;
-    color: #F8FAFC;
+    letter-spacing: -0.035em;
+    color: #FFFFFF;
     line-height: 1;
     margin: 0;
 }
 
 .metric-big-green {
-    font-size: 1.70rem;
+    font-size: 1.65rem;
     font-weight: 700;
-    letter-spacing: -0.03em;
-    color: #00FF88;
+    letter-spacing: -0.035em;
+    color: #82FBBD;
     line-height: 1;
     margin: 0;
 }
 
 .metric-big-red {
-    font-size: 1.70rem;
+    font-size: 1.65rem;
     font-weight: 700;
-    letter-spacing: -0.03em;
-    color: #FF3B5C;
+    letter-spacing: -0.035em;
+    color: #FF9A9C;
     line-height: 1;
     margin: 0;
 }
@@ -302,83 +294,93 @@ div[data-testid="stSegmentedControl"] button[data-checked="true"] {
     display: inline-flex;
     align-items: center;
     gap: 4px;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.70rem;
-    font-weight: 600;
-    padding: 3px 9px;
-    border-radius: 12px;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.68rem;
+    font-weight: 500;
+    padding: 2px 8px;
+    border-radius: 9999px;
     margin: 0;
-    background: rgba(0, 255, 136, 0.10);
-    color: #00FF88;
-    border: 1px solid rgba(0, 255, 136, 0.28);
+    background: rgba(255, 255, 255, 0.05);
+    color: #A1A1AA;
+    border: 1px solid rgba(255, 255, 255, 0.10);
+}
+
+.metric-badge-mint {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.68rem;
+    font-weight: 500;
+    padding: 2px 8px;
+    border-radius: 9999px;
+    margin: 0;
+    background: rgba(130, 251, 189, 0.09);
+    color: #82FBBD;
+    border: 1px solid rgba(130, 251, 189, 0.25);
 }
 
 .metric-badge-danger {
     display: inline-flex;
     align-items: center;
     gap: 4px;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.70rem;
-    font-weight: 600;
-    padding: 3px 9px;
-    border-radius: 12px;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.68rem;
+    font-weight: 500;
+    padding: 2px 8px;
+    border-radius: 9999px;
     margin: 0;
-    background: rgba(255, 59, 92, 0.12);
-    color: #FF3B5C;
-    border: 1px solid rgba(255, 59, 92, 0.32);
+    background: rgba(255, 154, 156, 0.09);
+    color: #FF9A9C;
+    border: 1px solid rgba(255, 154, 156, 0.25);
 }
 
-/* Standard Generic Cyber Card Container (Frosted Glass) */
+/* Standard Studio Card Container */
 .cyber-card {
-    background: linear-gradient(135deg, rgba(22, 28, 48, 0.65) 0%, rgba(10, 14, 28, 0.78) 100%) !important;
-    border: 1px solid rgba(255, 255, 255, 0.10) !important;
-    border-radius: 16px !important;
-    padding: 20px 24px !important;
-    backdrop-filter: blur(28px) saturate(200%) !important;
-    -webkit-backdrop-filter: blur(28px) saturate(200%) !important;
-    box-shadow: 0 14px 40px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.16) !important;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    background: #0D0E12 !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    border-radius: 12px !important;
+    padding: 18px 22px !important;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
+    transition: all 0.22s ease !important;
     margin-bottom: 14px !important;
 }
 .cyber-card:hover {
-    border-color: rgba(0, 255, 136, 0.45) !important;
-    box-shadow: 0 18px 45px rgba(0, 255, 136, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.25) !important;
+    border-color: rgba(255, 255, 255, 0.18) !important;
     transform: translateY(-2px) !important;
 }
 
-/* Top Telemetry Header (Floating Glass Command Bar) */
+/* Top Telemetry Header (Minimalist Command Strip) */
 .hud-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 16px 24px;
-    background: linear-gradient(135deg, rgba(22, 28, 48, 0.70) 0%, rgba(10, 14, 28, 0.80) 100%) !important;
-    backdrop-filter: blur(28px) saturate(200%) !important;
-    -webkit-backdrop-filter: blur(28px) saturate(200%) !important;
-    border: 1px solid rgba(255, 255, 255, 0.12) !important;
-    border-radius: 16px !important;
-    margin-bottom: 20px;
-    box-shadow: 0 16px 45px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.18) !important;
+    padding: 14px 20px;
+    background: #0D0E12 !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    border-radius: 12px !important;
+    margin-bottom: 18px;
+    box-shadow: 0 6px 25px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
 }
 
 .hud-title {
-    font-size: 1.35rem;
+    font-size: 1.22rem;
     font-weight: 700;
-    letter-spacing: -0.02em;
-    color: #F8FAFC;
+    letter-spacing: -0.025em;
+    color: #FFFFFF;
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
 }
 .hud-title-accent {
-    color: #00FF88;
+    color: #82FBBD;
 }
 
 .hud-subtitle {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.72rem;
-    color: #94A3B8;
-    letter-spacing: 0.1em;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.68rem;
+    color: #71717A;
+    letter-spacing: 0.10em;
     text-transform: uppercase;
     margin-top: 3px;
 }
@@ -387,59 +389,59 @@ div[data-testid="stSegmentedControl"] button[data-checked="true"] {
 .status-pill {
     display: inline-flex;
     align-items: center;
-    gap: 8px;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.74rem;
-    font-weight: 600;
-    padding: 6px 14px;
-    border-radius: 20px;
-    background: rgba(15, 23, 42, 0.85);
-    border: 1px solid rgba(0, 255, 136, 0.28);
-    color: #00FF88;
+    gap: 6px;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.70rem;
+    font-weight: 500;
+    padding: 4px 11px;
+    border-radius: 9999px;
+    background: #141418;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: #FFFFFF;
 }
 
 .pulse-dot {
-    width: 8px;
-    height: 8px;
+    width: 7px;
+    height: 7px;
     border-radius: 50%;
-    background-color: #00FF88;
-    box-shadow: 0 0 10px #00FF88;
+    background-color: #82FBBD;
+    box-shadow: 0 0 8px #82FBBD;
     animation: radar-pulse 2s infinite;
     display: inline-block;
 }
 @keyframes radar-pulse {
-    0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(0, 255, 136, 0.7); }
-    70% { transform: scale(1.2); box-shadow: 0 0 0 8px rgba(0, 255, 136, 0); }
-    100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(0, 255, 136, 0); }
+    0% { transform: scale(0.95); opacity: 0.8; }
+    70% { transform: scale(1.2); opacity: 1; }
+    100% { transform: scale(0.95); opacity: 0.8; }
 }
 
 /* Page Dedicated Header */
 .page-title-box {
-    margin-bottom: 20px;
+    margin-bottom: 18px;
     padding-bottom: 12px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.07);
 }
 .page-title {
-    font-size: 1.35rem;
+    font-size: 1.30rem;
     font-weight: 700;
-    color: #F8FAFC;
+    color: #FFFFFF;
     letter-spacing: -0.02em;
 }
 .page-subtitle {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.72rem;
-    color: #94A3B8;
-    letter-spacing: 0.1em;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.68rem;
+    color: #71717A;
+    letter-spacing: 0.10em;
     text-transform: uppercase;
-    margin-top: 4px;
+    margin-top: 3px;
 }
 
 /* Streamlit DataFrames */
 [data-testid="stDataFrame"] {
-    border-radius: 12px !important;
-    border: 1px solid rgba(0, 255, 136, 0.2) !important;
+    border-radius: 10px !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
     overflow: hidden !important;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
 }
 </style>
 """, unsafe_allow_html=True)
@@ -469,19 +471,19 @@ invested_capital = equity - cash
 invested_pct = (invested_capital / equity * 100) if equity > 0 else 0.0
 
 # ==========================================
-# SIDEBAR NAVIGATION MENU (STANDARD PAGE LINKS)
+# SIDEBAR NAVIGATION MENU (BL/S® EDITORIAL STYLE)
 # ==========================================
 st.sidebar.markdown("""
-<div style="padding: 10px 0 16px 0; border-bottom: 1px solid rgba(0, 255, 136, 0.18); margin-bottom: 16px;">
-    <div style="font-size: 1.25rem; font-weight: 700; letter-spacing: -0.02em; color: #F8FAFC;">
-        ⚡ <span style="color: #00FF88;">QUANTUM</span> // OS
+<div style="padding: 12px 0 16px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.08); margin-bottom: 16px;">
+    <div style="font-size: 1.18rem; font-weight: 700; letter-spacing: -0.03em; color: #FFFFFF; display: flex; align-items: center; gap: 8px;">
+        BL/S® <span style="color: #82FBBD;">// QUANTUM</span>
     </div>
-    <div style="font-family: 'JetBrains Mono', monospace; font-size: 0.70rem; color: #94A3B8; letter-spacing: 0.1em; margin-top: 4px;">
-        INSTITUTIONAL DESK v2.4
+    <div style="font-family: 'DM Mono', monospace; font-size: 0.66rem; color: #71717A; letter-spacing: 0.12em; text-transform: uppercase; margin-top: 4px;">
+        DIGITAL TRADING DESK
     </div>
     <div style="margin-top: 10px;">
-        <span class="status-pill" style="padding: 3px 10px; font-size: 0.68rem; border-color: rgba(0, 255, 136, 0.35);">
-            <span class="pulse-dot"></span> LIVE TELEMETRY READY
+        <span class="status-pill" style="padding: 3px 9px; font-size: 0.66rem; border-color: rgba(130, 251, 189, 0.28); color: #82FBBD;">
+            <span class="pulse-dot"></span> LIVE EXECUTION READY
         </span>
     </div>
 </div>
@@ -489,19 +491,19 @@ st.sidebar.markdown("""
 
 # Persistent Sidebar Account Strip
 st.sidebar.markdown(f"""
-<div style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(0, 255, 136, 0.18); border-radius: 10px; padding: 10px 14px; margin-bottom: 18px; font-family: 'JetBrains Mono', monospace;">
-    <div style="font-size: 0.68rem; color: #94A3B8; letter-spacing: 0.1em; text-transform: uppercase;">PORTFOLIO NAV</div>
-    <div style="font-size: 1.25rem; font-weight: 700; color: #F8FAFC; margin: 2px 0;">${equity:,.2f}</div>
-    <div style="display: flex; justify-content: space-between; font-size: 0.72rem; color: #94A3B8; margin-top: 4px; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 4px;">
-        <span>CASH: <b style="color: #00FF88;">{cash_pct:.1f}%</b></span>
-        <span>EQUITY: <b style="color: #00FF88;">{invested_pct:.1f}%</b></span>
+<div style="background: #0D0E12; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 10px; padding: 12px 14px; margin-bottom: 16px; font-family: 'DM Mono', monospace; box-shadow: 0 4px 16px rgba(0,0,0,0.5);">
+    <div style="font-size: 0.64rem; color: #71717A; letter-spacing: 0.12em; text-transform: uppercase;">PORTFOLIO NAV</div>
+    <div style="font-size: 1.30rem; font-weight: 700; color: #FFFFFF; margin: 3px 0; font-family: 'Space Grotesk', sans-serif; letter-spacing: -0.03em;">${equity:,.2f}</div>
+    <div style="display: flex; justify-content: space-between; font-size: 0.70rem; color: #71717A; margin-top: 5px; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 5px;">
+        <span>CASH: <b style="color: #82FBBD;">{cash_pct:.1f}%</b></span>
+        <span>EQUITY: <b style="color: #82FBBD;">{invested_pct:.1f}%</b></span>
     </div>
 </div>
 """, unsafe_allow_html=True)
 
 st.sidebar.markdown("""
-<div style="font-family: 'Space Grotesk', -apple-system, sans-serif; font-size: 0.72rem; font-weight: 600; color: #64748B; letter-spacing: 0.10em; text-transform: uppercase; margin-bottom: 8px; padding-left: 2px;">
-    PAGES
+<div style="font-family: 'DM Mono', monospace; font-size: 0.66rem; font-weight: 500; color: #71717A; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 8px; padding-left: 2px;">
+    // NAVIGATION
 </div>
 """, unsafe_allow_html=True)
 
@@ -533,11 +535,11 @@ page = st.session_state.current_page
 
 st.sidebar.markdown("<div style='margin-top: 20px;'></div>", unsafe_allow_html=True)
 st.sidebar.markdown("""
-<div style="font-family: 'JetBrains Mono', monospace; font-size: 0.70rem; color: #94A3B8; line-height: 1.7; padding: 10px 12px; background: rgba(15, 23, 42, 0.4); border-radius: 8px; border: 1px solid rgba(255,255,255,0.05);">
-    <div>BROKER: <span style="color: #00FF88;">ALPACA PAPER</span></div>
-    <div>LATENCY: <span style="color: #00FF88;">&lt;40ms REST</span></div>
-    <div>ACTIVE ARCH: <span style="color: #00FF88;">PHASE 3 ML GATE</span></div>
-    <div>LONG-ONLY: <span style="color: #00FF88;">100% SOLVENT</span></div>
+<div style="font-family: 'DM Mono', monospace; font-size: 0.68rem; color: #71717A; line-height: 1.7; padding: 10px 12px; background: #0D0E12; border-radius: 8px; border: 1px solid rgba(255,255,255,0.06);">
+    <div>BROKER: <span style="color: #82FBBD;">ALPACA PAPER</span></div>
+    <div>LATENCY: <span style="color: #82FBBD;">&lt;40ms REST</span></div>
+    <div>ACTIVE ARCH: <span style="color: #82FBBD;">PHASE 3 ML GATE</span></div>
+    <div>SOLVENCY: <span style="color: #82FBBD;">100% LONG-ONLY</span></div>
 </div>
 """, unsafe_allow_html=True)
 
@@ -550,12 +552,12 @@ if page == "📊 Portfolio Overview":
     st.markdown("""
     <div class="hud-header">
         <div>
-            <div class="hud-title">⚡ ANTIGRAVITY <span class="hud-title-accent">QUANTUM TERMINAL</span></div>
+            <div class="hud-title">BL/S® <span class="hud-title-accent">// QUANTUM TERMINAL</span></div>
             <div class="hud-subtitle">PHASE 2 MULTI-STRATEGY ENSEMBLE • PHASE 3 ML ALPHA GATE • REAL-TIME BROKER TELEMETRY</div>
         </div>
-        <div style="display: flex; gap: 10px; align-items: center;">
+        <div style="display: flex; gap: 8px; align-items: center;">
             <span class="status-pill"><span class="pulse-dot"></span> LIVE EXECUTION READY</span>
-            <span class="status-pill" style="border-color: rgba(0, 255, 136, 0.35);">BROKER: PAPER LIVE</span>
+            <span class="status-pill" style="border-color: rgba(130, 251, 189, 0.25); color: #82FBBD;">ALPACA PAPER LIVE</span>
         </div>
     </div>
     """, unsafe_allow_html=True)
@@ -574,7 +576,7 @@ if page == "📊 Portfolio Overview":
 
     with k2:
         pnl_class = "metric-big-green" if today_pnl >= 0 else "metric-big-red"
-        badge_class = "metric-badge-uniform" if today_pnl >= 0 else "metric-badge-danger"
+        badge_class = "metric-badge-mint" if today_pnl >= 0 else "metric-badge-danger"
         st.markdown(f"""
         <div class="cyber-kpi-card">
             <div class="kpi-title">TODAY'S SESSION P&L</div>
@@ -585,7 +587,7 @@ if page == "📊 Portfolio Overview":
 
     with k3:
         all_class = "metric-big-green" if overall_pnl >= 0 else "metric-big-red"
-        badge_all_class = "metric-badge-uniform" if overall_pnl >= 0 else "metric-badge-danger"
+        badge_all_class = "metric-badge-mint" if overall_pnl >= 0 else "metric-badge-danger"
         st.markdown(f"""
         <div class="cyber-kpi-card">
             <div class="kpi-title">INCEPTION NET RETURN</div>
@@ -608,7 +610,7 @@ if page == "📊 Portfolio Overview":
         <div class="cyber-kpi-card">
             <div class="kpi-title">AI ARCHITECTURE TIER</div>
             <div class="kpi-value"><div class="metric-big">PHASE 3</div></div>
-            <div class="kpi-badge-row"><div class="metric-badge-uniform">ML ALPHA GATE ACTIVE</div></div>
+            <div class="kpi-badge-row"><div class="metric-badge-mint">ML ALPHA GATE ACTIVE</div></div>
         </div>
         """, unsafe_allow_html=True)
 
@@ -677,7 +679,7 @@ if page == "📊 Portfolio Overview":
 
     groww_data_json = json.dumps(packaged_datasets)
 
-    # 2. Standalone Pixel-Perfect Futuristic Glassy Hero Portfolio Card Component
+    # 2. Standalone Pixel-Perfect Blacklead Studio Style Portfolio Card Component
     groww_card_html = f"""
     <!DOCTYPE html>
     <html>
@@ -685,7 +687,7 @@ if page == "📊 Portfolio Overview":
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500&family=Space+Grotesk:wght@400;500;600;700&display=swap');
     
     * {{
         box-sizing: border-box;
@@ -699,49 +701,25 @@ if page == "📊 Portfolio Overview":
         background: transparent;
         font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif;
         color: #FFFFFF;
-        padding: 4px;
+        padding: 2px;
         overflow: hidden;
     }}
     
-    /* Hyper-Sleek Glassmorphic Shell with Ambient Aurora Underglow */
+    /* Architectural Obsidian Card */
     .glass-hero-card {{
         position: relative;
-        background: linear-gradient(135deg, rgba(20, 26, 44, 0.72) 0%, rgba(10, 13, 24, 0.82) 100%);
-        backdrop-filter: blur(32px) saturate(210%);
-        -webkit-backdrop-filter: blur(32px) saturate(210%);
-        border: 1px solid rgba(255, 255, 255, 0.12);
-        border-radius: 24px;
-        padding: 26px 32px 22px 32px;
-        box-shadow: 0 24px 70px rgba(0, 0, 0, 0.75), 
-                    inset 0 1px 1px 0 rgba(255, 255, 255, 0.22),
-                    inset 0 -1px 1px 0 rgba(0, 0, 0, 0.4);
+        background: #0D0E12;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 12px;
+        padding: 22px 26px 18px 26px;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6), 
+                    inset 0 1px 0 rgba(255, 255, 255, 0.05);
         overflow: hidden;
         width: 100%;
+        transition: border-color 0.22s ease;
     }}
-    
-    /* Ethereal Ambient Radial Aurora Glows */
-    .glass-hero-card::before {{
-        content: '';
-        position: absolute;
-        top: -70px;
-        left: -50px;
-        width: 320px;
-        height: 320px;
-        background: radial-gradient(circle, rgba(168, 85, 247, 0.16) 0%, rgba(139, 92, 246, 0.04) 50%, transparent 70%);
-        pointer-events: none;
-        z-index: 0;
-    }}
-    
-    .glass-hero-card::after {{
-        content: '';
-        position: absolute;
-        bottom: -90px;
-        right: -70px;
-        width: 350px;
-        height: 350px;
-        background: radial-gradient(circle, rgba(0, 242, 254, 0.09) 0%, rgba(0, 255, 136, 0.03) 50%, transparent 70%);
-        pointer-events: none;
-        z-index: 0;
+    .glass-hero-card:hover {{
+        border-color: rgba(255, 255, 255, 0.16);
     }}
     
     .card-content-layer {{
@@ -771,42 +749,40 @@ if page == "📊 Portfolio Overview":
     .legend-row {{
         display: flex;
         align-items: center;
-        gap: 7px;
-        font-size: 0.86rem;
+        gap: 6px;
+        font-family: 'DM Mono', monospace;
+        font-size: 0.68rem;
         font-weight: 500;
-        letter-spacing: 0.04em;
+        letter-spacing: 0.10em;
         text-transform: uppercase;
-        color: #94A3B8;
+        color: #71717A;
         height: 20px;
     }}
     
-    .dot-purple {{
-        width: 9px;
-        height: 9px;
-        background-color: #A855F7;
-        border-radius: 2.5px;
+    .dot-mint {{
+        width: 8px;
+        height: 8px;
+        background-color: #82FBBD;
+        border-radius: 2px;
         display: inline-block;
-        box-shadow: 0 0 12px #A855F7, 0 0 24px rgba(168, 85, 247, 0.55);
     }}
     
     .dot-grey {{
-        width: 9px;
-        height: 9px;
-        background-color: #94A3B8;
-        border-radius: 2.5px;
+        width: 8px;
+        height: 8px;
+        background-color: #52525B;
+        border-radius: 2px;
         display: inline-block;
-        box-shadow: 0 0 10px rgba(148, 163, 184, 0.4);
     }}
     
     .big-number {{
-        font-size: 2.40rem;
+        font-size: 2.25rem;
         font-weight: 700;
-        letter-spacing: -0.03em;
+        letter-spacing: -0.035em;
         line-height: 1.15;
         color: #FFFFFF;
-        margin: 4px 0 3px 0;
+        margin: 3px 0 2px 0;
         font-family: 'Space Grotesk', sans-serif;
-        text-shadow: 0 2px 24px rgba(255, 255, 255, 0.16);
     }}
     
     .return-row {{
@@ -820,68 +796,61 @@ if page == "📊 Portfolio Overview":
         display: inline-flex;
         align-items: center;
         gap: 5px;
-        padding: 3px 11px;
-        border-radius: 20px;
-        font-family: 'JetBrains Mono', monospace;
-        font-size: 0.82rem;
-        font-weight: 600;
-        backdrop-filter: blur(10px);
-        transition: all 0.25s ease;
+        padding: 2px 9px;
+        border-radius: 9999px;
+        font-family: 'DM Mono', monospace;
+        font-size: 0.72rem;
+        font-weight: 500;
+        transition: all 0.2s ease;
     }}
     
     .badge-green {{
-        background: rgba(0, 255, 136, 0.09);
-        border: 1px solid rgba(0, 255, 136, 0.32);
-        color: #00FF88;
-        box-shadow: 0 0 16px rgba(0, 255, 136, 0.18);
+        background: rgba(130, 251, 189, 0.08);
+        border: 1px solid rgba(130, 251, 189, 0.28);
+        color: #82FBBD;
     }}
     
     .badge-red {{
-        background: rgba(255, 59, 92, 0.10);
-        border: 1px solid rgba(255, 59, 92, 0.35);
-        color: #FF3B5C;
-        box-shadow: 0 0 16px rgba(255, 59, 92, 0.20);
+        background: rgba(255, 154, 156, 0.08);
+        border: 1px solid rgba(255, 154, 156, 0.28);
+        color: #FF9A9C;
     }}
     
     .tf-sub {{
-        color: #64748B;
-        font-family: 'Space Grotesk', sans-serif;
-        font-size: 0.84rem;
-        font-weight: 500;
+        color: #71717A;
+        font-family: 'DM Mono', monospace;
+        font-size: 0.70rem;
         margin-left: 4px;
-        letter-spacing: 0.02em;
+        letter-spacing: 0.04em;
     }}
     
-    /* Frosted Glass Currency Switcher */
+    /* Studio Minimalist Currency Switcher */
     .currency-pill-box {{
         display: inline-flex;
-        background: rgba(255, 255, 255, 0.05);
-        border: 1px solid rgba(255, 255, 255, 0.12);
-        border-radius: 20px;
+        background: #141418;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 9999px;
         padding: 2px;
         margin-bottom: 6px;
-        backdrop-filter: blur(12px);
-        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
     }}
     
     .curr-btn {{
         padding: 3px 10px;
-        font-size: 0.70rem;
-        font-weight: 600;
-        font-family: 'JetBrains Mono', monospace;
-        color: #94A3B8;
-        border-radius: 18px;
+        font-size: 0.68rem;
+        font-weight: 500;
+        font-family: 'DM Mono', monospace;
+        color: #71717A;
+        border-radius: 9999px;
         border: none;
         background: transparent;
         cursor: pointer;
-        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        transition: all 0.18s ease;
     }}
     
     .curr-btn.active {{
-        background: rgba(168, 85, 247, 0.25);
-        color: #F3E8FF;
-        border: 1px solid rgba(168, 85, 247, 0.5);
-        box-shadow: 0 0 14px rgba(168, 85, 247, 0.38);
+        background: rgba(255, 255, 255, 0.12);
+        color: #FFFFFF;
+        border: 1px solid rgba(255, 255, 255, 0.22);
     }}
     
     /* SVG Chart Area */
@@ -900,72 +869,64 @@ if page == "📊 Portfolio Overview":
         overflow: visible;
     }}
     
-    /* Floating Glass Capsule Dock for Timeframe Pills */
+    /* Minimalist Timeframe Dock */
     .pills-dock-wrapper {{
         display: flex;
         justify-content: center;
         align-items: center;
-        margin-top: 2px;
+        margin-top: 4px;
     }}
     
     .pills-glass-dock {{
         display: inline-flex;
         align-items: center;
-        gap: 6px;
-        background: rgba(255, 255, 255, 0.04);
-        border: 1px solid rgba(255, 255, 255, 0.09);
+        gap: 4px;
+        background: #141418;
+        border: 1px solid rgba(255, 255, 255, 0.08);
         border-radius: 9999px;
-        padding: 4px 6px;
-        backdrop-filter: blur(18px);
-        -webkit-backdrop-filter: blur(18px);
-        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.09), 0 8px 24px rgba(0, 0, 0, 0.4);
+        padding: 3px 6px;
     }}
     
     .timeframe-pill {{
         background: transparent;
         border: 1px solid transparent;
-        color: #94A3B8;
-        font-family: 'Space Grotesk', sans-serif;
-        font-size: 0.84rem;
-        font-weight: 600;
-        padding: 5px 16px;
+        color: #71717A;
+        font-family: 'DM Mono', monospace;
+        font-size: 0.72rem;
+        font-weight: 500;
+        padding: 4px 12px;
         border-radius: 9999px;
         cursor: pointer;
-        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        transition: all 0.18s ease;
     }}
     
     .timeframe-pill:hover {{
         color: #FFFFFF;
-        background: rgba(255, 255, 255, 0.07);
-        transform: translateY(-1px);
+        background: rgba(255, 255, 255, 0.05);
     }}
     
     .timeframe-pill.active {{
-        background: linear-gradient(135deg, rgba(255, 255, 255, 0.18) 0%, rgba(255, 255, 255, 0.06) 100%);
-        border: 1px solid rgba(255, 255, 255, 0.45);
+        background: rgba(255, 255, 255, 0.12);
+        border: 1px solid rgba(255, 255, 255, 0.22);
         color: #FFFFFF;
-        font-weight: 700;
-        box-shadow: 0 0 16px rgba(255, 255, 255, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.35);
-        transform: translateY(-1px);
+        font-weight: 600;
     }}
     
-    /* Futuristic Frosted Tooltip */
+    /* Studio Floating Tooltip */
     .live-tooltip {{
         position: absolute;
         display: none;
         pointer-events: none;
-        background: rgba(14, 18, 32, 0.88);
-        backdrop-filter: blur(20px) saturate(190%);
-        -webkit-backdrop-filter: blur(20px) saturate(190%);
-        border: 1px solid rgba(168, 85, 247, 0.45);
-        border-radius: 10px;
-        padding: 8px 14px;
-        font-size: 0.76rem;
-        color: #F8FAFC;
-        font-family: 'JetBrains Mono', monospace;
-        box-shadow: 0 14px 40px rgba(0, 0, 0, 0.8), 0 0 20px rgba(168, 85, 247, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+        background: #111216;
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        border-radius: 8px;
+        padding: 8px 12px;
+        font-size: 0.74rem;
+        color: #FFFFFF;
+        font-family: 'DM Mono', monospace;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.1);
         z-index: 100;
-        line-height: 1.55;
+        line-height: 1.5;
     }}
     </style>
     </head>
@@ -975,7 +936,7 @@ if page == "📊 Portfolio Overview":
             <div class="groww-header">
                 <div class="metric-left">
                     <div class="legend-row">
-                        <span>Current</span> <span class="dot-purple"></span>
+                        <span>// VALUATION TRAJECTORY</span> <span class="dot-mint" style="margin-left:4px;"></span>
                     </div>
                     <div class="big-number" id="current-display">$101,437.23</div>
                     <div class="return-row" id="return-row">
@@ -992,62 +953,61 @@ if page == "📊 Portfolio Overview":
                             <button class="curr-btn" id="btn-inr" onclick="setCurrency('INR')">&#8377; INR</button>
                         </div>
                         <div class="legend-row">
-                            <span class="dot-grey"></span> <span>Invested</span>
+                            <span class="dot-grey"></span> <span>INVESTED BASELINE</span>
                         </div>
                     </div>
-                    <div class="big-number" id="invested-display">$100,000.00</div>
+                    <div class="big-number" id="invested-display" style="font-size: 1.55rem; color: #A1A1AA;">$100,000.00</div>
                 </div>
             </div>
 
             <div class="chart-area" id="chart-area">
                 <svg class="groww-svg" id="groww-svg" viewBox="0 0 1000 260" preserveAspectRatio="none">
                     <defs>
-                        <!-- Neon Violet Drop Shadow Filter -->
+                        <!-- Refined Studio Mint Drop Shadow Filter -->
                         <filter id="neon-glow" x="-20%" y="-20%" width="140%" height="140%">
-                            <feDropShadow dx="0" dy="0" stdDeviation="4.5" flood-color="#A855F7" flood-opacity="0.6" />
+                            <feDropShadow dx="0" dy="0" stdDeviation="3.2" flood-color="#82FBBD" flood-opacity="0.38" />
                         </filter>
                         
-                        <!-- Smooth Violet Line Stroke Gradient -->
+                        <!-- Smooth Studio Mint Line Stroke Gradient -->
                         <linearGradient id="stroke-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                            <stop offset="0%" stop-color="#818CF8" />
-                            <stop offset="50%" stop-color="#A855F7" />
-                            <stop offset="100%" stop-color="#C084FC" />
+                            <stop offset="0%" stop-color="#5EEAD4" />
+                            <stop offset="100%" stop-color="#82FBBD" />
                         </linearGradient>
 
-                        <!-- Ethereal Luminous Area Fill Gradient -->
+                        <!-- Subtle Volumetric Area Fill Gradient -->
                         <linearGradient id="area-gradient" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stop-color="#A855F7" stop-opacity="0.24" />
-                            <stop offset="65%" stop-color="#8B5CF6" stop-opacity="0.04" />
-                            <stop offset="100%" stop-color="#8B5CF6" stop-opacity="0.00" />
+                            <stop offset="0%" stop-color="#82FBBD" stop-opacity="0.14" />
+                            <stop offset="70%" stop-color="#82FBBD" stop-opacity="0.02" />
+                            <stop offset="100%" stop-color="#82FBBD" stop-opacity="0.00" />
                         </linearGradient>
 
-                        <!-- Laser Cursor Beam Gradient -->
+                        <!-- Vertical Cursor Beam Gradient -->
                         <linearGradient id="cursor-beam" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stop-color="#A855F7" stop-opacity="0.8" />
-                            <stop offset="80%" stop-color="#8B5CF6" stop-opacity="0.3" />
-                            <stop offset="100%" stop-color="#8B5CF6" stop-opacity="0.0" />
+                            <stop offset="0%" stop-color="#82FBBD" stop-opacity="0.75" />
+                            <stop offset="75%" stop-color="#82FBBD" stop-opacity="0.2" />
+                            <stop offset="100%" stop-color="#82FBBD" stop-opacity="0.0" />
                         </linearGradient>
                     </defs>
 
-                    <!-- Subtle Dashed Baseline at Bottom -->
-                    <line x1="0" y1="248" x2="1000" y2="248" stroke="rgba(255,255,255,0.09)" stroke-width="1.2" stroke-dasharray="4,4" />
+                    <!-- Hairline Baseline at Bottom -->
+                    <line x1="0" y1="248" x2="1000" y2="248" stroke="rgba(255,255,255,0.06)" stroke-width="1" stroke-dasharray="4,4" />
 
                     <!-- Invested Dotted Line -->
-                    <path id="path-invested" stroke="#94A3B8" stroke-width="1.8" stroke-dasharray="5,4" fill="none" d="" />
+                    <path id="path-invested" stroke="#52525B" stroke-width="1.5" stroke-dasharray="4,4" fill="none" d="" />
 
-                    <!-- Ethereal Area Gradient Underneath Current Curve -->
+                    <!-- Area Gradient Underneath Current Curve -->
                     <path id="path-area" fill="url(#area-gradient)" d="" />
 
-                    <!-- Current Smooth Neon Violet Line -->
-                    <path id="path-current" stroke="url(#stroke-gradient)" filter="url(#neon-glow)" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round" fill="none" d="" />
+                    <!-- Current Smooth Studio Mint Line -->
+                    <path id="path-current" stroke="url(#stroke-gradient)" filter="url(#neon-glow)" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round" fill="none" d="" />
 
-                    <!-- Laser Vertical Cursor -->
-                    <line id="cursor-line" x1="0" y1="6" x2="0" y2="248" stroke="url(#cursor-beam)" stroke-width="1.6" stroke-dasharray="2,2" style="display:none;" />
+                    <!-- Vertical Tracking Laser Line -->
+                    <line id="cursor-line" x1="0" y1="6" x2="0" y2="248" stroke="url(#cursor-beam)" stroke-width="1.2" stroke-dasharray="2,2" style="display:none;" />
 
                     <!-- Tracking Circles -->
-                    <circle id="cursor-halo" r="10" fill="rgba(168, 85, 247, 0.25)" style="display:none;" />
-                    <circle id="cursor-dot-purple" r="5" fill="#E9D5FF" stroke="#A855F7" stroke-width="2" style="display:none;" />
-                    <circle id="cursor-dot-grey" r="4" fill="#94A3B8" stroke="#FFFFFF" stroke-width="1.5" style="display:none;" />
+                    <circle id="cursor-halo" r="9" fill="rgba(130, 251, 189, 0.18)" style="display:none;" />
+                    <circle id="cursor-dot-mint" r="4.5" fill="#050507" stroke="#82FBBD" stroke-width="2" style="display:none;" />
+                    <circle id="cursor-dot-grey" r="3.5" fill="#050507" stroke="#71717A" stroke-width="1.5" style="display:none;" />
                 </svg>
                 <div class="live-tooltip" id="live-tooltip"></div>
             </div>
@@ -1195,7 +1155,7 @@ if page == "📊 Portfolio Overview":
     const chartArea = document.getElementById('chart-area');
     const cursorLine = document.getElementById('cursor-line');
     const cursorHalo = document.getElementById('cursor-halo');
-    const dotPurple = document.getElementById('cursor-dot-purple');
+    const dotMint = document.getElementById('cursor-dot-mint');
     const dotGrey = document.getElementById('cursor-dot-grey');
     const tooltip = document.getElementById('live-tooltip');
 
@@ -1240,9 +1200,9 @@ if page == "📊 Portfolio Overview":
         cursorHalo.setAttribute('cy', yCurSvg);
         cursorHalo.style.display = 'block';
         
-        dotPurple.setAttribute('cx', xSvg);
-        dotPurple.setAttribute('cy', yCurSvg);
-        dotPurple.style.display = 'block';
+        dotMint.setAttribute('cx', xSvg);
+        dotMint.setAttribute('cy', yCurSvg);
+        dotMint.style.display = 'block';
         
         dotGrey.setAttribute('cx', xSvg);
         dotGrey.setAttribute('cy', yInvSvg);
@@ -1261,16 +1221,16 @@ if page == "📊 Portfolio Overview":
         
         // Tooltip position
         tooltip.style.display = 'block';
-        const tooltipX = Math.min(rect.width - 165, Math.max(10, mouseX - 70));
+        const tooltipX = Math.min(rect.width - 175, Math.max(10, mouseX - 70));
         tooltip.style.left = tooltipX + 'px';
         tooltip.style.top = '10px';
-        tooltip.innerHTML = `<span style="color:#A1A1AA; font-size:0.72rem;">${{dateStr}}</span><br><b style="color:#C4B5FD;">Current:</b> ${{formatCurrency(eqVal, currentCurrency)}}<br><b style="color:#94A3B8;">Invested:</b> ${{formatCurrency(invVal, currentCurrency)}}`;
+        tooltip.innerHTML = `<span style="color:#71717A; font-family:'DM Mono',monospace; font-size:0.68rem; letter-spacing:0.06em; text-transform:uppercase;">${{dateStr}}</span><br><div style="margin-top:2px; font-family:'Space Grotesk',sans-serif; font-size:0.84rem;"><b style="color:#82FBBD;">Current:</b> ${{formatCurrency(eqVal, currentCurrency)}}</div><div style="font-family:'Space Grotesk',sans-serif; font-size:0.84rem;"><b style="color:#A1A1AA;">Invested:</b> ${{formatCurrency(invVal, currentCurrency)}}</div>`;
     }});
 
     chartArea.addEventListener('mouseleave', () => {{
         cursorLine.style.display = 'none';
         cursorHalo.style.display = 'none';
-        dotPurple.style.display = 'none';
+        dotMint.style.display = 'none';
         dotGrey.style.display = 'none';
         tooltip.style.display = 'none';
         render();
@@ -1344,9 +1304,9 @@ if page == "📊 Portfolio Overview":
                 margin=dict(t=50, b=10, l=10, r=10),
                 paper_bgcolor='rgba(0,0,0,0)',
                 plot_bgcolor='rgba(0,0,0,0)',
-                font=dict(family="Space Grotesk, sans-serif", color="#F8FAFC"),
+                font=dict(family="Space Grotesk, sans-serif", color="#FFFFFF"),
                 annotations=[dict(
-                    text=f"<b>PORTFOLIO</b><br><span style='font-size:18px; color:#00FF88;'>${equity:,.0f}</span><br><span style='font-size:11px; color:#94A3B8;'>CASH {cash_pct:.1f}%</span>",
+                    text=f"<b>PORTFOLIO</b><br><span style='font-size:18px; color:#82FBBD;'>${equity:,.0f}</span><br><span style='font-size:11px; color:#71717A;'>CASH {cash_pct:.1f}%</span>",
                     x=0.5, y=0.5,
                     font_size=15,
                     font_family="Space Grotesk",
@@ -1359,29 +1319,29 @@ if page == "📊 Portfolio Overview":
         with col_stats:
             st.markdown("""
             <div class="cyber-card" style="margin-top: 25px;">
-                <div class="kpi-title" style="color: #00FF88; font-size: 0.76rem;">PORTFOLIO EXPOSURE TELEMETRY</div>
+                <div class="kpi-title" style="color: #82FBBD; font-size: 0.72rem;">// 03. EXPOSURE TELEMETRY</div>
             """, unsafe_allow_html=True)
 
             st.markdown(f"""
-            <div style="display: flex; justify-content: space-between; padding: 9px 0; border-bottom: 1px solid rgba(255,255,255,0.06); font-family: 'JetBrains Mono', monospace; font-size: 0.85rem;">
-                <span style="color: #94A3B8;">Invested Equities Value:</span>
-                <span style="color: #F8FAFC; font-weight: 600;">${invested_capital:,.2f} ({invested_pct:.1f}%)</span>
+            <div style="display: flex; justify-content: space-between; padding: 9px 0; border-bottom: 1px solid rgba(255,255,255,0.06); font-family: 'DM Mono', monospace; font-size: 0.82rem;">
+                <span style="color: #71717A;">Invested Equities Value:</span>
+                <span style="color: #FFFFFF; font-weight: 600;">${invested_capital:,.2f} ({invested_pct:.1f}%)</span>
             </div>
-            <div style="display: flex; justify-content: space-between; padding: 9px 0; border-bottom: 1px solid rgba(255,255,255,0.06); font-family: 'JetBrains Mono', monospace; font-size: 0.85rem;">
-                <span style="color: #94A3B8;">Liquid Cash Reserve:</span>
-                <span style="color: #00FF88; font-weight: 600;">${cash:,.2f} ({cash_pct:.1f}%)</span>
+            <div style="display: flex; justify-content: space-between; padding: 9px 0; border-bottom: 1px solid rgba(255,255,255,0.06); font-family: 'DM Mono', monospace; font-size: 0.82rem;">
+                <span style="color: #71717A;">Liquid Cash Reserve:</span>
+                <span style="color: #82FBBD; font-weight: 600;">${cash:,.2f} ({cash_pct:.1f}%)</span>
             </div>
-            <div style="display: flex; justify-content: space-between; padding: 9px 0; border-bottom: 1px solid rgba(255,255,255,0.06); font-family: 'JetBrains Mono', monospace; font-size: 0.85rem;">
-                <span style="color: #94A3B8;">Active Holdings:</span>
-                <span style="color: #F8FAFC; font-weight: 600;">{len(positions)} Stocks (Dynamic Sizing)</span>
+            <div style="display: flex; justify-content: space-between; padding: 9px 0; border-bottom: 1px solid rgba(255,255,255,0.06); font-family: 'DM Mono', monospace; font-size: 0.82rem;">
+                <span style="color: #71717A;">Active Holdings:</span>
+                <span style="color: #FFFFFF; font-weight: 600;">{len(positions)} Stocks (Dynamic Sizing)</span>
             </div>
-            <div style="display: flex; justify-content: space-between; padding: 9px 0; border-bottom: 1px solid rgba(255,255,255,0.06); font-family: 'JetBrains Mono', monospace; font-size: 0.85rem;">
-                <span style="color: #94A3B8;">Single Stock Ceiling:</span>
-                <span style="color: #F8FAFC; font-weight: 600;">15.0% (${equity*0.15:,.2f})</span>
+            <div style="display: flex; justify-content: space-between; padding: 9px 0; border-bottom: 1px solid rgba(255,255,255,0.06); font-family: 'DM Mono', monospace; font-size: 0.82rem;">
+                <span style="color: #71717A;">Single Stock Ceiling:</span>
+                <span style="color: #FFFFFF; font-weight: 600;">15.0% (${equity*0.15:,.2f})</span>
             </div>
-            <div style="display: flex; justify-content: space-between; padding: 9px 0; font-family: 'JetBrains Mono', monospace; font-size: 0.85rem;">
-                <span style="color: #94A3B8;">Max Macro Exposure:</span>
-                <span style="color: #F8FAFC; font-weight: 600;">95.0% (${equity*0.95:,.2f})</span>
+            <div style="display: flex; justify-content: space-between; padding: 9px 0; font-family: 'DM Mono', monospace; font-size: 0.82rem;">
+                <span style="color: #71717A;">Max Macro Exposure:</span>
+                <span style="color: #FFFFFF; font-weight: 600;">95.0% (${equity*0.95:,.2f})</span>
             </div>
             """, unsafe_allow_html=True)
 
@@ -1391,9 +1351,9 @@ if page == "📊 Portfolio Overview":
 
             st.markdown(f"""
             <div style="margin-top: 15px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.08);">
-                <div style="display: flex; justify-content: space-between; font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; margin-bottom: 6px;">
-                    <span style="color: #94A3B8;">Win Rate on Open Positions:</span>
-                    <span style="color: #00FF88; font-weight: 700;">{win_rate:.1f}% ({len(winners)} Green / {len(losers)} Red)</span>
+                <div style="display: flex; justify-content: space-between; font-family: 'DM Mono', monospace; font-size: 0.78rem; margin-bottom: 6px;">
+                    <span style="color: #71717A;">Win Rate on Open Positions:</span>
+                    <span style="color: #82FBBD; font-weight: 700;">{win_rate:.1f}% ({len(winners)} Green / {len(losers)} Red)</span>
                 </div>
             </div>
             </div>
@@ -1530,7 +1490,7 @@ elif page == "🏆 30-Day Incubation Scorecard":
             st.markdown(f"""
             <div class="cyber-kpi-card">
                 <div class="kpi-title">INCUBATION PROGRESS</div>
-                <div class="kpi-value"><div class="metric-big">Day {days_logged} <span style="font-size: 1.05rem; color: #94A3B8;">/ 30</span></div></div>
+                <div class="kpi-value"><div class="metric-big">Day {days_logged} <span style="font-size: 1.05rem; color: #71717A;">/ 30</span></div></div>
                 <div class="kpi-badge-row"><div class="metric-badge-uniform">{(days_logged/30)*100:.0f}% COMPLETED</div></div>
             </div>
             """, unsafe_allow_html=True)
@@ -1566,31 +1526,31 @@ elif page == "🏆 30-Day Incubation Scorecard":
 
         st.markdown("<div style='margin-top: 15px;'></div>", unsafe_allow_html=True)
 
-        # Sleek Equity Curve
+        # Sleek Equity Curve (Blacklead Studio Minimalist Edition)
         fig_equity = go.Figure()
         fig_equity.add_trace(go.Scatter(
             x=df_history["timestamp"],
             y=df_history["equity"],
             mode="lines",
             name="Account Equity",
-            line=dict(color="#00FF88", width=3),
+            line=dict(color="#82FBBD", width=2.4),
             fill="tozeroy",
-            fillcolor="rgba(0, 255, 136, 0.08)"
+            fillcolor="rgba(130, 251, 189, 0.08)"
         ))
         fig_equity.add_hline(
             y=100000.0,
             line_dash="dash",
-            line_color="#94A3B8",
+            line_color="#52525B",
             annotation_text="Base Capital ($100k)",
-            annotation_font_color="#94A3B8"
+            annotation_font_color="#71717A"
         )
         fig_equity.update_layout(
-            title="⚡ Autonomous Portfolio Equity Trajectory (Past Sessions)",
+            title="Autonomous Portfolio Equity Trajectory (Past Sessions)",
             paper_bgcolor="rgba(0,0,0,0)",
             plot_bgcolor="rgba(0,0,0,0)",
             margin=dict(t=50, b=20, l=10, r=10),
             height=360,
-            font=dict(family="Space Grotesk, sans-serif", color="#94A3B8"),
+            font=dict(family="Space Grotesk, sans-serif", color="#FFFFFF"),
             xaxis=dict(showgrid=True, gridcolor="rgba(255,255,255,0.06)"),
             yaxis=dict(showgrid=True, gridcolor="rgba(255,255,255,0.06)")
         )
@@ -1788,16 +1748,16 @@ elif page == "⚡ Order Activity Log":
         session_sells = sum(filtered_df["Side"] == "SELL")
 
         st.markdown(f"""
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px; margin-bottom: 12px; padding: 11px 18px; background: rgba(15, 23, 42, 0.65); border: 1px solid rgba(0, 255, 136, 0.18); border-radius: 10px; font-family: 'JetBrains Mono', monospace; font-size: 0.80rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px; margin-bottom: 12px; padding: 11px 18px; background: #0D0E12; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 10px; font-family: 'DM Mono', monospace; font-size: 0.80rem;">
             <div style="display: flex; gap: 14px; align-items: center;">
-                <span style="color: #F8FAFC; font-weight: 700; font-size: 0.90rem;">LEDGER STATUS:</span>
-                <span style="color: #00FF88; font-weight: 600;">{session_orders} Matching Orders</span>
-                <span style="color: #94A3B8;">|</span>
-                <span style="color: #F8FAFC;">Volume: <b style="color: #00FF88;">${session_vol:,.2f}</b></span>
+                <span style="color: #FFFFFF; font-weight: 700; font-size: 0.86rem;">// LEDGER STATUS:</span>
+                <span style="color: #82FBBD; font-weight: 600;">{session_orders} Matching Orders</span>
+                <span style="color: #52525B;">|</span>
+                <span style="color: #FFFFFF;">Volume: <b style="color: #82FBBD;">${session_vol:,.2f}</b></span>
             </div>
-            <div style="display: flex; gap: 12px; color: #94A3B8;">
-                <span>BUYS: <b style="color: #00FF88;">{session_buys}</b></span>
-                <span>SELLS: <b style="color: #FF3B5C;">{session_sells}</b></span>
+            <div style="display: flex; gap: 12px; color: #71717A;">
+                <span>BUYS: <b style="color: #82FBBD;">{session_buys}</b></span>
+                <span>SELLS: <b style="color: #FF9A9C;">{session_sells}</b></span>
             </div>
         </div>
         """, unsafe_allow_html=True)
@@ -1846,8 +1806,8 @@ elif page == "⚡ Order Activity Log":
 
         with p_col2:
             st.markdown(f"""
-            <div style="text-align: center; font-family: 'JetBrains Mono', monospace; font-size: 0.82rem; color: #94A3B8; padding-top: 8px;">
-                Page <b style="color: #00FF88;">{st.session_state.order_ledger_page}</b> of <b style="color: #F8FAFC;">{total_pages}</b> • Displaying rows {start_row + 1} – {end_row} of {total_rows}
+            <div style="text-align: center; font-family: 'DM Mono', monospace; font-size: 0.80rem; color: #71717A; padding-top: 8px;">
+                Page <b style="color: #82FBBD;">{st.session_state.order_ledger_page}</b> of <b style="color: #FFFFFF;">{total_pages}</b> • Displaying rows {start_row + 1} – {end_row} of {total_rows}
             </div>
             """, unsafe_allow_html=True)
 
@@ -1866,9 +1826,9 @@ elif page == "⚡ Order Activity Log":
                 d_notional = d_df["Total Value"].sum()
 
                 st.markdown(f"""
-                <div style="padding: 8px 12px; background: rgba(15, 23, 42, 0.4); border-left: 3px solid #00FF88; border-radius: 6px; margin: 8px 0; font-family: 'JetBrains Mono', monospace; font-size: 0.80rem; display: flex; justify-content: space-between;">
+                <div style="padding: 8px 12px; background: #0D0E12; border-left: 3px solid #82FBBD; border-radius: 6px; margin: 8px 0; font-family: 'DM Mono', monospace; font-size: 0.80rem; display: flex; justify-content: space-between;">
                     <span><b>📅 {d}</b> — {len(d_df)} Orders</span>
-                    <span>Volume: <b style="color: #00FF88;">${d_notional:,.2f}</b> ({d_buys} Buys / {d_sells} Sells)</span>
+                    <span>Volume: <b style="color: #82FBBD;">${d_notional:,.2f}</b> ({d_buys} Buys / {d_sells} Sells)</span>
                 </div>
                 """, unsafe_allow_html=True)
 
@@ -1962,19 +1922,19 @@ elif page == "🛡️ Risk Safeguards":
     with col1:
         st.markdown("""
         <div class="cyber-card">
-            <div class="hud-title" style="font-size: 1.05rem;">1. Macro SPY Regime Filter</div>
-            <div style="font-size: 0.85rem; color: #94A3B8; margin-top: 8px; line-height: 1.6;">
+            <div class="hud-title" style="font-size: 1.02rem;">1. Macro SPY Regime Filter</div>
+            <div style="font-size: 0.82rem; color: #71717A; margin-top: 8px; line-height: 1.6;">
                 Continuous evaluation of S&P 500 200-day SMA, ATR-14 volatility, and trend ratios before each market open:
-                <br>• <b style="color: #00FF88;">BULL_NORMAL:</b> 95% Max Exposure (Full Risk-On)
-                <br>• <b style="color: #F8FAFC;">BULL_CHOPPY:</b> 85% Max Exposure (15% Cash Shield)
-                <br>• <b style="color: #F8FAFC;">BEAR_CORRECTION:</b> 40% Max Exposure (60% Cash Defense)
-                <br>• <b style="color: #FF3B5C;">CRASH_WARNING:</b> 0% Exposure (100% Cash / Treasury Halt)
+                <br>• <b style="color: #82FBBD;">BULL_NORMAL:</b> 95% Max Exposure (Full Risk-On)
+                <br>• <b style="color: #FFFFFF;">BULL_CHOPPY:</b> 85% Max Exposure (15% Cash Shield)
+                <br>• <b style="color: #FFFFFF;">BEAR_CORRECTION:</b> 40% Max Exposure (60% Cash Defense)
+                <br>• <b style="color: #FF9A9C;">CRASH_WARNING:</b> 0% Exposure (100% Cash / Treasury Halt)
             </div>
         </div>
 
         <div class="cyber-card" style="margin-top: 12px;">
-            <div class="hud-title" style="font-size: 1.05rem;">2. Hard Per-Position Stop-Loss (-8%)</div>
-            <div style="font-size: 0.85rem; color: #94A3B8; margin-top: 8px; line-height: 1.6;">
+            <div class="hud-title" style="font-size: 1.02rem;">2. Hard Per-Position Stop-Loss (-8%)</div>
+            <div style="font-size: 0.82rem; color: #71717A; margin-top: 8px; line-height: 1.6;">
                 Automated cost-basis gating that unconditionally liquidates any position falling &le; -8.0% to prevent catastrophic drawdowns or rogue outliers.
             </div>
         </div>
@@ -1983,22 +1943,22 @@ elif page == "🛡️ Risk Safeguards":
     with col2:
         st.markdown("""
         <div class="cyber-card">
-            <div class="hud-title" style="font-size: 1.05rem;">3. Dollar-Exposure Ceilings</div>
-            <div style="font-size: 0.85rem; color: #94A3B8; margin-top: 8px; line-height: 1.6;">
+            <div class="hud-title" style="font-size: 1.02rem;">3. Dollar-Exposure Ceilings</div>
+            <div style="font-size: 0.82rem; color: #71717A; margin-top: 8px; line-height: 1.6;">
                 Strict single-stock exposure cap enforced at <b>15.0% maximum equity</b>. Excess high-conviction weight is iteratively redistributed across remaining uncapped candidates.
             </div>
         </div>
 
         <div class="cyber-card" style="margin-top: 12px;">
-            <div class="hud-title" style="font-size: 1.05rem;">4. Execution Idempotency</div>
-            <div style="font-size: 0.85rem; color: #94A3B8; margin-top: 8px; line-height: 1.6;">
+            <div class="hud-title" style="font-size: 1.02rem;">4. Execution Idempotency</div>
+            <div style="font-size: 0.82rem; color: #71717A; margin-top: 8px; line-height: 1.6;">
                 Deterministic SHA-256 client order hashing (<code>Q-&lt;hash&gt;</code>) eliminates double-order fills, duplicate submissions, and network retry collisions.
             </div>
         </div>
 
         <div class="cyber-card" style="margin-top: 12px;">
-            <div class="hud-title" style="font-size: 1.05rem;">5. Long-Only Solvency Buffer</div>
-            <div style="font-size: 0.85rem; color: #94A3B8; margin-top: 8px; line-height: 1.6;">
+            <div class="hud-title" style="font-size: 1.02rem;">5. Long-Only Solvency Buffer</div>
+            <div style="font-size: 0.82rem; color: #71717A; margin-top: 8px; line-height: 1.6;">
                 Zero naked shorting, zero borrow fees, zero margin interest traps, and guaranteed positive cash balances at all times.
             </div>
         </div>

@@ -91,11 +91,13 @@ def execute_quant_live_cycle():
     # --- STOP-LOSS ENGINE (-8% Max Loss per Position) ---
     print("\n[2c/4] Checking Open Positions for Hard Stop-Loss (-8%)...")
     stop_loss_liquidations = set()
+    pos_pnl_map = {}
     try:
         detailed_positions = broker.get_positions_detailed()
         for pos in detailed_positions:
             sym = pos["symbol"]
             plpc = pos.get("unrealized_plpc", 0.0)
+            pos_pnl_map[sym] = plpc
             if plpc <= -0.08:
                 print(f"  [STOP-LOSS] {sym} is down {plpc*100:.2f}% (Limit: -8.0%). Forcing full liquidation.")
                 stop_loss_liquidations.add(sym)
@@ -135,10 +137,71 @@ def execute_quant_live_cycle():
     # Re-sync positions in case fills happened
     current_positions = broker.get_positions()
     
-    # Ensure any open positions no longer wanted or stopped out are marked for full liquidation
-    for open_sym in current_positions.keys():
-        if open_sym not in target_weights or open_sym in stop_loss_liquidations:
+    # CRASH REGIME: If macro crash warning, force full liquidation of all positions to 100% cash
+    if MAX_EXPOSURE <= 0.0 or regime == "CRASH_WARNING":
+        print("  [CRASH WARNING ACTIVE] Liquidating all open holdings to 100% Cash Buffer.")
+        for open_sym in current_positions.keys():
             target_weights[open_sym] = 0.0
+    else:
+        # 1. First, enforce hard stop-loss liquidations (-8%)
+        for sym in stop_loss_liquidations:
+            print(f" -> [STOP-LOSS EXIT] {sym} triggered hard stop-loss limit. Liquidating full position.")
+            target_weights[sym] = 0.0
+
+        # 2. Institutional Holding Buffer (Hysteresis):
+        # Protect existing healthy holdings from wholesale churning/dumping during normal market chop.
+        for open_sym in list(current_positions.keys()):
+            if open_sym in stop_loss_liquidations:
+                continue
+
+            # If the strategy actively picked this symbol today with a target, keep it
+            if open_sym in target_weights and target_weights[open_sym] > 0.0:
+                print(f" -> [ACTIVE TARGET] {open_sym} reaffirmed by Quant Brain with {target_weights[open_sym]*100:.1f}% target allocation.")
+                continue
+
+            # Otherwise, evaluate technical health before considering an exit
+            df_held = brain.data_provider.get_data_as_of(open_sym, datetime.now())
+            current_plpc = pos_pnl_map.get(open_sym, 0.0)
+            exit_eval = InvestorSkillsHeuristics.evaluate_holding_exit(
+                open_sym, df_held, current_plpc=current_plpc, regime=regime, mr_strategy=brain.mean_reversion
+            )
+
+            if exit_eval["should_exit"]:
+                print(f" -> [{exit_eval['action']}] {open_sym}: {exit_eval['reason']}. Liquidating full position.")
+                target_weights[open_sym] = 0.0
+            else:
+                curr_p = broker.get_latest_price(open_sym)
+                if curr_p <= 0 and not df_held.empty and 'close' in df_held:
+                    curr_p = float(df_held['close'].iloc[-1])
+                curr_weight = (current_positions[open_sym] * curr_p) / total_equity if total_equity > 0 else 0.0
+                print(f" -> [HOLDING BUFFER] {open_sym}: {exit_eval['reason']} Preserving position (Weight: {curr_weight*100:.1f}%).")
+                target_weights[open_sym] = 'HOLD'
+
+        # 3. Capital Capacity Reconciliation:
+        # Scale fresh new buys to fit available portfolio capacity without exceeding MAX_EXPOSURE
+        held_exposure = 0.0
+        for sym, qty in current_positions.items():
+            if target_weights.get(sym) == 'HOLD':
+                p = broker.get_latest_price(sym)
+                held_exposure += (qty * p) / total_equity if total_equity > 0 else 0.0
+
+        available_buy_capacity = max(0.0, MAX_EXPOSURE - held_exposure)
+        new_buy_targets = {
+            s: w for s, w in target_weights.items()
+            if isinstance(w, (int, float)) and w > 0.0 and s not in current_positions
+        }
+        sum_new_buys = sum(new_buy_targets.values())
+
+        if sum_new_buys > 0:
+            if available_buy_capacity <= 0.02:
+                print(f" -> [CAPACITY FULL] Retained holdings ({held_exposure*100:.1f}%) utilize target exposure ({MAX_EXPOSURE*100:.0f}%). Skipping new entries.")
+                for s in new_buy_targets:
+                    del target_weights[s]
+            elif sum_new_buys > available_buy_capacity:
+                scale = available_buy_capacity / sum_new_buys
+                print(f" -> [CAPITAL SIZING] Scaling new entries by {scale:.2f}x to fit available capacity ({available_buy_capacity*100:.1f}%)...")
+                for s in new_buy_targets:
+                    target_weights[s] = min(round(target_weights[s] * scale, 4), ensemble.max_single_stock)
             
     print("\n[4/4] Routing Orders to Risk Engine & Alpaca...")
     executed_orders_log = []
@@ -169,6 +232,12 @@ def execute_quant_live_cycle():
             target_value = total_equity * target_weight
             current_value = current_qty * current_price
             value_to_trade = target_value - current_value
+            
+            # Anti-churn hurdle: skip tiny micro-rebalancing trades under $200 on already-held positions
+            if current_qty > 0 and abs(value_to_trade) < max(200.0, total_equity * 0.005):
+                print(f" -> [MICRO-REBALANCE SKIP] {sym}: trade delta (${value_to_trade:.2f}) under $200 hurdle. Skipping churn.")
+                continue
+                
             qty_to_trade = int(round(value_to_trade / current_price))
         
         # Ensure we never sell more shares than currently held (no inadvertent short positions)

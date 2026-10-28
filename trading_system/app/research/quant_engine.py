@@ -110,6 +110,85 @@ class InvestorSkillsHeuristics:
                 "target_weight": 0.0
             }
 
+    @classmethod
+    def evaluate_holding_exit(
+        cls,
+        symbol: str,
+        df: pd.DataFrame,
+        current_plpc: float = 0.0,
+        regime: str = "BULL_CHOPPY",
+        mr_strategy: Optional[Any] = None
+    ) -> Dict[str, Any]:
+        """
+        Unified Institutional Holding & Exit Logic:
+        Determines whether an open position should be EXITED (liquidated to 0.0) or HELD.
+        Prevents whipsaw liquidations during normal chop while strictly cutting catastrophic losses.
+        """
+        # 1. Hard Stop-Loss Guardrail (-8%)
+        if current_plpc <= -0.08:
+            return {
+                "should_exit": True,
+                "reason": f"Hard Stop-Loss breached (Unrealized PnL: {current_plpc*100:.2f}% <= -8.0%)",
+                "action": "STOP_LOSS_LIQUIDATE"
+            }
+
+        # 2. Macro Regime Crash Guardrail
+        if regime == "CRASH_WARNING":
+            return {
+                "should_exit": True,
+                "reason": "Market in CRASH_WARNING regime. Liquidating to 100% Cash Buffer.",
+                "action": "CRASH_LIQUIDATE"
+            }
+
+        if df.empty or len(df) < 30:
+            return {
+                "should_exit": False,
+                "reason": "Insufficient data; retaining position.",
+                "action": "HOLD"
+            }
+
+        # 3. Check Mean Reversion state (Oversold Dip-Buy Protection)
+        mr_sig = mr_strategy.generate_signal(df) if mr_strategy else {"signal": 0}
+        if mr_sig.get("signal") == 1:
+            return {
+                "should_exit": False,
+                "reason": f"Mean-Reversion dip support active ({mr_sig.get('rationale')}); holding for rebound.",
+                "action": "HOLD"
+            }
+
+        # 4. Check Momentum Trend Health
+        params = cls.get_dynamic_params()
+        fast_sma = params.get("fast_sma", 20)
+        slow_sma = params.get("slow_sma", 50)
+
+        close_prices = df.get("adj_close", df["close"])
+        current_price = float(close_prices.iloc[-1])
+        sma_fast = float(close_prices.rolling(window=fast_sma).mean().iloc[-1])
+        sma_slow = float(close_prices.rolling(window=slow_sma).mean().iloc[-1])
+
+        # If price is above slow SMA, trend is structurally sound
+        if current_price >= sma_slow:
+            return {
+                "should_exit": False,
+                "reason": f"Core trend intact: Price (${current_price:.2f}) >= {slow_sma}SMA (${sma_slow:.2f}).",
+                "action": "HOLD"
+            }
+
+        # If price broke down significantly below slow SMA (> 3%) AND fast SMA is below slow SMA
+        if current_price < (sma_slow * 0.97) and sma_fast < sma_slow:
+            return {
+                "should_exit": True,
+                "reason": f"Downtrend breakdown: Price (${current_price:.2f}) < 97% of {slow_sma}SMA (${sma_slow:.2f}) & {fast_sma}SMA < {slow_sma}SMA.",
+                "action": "TREND_EXIT"
+            }
+
+        # Default: normal consolidation / healthy holding
+        return {
+            "should_exit": False,
+            "reason": f"Normal consolidation (Price: ${current_price:.2f}, PnL: {current_plpc*100:+.1f}%). Preserving holding.",
+            "action": "HOLD"
+        }
+
 
 class QuantEngine:
     """
@@ -181,12 +260,12 @@ class QuantEngine:
                         if not latest_feats.isna().any().any():
                             # Probability of forward 5-day alpha > 0.5%
                             ml_prob = float(self.ml_model.predict_proba(latest_feats)[0, 1])
-                            if ml_prob < self.ml_min_probability:
-                                # VETO: Low predictive probability of forward return (e.g. false breakout)
+                            # Severe veto: only drop signal if ML signals elevated risk of immediate bull-trap
+                            if ml_prob < max(0.38, self.ml_min_probability - 0.10):
                                 ml_confirmed = False
                             else:
-                                # Modulate conviction score by ML confidence (prob 0.50 -> 1.0x, prob 0.60 -> 1.04x)
-                                raw_conviction = raw_conviction * (0.80 + (ml_prob * 0.40))
+                                # Smooth conviction modulation (prob 0.50 -> 1.0x, prob 0.60 -> 1.06x, prob 0.45 -> 0.97x)
+                                raw_conviction = raw_conviction * (0.70 + (ml_prob * 0.60))
                     except Exception as e:
                         logger.debug(f"ML gating error for {symbol}: {e}")
 

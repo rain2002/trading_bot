@@ -119,16 +119,37 @@ class EnsembleAllocator:
             return {}  # 100% Cash
 
         strat_weights = regime_info.get("weights", {"momentum": 0.60, "mean_reversion": 0.40})
-        mom_budget = max_exposure * strat_weights.get("momentum", 0.60)
-        mr_budget = max_exposure * strat_weights.get("mean_reversion", 0.40)
-
-        combined_raw: Dict[str, float] = {}
+        raw_mom_ratio = strat_weights.get("momentum", 0.60)
+        raw_mr_ratio = strat_weights.get("mean_reversion", 0.40)
 
         # 1. Process Momentum Candidates (Filtered to Positive Conviction)
         valid_mom = [s for s in momentum_signals if s.get("conviction_score", 0.0) > 0.0]
         valid_mom = sorted(valid_mom, key=lambda s: s.get("conviction_score", 0.0), reverse=True)
         if self.max_holdings is not None:
             valid_mom = valid_mom[:self.max_holdings]
+
+        # 2. Process Mean-Reversion Dip-Buys (signal == 1)
+        valid_mr = [s for s in mean_rev_signals if s.get("signal") == 1]
+        valid_mr = sorted(valid_mr, key=lambda s: s.get("confidence", 0.7), reverse=True)
+        if self.max_holdings is not None:
+            valid_mr = valid_mr[:self.max_holdings]
+
+        # ADAPTIVE WATERFALL BUDGETING:
+        # If one sub-strategy generates zero signals, its unspent budget dynamically
+        # flows to the active strategy up to max_exposure, preventing false capital dry-ups.
+        if not valid_mr and valid_mom:
+            mom_budget = max_exposure
+            mr_budget = 0.0
+        elif not valid_mom and valid_mr:
+            mr_budget = max_exposure
+            mom_budget = 0.0
+        elif valid_mom and valid_mr:
+            mom_budget = max_exposure * raw_mom_ratio
+            mr_budget = max_exposure * raw_mr_ratio
+        else:
+            return {}  # Zero valid signals across all strategies -> 100% Cash
+
+        combined_raw: Dict[str, float] = {}
         
         if valid_mom:
             total_mom_score = sum(s.get("conviction_score", 1.0) for s in valid_mom)
@@ -137,12 +158,6 @@ class EnsembleAllocator:
                 score = sig.get("conviction_score", 1.0)
                 weight = (score / total_mom_score) * mom_budget if total_mom_score > 0 else (mom_budget / len(valid_mom))
                 combined_raw[sym] = combined_raw.get(sym, 0.0) + weight
-
-        # 2. Process Mean-Reversion Dip-Buys (signal == 1)
-        valid_mr = [s for s in mean_rev_signals if s.get("signal") == 1]
-        valid_mr = sorted(valid_mr, key=lambda s: s.get("confidence", 0.7), reverse=True)
-        if self.max_holdings is not None:
-            valid_mr = valid_mr[:self.max_holdings]
 
         if valid_mr:
             total_mr_conf = sum(s.get("confidence", 0.7) for s in valid_mr)
@@ -194,7 +209,13 @@ class EnsembleAllocator:
             final_targets = {sym: w for sym, w in final_targets.items() if w >= self.min_position_pct}
 
         total_gross = sum(final_targets.values())
-        if total_gross > max_exposure and total_gross > 0:
+        if total_gross > 0 and total_gross < (max_exposure * 0.90) and len(final_targets) >= 3:
+            scale = min(max_exposure / total_gross, 1.35)
+            final_targets = {
+                sym: min(round(w * scale, 4), self.max_single_stock)
+                for sym, w in final_targets.items()
+            }
+        elif total_gross > max_exposure and total_gross > 0:
             scale = max_exposure / total_gross
             final_targets = {sym: round(w * scale, 4) for sym, w in final_targets.items()}
         else:

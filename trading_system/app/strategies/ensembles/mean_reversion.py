@@ -26,7 +26,7 @@ class MeanReversionStrategy:
         bb_window: int = 20,
         bb_std: float = 2.0,
         rsi_window: int = 14,
-        rsi_oversold: float = 30.0,
+        rsi_oversold: float = 38.0,
         rsi_exit: float = 55.0,
     ):
         self.bb_window = bb_window
@@ -83,13 +83,14 @@ class MeanReversionStrategy:
         rsi = curr["rsi"]
         sma_200 = curr.get("sma_200", current_price)
 
-        # BUY Condition: Pierced lower band + RSI oversold + macro trend intact
-        if current_price < bb_lower and rsi <= self.rsi_oversold and current_price >= sma_200 * 0.90:
+        # BUY Condition: Near/below lower band and RSI oversold, with macro trend intact
+        is_dip = (current_price <= bb_lower * 1.01) and (rsi <= self.rsi_oversold)
+        if is_dip and current_price >= sma_200 * 0.85:
             confidence = min(1.0, 0.70 + (self.rsi_oversold - rsi) * 0.015)
             return {
                 "signal": 1,
                 "confidence": round(confidence, 2),
-                "rationale": f"Mean-Reversion BUY: Price ({current_price:.2f}) < BB Lower ({bb_lower:.2f}), RSI is {rsi:.1f}",
+                "rationale": f"Mean-Reversion BUY: Price ({current_price:.2f}) near BB Lower ({bb_lower:.2f}), RSI is {rsi:.1f}",
             }
 
         # EXIT Condition: Price reached middle band or RSI normalized
