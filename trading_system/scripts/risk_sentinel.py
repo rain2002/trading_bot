@@ -152,15 +152,15 @@ class RiskSentinel:
                 print(f" -> [SAFE] {sym:<6}: PnL {plpc*100:+.2f}% | Stop Limit: ${target_stop_price:.2f} ({threshold*100:.1f}% [{tag}])")
 
                 if sync_gtc_stops and target_stop_price < curr_price:
-                    # Check if a GTC stop order is already resting on broker
-                    existing_stops = [
-                        o for o in orders_by_symbol.get(sym, [])
-                        if o["side"] == "sell" and o["type"] == "stop"
-                    ]
-                    if existing_stops:
-                        # Existing stop order verified
-                        existing_stop_p = float(existing_stops[0].get("stop_price", 0.0))
-                        print(f"    [GTC STOP ACTIVE] Resting broker stop order verified at ${existing_stop_p:.2f} (ID: {existing_stops[0]['id']})")
+                    # Check if any sell order is already queued or resting (market sell or stop)
+                    open_sells = [o for o in orders_by_symbol.get(sym, []) if o.get("side") == "sell"]
+                    if open_sells:
+                        existing_stops = [o for o in open_sells if o.get("type") == "stop"]
+                        if existing_stops:
+                            existing_stop_p = float(existing_stops[0].get("stop_price", 0.0))
+                            print(f"    [GTC STOP ACTIVE] Resting broker stop order verified at ${existing_stop_p:.2f} (ID: {existing_stops[0]['id']})")
+                        else:
+                            print(f"    [SELL QUEUED] Active market liquidation already queued on broker (ID: {open_sells[0]['id']}). Skipping GTC stop.")
                     else:
                         # Register new GTC Stop order directly on Alpaca
                         stop_payload = {
@@ -170,7 +170,7 @@ class RiskSentinel:
                             "type": "stop",
                             "stop_price": str(target_stop_price),
                             "time_in_force": "gtc",
-                            "client_order_id": f"GTC_STOP_{sym}_{int(round(qty))}"
+                            "client_order_id": f"GTC_STOP_{sym}_{int(round(qty))}_{int(time.time())}"
                         }
                         try:
                             s_res = requests.post(f"{self.base_url}/v2/orders", headers=self.headers, json=stop_payload, timeout=10)
