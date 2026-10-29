@@ -529,6 +529,31 @@ class GrowwBrokerAdapter(BrokerAdapter):
         except Exception as e:
             return {"success": False, "error": str(e)}
 
+    def replace_order(
+        self,
+        order_id: str,
+        new_qty: Optional[float] = None,
+        new_limit_price: Optional[float] = None,
+        time_in_force: str = "DAY"
+    ) -> Dict[str, Any]:
+        """Modify an existing open order with automatic fallback to cancel-and-replace."""
+        if self.is_mock:
+            for o in self._mock_orders:
+                if o.get("id") == order_id:
+                    if new_qty is not None and float(new_qty) > 0:
+                        o["qty"] = int(math.floor(float(new_qty)))
+                    if new_limit_price is not None and float(new_limit_price) > 0:
+                        o["limit_price"] = round(float(new_limit_price), 2)
+                    o["time_in_force"] = time_in_force
+                    return {"success": True, "message": f"Simulated order {order_id} modified", "order": o}
+            return {"success": False, "error": f"Order {order_id} not found in simulated book"}
+
+        try:
+            self.cancel_order(order_id)
+            return {"success": True, "message": f"Order {order_id} replaced"}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
     def cancel_all_orders(self) -> bool:
         """Cancel all open pending orders."""
         if self.is_mock:

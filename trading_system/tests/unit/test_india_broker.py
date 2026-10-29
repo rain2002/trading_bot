@@ -69,3 +69,26 @@ def test_groww_broker_order_lifecycle():
     cancel_res = adapter.cancel_order(order_id)
     assert cancel_res["success"] is True
     assert adapter.get_order_status(order_id) == "CANCELED"
+
+def test_groww_broker_replace_order():
+    adapter = GrowwBrokerAdapter(initial_capital=1000000.0)
+    # Target existing mock order GRW-ORD-1001 (LIMIT BUY RELIANCE.NS)
+    res = adapter.replace_order("GRW-ORD-1001", new_qty=40, new_limit_price=2850.0)
+    assert res["success"] is True
+    assert res["order"]["qty"] == 40
+    assert res["order"]["limit_price"] == 2850.0
+    assert res["order"]["status"] in ("ACTIVE_GTT", "REPLACED", "OPEN")
+
+    # Non-existent order replace test
+    bad_res = adapter.replace_order("NON-EXISTENT-ID", new_qty=10)
+    assert bad_res["success"] is False
+    assert "not found" in bad_res["error"].lower()
+
+def test_groww_broker_portfolio_history():
+    adapter = GrowwBrokerAdapter(initial_capital=1000000.0)
+    hist = adapter.get_portfolio_history()
+    assert hist is not None
+    assert not hist.empty
+    assert "timestamp" in hist.columns
+    assert "equity" in hist.columns
+    assert hist["equity"].iloc[-1] >= 900000.0
