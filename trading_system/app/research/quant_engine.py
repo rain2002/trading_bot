@@ -10,6 +10,7 @@ from trading_system.app.common.database import SessionLocal
 from trading_system.app.data.yfinance_provider import YFinanceDataProvider
 from trading_system.app.strategies.ensembles.mean_reversion import MeanReversionStrategy
 from trading_system.app.ml.feature_pipeline import MLFeaturePipeline
+from trading_system.app.config.stop_loss_manager import StopLossManager
 
 logger = logging.getLogger("QuantEngine")
 
@@ -124,11 +125,18 @@ class InvestorSkillsHeuristics:
         Determines whether an open position should be EXITED (liquidated to 0.0) or HELD.
         Prevents whipsaw liquidations during normal chop while strictly cutting catastrophic losses.
         """
-        # 1. Hard Stop-Loss Guardrail (-8%)
-        if current_plpc <= -0.08:
+        # 1. Dynamic Hard Stop-Loss Guardrail (Bot & User-Overridden Limits)
+        stop_threshold = -0.08
+        try:
+            sl_mgr = StopLossManager()
+            stop_threshold = sl_mgr.get_stop_loss_pct(symbol)
+        except Exception:
+            stop_threshold = -0.08
+
+        if current_plpc <= stop_threshold:
             return {
                 "should_exit": True,
-                "reason": f"Hard Stop-Loss breached (Unrealized PnL: {current_plpc*100:.2f}% <= -8.0%)",
+                "reason": f"Hard Stop-Loss breached (Unrealized PnL: {current_plpc*100:.2f}% <= {stop_threshold*100:.1f}%)",
                 "action": "STOP_LOSS_LIQUIDATE"
             }
 
@@ -147,16 +155,28 @@ class InvestorSkillsHeuristics:
                 "action": "HOLD"
             }
 
-        # 3. Check Mean Reversion state (Oversold Dip-Buy Protection)
+        # 3. Check Mean Reversion state (Oversold Dip-Buy Protection & Profit Target)
         mr_sig = mr_strategy.generate_signal(df) if mr_strategy else {"signal": 0}
-        if mr_sig.get("signal") == 1:
+        
+        # If Mean Reversion says EXIT (signal == -1), the stock reached its mean/middle band profit target
+        if mr_sig.get("signal") == -1:
+            return {
+                "should_exit": True,
+                "reason": f"Mean-Reversion Target Reached ({mr_sig.get('rationale')}). Securing profit.",
+                "action": "TARGET_PROFIT_EXIT"
+            }
+
+        # If Mean Reversion is in BUY (signal == 1) or HOLD/REBOUND (signal == 0):
+        # Dip-buys are naturally below their 50/40-day SMAs. DO NOT apply momentum trend breakdown
+        # rules to active dip-buy positions unless their hard stop-loss is breached!
+        if mr_sig.get("signal") in (0, 1):
             return {
                 "should_exit": False,
-                "reason": f"Mean-Reversion dip support active ({mr_sig.get('rationale')}); holding for rebound.",
+                "reason": f"Mean-Reversion active ({mr_sig.get('rationale')}); preserving holding for rebound.",
                 "action": "HOLD"
             }
 
-        # 4. Check Momentum Trend Health
+        # 4. Check Momentum Trend Health (Only for Trend-Following Positions)
         params = cls.get_dynamic_params()
         fast_sma = params.get("fast_sma", 20)
         slow_sma = params.get("slow_sma", 50)

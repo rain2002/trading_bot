@@ -12,6 +12,7 @@ import plotly.graph_objects as go
 
 from trading_system.app.config.settings import settings
 from trading_system.app.broker.alpaca import AlpacaBrokerAdapter
+from trading_system.app.config.stop_loss_manager import StopLossManager
 
 # ==========================================
 # PAGE CONFIGURATION
@@ -458,6 +459,7 @@ if not api_key or not api_secret:
     api_secret = st.sidebar.text_input("Alpaca API Secret", type="password")
 
 broker = AlpacaBrokerAdapter(api_key=api_key or "mock", api_secret=api_secret or "mock")
+sl_manager = StopLossManager()
 
 acc_details = broker.get_account_details()
 equity = acc_details.get("equity", 100000.0)
@@ -1528,11 +1530,60 @@ elif page == "📋 Positions & Stop-Loss":
     positions = broker.get_positions_detailed()
 
     if positions:
-        df_pos = pd.DataFrame(positions)
+        # Enrich all positions with dynamic stop-loss calculations from StopLossManager
+        pos_enriched = []
+        for p in positions:
+            sym = p["symbol"]
+            cur_p = float(p.get("current_price", 0.0))
+            entry_p = float(p.get("avg_entry_price", 0.0))
+            mkt_v = float(p.get("market_value", 0.0))
+            unreal_pl = float(p.get("unrealized_pl", 0.0))
+            unreal_plpc = float(p.get("unrealized_plpc", 0.0))
+            shares = float(p.get("qty", 0.0))
+
+            dist_info = sl_manager.get_distance_to_stop(sym, cur_p, entry_p)
+            sl_pct = dist_info["stop_loss_pct"]
+            sl_price = dist_info["stop_price"]
+            pct_buf = dist_info["pct_buffer"]
+            is_breached = dist_info["is_breached"]
+            is_warning = dist_info["is_warning"]
+            is_custom = dist_info["is_custom"]
+
+            if is_breached:
+                risk_status = "🛑 STOP BREACH"
+            elif is_warning:
+                risk_status = "⚠️ WATCHLIST (< 2.5%)"
+            elif unreal_pl > 0:
+                risk_status = "🟢 PROFITABLE"
+            else:
+                risk_status = "🛡️ IN BUFFER"
+
+            pos_enriched.append({
+                "symbol": sym,
+                "Ticker": f"{sym} ✏️" if is_custom else sym,
+                "Shares": int(shares) if shares.is_integer() else shares,
+                "Current Price ($)": cur_p,
+                "Avg Entry ($)": entry_p,
+                "Market Value ($)": mkt_v,
+                "Unrealized P&L ($)": unreal_pl,
+                "Return (%)": unreal_plpc * 100,
+                "Stop Price ($)": sl_price,
+                "Stop Limit (%)": sl_pct * 100,
+                "Stop Buffer (%)": pct_buf,
+                "Risk Status": risk_status,
+                "is_breached": is_breached,
+                "is_warning": is_warning,
+                "is_custom": is_custom,
+                "unrealized_pl": unreal_pl,
+                "market_value": mkt_v,
+                "unrealized_plpc": unreal_plpc
+            })
+
+        df_pos = pd.DataFrame(pos_enriched)
 
         # Dedicated Page Metric Cards
         winners = df_pos[df_pos['unrealized_pl'] > 0]
-        critical = df_pos[df_pos['unrealized_plpc'] <= -0.08]
+        critical = df_pos[df_pos['is_breached']]
         win_rate = (len(winners) / len(df_pos) * 100) if len(df_pos) > 0 else 0.0
 
         p1, p2, p3, p4 = st.columns(4)
@@ -1568,11 +1619,13 @@ elif page == "📋 Positions & Stop-Loss":
         with p4:
             crit_cls = "metric-big-green" if len(critical) == 0 else "metric-big-red"
             crit_badge = "metric-badge-uniform" if len(critical) == 0 else "metric-badge-danger"
+            overrides_count = len(sl_manager.overrides)
+            sl_badge_text = f"{overrides_count} CUSTOM OVERRIDES" if overrides_count > 0 else f"BOT DEFAULT ({sl_manager.global_default_pct*100:.1f}%)"
             st.markdown(f"""
             <div class="cyber-kpi-card">
                 <div class="kpi-title">STOP-LOSS HEALTH</div>
                 <div class="kpi-value"><div class="{crit_cls}">{len(critical)} Breaches</div></div>
-                <div class="kpi-badge-row"><div class="{crit_badge}">{'100% HEALTHY' if len(critical) == 0 else 'ACTION REQUIRED'}</div></div>
+                <div class="kpi-badge-row"><div class="{crit_badge}">{sl_badge_text}</div></div>
             </div>
             """, unsafe_allow_html=True)
 
@@ -1585,11 +1638,11 @@ elif page == "📋 Positions & Stop-Loss":
 
         with d_col1:
             prof_count = len(winners)
-            hold_count = len(df_pos[(df_pos['unrealized_plpc'] <= 0) & (df_pos['unrealized_plpc'] > -0.05)])
-            watch_count = len(df_pos[(df_pos['unrealized_plpc'] <= -0.05) & (df_pos['unrealized_plpc'] > -0.08)])
+            hold_count = len(df_pos[df_pos['Risk Status'] == '🛡️ IN BUFFER'])
+            watch_count = len(df_pos[df_pos['Risk Status'] == '⚠️ WATCHLIST (< 2.5%)'])
             breach_count = len(critical)
 
-            h_labels = ["Profitable (> 0%)", "Holding (0 to -5%)", "Watchlist (-5 to -8%)", "Stop Breach (<= -8%)"]
+            h_labels = ["Profitable (> 0%)", "Holding in Safe Buffer", "Near Stop Watchlist (< 2.5%)", "Stop Breach Triggered"]
             h_values = [prof_count, hold_count, watch_count, breach_count]
             h_colors = ["#82FBBD", "#52525B", "#FBBF24", "#FF9A9C"]
 
@@ -1637,27 +1690,13 @@ elif page == "📋 Positions & Stop-Loss":
 
         st.markdown("<div style='margin-top: 10px;'></div>", unsafe_allow_html=True)
 
-        def evaluate_sl_status(row):
-            pct = row['unrealized_plpc'] * 100
-            if pct <= -8.0:
-                return "🛑 STOP BREACH"
-            elif pct <= -5.0:
-                return "⚠️ WATCHLIST (< -5%)"
-            elif pct > 0:
-                return "🟢 PROFITABLE"
-            else:
-                return "⚪ HOLDING"
-
-        df_pos["Status"] = df_pos.apply(evaluate_sl_status, axis=1)
-        df_pos["Unrealized P&L ($)"] = df_pos["unrealized_pl"]
-        df_pos["Return (%)"] = df_pos["unrealized_plpc"] * 100
-        df_pos["Market Value ($)"] = df_pos["market_value"]
-        df_pos["Current Price ($)"] = df_pos["current_price"]
-        df_pos["Avg Entry ($)"] = df_pos["avg_entry_price"]
-        df_pos["Shares"] = df_pos["qty"]
-        df_pos["Ticker"] = df_pos["symbol"]
-
-        display_cols = ["Ticker", "Shares", "Current Price ($)", "Avg Entry ($)", "Market Value ($)", "Unrealized P&L ($)", "Return (%)", "Status"]
+        # ----------------------------------------------------------------------
+        # ACTIVE POSITIONS & STOP-LOSS TELEMETRY TABLE
+        # ----------------------------------------------------------------------
+        display_cols = [
+            "Ticker", "Shares", "Current Price ($)", "Avg Entry ($)", "Market Value ($)",
+            "Unrealized P&L ($)", "Return (%)", "Stop Price ($)", "Stop Limit (%)", "Stop Buffer (%)", "Risk Status"
+        ]
         df_display = df_pos[display_cols].sort_values(by="Unrealized P&L ($)", ascending=False)
 
         def color_pnl_cells(v):
@@ -1668,15 +1707,33 @@ elif page == "📋 Positions & Stop-Loss":
                     return "color: #FF9A9C; font-weight: 600;"
             return ""
 
+        def color_buffer_cells(v):
+            if isinstance(v, (int, float)):
+                if v <= 2.5:
+                    return "color: #FF9A9C; font-weight: 600;"
+                else:
+                    return "color: #82FBBD; font-weight: 600;"
+            return ""
+
+        def color_stop_limit(v):
+            if isinstance(v, (int, float)):
+                return "color: #FF9A9C; font-weight: 600;"
+            return ""
+
         styled_pos_df = (
             df_display.style
             .map(color_pnl_cells, subset=["Unrealized P&L ($)", "Return (%)"])
+            .map(color_buffer_cells, subset=["Stop Buffer (%)"])
+            .map(color_stop_limit, subset=["Stop Limit (%)"])
             .format({
                 "Unrealized P&L ($)": format_pnl_str,
                 "Return (%)": format_pct_str,
                 "Current Price ($)": "${:,.2f}",
                 "Avg Entry ($)": "${:,.2f}",
                 "Market Value ($)": "${:,.2f}",
+                "Stop Price ($)": "${:,.2f}",
+                "Stop Limit (%)": "{:.1f}%",
+                "Stop Buffer (%)": lambda v: f"+{v:.1f}%" if v >= 0 else f"-{abs(v):.1f}%",
                 "Shares": "{:,.0f}"
             })
         )
@@ -1688,9 +1745,180 @@ elif page == "📋 Positions & Stop-Loss":
         )
 
         if not critical.empty:
-            st.error(f"⚠️ {len(critical)} position(s) have breached the -8% stop-loss threshold and will be liquidated on the next session cycle!")
+            st.error(f"⚠️ {len(critical)} position(s) have breached their designated stop-loss threshold and will be liquidated on the next session cycle!")
         else:
-            st.success("✅ Risk Integrity 100%: All active holdings are within safe operating limits (Drawdown > -8.0%).")
+            st.success("✅ Risk Integrity 100%: All active holdings are within safe operating limits (Drawdowns above active stop limits).")
+
+        # ----------------------------------------------------------------------
+        # EDITABLE STOP-LOSS CONTROL DESK (BOT & USER OVERRIDES)
+        # ----------------------------------------------------------------------
+        st.markdown("<div style='margin-top: 20px;'></div>", unsafe_allow_html=True)
+        st.markdown(f"""
+        <div class="cyber-card" style="margin-bottom: 14px;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <div class="kpi-title" style="color: #82FBBD; font-size: 0.78rem; letter-spacing: 0.12em;">// 02. EDITABLE STOP-LOSS CONTROL DESK</div>
+                    <div style="font-size: 0.78rem; color: #71717A; margin-top: 3px;">
+                        Alter the stop-loss limit for any active position. Custom overrides are stored persistently in bot configuration and instantly enforced by both the Quant Engine and live risk monitors.
+                    </div>
+                </div>
+                <div>
+                    <span class="status-pill" style="border-color: rgba(130,251,189,0.3); color: #82FBBD;">BOT DEFAULT: {sl_manager.global_default_pct*100:.1f}%</span>
+                </div>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+        col_pos_info, col_pos_edit = st.columns([1.1, 1.3])
+
+        with col_pos_info:
+            target_sym = st.selectbox(
+                "Select Position to Alter Stop-Loss",
+                options=[p["symbol"] for p in positions],
+                key="sl_target_selector"
+            )
+            pos_data = next((p for p in positions if p["symbol"] == target_sym), None)
+            if pos_data:
+                pos_cur_price = float(pos_data.get("current_price", 0.0))
+                pos_entry_price = float(pos_data.get("avg_entry_price", 0.0))
+                pos_qty = float(pos_data.get("qty", 0.0))
+                pos_pl = float(pos_data.get("unrealized_pl", 0.0))
+                pos_plpc = float(pos_data.get("unrealized_plpc", 0.0)) * 100
+                pos_active_sl_pct = sl_manager.get_stop_loss_pct(target_sym)
+                pos_is_custom = sl_manager.is_custom_override(target_sym)
+                pos_active_stop_price = sl_manager.get_stop_price(target_sym, pos_entry_price)
+                pos_dollar_buf = pos_cur_price - pos_active_stop_price
+                pos_pct_buf = (pos_dollar_buf / pos_cur_price * 100) if pos_cur_price > 0 else 0.0
+
+                badge_bg = "rgba(255, 184, 0, 0.12)" if pos_is_custom else "rgba(130, 251, 189, 0.1)"
+                badge_border = "rgba(255, 184, 0, 0.35)" if pos_is_custom else "rgba(130, 251, 189, 0.28)"
+                badge_text_c = "#FFB800" if pos_is_custom else "#82FBBD"
+                badge_label = "✏️ USER CUSTOM OVERRIDE" if pos_is_custom else "🤖 BOT ALGORITHM DEFAULT"
+
+                st.markdown(f"""
+                <div style="background: #0A0B0E; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 10px; padding: 14px 16px; font-family: 'DM Mono', monospace;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span>TICKER: <b style="color: #FFFFFF; font-size: 1.05rem; font-family: 'Space Grotesk';">{target_sym}</b></span>
+                        <span style="font-size: 0.68rem; padding: 3px 8px; border-radius: 4px; background: {badge_bg}; border: 1px solid {badge_border}; color: {badge_text_c}; font-weight: 600;">
+                            {badge_label}
+                        </span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; font-size: 0.76rem; color: #71717A; margin-top: 9px; padding-top: 7px; border-top: 1px solid rgba(255,255,255,0.06);">
+                        <span>Current Market Price:</span>
+                        <span style="color: #FFFFFF; font-weight: 600;">${pos_cur_price:,.2f}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; font-size: 0.76rem; color: #71717A; margin-top: 5px;">
+                        <span>Average Entry Basis:</span>
+                        <span style="color: #A1A1AA;">${pos_entry_price:,.2f} ({int(pos_qty)} shares)</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; font-size: 0.76rem; color: #71717A; margin-top: 5px;">
+                        <span>Current Position P&L:</span>
+                        <span style="color: {'#82FBBD' if pos_pl >= 0 else '#FF9A9C'}; font-weight: 600;">{format_pnl_str(pos_pl)} ({format_pct_str(pos_plpc)})</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; font-size: 0.76rem; color: #71717A; margin-top: 8px; padding-top: 7px; border-top: 1px solid rgba(255,255,255,0.06);">
+                        <span>Active Stop-Loss Trigger:</span>
+                        <span style="color: #FF9A9C; font-weight: 600;">${pos_active_stop_price:,.2f} ({pos_active_sl_pct*100:+.1f}%)</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; font-size: 0.76rem; color: #71717A; margin-top: 5px;">
+                        <span>Safety Buffer to Stop:</span>
+                        <span style="color: {'#82FBBD' if pos_pct_buf > 2.5 else '#FF9A9C'}; font-weight: 600;">{'+' if pos_dollar_buf >= 0 else ''}${pos_dollar_buf:,.2f} ({pos_pct_buf:+.1f}%)</span>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+
+        with col_pos_edit:
+            if pos_data:
+                sl_mode = st.radio(
+                    "Stop-Loss Modification Method",
+                    options=["By Stop-Loss Percentage (%)", "By Exact Dollar Stop Price ($)"],
+                    horizontal=True,
+                    key="sl_edit_mode_radio"
+                )
+
+                if sl_mode == "By Stop-Loss Percentage (%)":
+                    curr_pct_val = abs(pos_active_sl_pct * 100)
+                    user_pct_input = st.number_input(
+                        "Target Downside Stop Limit % (Loss Threshold from Entry)",
+                        min_value=0.5,
+                        max_value=40.0,
+                        value=float(round(curr_pct_val, 1)),
+                        step=0.5,
+                        format="%.1f",
+                        key=f"sl_pct_input_{target_sym}",
+                        help="e.g. 5.0 for -5.0% loss limit from entry basis"
+                    )
+                    staged_pct = -abs(user_pct_input) / 100.0
+                    staged_stop_price = round(pos_entry_price * (1.0 + staged_pct), 2)
+                else:
+                    user_price_input = st.number_input(
+                        "Target Exact Dollar Stop Price ($ USD)",
+                        min_value=0.01,
+                        max_value=float(pos_cur_price * 1.5),
+                        value=float(pos_active_stop_price),
+                        step=0.25,
+                        format="%.2f",
+                        key=f"sl_price_input_{target_sym}",
+                        help="Exact share price that unconditionally liquidates position"
+                    )
+                    staged_stop_price = float(user_price_input)
+                    staged_pct = (staged_stop_price - pos_entry_price) / pos_entry_price if pos_entry_price > 0 else -0.08
+                    staged_pct = round(staged_pct, 4)
+
+                staged_loss_per_share = pos_entry_price - staged_stop_price
+                staged_total_loss = staged_loss_per_share * pos_qty
+                staged_dist_curr = pos_cur_price - staged_stop_price
+                staged_dist_curr_pct = (staged_dist_curr / pos_cur_price * 100) if pos_cur_price > 0 else 0.0
+
+                st.markdown(f"""
+                <div style="background: #0D0E12; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px; padding: 10px 14px; margin: 10px 0; font-family: 'DM Mono', monospace; font-size: 0.74rem;">
+                    <div style="display: flex; justify-content: space-between; padding-bottom: 4px;">
+                        <span style="color: #71717A;">NEW STOP TRIGGER:</span>
+                        <span style="color: #FFFFFF; font-weight: 600;">${staged_stop_price:,.2f} ({staged_pct*100:+.1f}% from Entry)</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; padding-bottom: 4px; border-bottom: 1px solid rgba(255,255,255,0.06);">
+                        <span style="color: #71717A;">DISTANCE FROM CURRENT PRICE:</span>
+                        <span style="color: {'#82FBBD' if staged_dist_curr > 0 else '#FF9A9C'}; font-weight: 600;">{'+' if staged_dist_curr >= 0 else ''}${staged_dist_curr:,.2f} ({staged_dist_curr_pct:+.1f}%)</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; padding-top: 4px;">
+                        <span style="color: #71717A;">MAX DOWNSIDE AT-RISK CAPITAL:</span>
+                        <span style="color: #FF9A9C; font-weight: 600;">-${abs(staged_total_loss):,.2f} ({int(pos_qty)} shares)</span>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+
+                b_save, b_reset = st.columns(2)
+                with b_save:
+                    if st.button(f"💾 Apply Stop-Loss to {target_sym}", type="primary", use_container_width=True, key=f"save_sl_btn_{target_sym}"):
+                        sl_manager.set_stop_loss_pct(target_sym, staged_pct)
+                        st.toast(f"✅ Set {target_sym} Stop-Loss to {staged_pct*100:.1f}% (${staged_stop_price:,.2f})!", icon="🛡️")
+                        st.rerun()
+
+                with b_reset:
+                    if st.button(f"🔄 Revert to Bot Default", disabled=(not pos_is_custom), type="secondary", use_container_width=True, key=f"reset_sl_btn_{target_sym}"):
+                        sl_manager.reset_stop_loss(target_sym)
+                        st.toast(f"🔄 Reverted {target_sym} to Bot Default ({sl_manager.global_default_pct*100:.1f}%)!", icon="🔄")
+                        st.rerun()
+
+        # Global Default Stop-Loss Configuration Expander
+        st.markdown("<div style='margin-top: 10px;'></div>", unsafe_allow_html=True)
+        with st.expander("⚙️ Configure Bot Global Default Stop-Loss Limit (All Assets)", expanded=False):
+            g_col1, g_col2 = st.columns([2.5, 1.2])
+            with g_col1:
+                new_global_sl = st.number_input(
+                    "Bot Global Default Stop-Loss % (Enforced across any non-overridden ticker)",
+                    min_value=2.0,
+                    max_value=30.0,
+                    value=float(abs(sl_manager.global_default_pct * 100)),
+                    step=0.5,
+                    format="%.1f",
+                    key="global_sl_input"
+                )
+            with g_col2:
+                st.markdown("<div style='margin-top: 28px;'></div>", unsafe_allow_html=True)
+                if st.button("💾 Apply Global Default", key="apply_global_sl_btn", use_container_width=True):
+                    sl_manager.set_global_default_pct(new_global_sl)
+                    st.toast(f"✅ Updated Bot Global Default Stop-Loss to -{new_global_sl:.1f}%!", icon="⚙️")
+                    st.rerun()
 
         st.markdown("<div style='margin-top: 18px;'></div>", unsafe_allow_html=True)
         with st.expander("🚨 Manual Position Liquidation Override", expanded=False):

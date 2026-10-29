@@ -20,6 +20,7 @@ from trading_system.app.risk.basic import BasicRiskEngine
 from trading_system.app.notifications.notifier import QuantNotifier
 from trading_system.app.features.regime import RegimeDetector
 from trading_system.app.strategies.ensembles.ensemble_allocator import EnsembleAllocator
+from trading_system.app.config.stop_loss_manager import StopLossManager
 
 logger = logging.getLogger("QUANTBot")
 
@@ -103,8 +104,9 @@ def execute_quant_live_cycle():
     if regime == "CRASH_WARNING":
         print("  [CRASH WARNING] Moving to 100% Cash Buffer. Preserving capital.")
 
-    # --- STOP-LOSS ENGINE (-8% Max Loss per Position) ---
-    print("\n[2c/4] Checking Open Positions for Hard Stop-Loss (-8%)...")
+    # --- STOP-LOSS ENGINE (Dynamic Bot & User-Overridden Limits) ---
+    print("\n[2c/4] Checking Open Positions for Stop-Loss Limits...")
+    sl_manager = StopLossManager()
     stop_loss_liquidations = set()
     pos_pnl_map = {}
     try:
@@ -113,9 +115,14 @@ def execute_quant_live_cycle():
             sym = pos["symbol"]
             plpc = pos.get("unrealized_plpc", 0.0)
             pos_pnl_map[sym] = plpc
-            if plpc <= -0.08:
-                print(f"  [STOP-LOSS] {sym} is down {plpc*100:.2f}% (Limit: -8.0%). Forcing full liquidation.")
+            threshold = sl_manager.get_stop_loss_pct(sym)
+            is_custom = sl_manager.is_custom_override(sym)
+            tag = "CUSTOM USER OVERRIDE" if is_custom else "BOT DEFAULT"
+            if plpc <= threshold:
+                print(f"  [STOP-LOSS] {sym} is down {plpc*100:.2f}% (Limit: {threshold*100:.1f}% [{tag}]). Forcing full liquidation.")
                 stop_loss_liquidations.add(sym)
+            else:
+                print(f"  [HOLDING SAFE] {sym} PnL: {plpc*100:+.2f}% | Stop Limit: {threshold*100:.1f}% [{tag}]")
     except Exception as e:
         print(f"  Stop-loss check encountered error: {e}")
 
@@ -316,6 +323,14 @@ def execute_quant_live_cycle():
                 print(f" -> [BROKER REJECT] Order failed for {sym}: {result.get('error', result.get('status'))}")
         else:
             print(f" -> [RISK HALT] Trade rejected by Risk Engine: {sym} {qty_to_trade}")
+
+    print("\n[4b/5] Synchronizing Broker-Level GTC Stop-Loss Protection...")
+    try:
+        from trading_system.scripts.risk_sentinel import RiskSentinel
+        sentinel = RiskSentinel()
+        sentinel.scan_and_enforce(sync_gtc_stops=True)
+    except Exception as e:
+        print(f"  Warning: Broker GTC Stop synchronization encountered an issue: {e}")
 
     print("\n[5/5] Dispatching Daily Quant Summary Notification...")
     notifier = QuantNotifier()
