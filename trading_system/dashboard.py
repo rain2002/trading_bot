@@ -12,6 +12,7 @@ import plotly.graph_objects as go
 
 from trading_system.app.config.settings import settings
 from trading_system.app.broker.alpaca import AlpacaBrokerAdapter
+from trading_system.app.broker.groww import GrowwBrokerAdapter
 from trading_system.app.config.stop_loss_manager import StopLossManager
 
 # ==========================================
@@ -448,17 +449,53 @@ div[data-testid="stSegmentedControl"] button[data-checked="true"] {
 """, unsafe_allow_html=True)
 
 # ==========================================
-# BROKER DATA INGESTION
+# BROKER DATA INGESTION & REGIONAL MARKET SELECTION
 # ==========================================
-api_key = settings.PAPER_API_KEY
-api_secret = settings.PAPER_API_SECRET
+st.sidebar.markdown("""
+<div style="font-family: 'DM Mono', monospace; font-size: 0.66rem; font-weight: 500; color: #71717A; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 6px; padding-left: 2px;">
+    // ACTIVE PORTFOLIO REGION
+</div>
+""", unsafe_allow_html=True)
 
-if not api_key or not api_secret:
-    st.sidebar.warning("⚠️ Credentials not detected in .env")
-    api_key = st.sidebar.text_input("Alpaca API Key", type="password")
-    api_secret = st.sidebar.text_input("Alpaca API Secret", type="password")
+selected_market = st.sidebar.selectbox(
+    "Active Portfolio",
+    options=["🇺🇸 US Equities (Alpaca / USD)", "🇮🇳 India Equities (Groww / INR)"],
+    index=0,
+    label_visibility="collapsed"
+)
+is_india_mode = "India" in selected_market
+CURRENCY_SYMBOL = "₹" if is_india_mode else "$"
 
-broker = AlpacaBrokerAdapter(api_key=api_key or "mock", api_secret=api_secret or "mock")
+if is_india_mode:
+    st.sidebar.markdown("""
+    <div style='background:rgba(255, 153, 0, 0.08); border:1px solid rgba(255, 153, 0, 0.25); border-radius:8px; padding:10px 12px; margin-bottom:14px; font-family:"DM Mono",monospace;'>
+        <div style='color:#FFB800; font-weight:700; font-size:0.75rem; letter-spacing:0.05em;'>🇮🇳 GROWW // NSE CASH CNC</div>
+        <div style='color:#A1A1AA; font-size:0.68rem; margin-top:2px;'>Demat Delivery Portfolio • SEBI Integer Sizing • GTT Active</div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    india_key = settings.INDIA_API_KEY
+    india_sec = settings.INDIA_API_SECRET
+    india_totp = settings.INDIA_TOTP_SECRET
+    india_cap = getattr(settings, "INDIA_INITIAL_CAPITAL", 1000000.0)
+
+    broker = GrowwBrokerAdapter(
+        api_key=india_key,
+        api_secret=india_sec,
+        totp_secret=india_totp,
+        initial_capital=india_cap
+    )
+else:
+    api_key = settings.PAPER_API_KEY
+    api_secret = settings.PAPER_API_SECRET
+
+    if not api_key or not api_secret:
+        st.sidebar.warning("⚠️ Credentials not detected in .env")
+        api_key = st.sidebar.text_input("Alpaca API Key", type="password")
+        api_secret = st.sidebar.text_input("Alpaca API Secret", type="password")
+
+    broker = AlpacaBrokerAdapter(api_key=api_key or "mock", api_secret=api_secret or "mock")
+
 sl_manager = StopLossManager()
 
 acc_details = broker.get_account_details()
@@ -474,13 +511,13 @@ invested_capital = equity - cash
 invested_pct = (invested_capital / equity * 100) if equity > 0 else 0.0
 
 def format_pnl_str(val: float) -> str:
-    """Format dollar P&L cleanly as +$X,XXX.XX or -$X,XXX.XX (ensuring minus sign precedes dollar sign)."""
+    """Format currency P&L cleanly as +$X,XXX.XX / +₹X,XXX.XX or -$X,XXX.XX / -₹X,XXX.XX."""
     if pd.isna(val):
-        return "$0.00"
+        return f"{CURRENCY_SYMBOL}0.00"
     if val >= 0:
-        return f"+${val:,.2f}"
+        return f"+{CURRENCY_SYMBOL}{val:,.2f}"
     else:
-        return f"-${abs(val):,.2f}"
+        return f"-{CURRENCY_SYMBOL}{abs(val):,.2f}"
 
 def format_pct_str(val: float) -> str:
     """Format percentage returns cleanly as +X.XX% or -X.XX%."""
@@ -566,7 +603,7 @@ nav_all_color = "#82FBBD" if overall_pnl >= 0 else "#FF9A9C"
 st.sidebar.markdown(f"""
 <div style="background: #0D0E12; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 10px; padding: 12px 14px; margin-bottom: 16px; font-family: 'DM Mono', monospace; box-shadow: 0 4px 16px rgba(0,0,0,0.5);">
     <div style="font-size: 0.64rem; color: #71717A; letter-spacing: 0.12em; text-transform: uppercase;">PORTFOLIO NAV</div>
-    <div style="font-size: 1.30rem; font-weight: 700; color: #FFFFFF; margin: 3px 0; font-family: 'Space Grotesk', sans-serif; letter-spacing: -0.03em;">${equity:,.2f}</div>
+    <div style="font-size: 1.30rem; font-weight: 700; color: #FFFFFF; margin: 3px 0; font-family: 'Space Grotesk', sans-serif; letter-spacing: -0.03em;">{CURRENCY_SYMBOL}{equity:,.2f}</div>
     <div style="display: flex; justify-content: space-between; font-size: 0.70rem; color: #71717A; margin-top: 5px; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 5px;">
         <span>SESSION: <b style="color: {nav_pnl_color};">{format_pnl_str(today_pnl)}</b></span>
         <span>RETURN: <b style="color: {nav_all_color};">{format_pct_str(overall_pnl_pct)}</b></span>
@@ -665,7 +702,7 @@ if page == "📊 Portfolio Overview":
         st.markdown(f"""
         <div class="cyber-kpi-card">
             <div class="kpi-title">PORTFOLIO TOTAL EQUITY</div>
-            <div class="kpi-value"><div class="metric-big">${equity:,.2f}</div></div>
+            <div class="kpi-value"><div class="metric-big">{CURRENCY_SYMBOL}{equity:,.2f}</div></div>
             <div class="kpi-badge-row"><div class="metric-badge-uniform">NAV REAL-TIME</div></div>
         </div>
         """, unsafe_allow_html=True)
@@ -696,7 +733,7 @@ if page == "📊 Portfolio Overview":
         st.markdown(f"""
         <div class="cyber-kpi-card">
             <div class="kpi-title">LIQUID CASH BUFFER</div>
-            <div class="kpi-value"><div class="metric-big">${cash:,.2f}</div></div>
+            <div class="kpi-value"><div class="metric-big">{CURRENCY_SYMBOL}{cash:,.2f}</div></div>
             <div class="kpi-badge-row"><div class="metric-badge-uniform">{cash_pct:.1f}% PRESERVED</div></div>
         </div>
         """, unsafe_allow_html=True)
@@ -1562,12 +1599,12 @@ elif page == "📋 Positions & Stop-Loss":
                 "symbol": sym,
                 "Ticker": f"{sym} ✏️" if is_custom else sym,
                 "Shares": int(shares) if shares.is_integer() else shares,
-                "Current Price ($)": cur_p,
-                "Avg Entry ($)": entry_p,
-                "Market Value ($)": mkt_v,
-                "Unrealized P&L ($)": unreal_pl,
+                f"Current Price ({CURRENCY_SYMBOL})": cur_p,
+                f"Avg Entry ({CURRENCY_SYMBOL})": entry_p,
+                f"Market Value ({CURRENCY_SYMBOL})": mkt_v,
+                f"Unrealized P&L ({CURRENCY_SYMBOL})": unreal_pl,
                 "Return (%)": unreal_plpc * 100,
-                "Stop Price ($)": sl_price,
+                f"Stop Price ({CURRENCY_SYMBOL})": sl_price,
                 "Stop Limit (%)": sl_pct * 100,
                 "Stop Buffer (%)": pct_buf,
                 "Risk Status": risk_status,
@@ -1675,7 +1712,7 @@ elif page == "📋 Positions & Stop-Loss":
 
             pos_palette = ["#00F2FE", "#82FBBD", "#3B82F6", "#A855F7", "#FFB800", "#FF007F", "#71717A"]
             total_holdings_val = df_pos["market_value"].sum()
-            conc_center = f"<b>INVESTED</b><br><span style='font-size:16px; color:#82FBBD;'>${total_holdings_val:,.0f}</span><br><span style='font-size:10px; color:#71717A;'>{len(positions)} ASSETS</span>"
+            conc_center = f"<b>INVESTED</b><br><span style='font-size:16px; color:#82FBBD;'>{CURRENCY_SYMBOL}{total_holdings_val:,.0f}</span><br><span style='font-size:10px; color:#71717A;'>{len(positions)} ASSETS</span>"
 
             fig_conc = create_donut_chart(
                 labels=c_labels,
@@ -1693,11 +1730,17 @@ elif page == "📋 Positions & Stop-Loss":
         # ----------------------------------------------------------------------
         # ACTIVE POSITIONS & STOP-LOSS TELEMETRY TABLE
         # ----------------------------------------------------------------------
+        col_cp = f"Current Price ({CURRENCY_SYMBOL})"
+        col_ae = f"Avg Entry ({CURRENCY_SYMBOL})"
+        col_mv = f"Market Value ({CURRENCY_SYMBOL})"
+        col_pl = f"Unrealized P&L ({CURRENCY_SYMBOL})"
+        col_sp = f"Stop Price ({CURRENCY_SYMBOL})"
+
         display_cols = [
-            "Ticker", "Shares", "Current Price ($)", "Avg Entry ($)", "Market Value ($)",
-            "Unrealized P&L ($)", "Return (%)", "Stop Price ($)", "Stop Limit (%)", "Stop Buffer (%)", "Risk Status"
+            "Ticker", "Shares", col_cp, col_ae, col_mv,
+            col_pl, "Return (%)", col_sp, "Stop Limit (%)", "Stop Buffer (%)", "Risk Status"
         ]
-        df_display = df_pos[display_cols].sort_values(by="Unrealized P&L ($)", ascending=False)
+        df_display = df_pos[display_cols].sort_values(by=col_pl, ascending=False)
 
         def color_pnl_cells(v):
             if isinstance(v, (int, float)):
@@ -1722,16 +1765,16 @@ elif page == "📋 Positions & Stop-Loss":
 
         styled_pos_df = (
             df_display.style
-            .map(color_pnl_cells, subset=["Unrealized P&L ($)", "Return (%)"])
+            .map(color_pnl_cells, subset=[col_pl, "Return (%)"])
             .map(color_buffer_cells, subset=["Stop Buffer (%)"])
             .map(color_stop_limit, subset=["Stop Limit (%)"])
             .format({
-                "Unrealized P&L ($)": format_pnl_str,
+                col_pl: format_pnl_str,
                 "Return (%)": format_pct_str,
-                "Current Price ($)": "${:,.2f}",
-                "Avg Entry ($)": "${:,.2f}",
-                "Market Value ($)": "${:,.2f}",
-                "Stop Price ($)": "${:,.2f}",
+                col_cp: (CURRENCY_SYMBOL + "{:,.2f}"),
+                col_ae: (CURRENCY_SYMBOL + "{:,.2f}"),
+                col_mv: (CURRENCY_SYMBOL + "{:,.2f}"),
+                col_sp: (CURRENCY_SYMBOL + "{:,.2f}"),
                 "Stop Limit (%)": "{:.1f}%",
                 "Stop Buffer (%)": lambda v: f"+{v:.1f}%" if v >= 0 else f"-{abs(v):.1f}%",
                 "Shares": "{:,.0f}"
@@ -1977,7 +2020,7 @@ elif page == "⚡ Manual Order Desk & Execution":
         st.markdown(f"""
         <div class="cyber-kpi-card">
             <div class="kpi-title">BUYING POWER AVAILABLE</div>
-            <div class="kpi-value"><div class="metric-big">${buying_power:,.2f}</div></div>
+            <div class="kpi-value"><div class="metric-big">{CURRENCY_SYMBOL}{buying_power:,.2f}</div></div>
             <div class="kpi-badge-row"><div class="metric-badge-mint">NON-MARGIN CASH</div></div>
         </div>
         """, unsafe_allow_html=True)
@@ -1987,16 +2030,17 @@ elif page == "⚡ Manual Order Desk & Execution":
         <div class="cyber-kpi-card">
             <div class="kpi-title">ACTIVE HOLDINGS</div>
             <div class="kpi-value"><div class="metric-big">{len(positions)} Stocks</div></div>
-            <div class="kpi-badge-row"><div class="metric-badge-uniform">${invested_capital:,.2f} INVESTED</div></div>
+            <div class="kpi-badge-row"><div class="metric-badge-uniform">{CURRENCY_SYMBOL}{invested_capital:,.2f} INVESTED</div></div>
         </div>
         """, unsafe_allow_html=True)
 
     with o_kpi4:
+        universe_label = "NIFTY 50 / NSE 100" if is_india_mode else "S&P 500 + MEGA-CAPS"
         st.markdown(f"""
         <div class="cyber-kpi-card">
             <div class="kpi-title">BOT UNIVERSE DICTIONARY</div>
             <div class="kpi-value"><div class="metric-big">{len(stock_dict)} Equities</div></div>
-            <div class="kpi-badge-row"><div class="metric-badge-uniform">S&P 500 + MEGA-CAPS</div></div>
+            <div class="kpi-badge-row"><div class="metric-badge-uniform">{universe_label}</div></div>
         </div>
         """, unsafe_allow_html=True)
 
@@ -2008,7 +2052,7 @@ elif page == "⚡ Manual Order Desk & Execution":
             power_labels = ["Invested Capital", "Liquid Cash Reserve"]
             power_values = [round(max(0.0, invested_capital), 2), round(max(0.0, cash), 2)]
             power_colors = ["#82FBBD", "#3B82F6"]
-            power_center = f"<b>EQUITY</b><br><span style='font-size:16px; color:#82FBBD;'>${equity:,.0f}</span><br><span style='font-size:10px; color:#71717A;'>TOTAL NAV</span>"
+            power_center = f"<b>EQUITY</b><br><span style='font-size:16px; color:#82FBBD;'>{CURRENCY_SYMBOL}{equity:,.0f}</span><br><span style='font-size:10px; color:#71717A;'>TOTAL NAV</span>"
             fig_power = create_donut_chart(
                 labels=power_labels,
                 values=power_values,
@@ -2057,9 +2101,13 @@ elif page == "⚡ Manual Order Desk & Execution":
         # Quick Pick Pills
         st.markdown("<div style='font-family: \"DM Mono\", monospace; font-size: 0.68rem; color: #71717A; text-transform: uppercase; margin-bottom: 4px;'>QUICK PICKS (HIGH CONVICTION)</div>", unsafe_allow_html=True)
         quick_cols = st.columns(6)
-        quick_tickers = ["NVDA", "AAPL", "MSFT", "AMZN", "GOOGL", "SPY"]
-        if "selected_symbol" not in st.session_state:
-            st.session_state.selected_symbol = "NVDA"
+        quick_tickers = (
+            ["RELIANCE.NS", "TCS.NS", "HDFCBANK.NS", "INFY.NS", "BHARTIARTL.NS", "SBIN.NS"]
+            if is_india_mode else
+            ["NVDA", "AAPL", "MSFT", "AMZN", "GOOGL", "SPY"]
+        )
+        if "selected_symbol" not in st.session_state or st.session_state.selected_symbol not in stock_dict:
+            st.session_state.selected_symbol = quick_tickers[0]
 
         for idx, q_sym in enumerate(quick_tickers):
             with quick_cols[idx]:
@@ -2077,7 +2125,7 @@ elif page == "⚡ Manual Order Desk & Execution":
             options=stock_dict,
             index=default_index,
             key="symbol_selector",
-            help="Full S&P 500 + Mega-Caps dictionary utilized by Quant Engine and Alpha Gate"
+            help="Universe dictionary utilized by Quant Engine"
         )
         st.session_state.selected_symbol = selected_symbol
 
@@ -2097,12 +2145,12 @@ elif page == "⚡ Manual Order Desk & Execution":
         <div style="padding: 10px 14px; background: #070709; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px; margin-bottom: 14px; font-family: 'DM Mono', monospace; font-size: 0.78rem;">
             <div style="display: flex; justify-content: space-between; align-items: center;">
                 <span>TICKER: <b style="color: #FFFFFF; font-size: 0.95rem;">{selected_symbol}</b></span>
-                <span>LIVE PRICE: <b style="color: #82FBBD; font-size: 0.95rem;">${curr_price:,.2f}</b></span>
+                <span>LIVE PRICE: <b style="color: #82FBBD; font-size: 0.95rem;">{CURRENCY_SYMBOL}{curr_price:,.2f}</b></span>
             </div>
             <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 6px; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 6px; color: #71717A;">
                 <span>PORTFOLIO STATUS:</span>
                 <span>
-                    {f"Holding {existing_qty} shares (${existing_val:,.2f} | <b style='color: {'#82FBBD' if existing_pnl >= 0 else '#FF9A9C'};'>{format_pnl_str(existing_pnl)} ({format_pct_str(existing_plpc)})</b>)" if existing_qty > 0 else "<span style='color: #71717A;'>No Active Position (0 Shares)</span>"}
+                    {f"Holding {existing_qty} shares ({CURRENCY_SYMBOL}{existing_val:,.2f} | <b style='color: {'#82FBBD' if existing_pnl >= 0 else '#FF9A9C'};'>{format_pnl_str(existing_pnl)} ({format_pct_str(existing_plpc)})</b>)" if existing_qty > 0 else "<span style='color: #71717A;'>No Active Position (0 Shares)</span>"}
                 </span>
             </div>
         </div>
@@ -2118,7 +2166,7 @@ elif page == "⚡ Manual Order Desk & Execution":
         limit_price = None
         if order_type == "LIMIT":
             limit_price = st.number_input(
-                "Limit Price ($ USD)",
+                f"Limit Price ({CURRENCY_SYMBOL})",
                 min_value=0.01,
                 value=float(round(curr_price, 2)),
                 step=0.10,
@@ -2126,10 +2174,10 @@ elif page == "⚡ Manual Order Desk & Execution":
                 key="limit_price_input"
             )
 
-        # Sizing Mode: Value ($ Notional) vs Quantity (Shares)
+        # Sizing Mode: Value (Notional) vs Quantity (Shares)
         size_mode = st.radio(
             "Order Sizing Mode",
-            options=["By Dollar Value ($ Notional)", "By Quantity (Shares)"],
+            options=[f"By Capital Amount ({CURRENCY_SYMBOL} Notional)", "By Quantity (Shares)"],
             horizontal=True,
             key="size_mode_radio"
         )
@@ -2137,21 +2185,21 @@ elif page == "⚡ Manual Order Desk & Execution":
         calc_notional = 0.0
         calc_qty = 0.0
 
-        if size_mode == "By Dollar Value ($ Notional)":
+        if "By Capital Amount" in size_mode:
             order_val = st.number_input(
-                "Target Dollar Value ($ USD)",
+                f"Target Capital Amount ({CURRENCY_SYMBOL})",
                 min_value=1.0,
                 max_value=max(100000.0, float(buying_power)),
-                value=min(2500.0, float(buying_power) if buying_power > 0 else 1000.0),
+                value=min(25000.0 if is_india_mode else 2500.0, float(buying_power) if buying_power > 0 else 1000.0),
                 step=100.0,
                 format="%.2f",
                 key="dollar_val_input",
-                help="The exact dollar amount of stock to buy or sell"
+                help=f"The exact amount of capital ({CURRENCY_SYMBOL}) to buy or sell"
             )
             calc_notional = order_val
             ref_price = limit_price if (order_type == "LIMIT" and limit_price) else curr_price
             calc_qty = max(1, int(order_val / ref_price)) if ref_price > 0 else 1
-            st.caption(f"Estimated Shares: ~**{calc_qty} shares** at ${ref_price:,.2f} / share")
+            st.caption(f"Estimated Shares: ~**{calc_qty} shares** at {CURRENCY_SYMBOL}{ref_price:,.2f} / share")
         else:
             order_qty = st.number_input(
                 "Share Quantity",
@@ -2165,7 +2213,7 @@ elif page == "⚡ Manual Order Desk & Execution":
             calc_qty = float(order_qty)
             ref_price = limit_price if (order_type == "LIMIT" and limit_price) else curr_price
             calc_notional = calc_qty * ref_price
-            st.caption(f"Estimated Total Notional: ~**${calc_notional:,.2f}** at ${ref_price:,.2f} / share")
+            st.caption(f"Estimated Total Notional: ~**{CURRENCY_SYMBOL}{calc_notional:,.2f}** at {CURRENCY_SYMBOL}{ref_price:,.2f} / share")
 
         # Portfolio Impact & Safeguards Check
         post_weight = ((existing_val + calc_notional) / equity * 100) if equity > 0 else 0.0
@@ -2189,19 +2237,21 @@ elif page == "⚡ Manual Order Desk & Execution":
         """, unsafe_allow_html=True)
 
         if is_cap_breach:
-            st.warning(f"⚠️ Warning: This trade will result in {selected_symbol} exceeding the institutional 15% single-stock ceiling (${equity*0.15:,.2f}).")
+            ceiling_val = equity * 0.15
+            st.warning(f"⚠️ Warning: This trade will result in {selected_symbol} exceeding the institutional 15% single-stock ceiling ({CURRENCY_SYMBOL}{ceiling_val:,.2f}).")
 
         # Order Submission Button
         btn_label = f"⚡ TRANSMIT {order_side} ORDER FOR {selected_symbol}"
         if st.button(btn_label, type="primary" if order_side == "BUY" else "secondary", use_container_width=True):
             # Validation
             if order_side == "BUY" and calc_notional > buying_power:
-                st.error(f"❌ Order Rejected: Insufficient buying power (${buying_power:,.2f} available vs ${calc_notional:,.2f} required).")
+                st.error(f"❌ Order Rejected: Insufficient buying power ({CURRENCY_SYMBOL}{buying_power:,.2f} available vs {CURRENCY_SYMBOL}{calc_notional:,.2f} required).")
             elif order_side == "SELL" and existing_qty < calc_qty:
                 st.error(f"❌ Order Rejected: Cannot sell {calc_qty} shares; you only hold {existing_qty} shares (Long-only discipline enforced).")
             else:
-                with st.spinner(f"Transmitting {order_side} order for {selected_symbol} to Alpaca..."):
-                    if size_mode == "By Dollar Value ($ Notional)" and order_type == "MARKET":
+                broker_target_name = "Groww (NSE)" if is_india_mode else "Alpaca"
+                with st.spinner(f"Transmitting {order_side} order for {selected_symbol} to {broker_target_name}..."):
+                    if "By Capital Amount" in size_mode and order_type == "MARKET":
                         res = broker.place_order(
                             symbol=selected_symbol,
                             notional=calc_notional,
@@ -2406,7 +2456,7 @@ elif page == "🏆 30-Day Incubation Scorecard":
             st.markdown(f"""
             <div class="cyber-kpi-card">
                 <div class="kpi-title">INCEPTION BASE CAPITAL</div>
-                <div class="kpi-value"><div class="metric-big">${start_equity:,.2f}</div></div>
+                <div class="kpi-value"><div class="metric-big">{CURRENCY_SYMBOL}{start_equity:,.2f}</div></div>
                 <div class="kpi-badge-row"><div class="metric-badge-uniform">BASE PRINCIPAL</div></div>
             </div>
             """, unsafe_allow_html=True)
@@ -2635,7 +2685,7 @@ elif page in ("⚡ Order Activity Log", "📜 Order Activity Log"):
             st.markdown(f"""
             <div class="cyber-kpi-card">
                 <div class="kpi-title">TOTAL CAPITAL TRADED</div>
-                <div class="kpi-value"><div class="metric-big">${total_traded_vol:,.2f}</div></div>
+                <div class="kpi-value"><div class="metric-big">{CURRENCY_SYMBOL}{total_traded_vol:,.2f}</div></div>
                 <div class="kpi-badge-row"><div class="metric-badge-uniform">NOTIONAL VOLUME</div></div>
             </div>
             """, unsafe_allow_html=True)
@@ -2708,11 +2758,11 @@ elif page in ("⚡ Order Activity Log", "📜 Order Activity Log"):
         # ==========================================
         # DATE DIVISION & FILTER CONTROLS
         # ==========================================
-        date_options = ["🌟 All Trading Dates (499 Orders)"]
+        date_options = ["🌟 All Trading Dates"]
         for d in unique_dates:
             d_count = sum(df_all_orders["Date"] == d)
             d_vol = df_all_orders[df_all_orders["Date"] == d]["Total Value"].sum()
-            date_options.append(f"📅 {d} ({d_count} orders • ${d_vol:,.0f})")
+            date_options.append(f"📅 {d} ({d_count} orders • {CURRENCY_SYMBOL}{d_vol:,.0f})")
 
         f_col1, f_col2, f_col3, f_col4 = st.columns([2.5, 1.2, 1.5, 1.2])
 
@@ -2808,8 +2858,8 @@ elif page in ("⚡ Order Activity Log", "📜 Order Activity Log"):
                 "Symbol": st.column_config.TextColumn("Ticker", width="small"),
                 "Side": st.column_config.TextColumn("Action", width="small"),
                 "Shares": st.column_config.NumberColumn("Shares", format="%d", width="small"),
-                "Fill Price": st.column_config.NumberColumn("Fill Price", format="$%.2f", width="small"),
-                "Total Value": st.column_config.NumberColumn("Total Notional", format="$%.2f", width="medium"),
+                "Fill Price": st.column_config.NumberColumn("Fill Price", format=f"{CURRENCY_SYMBOL}%.2f", width="small"),
+                "Total Value": st.column_config.NumberColumn("Total Notional", format=f"{CURRENCY_SYMBOL}%.2f", width="medium"),
                 "Status": st.column_config.TextColumn("Status", width="small"),
                 "Client Order ID": st.column_config.TextColumn("Idempotent Hash", width="medium")
             }
