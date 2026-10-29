@@ -13,6 +13,11 @@ __pycache__/
 *$py.class
 *.so
 .pytest_cache/
+.coverage
+htmlcov/
+*.log
+*.tmp
+*.bak
 
 # Jupyter Notebook
 .ipynb_checkpoints
