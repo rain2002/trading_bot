@@ -73,7 +73,7 @@ def execute_quant_live_cycle():
     print(f"QUANT Brain generated: {len(momentum_signals)} Momentum Leaders | {len(mean_rev_signals)} Mean-Reversion Dip-Buys")
     
     # --- PHASE 2: ENSEMBLE REGIME DETECTION & ALLOCATION ---
-    print("\n[2b/4] Evaluating Multi-Asset Macro Radar (SPY, QQQ, VIX)...")
+    print("\n[2b/4] Evaluating Institutional 4-Pillar Macro Radar (Rates, Credit, Vol, Breadth)...")
     ensemble = EnsembleAllocator(max_total_exposure=0.95, max_single_stock=0.15, max_holdings=None)
     
     spy_df = brain.data_provider.get_data_as_of("SPY", datetime.now())
@@ -85,19 +85,50 @@ def execute_quant_live_cycle():
         qqq_df = brain.data_provider.get_data_as_of("QQQ", datetime.now())
     except Exception:
         qqq_df = None
+    try:
+        hyg_df = brain.data_provider.get_data_as_of("HYG", datetime.now())
+    except Exception:
+        hyg_df = None
+    try:
+        ief_df = brain.data_provider.get_data_as_of("IEF", datetime.now())
+    except Exception:
+        ief_df = None
+    try:
+        tnx_df = brain.data_provider.get_data_as_of("^TNX", datetime.now())
+    except Exception:
+        tnx_df = None
+    try:
+        rsp_df = brain.data_provider.get_data_as_of("RSP", datetime.now())
+    except Exception:
+        rsp_df = None
 
-    regime_info = ensemble.detect_regime(spy_df, vix_df=vix_df, qqq_df=qqq_df)
+    regime_info = ensemble.detect_regime(
+        spy_df=spy_df,
+        vix_df=vix_df,
+        qqq_df=qqq_df,
+        hyg_df=hyg_df,
+        ief_df=ief_df,
+        tnx_df=tnx_df,
+        rsp_df=rsp_df,
+    )
     regime = regime_info["regime"]
+    msi = regime_info.get("macro_stress_index", 0.0)
     MAX_EXPOSURE = regime_info["max_exposure"]
     strat_weights = regime_info.get("weights", {})
+    canaries = regime_info.get("canaries", [])
     diag = regime_info.get("diagnostics", {})
     
-    print(f"  Detected Regime: {regime}")
+    print(f"  Detected Regime: {regime} | Macro Stress Index (MSI): {msi:.2f} / 1.00")
     if diag.get("vix"):
         vix_state = "CALM (< 20)" if diag["vix"] < 20 else ("ELEVATED" if diag["vix"] < 28 else "PANIC (>= 28)")
         print(f"  VIX Volatility Gauge: {diag['vix']:.2f} [{vix_state}]")
-    if diag.get("tech_fatigue"):
-        print(f"  [SECTOR ROTATION ALERT] QQQ (${diag.get('qqq_price', 0):.2f}) is below 50-SMA (${diag.get('qqq_sma50', 0):.2f}). Tech momentum tiring; prioritizing Value Dip-Buys.")
+    if diag.get("credit_ratio"):
+        credit_st = diag.get("credit_pillar", {}).get("credit_state", "NORMAL")
+        print(f"  Corporate Credit Spread (HYG/IEF): {diag['credit_ratio']:.4f} [{credit_st}]")
+    if diag.get("rates_pillar", {}).get("tnx_yield"):
+        print(f"  10-Year Treasury Yield: {diag['rates_pillar']['tnx_yield']:.2f}%")
+    if canaries:
+        print(f"  [MACRO CANARIES ACTIVE] {', '.join(canaries)}")
     print(f"  Max Total Exposure: {MAX_EXPOSURE*100:.0f}% (Liquid Cash Reserve: {(1.0-MAX_EXPOSURE)*100:.0f}%)")
     print(f"  Strategy Mix: Momentum={strat_weights.get('momentum', 0)*100:.0f}% | Dip-Buying={strat_weights.get('mean_reversion', 0)*100:.0f}%")
 

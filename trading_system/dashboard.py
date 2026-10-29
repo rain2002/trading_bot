@@ -550,6 +550,41 @@ def format_pct_str(val: float) -> str:
     else:
         return f"-{abs(val):.2f}%"
 
+@st.cache_data(ttl=600)
+def get_macro_radar_telemetry(is_india: bool = False) -> dict:
+    """Fetch live multi-asset macro radar data across 4 pillars."""
+    from trading_system.app.features.regime import InstitutionalMacroRegimeEngine
+    import yfinance as yf
+    engine = InstitutionalMacroRegimeEngine()
+    if is_india:
+        try:
+            nifty = yf.Ticker("^NSEI").history(period="1y")
+            nifty.columns = [c.lower() for c in nifty.columns]
+            vix = yf.Ticker("^INDIAVIX").history(period="1y")
+            vix.columns = [c.lower() for c in vix.columns]
+            return engine.evaluate(nifty, vix_df=vix)
+        except Exception:
+            return {}
+    else:
+        try:
+            spy = yf.Ticker("SPY").history(period="1y")
+            spy.columns = [c.lower() for c in spy.columns]
+            vix = yf.Ticker("^VIX").history(period="1y")
+            vix.columns = [c.lower() for c in vix.columns]
+            hyg = yf.Ticker("HYG").history(period="1y")
+            hyg.columns = [c.lower() for c in hyg.columns]
+            ief = yf.Ticker("IEF").history(period="1y")
+            ief.columns = [c.lower() for c in ief.columns]
+            qqq = yf.Ticker("QQQ").history(period="1y")
+            qqq.columns = [c.lower() for c in qqq.columns]
+            tnx = yf.Ticker("^TNX").history(period="1y")
+            tnx.columns = [c.lower() for c in tnx.columns]
+            rsp = yf.Ticker("RSP").history(period="1y")
+            rsp.columns = [c.lower() for c in rsp.columns]
+            return engine.evaluate(spy, vix_df=vix, qqq_df=qqq, hyg_df=hyg, ief_df=ief, tnx_df=tnx, rsp_df=rsp)
+        except Exception:
+            return {}
+
 def create_donut_chart(
     labels: list,
     values: list,
@@ -3115,6 +3150,99 @@ elif page == "🛡️ Risk Safeguards":
         <div class="page-subtitle">CAPITAL PRESERVATION ARCHITECTURE • STRICT LONG-ONLY DISCIPLINE • ZERO SHORT RISK</div>
     </div>
     """, unsafe_allow_html=True)
+
+    # Live Institutional Macro Radar Data Fetch
+    macro_data = get_macro_radar_telemetry(is_india_mode)
+    if macro_data:
+        m_regime = macro_data.get("regime", "BULL_TRENDING")
+        m_msi = macro_data.get("macro_stress_index", 0.20)
+        m_max_exp = macro_data.get("max_exposure", 0.95)
+        m_canaries = macro_data.get("canaries", [])
+        m_diag = macro_data.get("diagnostics", {})
+
+        p_trend = m_diag.get("trend_pillar", {})
+        p_credit = m_diag.get("credit_pillar", {})
+        p_vol = m_diag.get("volatility_pillar", {})
+        p_rates = m_diag.get("rates_pillar", {})
+
+        st.markdown("""
+        <div style="font-family: 'DM Mono', monospace; font-size: 0.72rem; color: #82FBBD; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 8px;">
+            // LIVE 4-PILLAR INSTITUTIONAL MACRO RADAR & TAIL-RISK TELEMETRY
+        </div>
+        """, unsafe_allow_html=True)
+
+        mr_c1, mr_c2, mr_c3, mr_c4, mr_c5 = st.columns(5)
+
+        with mr_c1:
+            msi_color = "#82FBBD" if m_msi < 0.35 else ("#FFB800" if m_msi < 0.65 else "#FF9A9C")
+            st.markdown(f"""
+            <div class="cyber-kpi-card">
+                <div class="kpi-title">MACRO STRESS INDEX (MSI)</div>
+                <div class="kpi-value"><div style="color: {msi_color}; font-size: 1.45rem; font-weight: 700;">{m_msi:.2f} <span style="font-size:0.85rem; color:#71717A;">/ 1.00</span></div></div>
+                <div class="kpi-badge-row"><div class="metric-badge-uniform">{m_regime}</div></div>
+            </div>
+            """, unsafe_allow_html=True)
+
+        with mr_c2:
+            dist_200 = p_trend.get("distance_to_200_pct", 0.0)
+            tr_val = p_trend.get("trend_ratio", 0.0)
+            t_color = "#82FBBD" if dist_200 >= 0 else "#FF9A9C"
+            st.markdown(f"""
+            <div class="cyber-kpi-card">
+                <div class="kpi-title">1. EQUITY TREND ANCHOR</div>
+                <div class="kpi-value"><div style="color: {t_color}; font-size: 1.25rem; font-weight: 700;">{dist_200:+.1f}% vs 200 SMA</div></div>
+                <div class="kpi-badge-row"><div class="metric-badge-uniform">KAUFMAN RATIO: {tr_val:.2f}</div></div>
+            </div>
+            """, unsafe_allow_html=True)
+
+        with mr_c3:
+            c_ratio = p_credit.get("credit_ratio")
+            c_state = p_credit.get("credit_state", "HEALTHY")
+            c_color = "#82FBBD" if c_state == "HEALTHY" else ("#FFB800" if c_state == "DETERIORATING" else "#FF9A9C")
+            c_ratio_str = f"{c_ratio:.4f}" if c_ratio else "N/A"
+            st.markdown(f"""
+            <div class="cyber-kpi-card">
+                <div class="kpi-title">2. CORPORATE CREDIT</div>
+                <div class="kpi-value"><div style="color: {c_color}; font-size: 1.35rem; font-weight: 700;">{c_ratio_str}</div></div>
+                <div class="kpi-badge-row"><div class="metric-badge-uniform">{c_state}</div></div>
+            </div>
+            """, unsafe_allow_html=True)
+
+        with mr_c4:
+            v_val = p_vol.get("vix")
+            v_state = p_vol.get("vol_state", "CALM")
+            v_color = "#82FBBD" if (v_val and v_val < 20) else ("#FFB800" if (v_val and v_val < 28) else "#FF9A9C")
+            v_str = f"{v_val:.2f}" if v_val else "N/A"
+            st.markdown(f"""
+            <div class="cyber-kpi-card">
+                <div class="kpi-title">3. VOLATILITY SURFACE</div>
+                <div class="kpi-value"><div style="color: {v_color}; font-size: 1.35rem; font-weight: 700;">{v_str}</div></div>
+                <div class="kpi-badge-row"><div class="metric-badge-uniform">{v_state}</div></div>
+            </div>
+            """, unsafe_allow_html=True)
+
+        with mr_c5:
+            tnx_val = p_rates.get("tnx_yield")
+            curve_st = p_rates.get("curve_state", "NORMAL")
+            tnx_str = f"{tnx_val:.2f}%" if tnx_val else "N/A"
+            st.markdown(f"""
+            <div class="cyber-kpi-card">
+                <div class="kpi-title">4. SOVEREIGN 10Y YIELD</div>
+                <div class="kpi-value"><div style="color: #3B82F6; font-size: 1.35rem; font-weight: 700;">{tnx_str}</div></div>
+                <div class="kpi-badge-row"><div class="metric-badge-uniform">{curve_st}</div></div>
+            </div>
+            """, unsafe_allow_html=True)
+
+        if m_canaries:
+            canary_text = " • ".join(m_canaries)
+            st.markdown(f"""
+            <div style="background: rgba(255, 184, 0, 0.08); border: 1px solid rgba(255, 184, 0, 0.3); border-radius: 8px; padding: 10px 14px; margin-top: 10px; margin-bottom: 16px; font-family: 'DM Mono', monospace; font-size: 0.78rem;">
+                <b style="color: #FFB800;">⚠️ ACTIVE INSTITUTIONAL CANARIES:</b> <span style="color: #FFFFFF;">{canary_text}</span>
+                <div style="color: #A1A1AA; font-size: 0.72rem; margin-top: 4px;">Capital exposure dynamically calibrated to <b>{m_max_exp*100:.0f}%</b> with <b>{(1.0-m_max_exp)*100:.0f}%</b> held in safe liquid cash reserves.</div>
+            </div>
+            """, unsafe_allow_html=True)
+
+        st.markdown("<div style='margin-bottom: 14px;'></div>", unsafe_allow_html=True)
 
     col1, col2 = st.columns(2)
 

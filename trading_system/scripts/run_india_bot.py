@@ -104,7 +104,8 @@ def execute_india_live_cycle():
     strat_weights = regime_info.get("weights", {})
     diag = regime_info.get("diagnostics", {})
 
-    print(f"  Detected Indian Regime: {regime}")
+    msi = regime_info.get("macro_stress_index", 0.0)
+    print(f"  Detected Indian Regime: {regime} | Macro Stress Index: {msi:.2f} / 1.00")
     if diag.get("vix"):
         vix_state = "CALM (< 15)" if diag["vix"] < 15 else ("ELEVATED" if diag["vix"] < 22 else "HIGH VOLATILITY (>= 22)")
         print(f"  India VIX Gauge: {diag['vix']:.2f} [{vix_state}]")
