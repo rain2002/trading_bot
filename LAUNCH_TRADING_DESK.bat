@@ -9,37 +9,53 @@ echo ===========================================================================
 echo.
 
 :: Detect Python executable
-set "PY_EXE=python"
-where python >nul 2>&1
-if %errorlevel% neq 0 (
-    if exist "C:\Program Files\Python313\python.exe" (
-        set "PY_EXE=C:\Program Files\Python313\python.exe"
-    )
+set "PY_EXE=C:\Program Files\Python313\python.exe"
+if not exist "%PY_EXE%" (
+    set "PY_EXE=python"
 )
 
-echo [1/3] Verifying Backend Configuration (.env)...
-if not exist ".env" (
-    echo   [WARNING] .env credentials file not found in workspace root.
-) else (
-    echo   [OK] Live Broker Credentials & Settings Loaded (.env)
-)
-
-echo.
-echo [2/3] Checking if Trading Desk is already running on port 8501...
+:: Check if server is already running on port 8501
 netstat -ano | findstr :8501 | findstr LISTENING >nul
 if %errorlevel% equ 0 (
-    echo   [OK] Terminal is already active!
-    echo [3/3] Opening Trading Desk in your default web browser...
+    echo [OK] Trading Desk server is already active on port 8501!
+    echo [OK] Launching browser at http://localhost:8501...
     start "" http://localhost:8501
-    timeout /t 3 >nul
+    timeout /t 2 >nul
     exit /b
 )
 
-echo   [OK] Initializing Fresh Frontend Session...
+echo [1/3] Loading live backend environment (.env)...
+if exist ".env" (
+    echo   [OK] Broker API credentials loaded.
+) else (
+    echo   [WARNING] .env credentials file not found.
+)
+
+echo [2/3] Starting Quantum Trading Server...
+:: Launch Streamlit server in a dedicated window
+start "BL/S Quantum Trading Server (Port 8501)" "%PY_EXE%" -m streamlit run "trading_system\dashboard.py" --server.port 8501 --server.address 127.0.0.1 --server.headless true --browser.gatherUsageStats false
+
+echo [3/3] Waiting for server to initialize...
+set /a retries=0
+
+:WAIT_LOOP
+timeout /t 1 /nobreak >nul
+set /a retries+=1
+netstat -ano | findstr :8501 | findstr LISTENING >nul
+if %errorlevel% neq 0 (
+    if %retries% geq 20 (
+        echo [ERROR] Server startup timed out. Check console for details.
+        pause
+        exit /b 1
+    )
+    echo   Initializing quantum pipeline (attempt %retries%/20)...
+    goto WAIT_LOOP
+)
+
 echo.
-echo [3/3] Launching Quantum Trading Terminal at http://localhost:8501...
+echo ===============================================================================
+echo  [READY] Quantum Trading Desk is LIVE!
+echo  Opening browser at http://localhost:8501
+echo ===============================================================================
 start "" http://localhost:8501
-
-"%PY_EXE%" -m streamlit run "trading_system\dashboard.py" --server.port 8501 --server.headless false --browser.gatherUsageStats false
-
-pause
+timeout /t 3 >nul
