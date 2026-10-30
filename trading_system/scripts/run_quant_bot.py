@@ -74,7 +74,7 @@ def execute_quant_live_cycle():
     
     # --- PHASE 2: ENSEMBLE REGIME DETECTION & ALLOCATION ---
     print("\n[2b/4] Evaluating Institutional 4-Pillar Macro Radar (Rates, Credit, Vol, Breadth)...")
-    ensemble = EnsembleAllocator(max_total_exposure=0.95, max_single_stock=0.15, max_holdings=None)
+    ensemble = EnsembleAllocator(max_total_exposure=0.98, max_single_stock=0.12, max_holdings=10, min_position_pct=0.04)
     
     spy_df = brain.data_provider.get_data_as_of("SPY", datetime.now())
     try:

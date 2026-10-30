@@ -1,5 +1,6 @@
 import os
 import json
+import math
 from typing import Optional, Dict, Any
 
 class StopLossManager:
@@ -14,12 +15,13 @@ class StopLossManager:
         self._load()
 
     def _load(self):
+        self.config: Dict[str, Any] = {}
         if os.path.exists(self.config_path):
             try:
                 with open(self.config_path, "r", encoding="utf-8") as f:
-                    data = json.load(f)
-                    self.global_default_pct = float(data.get("global_default_pct", -0.08))
-                    self.overrides: Dict[str, float] = data.get("overrides", {})
+                    self.config = json.load(f)
+                    self.global_default_pct = float(self.config.get("global_default_pct", -0.08))
+                    self.overrides: Dict[str, float] = self.config.get("overrides", {})
             except Exception:
                 self.global_default_pct = -0.08
                 self.overrides = {}
@@ -29,10 +31,9 @@ class StopLossManager:
 
     def _save(self):
         try:
-            data = {
-                "global_default_pct": self.global_default_pct,
-                "overrides": self.overrides
-            }
+            data = dict(self.config) if hasattr(self, "config") and self.config else {}
+            data["global_default_pct"] = self.global_default_pct
+            data["overrides"] = self.overrides
             with open(self.config_path, "w", encoding="utf-8") as f:
                 json.dump(data, f, indent=4)
         except Exception as e:
@@ -102,3 +103,80 @@ class StopLossManager:
             "is_warning": is_warning,
             "is_custom": self.is_custom_override(symbol)
         }
+
+    def evaluate_dynamic_exit(
+        self,
+        symbol: str,
+        current_price: float,
+        avg_entry: float,
+        peak_price: Optional[float] = None,
+        sma50: Optional[float] = None,
+        holding_type: str = "MOMENTUM",
+        bb_mid: Optional[float] = None,
+        rsi: Optional[float] = None
+    ) -> Dict[str, Any]:
+        """
+        Evaluates High-Alpha Multi-Tier Exits:
+        1. Hard Stop-Loss (-8% or user override)
+        2. Breakeven Stop Ratchet (+12% gain -> lock +2%)
+        3. Big Winner Trailing Lock (+30% gain -> trail 14% below peak)
+        4. 50-day SMA Trend Breakdown (close < 97.5% of 50-SMA)
+        5. Dip-Buy Mean-Reversion Target Exit (BB Mid / RSI > 60)
+        """
+        if avg_entry <= 0:
+            return {"should_exit": False, "reason": None}
+
+        plpc = (current_price - avg_entry) / avg_entry
+        hard_sl = self.get_stop_loss_pct(symbol)
+        
+        # 1. Hard Stop
+        if plpc <= hard_sl:
+            return {
+                "should_exit": True,
+                "reason": f"HARD_STOP ({hard_sl*100:.1f}%) [Loss: {plpc*100:.1f}%]"
+            }
+
+        peak = peak_price if peak_price is not None and peak_price > avg_entry else current_price
+        gain_from_cost = (peak - avg_entry) / avg_entry
+
+        # Configurable thresholds
+        be_trigger = self.config.get("breakeven_gain_trigger_pct", 0.12)
+        be_lock = self.config.get("breakeven_locked_profit_pct", 0.02)
+        runner_trigger = self.config.get("runner_gain_trigger_pct", 0.30)
+        runner_dd = self.config.get("runner_max_drawdown_from_peak_pct", 0.14)
+        trend_buffer = self.config.get("trend_50sma_break_buffer_pct", 0.025)
+
+        # 2. Dip-Buy Exit
+        if holding_type == "DIP_BUY":
+            if (bb_mid is not None and current_price >= bb_mid and plpc >= 0.04) or (rsi is not None and rsi >= 60.0) or plpc >= 0.12:
+                return {
+                    "should_exit": True,
+                    "reason": f"DIP_TARGET_EXIT [PnL: {plpc*100:+.1f}%]"
+                }
+
+        # 3. Momentum Runner Exits
+        if holding_type == "MOMENTUM":
+            # Breakeven Ratchet: if peaked at >= trigger (+12%) and pulls back to <= lock (+2%)
+            if gain_from_cost >= be_trigger and plpc <= be_lock:
+                return {
+                    "should_exit": True,
+                    "reason": f"BREAKEVEN_STOP [Locked: {plpc*100:+.1f}% | Peaked: {gain_from_cost*100:+.1f}%]"
+                }
+
+            # Big Winner Trailing Lock: if reached trigger (+30%) profit, trail below peak
+            if gain_from_cost >= runner_trigger:
+                dd_from_peak = (peak - current_price) / peak if peak > 0 else 0.0
+                if dd_from_peak >= runner_dd:
+                    return {
+                        "should_exit": True,
+                        "reason": f"BIG_WINNER_TRAIL [Locked: {plpc*100:+.1f}% | Peak {gain_from_cost*100:+.1f}% | DD: {dd_from_peak*100:.1f}%]"
+                    }
+
+            # Trend Breakdown: closed below 50-day SMA by > buffer (2.5%)
+            if sma50 is not None and not math.isnan(sma50) and current_price < (sma50 * (1.0 - trend_buffer)):
+                return {
+                    "should_exit": True,
+                    "reason": f"TREND_50SMA_BREAK [PnL: {plpc*100:+.1f}% | Price: ${current_price:.2f} < ${sma50*(1.0-trend_buffer):.2f}]"
+                }
+
+        return {"should_exit": False, "reason": None}

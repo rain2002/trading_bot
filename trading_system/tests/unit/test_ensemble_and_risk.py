@@ -92,6 +92,41 @@ def test_ensemble_dynamic_allocation_expands_and_contracts_organically():
     assert sum(targets_few.values()) <= 0.45 + 1e-4
 
 
+def test_ensemble_high_alpha_dynamic_cap_prevents_cash_drag():
+    """In High-Alpha mode (max_holdings=10), cap dynamically expands when few candidates qualify."""
+    allocator = EnsembleAllocator(max_total_exposure=0.98, max_single_stock=0.12, max_holdings=10, min_position_pct=0.04)
+    regime_info = {
+        "regime": "BULL_TRENDING",
+        "max_exposure": 0.98,
+        "weights": {"momentum": 0.70, "mean_reversion": 0.30}
+    }
+    
+    # 1. 10 candidates -> 12% cap each, total 98%
+    cands_10 = [{"symbol": f"SYM{i}", "conviction_score": 2.0} for i in range(10)]
+    t_10 = allocator.combine_allocations(cands_10, [], regime_info)
+    assert len(t_10) == 10
+    for w in t_10.values():
+        assert w <= 0.12 + 1e-4
+    assert pytest.approx(sum(t_10.values()), 0.01) == 0.98
+
+    # 2. 4 candidates -> dynamic cap expands to ~24.5%, total 98% (no 50% cash drag!)
+    cands_4 = [{"symbol": f"SYM{i}", "conviction_score": 2.0} for i in range(4)]
+    t_4 = allocator.combine_allocations(cands_4, [], regime_info)
+    assert len(t_4) == 4
+    for w in t_4.values():
+        assert w <= 0.25 + 1e-4
+        assert w >= 0.20
+    assert pytest.approx(sum(t_4.values()), 0.01) == 0.98
+
+    # 3. 3 candidates -> dynamic cap expands to 25% disaster ceiling, 75% gross (25% cash buffer)
+    cands_3 = [{"symbol": f"SYM{i}", "conviction_score": 2.0} for i in range(3)]
+    t_3 = allocator.combine_allocations(cands_3, [], regime_info)
+    assert len(t_3) == 3
+    for w in t_3.values():
+        assert pytest.approx(w, 0.01) == 0.25
+    assert pytest.approx(sum(t_3.values()), 0.01) == 0.75
+
+
 def test_basic_risk_engine_blocks_shorting():
     """Risk engine must reject any trade resulting in a short position."""
     risk = BasicRiskEngine(max_position_pct=0.15, max_portfolio_pct=0.95)

@@ -32,10 +32,10 @@ class EnsembleAllocator:
 
     def __init__(
         self,
-        max_total_exposure: float = 0.95,
-        max_single_stock: float = 0.15,
-        max_holdings: Optional[int] = None,
-        min_position_pct: float = 0.015,
+        max_total_exposure: float = 0.98,
+        max_single_stock: float = 0.12,
+        max_holdings: Optional[int] = 10,
+        min_position_pct: float = 0.04,
     ):
         self.max_total_exposure = max_total_exposure
         self.max_single_stock = max_single_stock
@@ -171,10 +171,17 @@ class EnsembleAllocator:
             return {}
 
         # 4. Single-Stock Cap Sizing:
-        # Enforce strict single-stock ceiling (self.max_single_stock, default 15.0%)
-        # Excess conviction weight is redistributed across remaining uncapped candidates.
-        # If few candidates qualify, exposure contracts organically into cash reserve.
-        dynamic_cap = self.max_single_stock
+        # Enforce dynamic single-stock ceiling.
+        # When max_holdings is set (e.g. 10 positions in High-Alpha mode),
+        # if fewer candidates qualify (e.g. 2-5 leaders), dynamically expand the per-stock cap
+        # up to 25.0% so the portfolio is not artificially trapped in 50-75% involuntary cash drag,
+        # while strictly maintaining a 25.0% disaster risk ceiling on any single stock.
+        num_cands = len(candidates)
+        if self.max_holdings is not None and num_cands < self.max_holdings:
+            fair_share = max_exposure / max(num_cands, 1)
+            dynamic_cap = min(0.25, max(self.max_single_stock, round(fair_share, 4)))
+        else:
+            dynamic_cap = self.max_single_stock
         self.last_effective_cap = dynamic_cap
 
         # Enforce dynamic single-stock cap with iterative redistribution

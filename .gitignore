@@ -22,6 +22,11 @@ htmlcov/
 # Jupyter Notebook
 .ipynb_checkpoints
 
+# Cache & Large Parquet Data Stores
+trading_system/data/historical_cache/
+*.parquet
+*.joblib.bak
+
 # IDEs
 .vscode/
 .idea/

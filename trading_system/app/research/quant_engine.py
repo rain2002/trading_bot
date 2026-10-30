@@ -202,15 +202,32 @@ class InvestorSkillsHeuristics:
                 "action": "TREND_EXIT"
             }
 
-        # 5. Trailing Profit Lock in Bubble Regimes:
-        # If position has generated significant profit (>= +8%) and starts rolling over below fast SMA,
-        # lock in the gains rather than risking a total round-trip during a bubble pop.
-        if current_plpc >= 0.08 and current_price < sma_fast:
+        # 5. High-Alpha Multi-Tier Runner Stop & Breakeven Ratchet:
+        # Replaces premature +8% exits with runner trailing stop & breakeven protection
+        # to allow multi-bagger momentum runs (+50% to +200%) to compound fully.
+        high_series = df.get("high", close_prices)
+        peak_price = float(high_series.tail(60).max()) if not df.empty else current_price
+        avg_entry = current_price / (1.0 + current_plpc) if (1.0 + current_plpc) > 0 else current_price
+        peak_price = max(peak_price, current_price, avg_entry)
+        gain_from_cost = (peak_price - avg_entry) / avg_entry if avg_entry > 0 else 0.0
+
+        # Breakeven Ratchet: if peaked at >= +12%, lock in +2% gain
+        if gain_from_cost >= 0.12 and current_plpc <= 0.02:
             return {
                 "should_exit": True,
-                "reason": f"Trailing Profit Lock triggered: Unrealized PnL is +{current_plpc*100:.1f}%, but price (${current_price:.2f}) closed below {fast_sma}SMA (${sma_fast:.2f}). Securing gains.",
-                "action": "PROFIT_LOCK_EXIT"
+                "reason": f"Breakeven Ratchet triggered: Position peaked at +{gain_from_cost*100:.1f}%, securing +{current_plpc*100:.1f}% gain.",
+                "action": "BREAKEVEN_STOP"
             }
+
+        # Big Winner Trailing Stop: if reached >= +30% profit, trail 14% below peak
+        if gain_from_cost >= 0.30:
+            dd_from_peak = (peak_price - current_price) / peak_price if peak_price > 0 else 0.0
+            if dd_from_peak >= 0.14:
+                return {
+                    "should_exit": True,
+                    "reason": f"Big Winner Trailing Stop triggered: Dropped {dd_from_peak*100:.1f}% from peak (${peak_price:.2f}). Securing +{current_plpc*100:.1f}% profit.",
+                    "action": "BIG_WINNER_TRAIL"
+                }
 
         # Default: normal consolidation / healthy holding
         return {

@@ -1,4 +1,11 @@
 {
     "global_default_pct": -0.08,
+    "breakeven_gain_trigger_pct": 0.12,
+    "breakeven_locked_profit_pct": 0.02,
+    "runner_gain_trigger_pct": 0.30,
+    "runner_max_drawdown_from_peak_pct": 0.14,
+    "trend_50sma_break_buffer_pct": 0.025,
+    "max_concurrent_positions": 10,
+    "target_position_weight": 0.10,
     "overrides": {}
 }
