@@ -23,7 +23,8 @@
         "file": "trading_system/data/nikkei_tickers.txt",
         "format": "txt",
         "delimiter": "\n",
-        "column": "symbol"
+        "column": "symbol",
+        "ticker_suffix": ".T"
     },
     "trading_hours": {
         "timezone": "Asia/Tokyo",

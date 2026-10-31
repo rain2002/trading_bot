@@ -25,6 +25,10 @@ class MarketConfig:
     commission_flat: float = 0.0
     commission_bps: float = 0.0
     tax_rate_stt: float = 0.0
+    exchange_turnover_bps: float = 0.0
+    gst_pct_on_brokerage: float = 0.0
+    stamp_duty_bps: float = 0.0
+    sec_finra_fee_bps: float = 0.0
     max_holdings: int = 10
     target_position_weight: float = 0.10
     max_single_stock: float = 0.12
@@ -114,6 +118,10 @@ class MarketConfig:
             commission_flat=float(costs.get("commission_flat", 0.0)),
             commission_bps=float(costs.get("commission_bps", 0.0)),
             tax_rate_stt=float(costs.get("tax_rate_stt", 0.0)),
+            exchange_turnover_bps=float(costs.get("exchange_turnover_bps", 0.0)),
+            gst_pct_on_brokerage=float(costs.get("gst_pct_on_brokerage", 0.0)),
+            stamp_duty_bps=float(costs.get("stamp_duty_bps", 0.0)),
+            sec_finra_fee_bps=float(costs.get("sec_finra_fee_bps", 0.0)),
             max_holdings=int(rules.get("max_holdings", 10)),
             target_position_weight=float(rules.get("target_position_weight", 0.10)),
             max_single_stock=float(rules.get("max_single_stock", 0.12)),
@@ -130,6 +138,9 @@ class MarketConfig:
     def get_universe(self, project_root: Optional[str] = None) -> List[str]:
         """
         Loads the list of tradeable constituent tickers for this market.
+        Preserves exchange dot suffixes (.NS, .L, .T) for international markets.
+        Only swaps '.' to '-' for US dual-class tickers (e.g., BRK.B -> BRK-B).
+        Appends ticker_suffix if configured and absent (e.g. for NSE midcap CSV).
         """
         if not self.universe_file:
             return []
@@ -144,28 +155,47 @@ class MarketConfig:
             if not os.path.exists(target_path):
                 return []
 
+        ticker_suffix = self.raw_config.get("universe", {}).get("ticker_suffix", "")
+
         tickers = []
         if target_path.endswith(".txt"):
             with open(target_path, "r", encoding="utf-8") as f:
                 for line in f:
-                    item = line.strip().replace(".", "-")
-                    if item and not item.startswith("#"):
+                    raw = line.strip()
+                    if raw and not raw.startswith("#"):
+                        # Only US dual-class tickers like BRK.B use hyphens in Yahoo Finance
+                        if self.market_code == "US":
+                            item = raw.replace(".", "-")
+                        else:
+                            item = raw
+                        if ticker_suffix and not item.endswith(ticker_suffix) and "." not in item:
+                            item = f"{item}{ticker_suffix}"
                         tickers.append(item)
         elif target_path.endswith(".csv"):
             import pandas as pd
             df = pd.read_csv(target_path)
             col = self.raw_config.get("universe", {}).get("column", "Symbol")
             if col in df.columns:
-                tickers = [str(x).strip() for x in df[col] if str(x).strip()]
+                for x in df[col]:
+                    raw = str(x).strip()
+                    if raw and raw.lower() != "nan":
+                        if self.market_code == "US":
+                            item = raw.replace(".", "-")
+                        else:
+                            item = raw
+                        if ticker_suffix and not item.endswith(ticker_suffix) and "." not in item:
+                            item = f"{item}{ticker_suffix}"
+                        tickers.append(item)
 
         return tickers
 
     def calculate_transaction_costs(self, trade_value: float, shares: float, side: str = "BUY") -> float:
         """
-        Computes accurate total transaction friction (slippage + brokerage + STT/taxes).
+        Computes accurate total transaction friction (slippage + brokerage + exchange turnover fee + GST + STT/taxes).
         """
         trade_value = abs(trade_value)
         shares = abs(shares)
+        side_norm = side.strip().upper()
 
         # 1. Slippage (e.g. 5 bps = 0.05%)
         slippage = trade_value * (self.slippage_bps / 10000.0)
@@ -177,14 +207,36 @@ class MarketConfig:
         if self.commission_bps > 0:
             comm += trade_value * (self.commission_bps / 10000.0)
 
-        # 3. Transaction Taxes (e.g. STT in India, Stamp Duty in UK)
-        taxes = 0.0
-        if self.tax_rate_stt > 0:
-            # In UK, Stamp Duty (0.5%) applies to BUY only; In India STT applies on delivery buy/sell
-            if self.market_code == "UK":
-                if side.upper() == "BUY":
-                    taxes = trade_value * self.tax_rate_stt
-            else:
-                taxes = trade_value * self.tax_rate_stt
+        # 3. Exchange Turnover / Regulatory Fees
+        exchange_fee = 0.0
+        if self.exchange_turnover_bps > 0:
+            exchange_fee = trade_value * (self.exchange_turnover_bps / 10000.0)
 
-        return round(slippage + comm + taxes, 4)
+        sec_fee = 0.0
+        if self.sec_finra_fee_bps > 0 and side_norm == "SELL":
+            sec_fee = trade_value * (self.sec_finra_fee_bps / 10000.0)
+
+        # 4. GST / VAT on Brokerage and Exchange Fees (e.g., 18% in India)
+        gst_tax = 0.0
+        if self.gst_pct_on_brokerage > 0:
+            gst_tax = (comm + exchange_fee) * self.gst_pct_on_brokerage
+
+        # 5. Transaction Taxes (STT, Stamp Duty, SDRT)
+        taxes = 0.0
+        if self.market_code == "IN":
+            # In India: STT applies to both BUY & SELL on delivery (0.1%)
+            if self.tax_rate_stt > 0:
+                taxes += trade_value * self.tax_rate_stt
+            # Stamp Duty in India applies to BUY only (1.5 bps = 0.015%)
+            if self.stamp_duty_bps > 0 and side_norm == "BUY":
+                taxes += trade_value * (self.stamp_duty_bps / 10000.0)
+        elif self.market_code == "UK":
+            # In UK: SDRT (0.5%) applies to BUY only
+            if self.tax_rate_stt > 0 and side_norm == "BUY":
+                taxes += trade_value * self.tax_rate_stt
+        else:
+            if self.tax_rate_stt > 0:
+                taxes += trade_value * self.tax_rate_stt
+
+        total_friction = slippage + comm + exchange_fee + sec_fee + gst_tax + taxes
+        return round(total_friction, 4)

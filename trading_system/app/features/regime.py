@@ -163,7 +163,9 @@ class UniversalLocalIndexRegimeEngine:
                 "vol_state": state,
                 "vol_shock": vol_shock,
                 "realized_vol20": None,
+                "realized_vol_annualized": None,
                 "vol_ratio": None,
+                "is_implied_vol": True,
                 "description": f"Vol Index {vix_curr:.2f} [{state}] | 5D Vel: {vix_velocity:+.1f}%"
             }
 
@@ -176,7 +178,9 @@ class UniversalLocalIndexRegimeEngine:
                 "vol_state": "CALM",
                 "vol_shock": False,
                 "realized_vol20": 0.15,
+                "realized_vol_annualized": 0.15,
                 "vol_ratio": 1.0,
+                "is_implied_vol": False,
                 "description": "Baseline realized volatility."
             }
 
@@ -185,25 +189,32 @@ class UniversalLocalIndexRegimeEngine:
         len_ret = len(ret)
 
         vol20 = float(ret.tail(min(20, len_ret)).std() * np.sqrt(252)) if len_ret >= 5 else 0.15
-        vol60 = float(ret.tail(min(60, len_ret)).std() * np.sqrt(252)) if len_ret >= 20 else vol20
+        if len_ret >= 40:
+            vol_base = float(ret.iloc[:-15].tail(min(60, len_ret - 15)).std() * np.sqrt(252))
+            vol_trail = float(ret.tail(min(60, len_ret)).std() * np.sqrt(252))
+            vol60 = min(vol_trail, vol_base) if vol_base > 0 else vol_trail
+        else:
+            vol60 = float(ret.tail(min(60, len_ret)).std() * np.sqrt(252)) if len_ret >= 20 else vol20
         vol_ratio = vol20 / (vol60 + 1e-6) if vol60 > 0 else 1.0
 
         # 5-day volatility velocity
         vol20_5d_ago = float(ret.iloc[:-5].tail(20).std() * np.sqrt(252)) if len_ret >= 25 else vol20
         vol_velocity = ((vol20 - vol20_5d_ago) / vol20_5d_ago * 100) if vol20_5d_ago > 0 else 0.0
 
-        vol_shock = bool(vol20 >= 0.28 or vol_ratio >= 1.35 or vol_velocity >= 40.0)
+        # Universal Relative Volatility: Self-calibrating across any international index
+        # (Nifty baseline 22%, FTSE baseline 11%, Nikkei baseline 18%)
+        vol_shock = bool(vol_ratio >= 1.35 or vol_velocity >= 40.0 or vol20 >= 0.45)
 
-        if vol20 >= 0.35 or vol_ratio >= 1.60:
+        if vol_ratio >= 1.60 or vol_velocity >= 60.0 or vol20 >= 0.50:
             state = "CRISIS_PANIC"
             score = 1.0
-        elif vol20 >= 0.26 or vol_ratio >= 1.35:
+        elif vol_ratio >= 1.35 or vol_velocity >= 35.0:
             state = "HIGH_STRESS"
             score = 0.80
-        elif vol20 >= 0.20 or vol_ratio >= 1.20:
+        elif vol_ratio >= 1.20 or vol_velocity >= 20.0:
             state = "ELEVATED_CAUTION"
             score = 0.50
-        elif vol20 >= 0.14:
+        elif vol_ratio >= 0.85:
             state = "NORMAL"
             score = 0.20
         else:
@@ -215,12 +226,15 @@ class UniversalLocalIndexRegimeEngine:
 
         return {
             "score": round(score, 3),
-            "vix": round(vol20 * 100, 2),  # Proxy as annualized percentage
+            "vix": round(vol20 * 100, 2),  # Proxy as annualized percentage for legacy callers
             "vix_velocity_5d": round(vol_velocity, 1),
             "vol_state": state,
             "vol_shock": vol_shock,
             "realized_vol20": round(vol20, 4),
+            "realized_vol_annualized": round(vol20, 4),
+            "realized_vol60": round(vol60, 4),
             "vol_ratio": round(vol_ratio, 2),
+            "is_implied_vol": False,
             "description": f"Realized Vol: {vol20*100:.1f}% (60D Ratio: {vol_ratio:.2f}x) [{state}]"
         }
 
@@ -542,11 +556,15 @@ class UniversalLocalIndexRegimeEngine:
         vol_score = p_vol["score"]
         vix_val = p_vol.get("vix")
 
+        is_implied_vix = p_vol.get("is_implied_vol", False)
+
         # 1. CRASH_WARNING (0% exposure, 100% Cash Defense)
+        realized_vol = p_vol.get("realized_vol20") or 0.0
         if is_severe_breakdown or \
            (dd_pct <= -20.0 and not is_bull_200) or \
            (vol_score >= 0.85 and not is_bull_200) or \
-           (vix_val is not None and vix_val >= 35.0):
+           (is_implied_vix and vix_val is not None and vix_val >= 35.0) or \
+           (realized_vol >= 0.50 and not is_bull_200):
             regime = "CRASH_WARNING"
             max_exposure = 0.00
             strat_weights = {"momentum": 0.0, "mean_reversion": 0.0}
@@ -560,7 +578,11 @@ class UniversalLocalIndexRegimeEngine:
             cash_reserve = 0.60
 
         # 3. CAUTION (Elevated Volatility or Credit Divergence)
-        elif p_credit.get("divergence") or p_credit.get("credit_state") == "CREDIT_CRUNCH" or p_vol.get("vol_shock") or (vix_val is not None and vix_val >= 22.0):
+        elif p_credit.get("divergence") or \
+             p_credit.get("credit_state") == "CREDIT_CRUNCH" or \
+             p_vol.get("vol_shock") or \
+             (is_implied_vix and vix_val is not None and vix_val >= 22.0) or \
+             (not is_implied_vix and vol_score >= 0.50):
             regime = "CREDIT_DIVERGENCE_CAUTION" if p_credit.get("divergence") else "VOLATILITY_CAUTION"
             max_exposure = 0.65
             strat_weights = {"momentum": 0.25, "mean_reversion": 0.75}

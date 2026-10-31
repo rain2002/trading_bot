@@ -25,14 +25,16 @@ from trading_system.app.features.regime import InstitutionalMacroRegimeEngine
 from trading_system.app.strategies.ensembles.ensemble_allocator import EnsembleAllocator
 from trading_system.app.ml.feature_pipeline import MLFeaturePipeline
 from trading_system.app.broker.alpaca import AlpacaBrokerAdapter, BrokerAPIError
+from trading_system.app.broker.groww import GrowwBrokerAdapter
 from trading_system.app.execution.alpaca_live import AlpacaExecutionAdapter
 from trading_system.app.risk.basic import BasicRiskEngine
 from trading_system.app.portfolio.position_tracker import PositionTracker
+from trading_system.app.config.market_config import MarketConfig
 
 MODEL_PATH = os.path.join(PROJECT_ROOT, "trading_system", "data", "models", "quant_rf_model.joblib")
 STOP_LOSS_CONFIG = os.path.join(PROJECT_ROOT, "trading_system", "app", "config", "stop_loss_config.json")
 
-# Core S&P 500 liquid candidate universe for daily scanning
+# Default core fallback universe
 CORE_UNIVERSE = [
     "AAPL", "MSFT", "NVDA", "AMZN", "GOOGL", "META", "TSLA", "AVGO", "JPM", "LLY",
     "UNH", "V", "MA", "COST", "HD", "PG", "NFLX", "AMD", "CRM", "ADBE",
@@ -55,34 +57,60 @@ def execute_live_cycle(dry_run: bool = False):
     print("\n" + "="*80)
     print(">>> AWAKENING HIGH-ALPHA PRODUCTION BOT ENGINE <<<")
     print("Architecture: Top 10 Concentrated Leadership (10% Target) + Trailing Runners")
-    print("Safety Shield: Institutional 4-Pillar Macro Radar + ML Alpha Gating")
+    print("Safety Shield: Universal Macro Radar + Rules-Based Dynamic Allocation")
     print("="*80)
-    
-    API_KEY = settings.PAPER_API_KEY
-    API_SECRET = settings.PAPER_API_SECRET
-    
-    if not API_KEY or not API_SECRET:
-        print("WARNING: PAPER_API_KEY / PAPER_API_SECRET not detected in .env.")
-        print("Running in DRY-RUN simulation mode (no live broker orders).")
-        dry_run = True
-        
+
+    market_code = os.environ.get("TRADING_MARKET", "US")
+    market = MarketConfig.load(market_code)
+    print(f"Target Market: [{market.country} - {market.name}] | Benchmark: {market.benchmark_symbol} ({market.currency_symbol})")
+    print(f"Broker Adapter: {market.broker_adapter.upper()} | Integer Shares Only: {market.integer_shares_only}")
+
     data_provider = YFinanceDataProvider()
     stop_manager = StopLossManager(STOP_LOSS_CONFIG)
     macro_engine = InstitutionalMacroRegimeEngine()
-    allocator = EnsembleAllocator(max_total_exposure=0.98, max_single_stock=0.12, max_holdings=10, min_position_pct=0.04)
+    allocator = EnsembleAllocator(
+        max_total_exposure=0.98,
+        max_single_stock=market.max_single_stock,
+        max_holdings=market.max_holdings,
+        min_position_pct=market.min_position_pct
+    )
     ml_pipeline = MLFeaturePipeline()
     ml_model = joblib.load(MODEL_PATH) if os.path.exists(MODEL_PATH) else None
-    
-    broker = AlpacaBrokerAdapter(api_key=API_KEY, api_secret=API_SECRET) if not dry_run else None
-    execution = AlpacaExecutionAdapter(api_key=API_KEY, api_secret=API_SECRET) if not dry_run else None
-    risk_engine = BasicRiskEngine(max_position_pct=0.12, max_portfolio_pct=0.95)
+
+    broker = None
+    execution = None
+    if not dry_run:
+        if market.broker_adapter == "groww":
+            api_key = settings.INDIA_API_KEY
+            api_secret = settings.INDIA_API_SECRET
+            totp_secret = settings.INDIA_TOTP_SECRET
+            initial_cap = getattr(settings, "INDIA_INITIAL_CAPITAL", 1000000.0)
+            broker = GrowwBrokerAdapter(
+                api_key=api_key,
+                api_secret=api_secret,
+                totp_secret=totp_secret,
+                initial_capital=initial_cap
+            )
+            execution = broker
+        else:
+            API_KEY = settings.PAPER_API_KEY
+            API_SECRET = settings.PAPER_API_SECRET
+            if not API_KEY or not API_SECRET:
+                print("WARNING: PAPER_API_KEY / PAPER_API_SECRET not detected in .env.")
+                print("Running in DRY-RUN simulation mode (no live broker orders).")
+                dry_run = True
+            else:
+                broker = AlpacaBrokerAdapter(api_key=API_KEY, api_secret=API_SECRET)
+                execution = AlpacaExecutionAdapter(api_key=API_KEY, api_secret=API_SECRET)
+
+    risk_engine = BasicRiskEngine(max_position_pct=market.max_single_stock, max_portfolio_pct=0.95)
     pos_tracker = PositionTracker()
     
     # 1. Sync Live State
     print("\n[1/6] Syncing with Broker for LIVE Account State...")
     detailed_positions = []
     positions_map = {}
-    if not dry_run:
+    if not dry_run and broker is not None:
         try:
             current_positions = broker.get_positions()
             detailed_positions = broker.get_positions_detailed()
@@ -101,33 +129,40 @@ def execute_live_cycle(dry_run: bool = False):
         current_positions = {}
         total_equity = 10000.0
         
-    print(f"  Account Equity : ${total_equity:,.2f}")
+    print(f"  Account Equity : {market.currency_symbol}{total_equity:,.2f}")
     print(f"  Open Positions : {len(current_positions)} held {list(current_positions.keys())}")
     
     # 2. Ingest Macro Data & Evaluate Institutional Macro Weather
-    print("\n[2/6] Ingesting Live Macro Instruments (T-200 Days)...")
+    print(f"\n[2/6] Ingesting Live Macro Instruments for {market.market_code} (T-200 Days)...")
     end_date = datetime.now()
     start_date = end_date - timedelta(days=365)
     
-    macro_dfs = {}
-    for key, sym in MACRO_SYMBOLS.items():
-        try:
-            df = data_provider.fetch_historical_data(sym, start_date, end_date)
-            if not df.empty:
-                macro_dfs[key] = df
-        except Exception as e:
-            print(f"  Warning: failed to fetch {sym}: {e}")
-            
-    regime_info = macro_engine.evaluate(
-        spy_df=macro_dfs.get("spy"),
-        vix_df=macro_dfs.get("vix"),
-        qqq_df=macro_dfs.get("qqq"),
-        hyg_df=macro_dfs.get("hyg"),
-        ief_df=macro_dfs.get("ief"),
-        tnx_df=macro_dfs.get("tnx"),
-        irx_df=macro_dfs.get("irx"),
-        rsp_df=macro_dfs.get("rsp")
-    )
+    if market.market_code == "US":
+        macro_dfs = {}
+        for key, sym in MACRO_SYMBOLS.items():
+            try:
+                df = data_provider.fetch_historical_data(sym, start_date, end_date)
+                if not df.empty:
+                    macro_dfs[key] = df
+            except Exception as e:
+                print(f"  Warning: failed to fetch {sym}: {e}")
+                
+        regime_info = macro_engine.evaluate(
+            spy_df=macro_dfs.get("spy"),
+            vix_df=macro_dfs.get("vix"),
+            qqq_df=macro_dfs.get("qqq"),
+            hyg_df=macro_dfs.get("hyg"),
+            ief_df=macro_dfs.get("ief"),
+            tnx_df=macro_dfs.get("tnx"),
+            irx_df=macro_dfs.get("irx"),
+            rsp_df=macro_dfs.get("rsp")
+        )
+    else:
+        # Non-US: Universal Local-Index evaluation on local benchmark and local vix
+        local_benchmark_df = data_provider.fetch_historical_data(market.benchmark_symbol, start_date, end_date)
+        local_vix_sym = "^INDIAVIX" if market.market_code == "IN" else None
+        local_vix_df = data_provider.fetch_historical_data(local_vix_sym, start_date, end_date) if local_vix_sym else None
+        regime_info = macro_engine.evaluate(index_df=local_benchmark_df, vix_df=local_vix_df)
     regime = regime_info["regime"]
     max_exposure = regime_info.get("max_exposure", 0.98)
     msi = regime_info.get("macro_stress_index", 0.0)
@@ -195,18 +230,11 @@ def execute_live_cycle(dry_run: bool = False):
                 pos_tracker.record_exit(sym)
                 
     # 4. Ingest Candidate Universe & Generate Causal Technical Signals
-    sp500_file = os.path.join(PROJECT_ROOT, "trading_system", "data", "sp500_tickers.txt")
-    scan_universe = CORE_UNIVERSE
-    if os.path.exists(sp500_file):
-        try:
-            with open(sp500_file, "r") as f:
-                loaded = [line.strip().replace('.', '-') for line in f if line.strip()]
-            if len(loaded) >= 40:
-                scan_universe = loaded  # Full universe, no 100-ticker truncation
-        except Exception:
-            scan_universe = CORE_UNIVERSE
+    scan_universe = market.get_universe()
+    if not scan_universe:
+        scan_universe = CORE_UNIVERSE
 
-    print(f"\n[4/6] Scanning {len(scan_universe)} S&P 500 Leaders for Breakouts & Dips...")
+    print(f"\n[4/6] Scanning {len(scan_universe)} Leaders in {market.name} for Breakouts & Dips...")
     universe_data = {}
     mom_candidates = []
     mr_candidates = []
@@ -307,7 +335,17 @@ def execute_live_cycle(dry_run: bool = False):
     for sym, reason in positions_to_liquidate:
         qty = current_positions.get(sym, 0.0)
         if qty > 0:
-            reconciled_orders.append({"symbol": sym, "side": "SELL", "quantity": qty, "reason": reason})
+            if market.integer_shares_only or not market.supports_fractional:
+                qty = float(math.floor(qty))
+            p_curr = universe_data.get(sym, {}).get("close", pd.Series([100.0])).iloc[-1]
+            est_friction = market.calculate_transaction_costs(qty * p_curr, qty, "SELL")
+            reconciled_orders.append({
+                "symbol": sym,
+                "side": "SELL",
+                "quantity": qty,
+                "reason": reason,
+                "estimated_friction": est_friction
+            })
             
     # B. Buys for target allocations (strictly capped by max_exposure)
     held_val = 0.0
@@ -328,11 +366,24 @@ def execute_live_cycle(dry_run: bool = False):
             break
         dollar_target = total_equity * weight
         price = universe_data[sym]["close"].iloc[-1] if (sym in universe_data and not universe_data[sym].empty) else 100.0
-        shares = round(dollar_target / price, 4)
-        if shares > 0 and dollar_target >= 50.0:
+        raw_shares = dollar_target / price
+        if market.integer_shares_only or not market.supports_fractional:
+            shares = float(math.floor(raw_shares))
+        else:
+            shares = round(raw_shares, 4)
+
+        min_val = 50.0 if market.currency_code == "USD" else 1000.0
+        if shares > 0 and dollar_target >= min_val:
             is_dip = any(c["symbol"] == sym for c in mr_candidates)
             tag = "DIP_BUY" if is_dip else "MOMENTUM"
-            reconciled_orders.append({"symbol": sym, "side": "BUY", "quantity": shares, "reason": f"ENTRY_{tag}_{weight*100:.1f}%"})
+            est_friction = market.calculate_transaction_costs(dollar_target, shares, "BUY")
+            reconciled_orders.append({
+                "symbol": sym,
+                "side": "BUY",
+                "quantity": shares,
+                "reason": f"ENTRY_{tag}_{weight*100:.1f}%",
+                "estimated_friction": est_friction
+            })
             
     # Sort: SELLS first, then BUYS
     reconciled_orders.sort(key=lambda o: 0 if o["side"] == "SELL" else 1)
@@ -344,7 +395,8 @@ def execute_live_cycle(dry_run: bool = False):
         side = order["side"]
         qty = order["quantity"]
         reason = order["reason"]
-        print(f"    --> ROUTING ORDER: {side:<4} {qty:8.2f} shares of {sym:<6} | Reason: {reason}")
+        friction = order.get("estimated_friction", 0.0)
+        print(f"    --> ROUTING ORDER: {side:<4} {qty:8.2f} shares of {sym:<6} | Reason: {reason} | Est Friction: {market.currency_symbol}{friction:.2f}")
         
         if not dry_run and execution is not None:
             order_hash = f"HIGH_ALPHA_{datetime.now().date()}_{sym}_{side}_{qty}"

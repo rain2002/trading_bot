@@ -24,6 +24,7 @@
         "format": "txt",
         "delimiter": "\n",
         "column": "symbol",
+        "ticker_suffix": ".NS",
         "secondary_universe_file": "midcap150.csv"
     },
     "trading_hours": {
@@ -37,6 +38,7 @@
         "commission_per_share": 0.0,
         "commission_flat": 20.0,
         "tax_rate_stt": 0.001,
+        "stamp_duty_bps": 1.5,
         "exchange_turnover_bps": 0.35,
         "gst_pct_on_brokerage": 0.18
     },

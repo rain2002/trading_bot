@@ -18,6 +18,7 @@ PROJECT_ROOT = r"D:\paper_trading_bot"
 sys.path.insert(0, PROJECT_ROOT)
 
 from trading_system.app.ml.feature_pipeline import MLFeaturePipeline
+from trading_system.app.config.market_config import MarketConfig
 
 CACHE_DIR = os.path.join(PROJECT_ROOT, "trading_system", "data", "historical_cache")
 REGIME_CACHE_FILE = os.path.join(CACHE_DIR, "macro_regimes_2000_2025.parquet")
@@ -35,10 +36,13 @@ def normalize_index(df):
     return df
 
 def run_backtest():
+    market_code = os.environ.get("TRADING_MARKET", "US")
+    market = MarketConfig.load(market_code)
     print("="*80)
-    print(">>> RUNNING 26-YEAR HIGH-ALPHA TRIAL RUN v2 (2000 - 2025) <<<")
-    print(f"Starting Capital: ${INITIAL_CAPITAL:,.2f} USD")
+    print(f">>> RUNNING 26-YEAR HIGH-ALPHA TRIAL RUN v2 (2000 - 2025) [{market.market_code}] <<<")
+    print(f"Starting Capital: {market.currency_symbol}{INITIAL_CAPITAL:,.2f} {market.currency_code}")
     print(f"Architecture: Dual Ensemble (Momentum + Dip Buys), Top {MAX_POSITIONS} Positions (10% each)")
+    print(f"Transaction Cost Friction: {market.slippage_bps} bps slippage + institutional commissions & taxes")
     print("="*80)
     
     t0 = time.time()
@@ -213,8 +217,10 @@ def run_backtest():
         for sym, reason in liquidations:
             shares = positions[sym]
             price = current_prices.get(sym, entry_prices.get(sym, 0.0))
-            fill_price = price * (1.0 - SLIPPAGE_BPS / 10000.0)
-            proceeds = shares * fill_price
+            trade_val = shares * price
+            friction = market.calculate_transaction_costs(trade_val, shares, "SELL")
+            proceeds = trade_val - friction
+            fill_price = proceeds / shares if shares > 0 else price
             cash += proceeds
             cost = entry_prices.get(sym, price)
             gain = proceeds - (shares * cost)
@@ -312,12 +318,20 @@ def run_backtest():
                         break
                     sym = cand["symbol"]
                     price = cand["price"]
-                    fill_price = price * (1.0 + SLIPPAGE_BPS / 10000.0)
                     alloc = min(target_dollar_per_pos, cash * 0.95, remaining_capacity_dollars)
                     
                     if alloc >= 20.0:
-                        shares = round(alloc / fill_price, 4)
-                        cost = shares * fill_price
+                        raw_shares = alloc / price
+                        if market.integer_shares_only or not market.supports_fractional:
+                            shares = float(math.floor(raw_shares))
+                        else:
+                            shares = round(raw_shares, 4)
+
+                        trade_val = shares * price
+                        friction = market.calculate_transaction_costs(trade_val, shares, "BUY")
+                        cost = trade_val + friction
+                        fill_price = cost / shares if shares > 0 else price
+                        
                         if cost <= cash and cost <= (remaining_capacity_dollars + 1e-4) and shares > 0:
                             cash -= cost
                             remaining_capacity_dollars -= cost

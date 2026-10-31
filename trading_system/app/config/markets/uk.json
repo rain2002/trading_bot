@@ -22,7 +22,8 @@
         "file": "trading_system/data/ftse_tickers.txt",
         "format": "txt",
         "delimiter": "\n",
-        "column": "symbol"
+        "column": "symbol",
+        "ticker_suffix": ".L"
     },
     "trading_hours": {
         "timezone": "Europe/London",

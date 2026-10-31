@@ -1,5 +1,6 @@
 import sys
 import os
+import math
 import hashlib
 from datetime import datetime, timedelta
 import logging
@@ -16,6 +17,7 @@ if hasattr(sys.stderr, "reconfigure"):
 from trading_system.app.config.settings import settings
 from trading_system.app.research.quant_engine import QuantEngine, InvestorSkillsHeuristics
 from trading_system.app.broker.alpaca import AlpacaBrokerAdapter, BrokerAPIError
+from trading_system.app.broker.groww import GrowwBrokerAdapter
 from trading_system.app.execution.alpaca_live import AlpacaExecutionAdapter
 from trading_system.app.risk.basic import BasicRiskEngine
 from trading_system.app.notifications.notifier import QuantNotifier
@@ -32,34 +34,47 @@ def execute_quant_live_cycle():
     print(">>> AWAKENING QUANT BRAIN (TRADING AGENTS MVP) <<<")
     print("="*50)
     
-    API_KEY = settings.PAPER_API_KEY
-    API_SECRET = settings.PAPER_API_SECRET
-    
-    if not API_KEY or not API_SECRET:
-        print("ERROR: PAPER_API_KEY or PAPER_API_SECRET not found.")
-        return
-        
-    broker = AlpacaBrokerAdapter(api_key=API_KEY, api_secret=API_SECRET)
-    execution = AlpacaExecutionAdapter(api_key=API_KEY, api_secret=API_SECRET)
-    risk_engine = BasicRiskEngine(max_position_pct=0.12, max_portfolio_pct=0.95)
+    market_code = os.environ.get("TRADING_MARKET", "US")
+    market = MarketConfig.load(market_code)
+    print(f"Target Market: [{market.country} - {market.name}] | Benchmark: {market.benchmark_symbol} ({market.currency_symbol})")
+    print(f"Broker Adapter: {market.broker_adapter.upper()} | Integer Shares Only: {market.integer_shares_only}")
+
+    if market.broker_adapter == "groww":
+        api_key = settings.INDIA_API_KEY
+        api_secret = settings.INDIA_API_SECRET
+        totp_secret = settings.INDIA_TOTP_SECRET
+        initial_cap = getattr(settings, "INDIA_INITIAL_CAPITAL", 1000000.0)
+        broker = GrowwBrokerAdapter(
+            api_key=api_key,
+            api_secret=api_secret,
+            totp_secret=totp_secret,
+            initial_capital=initial_cap
+        )
+        execution = broker  # GrowwBrokerAdapter implements submit_order / cancel_order
+    else:
+        API_KEY = settings.PAPER_API_KEY
+        API_SECRET = settings.PAPER_API_SECRET
+        if not API_KEY or not API_SECRET:
+            print("ERROR: PAPER_API_KEY or PAPER_API_SECRET not found.")
+            return
+        broker = AlpacaBrokerAdapter(api_key=API_KEY, api_secret=API_SECRET)
+        execution = AlpacaExecutionAdapter(api_key=API_KEY, api_secret=API_SECRET)
+
+    risk_engine = BasicRiskEngine(max_position_pct=market.max_single_stock, max_portfolio_pct=0.95)
     
     print("\n[1/4] Syncing with Broker for LIVE Positions...")
     try:
         current_positions = broker.get_positions()
         print(f"Broker reports we hold: {current_positions}")
         total_equity = broker.get_account_equity()
-        print(f"Broker reports Total Account Equity: ${total_equity:,.2f}")
+        print(f"Broker reports Total Account Equity: {market.currency_symbol}{total_equity:,.2f}")
     except BrokerAPIError as e:
         print(f"\n[CRITICAL BROKER ERROR] Could not securely fetch account state: {e}")
         print("Failing closed: Halting trading cycle without placing orders.")
         return
-    
-    market_code = os.environ.get("TRADING_MARKET", "US")
-    market = MarketConfig.load(market_code)
-    print(f"Target Market: [{market.country} - {market.name}] | Benchmark: {market.benchmark_symbol} ({market.currency_symbol})")
 
     # Market Calendar & Holiday Check
-    if API_KEY and API_KEY != "mock":
+    if market.broker_adapter == "alpaca" and hasattr(broker, "base_url") and getattr(broker, "api_key", None) != "mock":
         try:
             clock_res = requests.get(f"{broker.base_url}/v2/clock", headers=broker.headers, timeout=5)
             if clock_res.status_code == 200:
@@ -101,44 +116,62 @@ def execute_quant_live_cycle():
     print(f"QUANT Brain generated: {len(momentum_signals)} Momentum Leaders | {len(mean_rev_signals)} Mean-Reversion Dip-Buys")
     
     # --- PHASE 2: ENSEMBLE REGIME DETECTION & ALLOCATION ---
-    print("\n[2b/4] Evaluating Institutional 4-Pillar Macro Radar (Rates, Credit, Vol, Breadth)...")
-    ensemble = EnsembleAllocator(max_total_exposure=0.98, max_single_stock=0.12, max_holdings=10, min_position_pct=0.04)
-    
-    spy_df = benchmark_df
-    try:
-        vix_df = brain.data_provider.get_data_as_of("^VIX", datetime.now())
-    except Exception:
-        vix_df = None
-    try:
-        qqq_df = brain.data_provider.get_data_as_of("QQQ", datetime.now())
-    except Exception:
-        qqq_df = None
-    try:
-        hyg_df = brain.data_provider.get_data_as_of("HYG", datetime.now())
-    except Exception:
-        hyg_df = None
-    try:
-        ief_df = brain.data_provider.get_data_as_of("IEF", datetime.now())
-    except Exception:
-        ief_df = None
-    try:
-        tnx_df = brain.data_provider.get_data_as_of("^TNX", datetime.now())
-    except Exception:
-        tnx_df = None
-    try:
-        rsp_df = brain.data_provider.get_data_as_of("RSP", datetime.now())
-    except Exception:
-        rsp_df = None
-
-    regime_info = ensemble.detect_regime(
-        spy_df=spy_df,
-        vix_df=vix_df,
-        qqq_df=qqq_df,
-        hyg_df=hyg_df,
-        ief_df=ief_df,
-        tnx_df=tnx_df,
-        rsp_df=rsp_df,
+    print(f"\n[2b/4] Evaluating Macro Weather Radar for {market.market_code} ({market.benchmark_name})...")
+    ensemble = EnsembleAllocator(
+        max_total_exposure=0.98,
+        max_single_stock=market.max_single_stock,
+        max_holdings=market.max_holdings,
+        min_position_pct=market.min_position_pct
     )
+    
+    if market.market_code == "US":
+        spy_df = benchmark_df
+        try:
+            vix_df = brain.data_provider.get_data_as_of("^VIX", datetime.now())
+        except Exception:
+            vix_df = None
+        try:
+            qqq_df = brain.data_provider.get_data_as_of("QQQ", datetime.now())
+        except Exception:
+            qqq_df = None
+        try:
+            hyg_df = brain.data_provider.get_data_as_of("HYG", datetime.now())
+        except Exception:
+            hyg_df = None
+        try:
+            ief_df = brain.data_provider.get_data_as_of("IEF", datetime.now())
+        except Exception:
+            ief_df = None
+        try:
+            tnx_df = brain.data_provider.get_data_as_of("^TNX", datetime.now())
+        except Exception:
+            tnx_df = None
+        try:
+            rsp_df = brain.data_provider.get_data_as_of("RSP", datetime.now())
+        except Exception:
+            rsp_df = None
+
+        regime_info = ensemble.detect_regime(
+            spy_df=spy_df,
+            vix_df=vix_df,
+            qqq_df=qqq_df,
+            hyg_df=hyg_df,
+            ief_df=ief_df,
+            tnx_df=tnx_df,
+            rsp_df=rsp_df,
+        )
+    else:
+        # Non-US jurisdictions (India, UK, Japan): Evaluate Universal Local-Index Regime Engine
+        local_vix_sym = "^INDIAVIX" if market.market_code == "IN" else None
+        local_vix_df = None
+        if local_vix_sym:
+            try:
+                local_vix_df = brain.data_provider.get_data_as_of(local_vix_sym, datetime.now())
+            except Exception:
+                local_vix_df = None
+
+        universal_engine = UniversalLocalIndexRegimeEngine()
+        regime_info = universal_engine.evaluate(index_df=benchmark_df, vix_df=local_vix_df)
     regime = regime_info["regime"]
     msi = regime_info.get("macro_stress_index", 0.0)
     MAX_EXPOSURE = regime_info["max_exposure"]
@@ -340,24 +373,39 @@ def execute_quant_live_cycle():
             current_value = current_qty * current_price
             value_to_trade = target_value - current_value
             
-            # Anti-churn hurdle: skip tiny micro-rebalancing trades under $200 on already-held positions
-            if current_qty > 0 and abs(value_to_trade) < max(200.0, total_equity * 0.005):
-                print(f" -> [MICRO-REBALANCE SKIP] {sym}: trade delta (${value_to_trade:.2f}) under $200 hurdle. Skipping churn.")
+            # Anti-churn hurdle: skip tiny micro-rebalancing trades
+            churn_hurdle = max(200.0 if market.currency_code == "USD" else 5000.0, total_equity * 0.005)
+            if current_qty > 0 and abs(value_to_trade) < churn_hurdle:
+                print(f" -> [MICRO-REBALANCE SKIP] {sym}: trade delta ({market.currency_symbol}{value_to_trade:.2f}) under hurdle. Skipping churn.")
                 continue
                 
-            qty_to_trade = round(value_to_trade / current_price, 4)
+            raw_qty = value_to_trade / current_price
+            if market.integer_shares_only or not market.supports_fractional:
+                if raw_qty > 0:
+                    qty_to_trade = float(math.floor(raw_qty))
+                else:
+                    qty_to_trade = -float(math.floor(abs(raw_qty)))
+            else:
+                qty_to_trade = round(raw_qty, 4)
         
         # Ensure we never sell more shares than currently held (no inadvertent short positions)
         if qty_to_trade < 0 and abs(qty_to_trade) > current_qty:
             qty_to_trade = -current_qty
         
-        if abs(qty_to_trade) >= 1e-4:
+        min_trade_thresh = 1.0 if (market.integer_shares_only or not market.supports_fractional) else 1e-4
+        if abs(qty_to_trade) >= min_trade_thresh:
             side = "BUY" if qty_to_trade > 0 else "SELL"
+            est_friction = market.calculate_transaction_costs(
+                trade_value=abs(qty_to_trade) * current_price,
+                shares=abs(qty_to_trade),
+                side=side
+            )
             planned_trades.append({
                 "symbol": sym,
                 "quantity": qty_to_trade,
                 "side": side,
-                "price_hint": current_price
+                "price_hint": current_price,
+                "estimated_friction": est_friction
             })
             
     # INSTITUTIONAL ROUTING: Prioritize SELLS before BUYS
@@ -397,7 +445,8 @@ def execute_quant_live_cycle():
             result = execution.submit_order(trade_request)
             if result.get("status") in ("SUBMITTED", "FILLED"):
                 executed_orders_log.append({"symbol": sym, "side": side, "qty": abs(qty_to_trade)})
-                print(f" -> EXECUTED: {side} {abs(qty_to_trade)} {sym}")
+                friction = trade.get("estimated_friction", 0.0)
+                print(f" -> EXECUTED: {side} {abs(qty_to_trade)} {sym} @ {market.currency_symbol}{current_price:,.2f} (Est Friction: {market.currency_symbol}{friction:.2f})")
                 # Dynamically update position state & invested value for subsequent orders
                 if side == "SELL":
                     current_invested_value = max(0.0, current_invested_value - (abs(qty_to_trade) * current_price))
@@ -413,13 +462,14 @@ def execute_quant_live_cycle():
         else:
             print(f" -> [RISK HALT] Trade rejected by Risk Engine: {sym} {qty_to_trade}")
 
-    print("\n[4b/5] Synchronizing Broker-Level GTC Stop-Loss Protection...")
-    try:
-        from trading_system.scripts.risk_sentinel import RiskSentinel
-        sentinel = RiskSentinel()
-        sentinel.scan_and_enforce(sync_gtc_stops=True)
-    except Exception as e:
-        print(f"  Warning: Broker GTC Stop synchronization encountered an issue: {e}")
+    if market.broker_adapter == "alpaca":
+        print("\n[4b/5] Synchronizing Broker-Level GTC Stop-Loss Protection...")
+        try:
+            from trading_system.scripts.risk_sentinel import RiskSentinel
+            sentinel = RiskSentinel()
+            sentinel.scan_and_enforce(sync_gtc_stops=True)
+        except Exception as e:
+            print(f"  Warning: Broker GTC Stop synchronization encountered an issue: {e}")
 
     print("\n[5/5] Dispatching Daily Quant Summary Notification...")
     notifier = QuantNotifier()
