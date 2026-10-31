@@ -6,8 +6,8 @@ from trading_system.app.config.market_config import MarketConfig
 from trading_system.app.features.regime import UniversalLocalIndexRegimeEngine
 
 
-def test_market_config_loading_all_four_jurisdictions():
-    """MarketConfig must load US, IN, UK, and JP configurations seamlessly."""
+def test_market_config_loading_us_and_india():
+    """MarketConfig must load US and India (IN) configurations seamlessly."""
     # US
     us = MarketConfig.load("US")
     assert us.market_code == "US"
@@ -24,21 +24,11 @@ def test_market_config_loading_all_four_jurisdictions():
     assert india.integer_shares_only is True
     assert len(india.get_universe()) >= 50
 
-    # UK
-    uk = MarketConfig.load("UK")
-    assert uk.market_code == "UK"
-    assert uk.currency_symbol == "£"
-    assert uk.benchmark_symbol == "^FTSE"
-    assert uk.integer_shares_only is True
-    assert len(uk.get_universe()) >= 20
-
-    # Japan
-    jp = MarketConfig.load("JP")
-    assert jp.market_code == "JP"
-    assert jp.currency_symbol == "¥"
-    assert jp.benchmark_symbol == "^N225"
-    assert jp.integer_shares_only is True
-    assert len(jp.get_universe()) >= 15
+    available = MarketConfig.list_available_markets()
+    assert "US" in available
+    assert "INDIA" in available
+    assert "UK" not in available
+    assert "JAPAN" not in available
 
 
 def test_market_config_transaction_costs():
@@ -55,18 +45,6 @@ def test_market_config_transaction_costs():
     costs_in_sell = india.calculate_transaction_costs(trade_value=100000.0, shares=100, side="SELL")
     assert pytest.approx(costs_in_sell, 0.01) == 177.73
 
-    # UK:
-    # Buy £10,000 worth of shares:
-    # 5 bps slippage (£5) + £3 flat + 0.2 bps turnover (£0.20) + 0.5% SDRT (£50) = £58.20
-    uk = MarketConfig.load("UK")
-    costs_uk_buy = uk.calculate_transaction_costs(trade_value=10000.0, shares=100, side="BUY")
-    assert pytest.approx(costs_uk_buy, 0.01) == 58.20
-
-    # Sell £10,000 worth of shares:
-    # SDRT is BUY only (£0). Total = £8.20
-    costs_uk_sell = uk.calculate_transaction_costs(trade_value=10000.0, shares=100, side="SELL")
-    assert pytest.approx(costs_uk_sell, 0.01) == 8.20
-
     # US:
     # Sell $10,000 worth of shares:
     # 5 bps slippage ($5.00) + 0.28 bps SEC/FINRA fee ($0.28) = $5.28
@@ -77,7 +55,7 @@ def test_market_config_transaction_costs():
 
 def test_get_universe_preserves_non_us_ticker_dots():
     """
-    Non-US tickers like RELIANCE.NS, SHEL.L, 7203.T MUST preserve dots for Yahoo Finance.
+    Non-US tickers like RELIANCE.NS MUST preserve dots for Yahoo Finance.
     Only US dual-class tickers (BRK.B) swap '.' to '-'.
     """
     india = MarketConfig.load("IN")
@@ -86,16 +64,6 @@ def test_get_universe_preserves_non_us_ticker_dots():
     assert "TCS.NS" in in_univ
     assert "RELIANCE-NS" not in in_univ
     assert "TCS-NS" not in in_univ
-
-    uk = MarketConfig.load("UK")
-    uk_univ = uk.get_universe()
-    assert "SHEL.L" in uk_univ
-    assert "SHEL-L" not in uk_univ
-
-    jp = MarketConfig.load("JP")
-    jp_univ = jp.get_universe()
-    assert "7203.T" in jp_univ
-    assert "7203-T" not in jp_univ
 
     us = MarketConfig.load("US")
     us_univ = us.get_universe()

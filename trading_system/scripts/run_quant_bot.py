@@ -161,7 +161,7 @@ def execute_quant_live_cycle():
             rsp_df=rsp_df,
         )
     else:
-        # Non-US jurisdictions (India, UK, Japan): Evaluate Universal Local-Index Regime Engine
+        # Indian jurisdiction (NSE / BSE): Evaluate Universal Local-Index Regime Engine
         local_vix_sym = "^INDIAVIX" if market.market_code == "IN" else None
         local_vix_df = None
         if local_vix_sym:

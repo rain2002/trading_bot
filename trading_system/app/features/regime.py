@@ -23,7 +23,7 @@ logger = logging.getLogger("UniversalMacroRegime")
 class UniversalLocalIndexRegimeEngine:
     """
     Universal Local-Index Macro Regime & Tail-Risk Engine.
-    Operates on ANY global equity benchmark (US SPY, Indian NIFTY 50, UK FTSE 100, Japan Nikkei 225)
+    Operates on equity benchmarks (US SPY, Indian NIFTY 50)
     using strictly three universal causal signals from the local benchmark index alone:
       1. Trend & Structural Efficiency: Index Price vs 200-day & 50-day SMA + Kaufman Efficiency
       2. Realized Volatility & Shock: Index's own recent 20-day annualized volatility vs 60-day baseline
@@ -201,8 +201,8 @@ class UniversalLocalIndexRegimeEngine:
         vol20_5d_ago = float(ret.iloc[:-5].tail(20).std() * np.sqrt(252)) if len_ret >= 25 else vol20
         vol_velocity = ((vol20 - vol20_5d_ago) / vol20_5d_ago * 100) if vol20_5d_ago > 0 else 0.0
 
-        # Universal Relative Volatility: Self-calibrating across any international index
-        # (Nifty baseline 22%, FTSE baseline 11%, Nikkei baseline 18%)
+        # Universal Relative Volatility: Self-calibrating across equity indices
+        # (Nifty baseline ~22%, S&P 500 baseline ~15%)
         vol_shock = bool(vol_ratio >= 1.35 or vol_velocity >= 40.0 or vol20 >= 0.45)
 
         if vol_ratio >= 1.60 or vol_velocity >= 60.0 or vol20 >= 0.50:

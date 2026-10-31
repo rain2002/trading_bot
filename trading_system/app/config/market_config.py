@@ -55,7 +55,7 @@ class MarketConfig:
     @classmethod
     def load(cls, identifier: str = "US") -> "MarketConfig":
         """
-        Loads market configuration by code ('US', 'IN', 'UK', 'JP') or country name.
+        Loads market configuration by code ('US', 'IN') or country name.
         """
         ident = identifier.strip().lower()
         alias_map = {
@@ -64,14 +64,7 @@ class MarketConfig:
             "united states": "us.json",
             "in": "india.json",
             "india": "india.json",
-            "nse": "india.json",
-            "uk": "uk.json",
-            "united kingdom": "uk.json",
-            "ftse": "uk.json",
-            "jp": "japan.json",
-            "japan": "japan.json",
-            "nikkei": "japan.json",
-            "tse": "japan.json"
+            "nse": "india.json"
         }
         filename = alias_map.get(ident, f"{ident}.json")
         m_dir = cls.get_markets_dir()
@@ -221,7 +214,7 @@ class MarketConfig:
         if self.gst_pct_on_brokerage > 0:
             gst_tax = (comm + exchange_fee) * self.gst_pct_on_brokerage
 
-        # 5. Transaction Taxes (STT, Stamp Duty, SDRT)
+        # 5. Transaction Taxes (STT, Stamp Duty)
         taxes = 0.0
         if self.market_code == "IN":
             # In India: STT applies to both BUY & SELL on delivery (0.1%)
@@ -230,10 +223,6 @@ class MarketConfig:
             # Stamp Duty in India applies to BUY only (1.5 bps = 0.015%)
             if self.stamp_duty_bps > 0 and side_norm == "BUY":
                 taxes += trade_value * (self.stamp_duty_bps / 10000.0)
-        elif self.market_code == "UK":
-            # In UK: SDRT (0.5%) applies to BUY only
-            if self.tax_rate_stt > 0 and side_norm == "BUY":
-                taxes += trade_value * self.tax_rate_stt
         else:
             if self.tax_rate_stt > 0:
                 taxes += trade_value * self.tax_rate_stt
