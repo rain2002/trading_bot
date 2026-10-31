@@ -3,6 +3,7 @@ import os
 import hashlib
 from datetime import datetime, timedelta
 import logging
+import requests
 
 # Ensure project root is in sys.path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
@@ -14,7 +15,7 @@ if hasattr(sys.stderr, "reconfigure"):
 
 from trading_system.app.config.settings import settings
 from trading_system.app.research.quant_engine import QuantEngine, InvestorSkillsHeuristics
-from trading_system.app.broker.alpaca import AlpacaBrokerAdapter
+from trading_system.app.broker.alpaca import AlpacaBrokerAdapter, BrokerAPIError
 from trading_system.app.execution.alpaca_live import AlpacaExecutionAdapter
 from trading_system.app.risk.basic import BasicRiskEngine
 from trading_system.app.notifications.notifier import QuantNotifier
@@ -22,6 +23,7 @@ from trading_system.app.features.regime import RegimeDetector, UniversalLocalInd
 from trading_system.app.strategies.ensembles.ensemble_allocator import EnsembleAllocator
 from trading_system.app.config.stop_loss_manager import StopLossManager
 from trading_system.app.config.market_config import MarketConfig
+from trading_system.app.portfolio.position_tracker import PositionTracker
 
 logger = logging.getLogger("QUANTBot")
 
@@ -39,20 +41,46 @@ def execute_quant_live_cycle():
         
     broker = AlpacaBrokerAdapter(api_key=API_KEY, api_secret=API_SECRET)
     execution = AlpacaExecutionAdapter(api_key=API_KEY, api_secret=API_SECRET)
-    risk_engine = BasicRiskEngine(max_position_pct=0.30, max_portfolio_pct=0.95)
+    risk_engine = BasicRiskEngine(max_position_pct=0.12, max_portfolio_pct=0.95)
     
     print("\n[1/4] Syncing with Broker for LIVE Positions...")
-    current_positions = broker.get_positions()
-    print(f"Broker reports we hold: {current_positions}")
-    total_equity = broker.get_account_equity()
-    print(f"Broker reports Total Account Equity: ${total_equity:,.2f}")
+    try:
+        current_positions = broker.get_positions()
+        print(f"Broker reports we hold: {current_positions}")
+        total_equity = broker.get_account_equity()
+        print(f"Broker reports Total Account Equity: ${total_equity:,.2f}")
+    except BrokerAPIError as e:
+        print(f"\n[CRITICAL BROKER ERROR] Could not securely fetch account state: {e}")
+        print("Failing closed: Halting trading cycle without placing orders.")
+        return
     
     market_code = os.environ.get("TRADING_MARKET", "US")
     market = MarketConfig.load(market_code)
     print(f"Target Market: [{market.country} - {market.name}] | Benchmark: {market.benchmark_symbol} ({market.currency_symbol})")
 
-    print("\n[2/4] Waking up QUANT Trading Agents (Rules-Only Default)...")
+    # Market Calendar & Holiday Check
+    if API_KEY and API_KEY != "mock":
+        try:
+            clock_res = requests.get(f"{broker.base_url}/v2/clock", headers=broker.headers, timeout=5)
+            if clock_res.status_code == 200:
+                clock_data = clock_res.json()
+                is_open = clock_data.get("is_open", True)
+                if not is_open:
+                    print(f" -> [MARKET HOLIDAY / CLOSED] Market is closed today (Clock: is_open=False). Skipping execution cycle.")
+                    return
+        except Exception as e:
+            logger.warning(f"Could not verify market clock: {e}")
+
+    # Data Quorum Check on Benchmark
+    benchmark_sym = market.benchmark_symbol or "SPY"
     brain = QuantEngine(enable_ml_gating=False)
+    benchmark_df = brain.data_provider.get_data_as_of(benchmark_sym, datetime.now())
+    if benchmark_df is None or benchmark_df.empty or len(benchmark_df) < 50:
+        print(f"\n[CRITICAL DATA QUORUM BREACH] Benchmark data for {benchmark_sym} is missing or incomplete (<50 bars).")
+        print("Failing closed: Halting trading cycle to protect capital against blind market executions.")
+        return
+
+    print("\n[2/4] Waking up QUANT Trading Agents (Rules-Only Default)...")
     
     # Dynamically fetch universe from MarketConfig
     print(f"Fetching universe for {market.market_code} from {market.universe_file}...")
@@ -76,7 +104,7 @@ def execute_quant_live_cycle():
     print("\n[2b/4] Evaluating Institutional 4-Pillar Macro Radar (Rates, Credit, Vol, Breadth)...")
     ensemble = EnsembleAllocator(max_total_exposure=0.98, max_single_stock=0.12, max_holdings=10, min_position_pct=0.04)
     
-    spy_df = brain.data_provider.get_data_as_of("SPY", datetime.now())
+    spy_df = benchmark_df
     try:
         vix_df = brain.data_provider.get_data_as_of("^VIX", datetime.now())
     except Exception:
@@ -184,24 +212,32 @@ def execute_quant_live_cycle():
     # ----------------------------
         
     print("\n[3/4] Reconciling QUANT Targets against Broker State...")
+    pos_tracker = PositionTracker()
+    recent_orders = broker.get_recent_orders(limit=200)
     
-    # Cancel any pending/stale orders on broker to prevent wash-trade blocks and duplicate fills
-    print(" -> Canceling any pending orders on broker for clean state...")
-    broker.cancel_all_orders()
+    # Cancel stale pending BUY orders to prevent duplicate fills and wash trades, while PRESERVING resting GTC stops
+    print(" -> Canceling stale pending BUY orders (preserving resting GTC stop losses)...")
+    cancelled_buys = broker.cancel_pending_buy_orders()
+    if cancelled_buys > 0:
+        print(f"    Cleaned up {cancelled_buys} pending un-filled BUY orders.")
     
     # Re-sync positions in case fills happened
     current_positions = broker.get_positions()
+    detailed_positions = broker.get_positions_detailed()
+    pos_tracker.sync_with_broker(current_positions, detailed_positions, recent_orders)
     
     # CRASH REGIME: If macro crash warning, force full liquidation of all positions to 100% cash
     if MAX_EXPOSURE <= 0.0 or regime == "CRASH_WARNING":
         print("  [CRASH WARNING ACTIVE] Liquidating all open holdings to 100% Cash Buffer.")
         for open_sym in current_positions.keys():
             target_weights[open_sym] = 0.0
+            pos_tracker.record_exit(open_sym)
     else:
         # 1. First, enforce hard stop-loss liquidations (-8%)
         for sym in stop_loss_liquidations:
             print(f" -> [STOP-LOSS EXIT] {sym} triggered hard stop-loss limit. Liquidating full position.")
             target_weights[sym] = 0.0
+            pos_tracker.record_exit(sym)
 
         # 2. Institutional Holding Buffer (Hysteresis):
         # Protect existing healthy holdings from wholesale churning/dumping during normal market chop.
@@ -210,26 +246,42 @@ def execute_quant_live_cycle():
                 continue
 
             # If the strategy actively picked this symbol today with a target, keep it
-            if open_sym in target_weights and target_weights[open_sym] > 0.0:
+            if open_sym in target_weights and isinstance(target_weights[open_sym], (int, float)) and target_weights[open_sym] > 0.0:
                 print(f" -> [ACTIVE TARGET] {open_sym} reaffirmed by Quant Brain with {target_weights[open_sym]*100:.1f}% target allocation.")
                 continue
 
             # Otherwise, evaluate technical health before considering an exit
             df_held = brain.data_provider.get_data_as_of(open_sym, datetime.now())
             current_plpc = pos_pnl_map.get(open_sym, 0.0)
+            
+            curr_p = broker.get_latest_price(open_sym)
+            if curr_p <= 0 and not df_held.empty and 'close' in df_held:
+                curr_p = float(df_held['close'].iloc[-1])
+
+            pos_meta = pos_tracker.get_position_meta(open_sym)
+            h_type = pos_meta.get("holding_type", "MOMENTUM")
+            e_date = pos_meta.get("entry_date")
+            avg_entry_val = float(pos_meta.get("entry_price") or (curr_p / (1.0 + current_plpc) if (1.0 + current_plpc) > 0 else curr_p))
+            peak_val = pos_tracker.update_peak(open_sym, curr_p)
+
             exit_eval = InvestorSkillsHeuristics.evaluate_holding_exit(
-                open_sym, df_held, current_plpc=current_plpc, regime=regime, mr_strategy=brain.mean_reversion
+                symbol=open_sym,
+                df=df_held,
+                current_plpc=current_plpc,
+                regime=regime,
+                holding_type=h_type,
+                avg_entry=avg_entry_val,
+                peak_price=peak_val,
+                entry_date=e_date
             )
 
             if exit_eval["should_exit"]:
-                print(f" -> [{exit_eval['action']}] {open_sym}: {exit_eval['reason']}. Liquidating full position.")
+                print(f" -> [{exit_eval['action']}] {open_sym} ({h_type}): {exit_eval['reason']}. Liquidating full position.")
                 target_weights[open_sym] = 0.0
+                pos_tracker.record_exit(open_sym)
             else:
-                curr_p = broker.get_latest_price(open_sym)
-                if curr_p <= 0 and not df_held.empty and 'close' in df_held:
-                    curr_p = float(df_held['close'].iloc[-1])
                 curr_weight = (current_positions[open_sym] * curr_p) / total_equity if total_equity > 0 else 0.0
-                print(f" -> [HOLDING BUFFER] {open_sym}: {exit_eval['reason']} Preserving position (Weight: {curr_weight*100:.1f}%).")
+                print(f" -> [HOLDING BUFFER] {open_sym} ({h_type}): {exit_eval['reason']} Preserving position (Weight: {curr_weight*100:.1f}%).")
                 target_weights[open_sym] = 'HOLD'
 
         # 3. Capital Capacity Reconciliation:
@@ -282,7 +334,7 @@ def execute_quant_live_cycle():
         
         # If target is 0.0, liquidate exactly all held shares without truncation residue
         if target_weight == 0.0:
-            qty_to_trade = -int(round(current_qty))
+            qty_to_trade = -current_qty
         else:
             target_value = total_equity * target_weight
             current_value = current_qty * current_price
@@ -293,13 +345,13 @@ def execute_quant_live_cycle():
                 print(f" -> [MICRO-REBALANCE SKIP] {sym}: trade delta (${value_to_trade:.2f}) under $200 hurdle. Skipping churn.")
                 continue
                 
-            qty_to_trade = int(round(value_to_trade / current_price))
+            qty_to_trade = round(value_to_trade / current_price, 4)
         
         # Ensure we never sell more shares than currently held (no inadvertent short positions)
         if qty_to_trade < 0 and abs(qty_to_trade) > current_qty:
-            qty_to_trade = -int(round(current_qty))
+            qty_to_trade = -current_qty
         
-        if qty_to_trade != 0:
+        if abs(qty_to_trade) >= 1e-4:
             side = "BUY" if qty_to_trade > 0 else "SELL"
             planned_trades.append({
                 "symbol": sym,
@@ -328,8 +380,11 @@ def execute_quant_live_cycle():
         side = trade["side"]
         current_price = trade["price_hint"]
         
-        order_hash_base = f"QUANT_{run_timestamp_tag}_{sym}_{side}_{abs(qty_to_trade)}"
-        deterministic_id = f"Q-{hashlib.md5(order_hash_base.encode()).hexdigest()[:14]}"
+        # Determine holding type tag for order client ID
+        is_mr_target = any(s["symbol"] == sym and s.get("holding_type") == "DIP_BUY" for s in valid_mr)
+        h_tag = "DIP" if is_mr_target else "MOM"
+        order_hash_base = f"QUANT_{h_tag}_{run_timestamp_tag}_{sym}_{side}_{abs(qty_to_trade)}"
+        deterministic_id = f"Q-{h_tag}-{hashlib.md5(order_hash_base.encode()).hexdigest()[:10]}"
         
         trade_request = {
             "client_order_id": deterministic_id,
@@ -347,9 +402,12 @@ def execute_quant_live_cycle():
                 if side == "SELL":
                     current_invested_value = max(0.0, current_invested_value - (abs(qty_to_trade) * current_price))
                     current_positions[sym] = max(0.0, current_positions.get(sym, 0.0) - abs(qty_to_trade))
+                    if current_positions[sym] <= 1e-4:
+                        pos_tracker.record_exit(sym)
                 else:
                     current_invested_value += abs(qty_to_trade) * current_price
                     current_positions[sym] = current_positions.get(sym, 0.0) + abs(qty_to_trade)
+                    pos_tracker.record_entry(sym, "DIP_BUY" if h_tag == "DIP" else "MOMENTUM", current_price, quantity=abs(qty_to_trade))
             else:
                 print(f" -> [BROKER REJECT] Order failed for {sym}: {result.get('error', result.get('status'))}")
         else:

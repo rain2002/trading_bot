@@ -1,5 +1,9 @@
 name: V2 Daily Paper Trading Engine
 
+concurrency:
+  group: trading-bot-execution
+  cancel-in-progress: false
+
 on:
   schedule:
     # Runs at 19:35 UTC every weekday (Mon-Fri)
@@ -21,7 +25,7 @@ jobs:
       DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
       TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
       TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-      # We default to an ephemeral SQLite DB since the bot syncs state from Alpaca
+      # Ephemeral SQLite DB since state is sourced directly from Alpaca and position tracker
       DATABASE_URL: sqlite:///trading_db.sqlite 
       PYTHONPATH: .
 
@@ -33,7 +37,7 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-          cache: 'pip' # Caches dependencies to make the run faster
+          cache: 'pip'
 
       - name: Install Dependencies
         run: |
@@ -43,3 +47,20 @@ jobs:
       - name: Run V2 Quant Brain Engine
         run: |
           python trading_system/scripts/run_quant_bot.py
+
+      - name: Workflow Failure Alert Notification
+        if: failure()
+        run: |
+          python -c "
+          import os, requests
+          webhook = os.getenv('DISCORD_WEBHOOK_URL')
+          tg_token = os.getenv('TELEGRAM_BOT_TOKEN')
+          tg_chat = os.getenv('TELEGRAM_CHAT_ID')
+          msg = '🚨 CRITICAL ALERT: Daily Trading Bot workflow run failed in GitHub Actions!'
+          if webhook:
+              try: requests.post(webhook, json={'content': msg}, timeout=10)
+              except: pass
+          if tg_token and tg_chat:
+              try: requests.post(f'https://api.telegram.org/bot{tg_token}/sendMessage', json={'chat_id': tg_chat, 'text': msg}, timeout=10)
+              except: pass
+          "

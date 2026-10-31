@@ -239,10 +239,11 @@ def run_backtest():
         # C. Signal Generation: Dual Momentum & Mean-Reversion
         open_slots = MAX_POSITIONS - len(positions)
         if open_slots > 0 and max_exposure > 0.0 and regime != "CRASH_WARNING":
-            held_exposure = sum(positions[s] * current_prices.get(s, 0.0) for s in positions) / total_equity if total_equity > 0 else 0.0
-            available_capacity = max(0.0, max_exposure - held_exposure)
+            held_invested_val = sum(positions[s] * current_prices.get(s, 0.0) for s in positions)
+            max_allowed_invested = max_exposure * total_equity
+            remaining_capacity_dollars = max(0.0, max_allowed_invested - held_invested_val)
             
-            if available_capacity > 0.05 and cash > 25.0:
+            if remaining_capacity_dollars > 25.0 and cash > 25.0:
                 mom_cands = []
                 mr_cands = []
                 
@@ -307,18 +308,19 @@ def run_backtest():
                 
                 target_dollar_per_pos = total_equity * TARGET_POS_WEIGHT
                 for cand in valid_entries[:open_slots]:
-                    if cash < 25.0:
+                    if cash < 25.0 or remaining_capacity_dollars < 20.0:
                         break
                     sym = cand["symbol"]
                     price = cand["price"]
                     fill_price = price * (1.0 + SLIPPAGE_BPS / 10000.0)
-                    alloc = min(target_dollar_per_pos, cash * 0.95)
+                    alloc = min(target_dollar_per_pos, cash * 0.95, remaining_capacity_dollars)
                     
                     if alloc >= 20.0:
                         shares = round(alloc / fill_price, 4)
                         cost = shares * fill_price
-                        if cost <= cash and shares > 0:
+                        if cost <= cash and cost <= (remaining_capacity_dollars + 1e-4) and shares > 0:
                             cash -= cost
+                            remaining_capacity_dollars -= cost
                             positions[sym] = shares
                             entry_prices[sym] = fill_price
                             peak_prices[sym] = price

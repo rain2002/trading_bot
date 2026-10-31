@@ -24,9 +24,10 @@ from trading_system.app.data.yfinance_provider import YFinanceDataProvider
 from trading_system.app.features.regime import InstitutionalMacroRegimeEngine
 from trading_system.app.strategies.ensembles.ensemble_allocator import EnsembleAllocator
 from trading_system.app.ml.feature_pipeline import MLFeaturePipeline
-from trading_system.app.broker.alpaca import AlpacaBrokerAdapter
+from trading_system.app.broker.alpaca import AlpacaBrokerAdapter, BrokerAPIError
 from trading_system.app.execution.alpaca_live import AlpacaExecutionAdapter
 from trading_system.app.risk.basic import BasicRiskEngine
+from trading_system.app.portfolio.position_tracker import PositionTracker
 
 MODEL_PATH = os.path.join(PROJECT_ROOT, "trading_system", "data", "models", "quant_rf_model.joblib")
 STOP_LOSS_CONFIG = os.path.join(PROJECT_ROOT, "trading_system", "app", "config", "stop_loss_config.json")
@@ -74,7 +75,8 @@ def execute_live_cycle(dry_run: bool = False):
     
     broker = AlpacaBrokerAdapter(api_key=API_KEY, api_secret=API_SECRET) if not dry_run else None
     execution = AlpacaExecutionAdapter(api_key=API_KEY, api_secret=API_SECRET) if not dry_run else None
-    risk_engine = BasicRiskEngine(max_position_size=500000)
+    risk_engine = BasicRiskEngine(max_position_pct=0.12, max_portfolio_pct=0.95)
+    pos_tracker = PositionTracker()
     
     # 1. Sync Live State
     print("\n[1/6] Syncing with Broker for LIVE Account State...")
@@ -86,6 +88,8 @@ def execute_live_cycle(dry_run: bool = False):
             detailed_positions = broker.get_positions_detailed()
             positions_map = {p["symbol"]: p for p in detailed_positions}
             total_equity = broker.get_account_equity()
+            recent_orders = broker.get_recent_orders(limit=200)
+            pos_tracker.sync_with_broker(current_positions, detailed_positions, recent_orders)
         except Exception as e:
             print(f"Error fetching live account state: {e}. Switching to simulation baseline.")
             current_positions = {}
@@ -147,21 +151,48 @@ def execute_live_cycle(dry_run: bool = False):
             current_price = df_sym["close"].iloc[-1]
             sma50 = df_sym["close"].rolling(50, min_periods=20).mean().iloc[-1]
             
-            # Fetch actual entry price and peak price for dynamic runner stops
+            # Fetch actual entry price, holding type, and peak price strictly since entry
             pos_info = positions_map.get(sym, {})
-            avg_entry = float(pos_info.get("avg_entry_price", current_price))
-            peak_price = max(float(df_sym["high"].tail(60).max()), current_price, avg_entry)
+            pos_meta = pos_tracker.get_position_meta(sym)
+            h_type = pos_meta.get("holding_type", "MOMENTUM")
+            entry_dt = pos_meta.get("entry_date")
+            avg_entry = float(pos_meta.get("entry_price") or pos_info.get("avg_entry_price", current_price))
             
+            # Peak strictly on or after entry date (avoids pre-entry historical highs)
+            if entry_dt and hasattr(df_sym.index, 'date'):
+                try:
+                    df_since = df_sym[df_sym.index >= pd.to_datetime(entry_dt)]
+                    peak_price = float(df_since["high"].max()) if not df_since.empty else current_price
+                except Exception:
+                    peak_price = current_price
+            else:
+                peak_price = current_price
+            peak_price = max(peak_price, current_price, avg_entry)
+            
+            # Mean reversion indicators if dip buy
+            sma20_s = df_sym["close"].rolling(20, min_periods=10).mean()
+            bb_mid = float(sma20_s.iloc[-1]) if not sma20_s.empty else current_price
+            delta = df_sym["close"].diff()
+            gain = delta.clip(lower=0.0)
+            loss = -delta.clip(upper=0.0)
+            avg_gain = gain.ewm(alpha=1.0 / 14.0, min_periods=min(14, len(df_sym)), adjust=False).mean()
+            avg_loss = loss.ewm(alpha=1.0 / 14.0, min_periods=min(14, len(df_sym)), adjust=False).mean()
+            rs = avg_gain / (avg_loss + 1e-9)
+            rsi_val = float((100.0 - (100.0 / (1.0 + rs))).iloc[-1]) if not rs.empty else 50.0
+
             exit_decision = stop_manager.evaluate_dynamic_exit(
                 symbol=sym,
                 current_price=current_price,
                 avg_entry=avg_entry,
                 peak_price=peak_price,
                 sma50=sma50,
-                holding_type="MOMENTUM"
+                holding_type=h_type,
+                bb_mid=bb_mid,
+                rsi=rsi_val
             )
             if exit_decision["should_exit"]:
                 positions_to_liquidate.append((sym, exit_decision["reason"]))
+                pos_tracker.record_exit(sym)
                 
     # 4. Ingest Candidate Universe & Generate Causal Technical Signals
     sp500_file = os.path.join(PROJECT_ROOT, "trading_system", "data", "sp500_tickers.txt")
@@ -171,7 +202,7 @@ def execute_live_cycle(dry_run: bool = False):
             with open(sp500_file, "r") as f:
                 loaded = [line.strip().replace('.', '-') for line in f if line.strip()]
             if len(loaded) >= 40:
-                scan_universe = loaded[:100]
+                scan_universe = loaded  # Full universe, no 100-ticker truncation
         except Exception:
             scan_universe = CORE_UNIVERSE
 
@@ -278,17 +309,36 @@ def execute_live_cycle(dry_run: bool = False):
         if qty > 0:
             reconciled_orders.append({"symbol": sym, "side": "SELL", "quantity": qty, "reason": reason})
             
-    # B. Buys for target allocations
-    for sym, weight in target_weights.items():
-        if sym in current_positions:
-            continue  # Already held, let runner ride
+    # B. Buys for target allocations (strictly capped by max_exposure)
+    held_val = 0.0
+    for s, q in current_positions.items():
+        p_c = universe_data[s]["close"].iloc[-1] if (s in universe_data and not universe_data[s].empty) else 100.0
+        held_val += q * p_c
+    held_exposure = held_val / total_equity if total_equity > 0 else 0.0
+    available_capacity = max(0.0, max_exposure - held_exposure)
+    
+    new_buys = {s: w for s, w in target_weights.items() if s not in current_positions and w > 0.0}
+    sum_buys = sum(new_buys.values())
+    if sum_buys > available_capacity and sum_buys > 0:
+        scale = available_capacity / sum_buys
+        new_buys = {s: round(w * scale, 4) for s, w in new_buys.items()}
+    
+    for sym, weight in new_buys.items():
+        if available_capacity <= 0.02:
+            break
         dollar_target = total_equity * weight
-        price = universe_data[sym]["close"].iloc[-1] if sym in universe_data else 100.0
+        price = universe_data[sym]["close"].iloc[-1] if (sym in universe_data and not universe_data[sym].empty) else 100.0
         shares = round(dollar_target / price, 4)
         if shares > 0 and dollar_target >= 50.0:
-            reconciled_orders.append({"symbol": sym, "side": "BUY", "quantity": shares, "reason": f"ENTRY_TARGET_{weight*100:.1f}%"})
+            is_dip = any(c["symbol"] == sym for c in mr_candidates)
+            tag = "DIP_BUY" if is_dip else "MOMENTUM"
+            reconciled_orders.append({"symbol": sym, "side": "BUY", "quantity": shares, "reason": f"ENTRY_{tag}_{weight*100:.1f}%"})
             
+    # Sort: SELLS first, then BUYS
+    reconciled_orders.sort(key=lambda o: 0 if o["side"] == "SELL" else 1)
     print(f"\n  Reconciled Orders to Execute: {len(reconciled_orders)}")
+    
+    current_invested_value = held_val
     for order in reconciled_orders:
         sym = order["symbol"]
         side = order["side"]
@@ -299,15 +349,29 @@ def execute_live_cycle(dry_run: bool = False):
         if not dry_run and execution is not None:
             order_hash = f"HIGH_ALPHA_{datetime.now().date()}_{sym}_{side}_{qty}"
             client_id = f"HA-{hashlib.md5(order_hash.encode()).hexdigest()[:12]}"
+            trade_price = universe_data.get(sym, {}).get("close", pd.Series([100.0])).iloc[-1]
             trade_req = {
                 "client_order_id": client_id,
                 "symbol": sym,
                 "side": side.lower(),
-                "quantity": int(qty),
-                "price_hint": universe_data.get(sym, {}).get("close", pd.Series([100.0])).iloc[-1]
+                "quantity": round(qty, 4),
+                "price_hint": trade_price
             }
-            if risk_engine.evaluate_trade(trade_req, current_positions):
-                execution.submit_order(trade_req)
+            if risk_engine.evaluate_trade(trade_req, current_positions, total_equity=total_equity, current_invested_value=current_invested_value):
+                res = execution.submit_order(trade_req)
+                if res.get("status") in ("SUBMITTED", "FILLED"):
+                    if side == "SELL":
+                        current_invested_value = max(0.0, current_invested_value - (qty * trade_price))
+                        current_positions[sym] = max(0.0, current_positions.get(sym, 0.0) - qty)
+                        if current_positions[sym] <= 1e-4:
+                            pos_tracker.record_exit(sym)
+                    else:
+                        current_invested_value += qty * trade_price
+                        current_positions[sym] = current_positions.get(sym, 0.0) + qty
+                        h_type = "DIP_BUY" if "DIP" in reason else "MOMENTUM"
+                        pos_tracker.record_entry(sym, h_type, trade_price, quantity=qty)
+                else:
+                    print(f"    [ORDER FAILED] Broker rejected {sym}: {res.get('error', res.get('status'))}")
             else:
                 print(f"    [RISK REJECT] Order failed risk check: {sym}")
                 

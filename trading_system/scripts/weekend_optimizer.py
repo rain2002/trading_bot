@@ -84,21 +84,12 @@ def run_optimization():
                 best_params = {"fast_sma": fast, "slow_sma": slow}
                 
     print("\n" + "="*50)
-    print(f"OPTIMIZATION COMPLETE.")
-    print(f"Current Regime Best Parameters: Fast {best_params['fast_sma']}, Slow {best_params['slow_sma']}")
+    print(f"OPTIMIZATION / AUDIT COMPLETE.")
+    print(f"Grid Search Best Fit (SPY 1Y): Fast {best_params['fast_sma']}, Slow {best_params['slow_sma']}")
     print(f"Simulated 252-Day Return: {best_return:.2f}% (Risk-Adjusted Score: {best_score:.2f})")
     print("="*50)
-    
-    # Save to config file
-    config_dir = os.path.join(os.path.dirname(__file__), "..", "app", "config")
-    os.makedirs(config_dir, exist_ok=True)
-    config_path = os.path.join(config_dir, "dynamic_params.json")
-    
-    with open(config_path, "w") as f:
-        json.dump(best_params, f, indent=4)
-        
-    print(f"Saved new parameters to {config_path}")
-    print("The Quant Engine will automatically load these parameters on Monday.")
+    print("INSTITUTIONAL GOVERNANCE: Production parameters remain frozen at canonical 20/50 baseline")
+    print("to prevent in-sample single-asset curve fitting. Dynamic param file will not be overwritten automatically.")
 
 if __name__ == "__main__":
     run_optimization()

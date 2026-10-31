@@ -93,8 +93,8 @@ def test_ensemble_dynamic_allocation_expands_and_contracts_organically():
 
 
 def test_ensemble_high_alpha_dynamic_cap_prevents_cash_drag():
-    """In High-Alpha mode (max_holdings=10), cap dynamically expands when few candidates qualify."""
-    allocator = EnsembleAllocator(max_total_exposure=0.98, max_single_stock=0.12, max_holdings=10, min_position_pct=0.04)
+    """In High-Alpha mode with allow_dynamic_cap_expansion=True, cap dynamically expands when few candidates qualify."""
+    allocator = EnsembleAllocator(max_total_exposure=0.98, max_single_stock=0.12, max_holdings=10, min_position_pct=0.04, allow_dynamic_cap_expansion=True)
     regime_info = {
         "regime": "BULL_TRENDING",
         "max_exposure": 0.98,

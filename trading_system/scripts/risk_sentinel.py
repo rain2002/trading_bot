@@ -29,7 +29,7 @@ class RiskSentinel:
     def __init__(self):
         self.api_key = settings.PAPER_API_KEY
         self.api_secret = settings.PAPER_API_SECRET
-        self.base_url = "https://paper-api.alpaca.markets"
+        self.base_url = os.getenv("ALPACA_BASE_URL", "https://paper-api.alpaca.markets")
         self.headers = {
             "APCA-API-KEY-ID": self.api_key,
             "APCA-API-SECRET-KEY": self.api_secret
@@ -113,10 +113,10 @@ class RiskSentinel:
                     except Exception as e:
                         print(f"    Failed to cancel conflicting order: {e}")
 
-                # Submit emergency market sell order
+                # Submit emergency market sell order (supports fractional precision)
                 payload = {
                     "symbol": sym.replace("-", "."),
-                    "qty": str(int(round(qty))),
+                    "qty": str(qty) if isinstance(qty, (int, float)) else str(qty),
                     "side": "sell",
                     "type": "market",
                     "time_in_force": "day",
@@ -162,15 +162,20 @@ class RiskSentinel:
                         else:
                             print(f"    [SELL QUEUED] Active market liquidation already queued on broker (ID: {open_sells[0]['id']}). Skipping GTC stop.")
                     else:
-                        # Register new GTC Stop order directly on Alpaca
+                        # Register new GTC Stop order directly on Alpaca (Alpaca requires integer shares for GTC stop orders)
+                        int_qty = int(qty)
+                        if int_qty < 1:
+                            print(f"    [FRACTIONAL HOLDING] {sym} quantity ({qty:.4f}) is sub-integer. Intraday Sentinel monitors directly.")
+                            continue
+
                         stop_payload = {
                             "symbol": sym.replace("-", "."),
-                            "qty": str(int(round(qty))),
+                            "qty": str(int_qty),
                             "side": "sell",
                             "type": "stop",
                             "stop_price": str(target_stop_price),
                             "time_in_force": "gtc",
-                            "client_order_id": f"GTC_STOP_{sym}_{int(round(qty))}_{int(time.time())}"
+                            "client_order_id": f"GTC_STOP_{sym}_{int_qty}_{int(time.time())}"
                         }
                         try:
                             s_res = requests.post(f"{self.base_url}/v2/orders", headers=self.headers, json=stop_payload, timeout=10)
@@ -182,7 +187,7 @@ class RiskSentinel:
                                 print(f"    [IMMEDIATE BREACH DETECTED] Live market price is already below ${target_stop_price:.2f}! Submitting emergency market liquidation.")
                                 m_payload = {
                                     "symbol": sym.replace("-", "."),
-                                    "qty": str(int(round(qty))),
+                                    "qty": str(qty),
                                     "side": "sell",
                                     "type": "market",
                                     "time_in_force": "day",

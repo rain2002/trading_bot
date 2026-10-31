@@ -1,15 +1,27 @@
+import os
+import time
+import logging
 from typing import Dict, Any, Optional, List
 from trading_system.app.common.interfaces import BrokerAdapter
 import requests
 
+logger = logging.getLogger("AlpacaBrokerAdapter")
+
+class BrokerAPIError(RuntimeError):
+    """Raised when the broker API fails or is unreachable in live trading mode."""
+    pass
+
 class AlpacaBrokerAdapter(BrokerAdapter):
     """
     Adapter to interface with Alpaca (Paper or Live).
+    Institutional fail-closed architecture: retries transient errors and raises BrokerAPIError
+    instead of returning fake numbers or silent empty lists.
     """
-    def __init__(self, api_key: str, api_secret: str, base_url: str = "https://paper-api.alpaca.markets"):
+    def __init__(self, api_key: str, api_secret: str, base_url: Optional[str] = None):
         self.api_key = api_key
         self.api_secret = api_secret
-        self.base_url = base_url
+        env_url = os.getenv("ALPACA_BASE_URL", "https://paper-api.alpaca.markets")
+        self.base_url = base_url or env_url
         self.headers = {
             "APCA-API-KEY-ID": self.api_key,
             "APCA-API-SECRET-KEY": self.api_secret
@@ -20,36 +32,47 @@ class AlpacaBrokerAdapter(BrokerAdapter):
         if not self.api_key or self.api_key == "mock":
             return {"DIA": 115.0, "QQQ": 80.0, "AAPL": 50.0}
             
-        response = requests.get(f"{self.base_url}/v2/positions", headers=self.headers, timeout=10)
-        response.raise_for_status()
-        positions = response.json()
-        
-        # Normalize symbol so BRK.B becomes BRK-B (consistent with universe)
-        return {pos['symbol'].replace('.', '-'): float(pos['qty']) for pos in positions}
+        last_err = None
+        for attempt in range(3):
+            try:
+                response = requests.get(f"{self.base_url}/v2/positions", headers=self.headers, timeout=10)
+                response.raise_for_status()
+                positions = response.json()
+                return {pos['symbol'].replace('.', '-'): float(pos['qty']) for pos in positions}
+            except Exception as e:
+                last_err = e
+                logger.warning(f"Attempt {attempt+1}/3 failed in get_positions: {e}")
+                time.sleep(1.0 * (attempt + 1))
+        raise BrokerAPIError(f"Fail-Closed: Unable to fetch live positions from Alpaca after 3 attempts: {last_err}") from last_err
 
     def get_positions_detailed(self) -> list:
         """Fetch detailed positions including unrealized PnL % for stop-loss monitoring."""
         if not self.api_key or self.api_key == "mock":
             return []
-        try:
-            response = requests.get(f"{self.base_url}/v2/positions", headers=self.headers, timeout=10)
-            response.raise_for_status()
-            positions = response.json()
-            return [
-                {
-                    "symbol": pos['symbol'].replace('.', '-'),
-                    "raw_symbol": pos['symbol'],
-                    "qty": float(pos['qty']),
-                    "market_value": float(pos.get('market_value', 0.0)),
-                    "avg_entry_price": float(pos.get('avg_entry_price', 0.0)),
-                    "current_price": float(pos.get('current_price', 0.0)),
-                    "unrealized_pl": float(pos.get('unrealized_pl', 0.0)),
-                    "unrealized_plpc": float(pos.get('unrealized_plpc', 0.0)),
-                }
-                for pos in positions
-            ]
-        except Exception:
-            return []
+        last_err = None
+        for attempt in range(3):
+            try:
+                response = requests.get(f"{self.base_url}/v2/positions", headers=self.headers, timeout=10)
+                response.raise_for_status()
+                positions = response.json()
+                return [
+                    {
+                        "symbol": pos['symbol'].replace('.', '-'),
+                        "raw_symbol": pos['symbol'],
+                        "qty": float(pos['qty']),
+                        "market_value": float(pos.get('market_value', 0.0)),
+                        "avg_entry_price": float(pos.get('avg_entry_price', 0.0)),
+                        "current_price": float(pos.get('current_price', 0.0)),
+                        "unrealized_pl": float(pos.get('unrealized_pl', 0.0)),
+                        "unrealized_plpc": float(pos.get('unrealized_plpc', 0.0)),
+                    }
+                    for pos in positions
+                ]
+            except Exception as e:
+                last_err = e
+                logger.warning(f"Attempt {attempt+1}/3 failed in get_positions_detailed: {e}")
+                time.sleep(1.0 * (attempt + 1))
+        raise BrokerAPIError(f"Fail-Closed: Unable to fetch detailed positions from Alpaca after 3 attempts: {last_err}") from last_err
 
     def get_recent_orders(self, limit: int = 500) -> list:
         """Fetch recent order executions directly from Alpaca."""
@@ -63,8 +86,8 @@ class AlpacaBrokerAdapter(BrokerAdapter):
             )
             if response.status_code == 200:
                 return response.json()
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning(f"Error fetching recent orders: {e}")
         return []
 
     def cancel_all_orders(self) -> bool:
@@ -74,8 +97,29 @@ class AlpacaBrokerAdapter(BrokerAdapter):
         try:
             resp = requests.delete(f"{self.base_url}/v2/orders", headers=self.headers, timeout=10)
             return resp.status_code in (200, 204, 207)
-        except Exception:
+        except Exception as e:
+            logger.warning(f"Error canceling all orders: {e}")
             return False
+
+    def cancel_pending_buy_orders(self) -> int:
+        """
+        Cancels un-filled BUY orders while strictly preserving resting protective STOP orders.
+        Guarantees that broker-side stop-losses are NEVER wiped or left unprotected.
+        """
+        if not self.api_key or self.api_key == "mock":
+            return 0
+        open_orders = self.get_open_orders()
+        cancelled_count = 0
+        for o in open_orders:
+            if str(o.get("side", "")).lower() == "buy":
+                order_id = o.get("id")
+                try:
+                    resp = requests.delete(f"{self.base_url}/v2/orders/{order_id}", headers=self.headers, timeout=5)
+                    if resp.status_code in (200, 204):
+                        cancelled_count += 1
+                except Exception as e:
+                    logger.warning(f"Failed to cancel pending buy order {order_id}: {e}")
+        return cancelled_count
 
     def get_order_status(self, order_id: str) -> str:
         """Fetch true order status from the broker."""
@@ -90,17 +134,22 @@ class AlpacaBrokerAdapter(BrokerAdapter):
         return "UNKNOWN"
 
     def get_account_equity(self) -> float:
-        """Fetch total portfolio value (cash + long - short)."""
+        """Fetch total portfolio value (cash + long - short). Fail-closed with 3 retries."""
         if not self.api_key or self.api_key == "mock":
             return 100000.0
             
-        try:
-            response = requests.get(f"{self.base_url}/v2/account", headers=self.headers, timeout=10)
-            response.raise_for_status()
-            account = response.json()
-            return float(account['equity'])
-        except Exception:
-            return 100000.0
+        last_err = None
+        for attempt in range(3):
+            try:
+                response = requests.get(f"{self.base_url}/v2/account", headers=self.headers, timeout=10)
+                response.raise_for_status()
+                account = response.json()
+                return float(account['equity'])
+            except Exception as e:
+                last_err = e
+                logger.warning(f"Attempt {attempt+1}/3 failed in get_account_equity: {e}")
+                time.sleep(1.0 * (attempt + 1))
+        raise BrokerAPIError(f"Fail-Closed: Unable to fetch live equity from Alpaca after 3 attempts: {last_err}") from last_err
 
     def get_account_details(self) -> Dict[str, float]:
         """Fetch comprehensive account metrics including Today PnL and Overall PnL."""
@@ -113,57 +162,57 @@ class AlpacaBrokerAdapter(BrokerAdapter):
                 "overall_pnl": 0.0,
                 "overall_pnl_pct": 0.0,
             }
-        try:
-            response = requests.get(f"{self.base_url}/v2/account", headers=self.headers, timeout=10)
-            response.raise_for_status()
-            account = response.json()
-            
-            equity = float(account.get("equity", 100000.0))
-            last_equity = float(account.get("last_equity", equity))
-            cash = float(account.get("cash", 0.0))
-            buying_power = float(account.get("buying_power", cash))
-            
-            today_pnl = equity - last_equity
-            today_pnl_pct = (today_pnl / last_equity * 100) if last_equity > 0 else 0.0
-            
-            initial_capital = 100000.0
-            overall_pnl = equity - initial_capital
-            overall_pnl_pct = (overall_pnl / initial_capital * 100)
-            
-            return {
-                "equity": equity,
-                "cash": cash,
-                "buying_power": buying_power,
-                "today_pnl": today_pnl,
-                "today_pnl_pct": today_pnl_pct,
-                "overall_pnl": overall_pnl,
-                "overall_pnl_pct": overall_pnl_pct,
-            }
-        except Exception:
-            return {
-                "equity": 100000.0,
-                "cash": 10000.0,
-                "buying_power": 10000.0,
-                "today_pnl": 0.0,
-                "today_pnl_pct": 0.0,
-                "overall_pnl": 0.0,
-                "overall_pnl_pct": 0.0,
-            }
+        last_err = None
+        for attempt in range(3):
+            try:
+                response = requests.get(f"{self.base_url}/v2/account", headers=self.headers, timeout=10)
+                response.raise_for_status()
+                account = response.json()
+                
+                equity = float(account.get("equity", 100000.0))
+                last_equity = float(account.get("last_equity", equity))
+                cash = float(account.get("cash", 0.0))
+                buying_power = float(account.get("buying_power", cash))
+                
+                today_pnl = equity - last_equity
+                today_pnl_pct = (today_pnl / last_equity * 100) if last_equity > 0 else 0.0
+                
+                # Use starting equity from account or environment
+                initial_capital = float(os.getenv("INITIAL_CAPITAL", last_equity if last_equity > 0 else equity))
+                overall_pnl = equity - initial_capital
+                overall_pnl_pct = (overall_pnl / initial_capital * 100) if initial_capital > 0 else 0.0
+                
+                return {
+                    "equity": equity,
+                    "cash": cash,
+                    "buying_power": buying_power,
+                    "today_pnl": today_pnl,
+                    "today_pnl_pct": today_pnl_pct,
+                    "overall_pnl": overall_pnl,
+                    "overall_pnl_pct": overall_pnl_pct,
+                }
+            except Exception as e:
+                last_err = e
+                logger.warning(f"Attempt {attempt+1}/3 failed in get_account_details: {e}")
+                time.sleep(1.0 * (attempt + 1))
+        raise BrokerAPIError(f"Fail-Closed: Unable to fetch account details from Alpaca after 3 attempts: {last_err}") from last_err
 
     def get_latest_price(self, symbol: str) -> float:
         """Fetch latest trade price from Alpaca Market Data API (with feed=iex for free-tier compatibility)."""
         if not self.api_key or self.api_key == "mock":
             return 100.0
-        try:
-            alpaca_sym = symbol.replace('-', '.')
-            url = f"https://data.alpaca.markets/v2/stocks/{alpaca_sym}/trades/latest?feed=iex"
-            resp = requests.get(url, headers=self.headers, timeout=5)
-            if resp.status_code == 200:
-                data = resp.json()
-                if "trade" in data and "p" in data["trade"]:
-                    return float(data["trade"]["p"])
-        except Exception:
-            pass
+        alpaca_sym = symbol.replace('-', '.')
+        url = f"https://data.alpaca.markets/v2/stocks/{alpaca_sym}/trades/latest?feed=iex"
+        for attempt in range(3):
+            try:
+                resp = requests.get(url, headers=self.headers, timeout=5)
+                if resp.status_code == 200:
+                    data = resp.json()
+                    if "trade" in data and "p" in data["trade"]:
+                        return float(data["trade"]["p"])
+            except Exception as e:
+                time.sleep(0.5)
+        logger.warning(f"Could not fetch latest Alpaca price for {symbol}")
         return 0.0
 
     def get_portfolio_history(self, period: str = "1M", timeframe: str = "1D") -> Any:

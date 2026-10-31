@@ -36,11 +36,13 @@ class EnsembleAllocator:
         max_single_stock: float = 0.12,
         max_holdings: Optional[int] = 10,
         min_position_pct: float = 0.04,
+        allow_dynamic_cap_expansion: bool = False,
     ):
         self.max_total_exposure = max_total_exposure
         self.max_single_stock = max_single_stock
         self.max_holdings = max_holdings
         self.min_position_pct = min_position_pct
+        self.allow_dynamic_cap_expansion = allow_dynamic_cap_expansion
         self.macro_engine = InstitutionalMacroRegimeEngine()
 
     def detect_regime(
@@ -66,13 +68,13 @@ class EnsembleAllocator:
         """
         if spy_df is None or spy_df.empty or len(spy_df) < 20:
             return {
-                "regime": "NEUTRAL",
-                "macro_stress_index": 0.50,
+                "regime": "DATA_OUTAGE_HALT",
+                "macro_stress_index": 1.00,
                 "trend_ratio": 0.0,
-                "max_exposure": 0.50,
-                "weights": {"momentum": 0.50, "mean_reversion": 0.50},
-                "canaries": [],
-                "diagnostics": {}
+                "max_exposure": 0.00,
+                "weights": {"momentum": 0.0, "mean_reversion": 0.0},
+                "canaries": ["BENCHMARK_DATA_OUTAGE"],
+                "diagnostics": {"error": "Benchmark data missing or insufficient (< 20 bars)"}
             }
 
         return self.macro_engine.evaluate(
@@ -177,14 +179,14 @@ class EnsembleAllocator:
         # up to 25.0% so the portfolio is not artificially trapped in 50-75% involuntary cash drag,
         # while strictly maintaining a 25.0% disaster risk ceiling on any single stock.
         num_cands = len(candidates)
-        if self.max_holdings is not None and num_cands < self.max_holdings:
+        if self.allow_dynamic_cap_expansion and self.max_holdings is not None and num_cands < self.max_holdings:
             fair_share = max_exposure / max(num_cands, 1)
             dynamic_cap = min(0.25, max(self.max_single_stock, round(fair_share, 4)))
         else:
             dynamic_cap = self.max_single_stock
         self.last_effective_cap = dynamic_cap
 
-        # Enforce dynamic single-stock cap with iterative redistribution
+        # Enforce single-stock cap with iterative redistribution
         # Redistributes excess weight to uncapped candidates up to max_exposure
         weights_dict = {sym: w for sym, w in candidates}
         for _ in range(5):
@@ -211,7 +213,7 @@ class EnsembleAllocator:
             final_targets = {sym: w for sym, w in final_targets.items() if w >= self.min_position_pct}
 
         total_gross = sum(final_targets.values())
-        if total_gross > 0 and total_gross < (max_exposure * 0.90) and len(final_targets) >= 1:
+        if self.allow_dynamic_cap_expansion and total_gross > 0 and total_gross < (max_exposure * 0.90) and len(final_targets) >= 1:
             scale = min(max_exposure / total_gross, 1.50)
             final_targets = {
                 sym: min(round(w * scale, 4), dynamic_cap)

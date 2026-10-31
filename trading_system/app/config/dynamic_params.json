@@ -1,4 +1,4 @@
 {
-    "fast_sma": 30,
-    "slow_sma": 40
+    "fast_sma": 20,
+    "slow_sma": 50
 }

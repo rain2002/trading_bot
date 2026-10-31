@@ -56,11 +56,11 @@ class UniversalLocalIndexRegimeEngine:
         """Analyzes benchmark trend, 200/50/20 moving averages, and Kaufman Efficiency Ratio."""
         if index_df is None or index_df.empty or len(index_df) < 20:
             return {
-                "score": 0.5,
-                "is_bull_200": True,
-                "is_bull_50": True,
-                "is_severe_breakdown": False,
-                "trend_ratio": 0.5,
+                "score": 1.0,
+                "is_bull_200": False,
+                "is_bull_50": False,
+                "is_severe_breakdown": True,
+                "trend_ratio": 0.0,
                 "distance_to_200_pct": 0.0,
                 "distance_to_50_pct": 0.0,
                 "diagnostics": {"price": 0.0, "sma200": 0.0, "sma50": 0.0}
@@ -467,16 +467,16 @@ class UniversalLocalIndexRegimeEngine:
         Supports both index_df (generic benchmark) and spy_df (legacy callers).
         """
         target_df = index_df if index_df is not None else spy_df
-        if target_df is None or target_df.empty:
+        if target_df is None or target_df.empty or len(target_df) < 20:
             return {
-                "regime": "NEUTRAL",
-                "macro_stress_index": 0.50,
+                "regime": "DATA_OUTAGE_HALT",
+                "macro_stress_index": 1.00,
                 "trend_ratio": 0.0,
-                "max_exposure": 0.50,
-                "weights": {"momentum": 0.50, "mean_reversion": 0.50},
-                "cash_reserve_pct": 0.50,
-                "canaries": [],
-                "diagnostics": {}
+                "max_exposure": 0.00,
+                "weights": {"momentum": 0.0, "mean_reversion": 0.0},
+                "cash_reserve_pct": 1.00,
+                "canaries": ["BENCHMARK_DATA_OUTAGE"],
+                "diagnostics": {"error": "Benchmark index data missing or insufficient (< 20 bars)"}
             }
 
         # 1. Core Universal Pillars (Derived strictly from benchmark index)

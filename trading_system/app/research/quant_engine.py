@@ -1,4 +1,5 @@
 import os
+import math
 import json
 import logging
 import joblib
@@ -118,14 +119,29 @@ class InvestorSkillsHeuristics:
         df: pd.DataFrame,
         current_plpc: float = 0.0,
         regime: str = "BULL_CHOPPY",
-        mr_strategy: Optional[Any] = None
+        mr_strategy: Optional[Any] = None,
+        holding_type: str = "MOMENTUM",
+        avg_entry: Optional[float] = None,
+        peak_price: Optional[float] = None,
+        entry_date: Optional[Any] = None,
     ) -> Dict[str, Any]:
         """
         Unified Institutional Holding & Exit Logic:
         Determines whether an open position should be EXITED (liquidated to 0.0) or HELD.
-        Prevents whipsaw liquidations during normal chop while strictly cutting catastrophic losses.
+        CRITICAL: Disentangles MOMENTUM from DIP_BUY positions.
+        - MOMENTUM positions NEVER exit on mean-reversion/RSI profit targets.
+        - DIP_BUY positions exit on BB mid / RSI reversion or profit target.
+        - Peak price is strictly measured from bars on or after entry date.
         """
-        # 1. Dynamic Hard Stop-Loss Guardrail (Bot & User-Overridden Limits)
+        # 1. Macro Regime Crash Guardrail
+        if regime == "CRASH_WARNING":
+            return {
+                "should_exit": True,
+                "reason": "Market in CRASH_WARNING regime. Liquidating to 100% Cash Buffer.",
+                "action": "CRASH_LIQUIDATE"
+            }
+
+        # 2. Dynamic Hard Stop-Loss Guardrail (Bot & User-Overridden Limits)
         stop_threshold = -0.08
         try:
             sl_mgr = StopLossManager()
@@ -140,99 +156,87 @@ class InvestorSkillsHeuristics:
                 "action": "STOP_LOSS_LIQUIDATE"
             }
 
-        # 2. Macro Regime Crash Guardrail
-        if regime == "CRASH_WARNING":
-            return {
-                "should_exit": True,
-                "reason": "Market in CRASH_WARNING regime. Liquidating to 100% Cash Buffer.",
-                "action": "CRASH_LIQUIDATE"
-            }
-
-        if df.empty or len(df) < 30:
+        if df is None or df.empty or len(df) < 5:
             return {
                 "should_exit": False,
                 "reason": "Insufficient data; retaining position.",
                 "action": "HOLD"
             }
 
-        # 3. Check Mean Reversion state (Oversold Dip-Buy Protection & Profit Target)
-        mr_sig = mr_strategy.generate_signal(df) if mr_strategy else {"signal": 0}
-        
-        # If Mean Reversion says EXIT (signal == -1), the stock reached its mean/middle band profit target
-        if mr_sig.get("signal") == -1:
-            return {
-                "should_exit": True,
-                "reason": f"Mean-Reversion Target Reached ({mr_sig.get('rationale')}). Securing profit.",
-                "action": "TARGET_PROFIT_EXIT"
-            }
-
-        # If Mean Reversion is in BUY (signal == 1) or HOLD/REBOUND (signal == 0):
-        # Dip-buys are naturally below their 50/40-day SMAs. DO NOT apply momentum trend breakdown
-        # rules to active dip-buy positions unless their hard stop-loss is breached!
-        if mr_sig.get("signal") in (0, 1):
-            return {
-                "should_exit": False,
-                "reason": f"Mean-Reversion active ({mr_sig.get('rationale')}); preserving holding for rebound.",
-                "action": "HOLD"
-            }
-
-        # 4. Check Momentum Trend Health (Only for Trend-Following Positions)
-        params = cls.get_dynamic_params()
-        fast_sma = params.get("fast_sma", 20)
-        slow_sma = params.get("slow_sma", 50)
-
         close_prices = df.get("adj_close", df["close"])
         current_price = float(close_prices.iloc[-1])
-        sma_fast = float(close_prices.rolling(window=fast_sma).mean().iloc[-1])
-        sma_slow = float(close_prices.rolling(window=slow_sma).mean().iloc[-1])
+        if avg_entry is None or avg_entry <= 0:
+            avg_entry = current_price / (1.0 + current_plpc) if (1.0 + current_plpc) > 0 else current_price
 
-        # If price is above slow SMA, trend is structurally sound
-        if current_price >= sma_slow:
-            return {
-                "should_exit": False,
-                "reason": f"Core trend intact: Price (${current_price:.2f}) >= {slow_sma}SMA (${sma_slow:.2f}).",
-                "action": "HOLD"
-            }
+        # Technical indicators
+        params = cls.get_dynamic_params()
+        slow_sma_window = params.get("slow_sma", 50)
+        sma50_series = close_prices.rolling(window=slow_sma_window, min_periods=min(20, len(close_prices))).mean()
+        sma50_val = float(sma50_series.iloc[-1]) if not sma50_series.empty and not math.isnan(sma50_series.iloc[-1]) else None
 
-        # If price broke down significantly below slow SMA (> 3%) AND fast SMA is below slow SMA
-        if current_price < (sma_slow * 0.97) and sma_fast < sma_slow:
+        # Mean reversion indicators (BB mid and RSI)
+        sma20_series = close_prices.rolling(20, min_periods=10).mean()
+        bb_mid_val = float(sma20_series.iloc[-1]) if not sma20_series.empty and not math.isnan(sma20_series.iloc[-1]) else None
+
+        delta = close_prices.diff()
+        gain = delta.clip(lower=0.0)
+        loss = -delta.clip(upper=0.0)
+        avg_gain = gain.ewm(alpha=1.0 / 14.0, min_periods=min(14, len(close_prices)), adjust=False).mean()
+        avg_loss = loss.ewm(alpha=1.0 / 14.0, min_periods=min(14, len(close_prices)), adjust=False).mean()
+        rs = avg_gain / (avg_loss + 1e-9)
+        rsi_series = 100.0 - (100.0 / (1.0 + rs))
+        rsi_val = float(rsi_series.iloc[-1]) if not rsi_series.empty and not math.isnan(rsi_series.iloc[-1]) else None
+
+        # Peak price calculation: strictly on or after entry date to avoid pre-entry bias
+        if entry_date is not None and hasattr(df.index, 'date'):
+            try:
+                entry_dt = pd.to_datetime(entry_date)
+                df_since = df[df.index >= entry_dt]
+                if not df_since.empty:
+                    high_s = df_since.get("high", df_since["close"])
+                    peak_calc = float(high_s.max())
+                else:
+                    peak_calc = current_price
+            except Exception:
+                peak_calc = current_price
+        elif peak_price is not None and peak_price > 0:
+            peak_calc = peak_price
+        else:
+            peak_calc = current_price
+
+        peak_calc = max(peak_calc, current_price, avg_entry)
+
+        # Delegate to unified StopLossManager
+        sl_mgr = StopLossManager()
+        dyn_res = sl_mgr.evaluate_dynamic_exit(
+            symbol=symbol,
+            current_price=current_price,
+            avg_entry=avg_entry,
+            peak_price=peak_calc,
+            sma50=sma50_val,
+            holding_type=holding_type,
+            bb_mid=bb_mid_val,
+            rsi=rsi_val
+        )
+
+        if dyn_res["should_exit"]:
+            reason_str = dyn_res.get("reason", "Dynamic Exit")
+            action_tag = "TARGET_PROFIT_EXIT" if "DIP_TARGET" in reason_str else (
+                "BREAKEVEN_STOP" if "BREAKEVEN" in reason_str else (
+                    "BIG_WINNER_TRAIL" if "BIG_WINNER" in reason_str else (
+                        "TREND_EXIT" if "TREND" in reason_str else "STOP_LOSS_LIQUIDATE"
+                    )
+                )
+            )
             return {
                 "should_exit": True,
-                "reason": f"Downtrend breakdown: Price (${current_price:.2f}) < 97% of {slow_sma}SMA (${sma_slow:.2f}) & {fast_sma}SMA < {slow_sma}SMA.",
-                "action": "TREND_EXIT"
+                "reason": reason_str,
+                "action": action_tag
             }
 
-        # 5. High-Alpha Multi-Tier Runner Stop & Breakeven Ratchet:
-        # Replaces premature +8% exits with runner trailing stop & breakeven protection
-        # to allow multi-bagger momentum runs (+50% to +200%) to compound fully.
-        high_series = df.get("high", close_prices)
-        peak_price = float(high_series.tail(60).max()) if not df.empty else current_price
-        avg_entry = current_price / (1.0 + current_plpc) if (1.0 + current_plpc) > 0 else current_price
-        peak_price = max(peak_price, current_price, avg_entry)
-        gain_from_cost = (peak_price - avg_entry) / avg_entry if avg_entry > 0 else 0.0
-
-        # Breakeven Ratchet: if peaked at >= +12%, lock in +2% gain
-        if gain_from_cost >= 0.12 and current_plpc <= 0.02:
-            return {
-                "should_exit": True,
-                "reason": f"Breakeven Ratchet triggered: Position peaked at +{gain_from_cost*100:.1f}%, securing +{current_plpc*100:.1f}% gain.",
-                "action": "BREAKEVEN_STOP"
-            }
-
-        # Big Winner Trailing Stop: if reached >= +30% profit, trail 14% below peak
-        if gain_from_cost >= 0.30:
-            dd_from_peak = (peak_price - current_price) / peak_price if peak_price > 0 else 0.0
-            if dd_from_peak >= 0.14:
-                return {
-                    "should_exit": True,
-                    "reason": f"Big Winner Trailing Stop triggered: Dropped {dd_from_peak*100:.1f}% from peak (${peak_price:.2f}). Securing +{current_plpc*100:.1f}% profit.",
-                    "action": "BIG_WINNER_TRAIL"
-                }
-
-        # Default: normal consolidation / healthy holding
         return {
             "should_exit": False,
-            "reason": f"Normal consolidation (Price: ${current_price:.2f}, PnL: {current_plpc*100:+.1f}%). Preserving holding.",
+            "reason": f"Holding safe ({holding_type} intact, PnL: {current_plpc*100:+.1f}%)",
             "action": "HOLD"
         }
 
@@ -320,6 +324,7 @@ class QuantEngine:
                 if ml_confirmed:
                     momentum_signals.append({
                         "symbol": symbol,
+                        "holding_type": "MOMENTUM",
                         "target_weight": judgment["target_weight"],
                         "confidence": judgment["confidence"],
                         "conviction_score": round(raw_conviction, 4),
@@ -352,6 +357,7 @@ class QuantEngine:
                 if ml_confirmed:
                     mean_rev_signals.append({
                         "symbol": symbol,
+                        "holding_type": "DIP_BUY",
                         "signal": 1,
                         "confidence": round(mr_conf, 4),
                         "ml_prob": round(ml_prob, 4) if ml_prob is not None else None,
