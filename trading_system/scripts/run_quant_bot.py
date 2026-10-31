@@ -18,9 +18,10 @@ from trading_system.app.broker.alpaca import AlpacaBrokerAdapter
 from trading_system.app.execution.alpaca_live import AlpacaExecutionAdapter
 from trading_system.app.risk.basic import BasicRiskEngine
 from trading_system.app.notifications.notifier import QuantNotifier
-from trading_system.app.features.regime import RegimeDetector
+from trading_system.app.features.regime import RegimeDetector, UniversalLocalIndexRegimeEngine
 from trading_system.app.strategies.ensembles.ensemble_allocator import EnsembleAllocator
 from trading_system.app.config.stop_loss_manager import StopLossManager
+from trading_system.app.config.market_config import MarketConfig
 
 logger = logging.getLogger("QUANTBot")
 
@@ -46,20 +47,19 @@ def execute_quant_live_cycle():
     total_equity = broker.get_account_equity()
     print(f"Broker reports Total Account Equity: ${total_equity:,.2f}")
     
-    print("\n[2/4] Waking up QUANT Trading Agents & Phase 3 ML Alpha Gate...")
-    brain = QuantEngine(enable_ml_gating=True, ml_min_probability=0.48)
+    market_code = os.environ.get("TRADING_MARKET", "US")
+    market = MarketConfig.load(market_code)
+    print(f"Target Market: [{market.country} - {market.name}] | Benchmark: {market.benchmark_symbol} ({market.currency_symbol})")
+
+    print("\n[2/4] Waking up QUANT Trading Agents (Rules-Only Default)...")
+    brain = QuantEngine(enable_ml_gating=False)
     
-    # Dynamically fetch the entire S&P 500 universe
-    print("Fetching the complete S&P 500 universe for maximum opportunity scanning...")
-    try:
-        import os
-        filepath = os.path.join(os.path.dirname(__file__), "..", "data", "sp500_tickers.txt")
-        with open(filepath, "r") as f:
-            universe = [line.strip().replace('.', '-') for line in f.readlines() if line.strip()]
-        print(f"Successfully loaded {len(universe)} S&P 500 symbols from local dataset.")
-    except Exception as e:
-        print(f"Failed to load S&P 500 file, falling back to mega-caps. Error: {e}")
+    # Dynamically fetch universe from MarketConfig
+    print(f"Fetching universe for {market.market_code} from {market.universe_file}...")
+    universe = market.get_universe()
+    if not universe:
         universe = ["SPY", "QQQ", "AAPL", "MSFT", "NVDA", "AMZN", "GOOGL", "META"]
+    print(f"Successfully loaded {len(universe)} symbols for market {market.market_code}.")
     
     # Run the multi-strategy research pipeline for today
     research_results = brain.run_nightly_research(universe, datetime.now())

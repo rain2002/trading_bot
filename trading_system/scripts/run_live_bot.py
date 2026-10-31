@@ -231,17 +231,24 @@ def execute_live_cycle(dry_run: bool = False):
             
     print(f"  Detected {len(mom_candidates)} Momentum Leaders and {len(mr_candidates)} Oversold Dip Opportunities.")
     
-    # 5. ML Alpha Gating
-    print("\n[5/6] Gating Candidates with Random Forest ML Alpha Classifier...")
+    # 5. Candidate Ranking & Optional ML Alpha Gating (Rules-Only Default)
+    enable_ml_gating = os.environ.get("ENABLE_ML_GATING", "false").lower() == "true"
     qualified_candidates = []
     candidates_to_eval = sorted(mom_candidates, key=lambda x: x["score"], reverse=True)[:10] + sorted(mr_candidates, key=lambda x: x["score"], reverse=True)[:5]
     
-    feat_cols = list(ml_model.feature_names_in_) if ml_model is not None else []
-    for cand in candidates_to_eval:
-        sym = cand["symbol"]
-        df_c = cand["df"]
-        prob = 0.50
-        if ml_model is not None:
+    if not enable_ml_gating or ml_model is None:
+        print("\n[5/6] Ranking Candidates via Pure Rules-Based Conviction (Rules-Only Mode Active)...")
+        for cand in candidates_to_eval:
+            cand["ml_prob"] = 0.50
+            qualified_candidates.append(cand)
+            print(f"  [QUALIFIED LEADER] {cand['symbol']:<6} | Type: {cand['type']:<8} | Conviction Score: {cand['score']:5.2f}")
+    else:
+        print("\n[5/6] Gating Candidates with Random Forest ML Alpha Classifier...")
+        feat_cols = list(ml_model.feature_names_in_) if ml_model is not None else []
+        for cand in candidates_to_eval:
+            sym = cand["symbol"]
+            df_c = cand["df"]
+            prob = 0.50
             try:
                 feats = ml_pipeline.extract_features(df_c)
                 last_row = feats[feat_cols].iloc[-1:].values
@@ -249,10 +256,10 @@ def execute_live_cycle(dry_run: bool = False):
                     prob = float(ml_model.predict_proba(last_row)[:, 1][0])
             except Exception:
                 prob = 0.50
-        cand["ml_prob"] = prob
-        if prob >= 0.38:
-            qualified_candidates.append(cand)
-            print(f"  [PASSED GATE] {sym:<6} | Type: {cand['type']:<8} | Score: {cand['score']:5.2f} | ML Prob: {prob*100:.1f}%")
+            cand["ml_prob"] = prob
+            if prob >= 0.38:
+                qualified_candidates.append(cand)
+                print(f"  [PASSED GATE] {sym:<6} | Type: {cand['type']:<8} | Score: {cand['score']:5.2f} | ML Prob: {prob*100:.1f}%")
             
     # 6. Ensemble Allocation (Top 10 Concentrated Positions)
     print("\n[6/6] High-Alpha Portfolio Construction (Top 10 Leaders, 10% each)...")

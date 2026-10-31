@@ -1,0 +1,52 @@
+{
+    "market_code": "UK",
+    "country": "United Kingdom",
+    "name": "London Stock Exchange (FTSE 100)",
+    "benchmark": {
+        "symbol": "^FTSE",
+        "name": "FTSE 100 Index",
+        "index_symbol": "^FTSE",
+        "etf_symbol": "ISF.L"
+    },
+    "currency": {
+        "symbol": "£",
+        "code": "GBP"
+    },
+    "broker": {
+        "adapter": "interactive_brokers",
+        "supports_fractional": false,
+        "integer_shares_only": true,
+        "supports_gtc_stops": true
+    },
+    "universe": {
+        "file": "trading_system/data/ftse_tickers.txt",
+        "format": "txt",
+        "delimiter": "\n",
+        "column": "symbol"
+    },
+    "trading_hours": {
+        "timezone": "Europe/London",
+        "open": "08:00",
+        "close": "16:30",
+        "pre_market_scan": "07:45"
+    },
+    "costs": {
+        "slippage_bps": 5.0,
+        "commission_per_share": 0.0,
+        "commission_flat": 3.0,
+        "tax_rate_stt": 0.005,
+        "exchange_turnover_bps": 0.20
+    },
+    "portfolio_rules": {
+        "max_holdings": 10,
+        "target_position_weight": 0.10,
+        "max_single_stock": 0.12,
+        "dynamic_cap_max": 0.25,
+        "min_position_pct": 0.04,
+        "hard_stop_loss_pct": -0.08,
+        "breakeven_gain_trigger_pct": 0.12,
+        "breakeven_locked_profit_pct": 0.02,
+        "runner_gain_trigger_pct": 0.30,
+        "runner_max_drawdown_from_peak_pct": 0.14
+    }
+}

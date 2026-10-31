@@ -240,9 +240,10 @@ class InvestorSkillsHeuristics:
 class QuantEngine:
     """
     Multi-Engine Quant Brain coordinating Momentum Leaders, Mean-Reversion Dip-Buys,
-    and Phase 3 Machine Learning Alpha Gating (Random Forest).
+    and optional Machine Learning Alpha Gating. Defaults to rules-only to prevent
+    single-market curve-fitting across diverse international jurisdictions.
     """
-    def __init__(self, enable_ml_gating: bool = True, ml_min_probability: float = 0.48):
+    def __init__(self, enable_ml_gating: bool = False, ml_min_probability: float = 0.48):
         self.data_provider = YFinanceDataProvider()
         self.mean_reversion = MeanReversionStrategy()
         self.enable_ml_gating = enable_ml_gating
