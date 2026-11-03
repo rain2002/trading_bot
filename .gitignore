@@ -22,8 +22,13 @@ htmlcov/
 # Jupyter Notebook
 .ipynb_checkpoints
 
-# Cache & Large Model Backups
+# Pre-trained ML Models & Weights (never ship binary weights)
+*.joblib
+*.pkl
 *.joblib.bak
+
+# Backtest Run Artifacts
+equity_curve_*.csv
 
 # IDEs
 .vscode/
