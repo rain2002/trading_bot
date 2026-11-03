@@ -74,15 +74,26 @@ def execute_quant_live_cycle():
         return
 
     # Market Calendar & Holiday Check
+    market_is_open = True
     if market.broker_adapter == "alpaca" and hasattr(broker, "base_url") and getattr(broker, "api_key", None) != "mock":
         try:
+            today_str = datetime.now().strftime("%Y-%m-%d")
+            cal_res = requests.get(f"{broker.base_url}/v2/calendar?start={today_str}&end={today_str}", headers=broker.headers, timeout=5)
+            if cal_res.status_code == 200:
+                cal_data = cal_res.json()
+                if not cal_data:
+                    print(f" -> [MARKET HOLIDAY] Today ({today_str}) is an exchange holiday. Skipping execution cycle.")
+                    notifier = QuantNotifier()
+                    notifier.send_discord_message(f"🏖️ [MARKET HOLIDAY] US Markets are closed today ({today_str}). Bot standing by. Total Equity: {market.currency_symbol}{total_equity:,.2f}")
+                    return
+
             clock_res = requests.get(f"{broker.base_url}/v2/clock", headers=broker.headers, timeout=5)
             if clock_res.status_code == 200:
                 clock_data = clock_res.json()
-                is_open = clock_data.get("is_open", True)
-                if not is_open:
-                    print(f" -> [MARKET HOLIDAY / CLOSED] Market is closed today (Clock: is_open=False). Skipping execution cycle.")
-                    return
+                market_is_open = clock_data.get("is_open", True)
+                if not market_is_open:
+                    print(f" -> [MARKET CLOSED / AFTER-HOURS] Market is currently closed (Clock: is_open=False).")
+                    print(f"    Will run quantitative analysis, regime radar, position health checks and dispatch Discord summary, but skip live order routing.")
         except Exception as e:
             logger.warning(f"Could not verify market clock: {e}")
 
@@ -422,47 +433,51 @@ def execute_quant_live_cycle():
     except Exception:
         current_invested_value = sum(abs(qty) * broker.get_latest_price(s) for s, qty in current_positions.items())
 
-    for trade in planned_trades:
-        sym = trade["symbol"]
-        qty_to_trade = trade["quantity"]
-        side = trade["side"]
-        current_price = trade["price_hint"]
-        
-        # Determine holding type tag for order client ID
-        is_mr_target = any(s["symbol"] == sym and s.get("holding_type") == "DIP_BUY" for s in valid_mr)
-        h_tag = "DIP" if is_mr_target else "MOM"
-        order_hash_base = f"QUANT_{h_tag}_{run_timestamp_tag}_{sym}_{side}_{abs(qty_to_trade)}"
-        deterministic_id = f"Q-{h_tag}-{hashlib.md5(order_hash_base.encode()).hexdigest()[:10]}"
-        
-        trade_request = {
-            "client_order_id": deterministic_id,
-            "symbol": sym,
-            "quantity": qty_to_trade,
-            "side": side,
-            "price_hint": current_price
-        }
-        if risk_engine.evaluate_trade(trade_request, current_positions, total_equity=total_equity, current_invested_value=current_invested_value):
-            result = execution.submit_order(trade_request)
-            if result.get("status") in ("SUBMITTED", "FILLED"):
-                executed_orders_log.append({"symbol": sym, "side": side, "qty": abs(qty_to_trade)})
-                friction = trade.get("estimated_friction", 0.0)
-                print(f" -> EXECUTED: {side} {abs(qty_to_trade)} {sym} @ {market.currency_symbol}{current_price:,.2f} (Est Friction: {market.currency_symbol}{friction:.2f})")
-                # Dynamically update position state & invested value for subsequent orders
-                if side == "SELL":
-                    current_invested_value = max(0.0, current_invested_value - (abs(qty_to_trade) * current_price))
-                    current_positions[sym] = max(0.0, current_positions.get(sym, 0.0) - abs(qty_to_trade))
-                    if current_positions[sym] <= 1e-4:
-                        pos_tracker.record_exit(sym)
+    if not market_is_open:
+        print(f"\n[4/4] Market is currently closed (Outside regular trading hours).")
+        print(f" -> {len(planned_trades)} rebalance targets computed and recorded. Live order placement deferred to next market session.")
+    else:
+        for trade in planned_trades:
+            sym = trade["symbol"]
+            qty_to_trade = trade["quantity"]
+            side = trade["side"]
+            current_price = trade["price_hint"]
+            
+            # Determine holding type tag for order client ID
+            is_mr_target = any(s["symbol"] == sym and s.get("holding_type") == "DIP_BUY" for s in valid_mr)
+            h_tag = "DIP" if is_mr_target else "MOM"
+            order_hash_base = f"QUANT_{h_tag}_{run_timestamp_tag}_{sym}_{side}_{abs(qty_to_trade)}"
+            deterministic_id = f"Q-{h_tag}-{hashlib.md5(order_hash_base.encode()).hexdigest()[:10]}"
+            
+            trade_request = {
+                "client_order_id": deterministic_id,
+                "symbol": sym,
+                "quantity": qty_to_trade,
+                "side": side,
+                "price_hint": current_price
+            }
+            if risk_engine.evaluate_trade(trade_request, current_positions, total_equity=total_equity, current_invested_value=current_invested_value):
+                result = execution.submit_order(trade_request)
+                if result.get("status") in ("SUBMITTED", "FILLED"):
+                    executed_orders_log.append({"symbol": sym, "side": side, "qty": abs(qty_to_trade)})
+                    friction = trade.get("estimated_friction", 0.0)
+                    print(f" -> EXECUTED: {side} {abs(qty_to_trade)} {sym} @ {market.currency_symbol}{current_price:,.2f} (Est Friction: {market.currency_symbol}{friction:.2f})")
+                    # Dynamically update position state & invested value for subsequent orders
+                    if side == "SELL":
+                        current_invested_value = max(0.0, current_invested_value - (abs(qty_to_trade) * current_price))
+                        current_positions[sym] = max(0.0, current_positions.get(sym, 0.0) - abs(qty_to_trade))
+                        if current_positions[sym] <= 1e-4:
+                            pos_tracker.record_exit(sym)
+                    else:
+                        current_invested_value += abs(qty_to_trade) * current_price
+                        current_positions[sym] = current_positions.get(sym, 0.0) + abs(qty_to_trade)
+                        pos_tracker.record_entry(sym, "DIP_BUY" if h_tag == "DIP" else "MOMENTUM", current_price, quantity=abs(qty_to_trade))
                 else:
-                    current_invested_value += abs(qty_to_trade) * current_price
-                    current_positions[sym] = current_positions.get(sym, 0.0) + abs(qty_to_trade)
-                    pos_tracker.record_entry(sym, "DIP_BUY" if h_tag == "DIP" else "MOMENTUM", current_price, quantity=abs(qty_to_trade))
+                    print(f" -> [BROKER REJECT] Order failed for {sym}: {result.get('error', result.get('status'))}")
             else:
-                print(f" -> [BROKER REJECT] Order failed for {sym}: {result.get('error', result.get('status'))}")
-        else:
-            print(f" -> [RISK HALT] Trade rejected by Risk Engine: {sym} {qty_to_trade}")
+                print(f" -> [RISK HALT] Trade rejected by Risk Engine: {sym} {qty_to_trade}")
 
-    if market.broker_adapter == "alpaca":
+    if market_is_open and market.broker_adapter == "alpaca":
         print("\n[4b/5] Synchronizing Broker-Level GTC Stop-Loss Protection...")
         try:
             from trading_system.scripts.risk_sentinel import RiskSentinel
@@ -476,7 +491,8 @@ def execute_quant_live_cycle():
     try:
         acc_details = broker.get_account_details()
         open_pos_count = len(broker.get_positions())
-        regime_description = f"{regime} (Max Exposure: {int(MAX_EXPOSURE*100)}%)"
+        status_suffix = " ⏸️ [AFTER-HOURS / CLOSED]" if not market_is_open else ""
+        regime_description = f"{regime} (Max Exposure: {int(MAX_EXPOSURE*100)}%){status_suffix}"
         notifier.send_daily_summary(
             equity=acc_details["equity"],
             cash=acc_details["cash"],
@@ -488,6 +504,8 @@ def execute_quant_live_cycle():
             overall_pnl_pct=acc_details["overall_pnl_pct"],
             regime_info=regime_description
         )
+    except Exception as e:
+        print(f"Notification dispatch failed: {e}")
     except Exception as e:
         print(f"Notification dispatch failed: {e}")
                 
