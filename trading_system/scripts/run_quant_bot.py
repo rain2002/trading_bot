@@ -490,7 +490,8 @@ def execute_quant_live_cycle():
     notifier = QuantNotifier()
     try:
         acc_details = broker.get_account_details()
-        open_pos_count = len(broker.get_positions())
+        detailed_positions = broker.get_positions_detailed()
+        open_pos_count = len(detailed_positions)
         status_suffix = " ⏸️ [AFTER-HOURS / CLOSED]" if not market_is_open else ""
         regime_description = f"{regime} (Max Exposure: {int(MAX_EXPOSURE*100)}%){status_suffix}"
         notifier.send_daily_summary(
@@ -498,14 +499,14 @@ def execute_quant_live_cycle():
             cash=acc_details["cash"],
             open_positions_count=open_pos_count,
             executed_orders=executed_orders_log,
+            positions_detailed=detailed_positions,
             today_pnl=acc_details["today_pnl"],
             today_pnl_pct=acc_details["today_pnl_pct"],
             overall_pnl=acc_details["overall_pnl"],
             overall_pnl_pct=acc_details["overall_pnl_pct"],
-            regime_info=regime_description
+            regime_info=regime_description,
+            currency_symbol=market.currency_symbol,
         )
-    except Exception as e:
-        print(f"Notification dispatch failed: {e}")
     except Exception as e:
         print(f"Notification dispatch failed: {e}")
                 

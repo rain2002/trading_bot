@@ -78,15 +78,17 @@ class QuantNotifier:
         cash: float,
         open_positions_count: int,
         executed_orders: List[Dict[str, Any]],
+        positions_detailed: Optional[List[Dict[str, Any]]] = None,
         today_pnl: float = 0.0,
         today_pnl_pct: float = 0.0,
         overall_pnl: float = 0.0,
         overall_pnl_pct: float = 0.0,
         regime_info: str = "NORMAL (Conviction Filter Active)",
+        currency_symbol: str = "$",
     ):
         """
         Formats and dispatches the daily rebalance report with Today's Return,
-        Overall Return, and Cash Reserve status to configured channels.
+        Overall Return, Cash Reserve status, and Detailed Holdings to configured channels.
         """
         # Format today's return indicator
         today_sign = "+" if today_pnl >= 0 else ""
@@ -97,6 +99,50 @@ class QuantNotifier:
         overall_emoji = "🚀" if overall_pnl >= 0 else "🔻"
 
         cash_pct = (cash / equity * 100) if equity > 0 else 0.0
+
+        # Determine effective holdings count
+        effective_count = len(positions_detailed) if positions_detailed is not None else open_positions_count
+
+        # Format positions preview for Discord & Telegram
+        if positions_detailed:
+            sorted_pos = sorted(
+                positions_detailed,
+                key=lambda p: p.get("unrealized_plpc", 0.0),
+                reverse=True,
+            )
+            positions_lines = []
+            tg_positions_lines = []
+            for p in sorted_pos[:18]:
+                sym = str(p.get("symbol", ""))
+                qty = p.get("qty", 0)
+                mv = p.get("market_value", 0.0)
+                plpc = p.get("unrealized_plpc", 0.0) * 100.0
+                sign = "+" if plpc >= 0 else ""
+                pl_emoji = "🟢" if plpc >= 0 else "🔴"
+                qty_str = f"{int(qty)}" if float(qty).is_integer() else f"{qty:.2f}"
+                
+                positions_lines.append(
+                    f"  {pl_emoji} **{sym}**: {qty_str} shs | {currency_symbol}{mv:,.2f} ({sign}{plpc:.2f}%)"
+                )
+                tg_sym = sym.replace("_", " ")
+                tg_positions_lines.append(
+                    f"  {pl_emoji} *{tg_sym}*: {qty_str} shs | {currency_symbol}{mv:,.2f} ({sign}{plpc:.2f}%)"
+                )
+
+            if len(sorted_pos) > 18:
+                overflow_msg = f"  ...and {len(sorted_pos) - 18} more positions"
+                positions_lines.append(overflow_msg)
+                tg_positions_lines.append(overflow_msg)
+
+            positions_summary = "\n".join(positions_lines)
+            tg_positions_summary = "\n".join(tg_positions_lines)
+        else:
+            if effective_count == 0:
+                positions_summary = "  ⚪ No open positions (100% Cash Buffer)"
+                tg_positions_summary = "  ⚪ No open positions (100% Cash Buffer)"
+            else:
+                positions_summary = f"  📊 {effective_count} active positions held"
+                tg_positions_summary = f"  📊 {effective_count} active positions held"
 
         # Format executed orders preview
         if executed_orders:
@@ -110,18 +156,20 @@ class QuantNotifier:
                 orders_lines.append(f"  ...and {len(executed_orders) - 10} more orders")
             orders_summary = "\n".join(orders_lines)
         else:
-            orders_summary = "  ⚪ No orders required today (Portfolio balanced)"
+            orders_summary = "  ⚪ No rebalance orders required today (Holdings within targets)"
 
         # Discord message (Discord Flavored Markdown)
         message = (
             f"🤖 **QUANT BOT DAILY REBALANCE REPORT**\n"
             f"━━━━━━━━━━━━━━━━━━━━\n"
-            f"💰 **Total Equity:** ${equity:,.2f}\n"
-            f"📈 **Today's Return:** {today_emoji} {today_sign}${today_pnl:,.2f} ({today_sign}{today_pnl_pct:.2f}%)\n"
-            f"🏆 **Overall Return:** {overall_emoji} {overall_sign}${overall_pnl:,.2f} ({overall_sign}{overall_pnl_pct:.2f}%)\n"
-            f"💵 **Cash Reserve:** ${cash:,.2f} ({cash_pct:.1f}% uninvested buffer)\n"
-            f"📊 **Active Holdings:** {open_positions_count} stocks\n"
+            f"💰 **Total Equity:** {currency_symbol}{equity:,.2f}\n"
+            f"📈 **Today's Return:** {today_emoji} {today_sign}{currency_symbol}{today_pnl:,.2f} ({today_sign}{today_pnl_pct:.2f}%)\n"
+            f"🏆 **Overall Return:** {overall_emoji} {overall_sign}{currency_symbol}{overall_pnl:,.2f} ({overall_sign}{overall_pnl_pct:.2f}%)\n"
+            f"💵 **Cash Reserve:** {currency_symbol}{cash:,.2f} ({cash_pct:.1f}% uninvested buffer)\n"
             f"🛡️ **Regime Status:** {regime_info}\n"
+            f"━━━━━━━━━━━━━━━━━━━━\n"
+            f"📋 **Open Portfolio Holdings ({effective_count}):**\n"
+            f"{positions_summary}\n"
             f"━━━━━━━━━━━━━━━━━━━━\n"
             f"🔄 **Orders Executed Today ({len(executed_orders)}):**\n"
             f"{orders_summary}\n"
@@ -142,12 +190,14 @@ class QuantNotifier:
             tg_message = (
                 f"🤖 *QUANT BOT DAILY REBALANCE REPORT*\n"
                 f"━━━━━━━━━━━━━━━━━━━━\n"
-                f"💰 *Total Equity:* ${equity:,.2f}\n"
-                f"📈 *Today's Return:* {today_emoji} {today_sign}${today_pnl:,.2f} ({today_sign}{today_pnl_pct:.2f}%)\n"
-                f"🏆 *Overall Return:* {overall_emoji} {overall_sign}${overall_pnl:,.2f} ({overall_sign}{overall_pnl_pct:.2f}%)\n"
-                f"💵 *Cash Reserve:* ${cash:,.2f} ({cash_pct:.1f}% uninvested buffer)\n"
-                f"📊 *Active Holdings:* {open_positions_count} stocks\n"
+                f"💰 *Total Equity:* {currency_symbol}{equity:,.2f}\n"
+                f"📈 *Today's Return:* {today_emoji} {today_sign}{currency_symbol}{today_pnl:,.2f} ({today_sign}{today_pnl_pct:.2f}%)\n"
+                f"🏆 *Overall Return:* {overall_emoji} {overall_sign}{currency_symbol}{overall_pnl:,.2f} ({overall_sign}{overall_pnl_pct:.2f}%)\n"
+                f"💵 *Cash Reserve:* {currency_symbol}{cash:,.2f} ({cash_pct:.1f}% uninvested buffer)\n"
                 f"🛡️ *Regime:* {tg_regime}\n"
+                f"━━━━━━━━━━━━━━━━━━━━\n"
+                f"📋 *Open Portfolio Holdings ({effective_count}):*\n"
+                f"{tg_positions_summary}\n"
                 f"━━━━━━━━━━━━━━━━━━━━\n"
                 f"🔄 *Orders Executed ({len(executed_orders)}):*\n"
                 f"{tg_orders}\n"
