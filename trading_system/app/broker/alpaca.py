@@ -21,13 +21,13 @@ class AlpacaBrokerAdapter(BrokerAdapter):
     """
     def __init__(
         self,
-        api_key: str,
-        api_secret: str,
+        api_key: Optional[str] = None,
+        api_secret: Optional[str] = None,
         base_url: Optional[str] = None,
         notifier: Optional[Any] = None,
     ):
-        self.api_key = api_key
-        self.api_secret = api_secret
+        self.api_key = api_key or os.getenv("ALPACA_API_KEY") or os.getenv("ALPACA_KEY") or ""
+        self.api_secret = api_secret or os.getenv("ALPACA_SECRET_KEY") or os.getenv("ALPACA_SECRET") or ""
         env_url = os.getenv("ALPACA_BASE_URL", "https://paper-api.alpaca.markets")
         self.base_url = base_url or env_url
         self.headers = {

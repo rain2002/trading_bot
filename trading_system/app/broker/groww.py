@@ -12,6 +12,7 @@ Institutional Fail-Closed Governance:
   when live.
 """
 
+import os
 from typing import Dict, Any, Optional, List
 from datetime import datetime, timedelta
 import logging
@@ -50,16 +51,21 @@ class GrowwBrokerAdapter(BrokerAdapter):
         api_key: Optional[str] = None,
         api_secret: Optional[str] = None,
         totp_secret: Optional[str] = None,
-        base_url: str = "https://api.groww.in",
+        base_url: Optional[str] = None,
         initial_capital: float = 1000000.0,
         is_live: Optional[bool] = None,
         client: Optional[Any] = None,
         notifier: Optional[Any] = None,
     ):
-        self.api_key = api_key or "placeholder_groww_key"
-        self.api_secret = api_secret or "placeholder_groww_secret"
-        self.totp_secret = totp_secret or "placeholder_totp_secret"
-        self.base_url = base_url
+        self.api_key = api_key or os.getenv("GROWW_API_KEY") or "placeholder_groww_key"
+        self.api_secret = api_secret or os.getenv("GROWW_API_SECRET") or "placeholder_groww_secret"
+        self.totp_secret = (
+            totp_secret
+            or os.getenv("GROWW_AUTH_TOKEN")
+            or os.getenv("GROWW_TOTP_SECRET")
+            or "placeholder_totp_secret"
+        )
+        self.base_url = base_url or os.getenv("GROWW_BASE_URL", "https://api.groww.in")
         self.initial_capital = float(initial_capital)
         self.currency = "INR"
         self.currency_symbol = "₹"

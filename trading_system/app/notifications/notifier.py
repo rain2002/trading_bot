@@ -31,18 +31,18 @@ class QuantNotifier:
     ):
         self.discord_url = (
             discord_webhook_url
-            or getattr(settings, "DISCORD_WEBHOOK_URL", None)
             or os.getenv("DISCORD_WEBHOOK_URL")
+            or getattr(settings, "DISCORD_WEBHOOK_URL", None)
         )
         self.tg_token = (
             telegram_bot_token
-            or getattr(settings, "TELEGRAM_BOT_TOKEN", None)
             or os.getenv("TELEGRAM_BOT_TOKEN")
+            or getattr(settings, "TELEGRAM_BOT_TOKEN", None)
         )
         self.tg_chat_id = (
             telegram_chat_id
-            or getattr(settings, "TELEGRAM_CHAT_ID", None)
             or os.getenv("TELEGRAM_CHAT_ID")
+            or getattr(settings, "TELEGRAM_CHAT_ID", None)
         )
 
     def send_discord_message(self, content: str) -> bool:

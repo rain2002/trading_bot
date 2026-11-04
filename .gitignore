@@ -1,11 +1,19 @@
-# Environments
+# Environments & Secrets
 venv/
 env/
 .env
+.env.*
+!.env.example
+credentials.json
+*secret*.json
+*token*.json
+*.pem
+*.key
 
-# Database (Do not commit the local SQLite database)
+# Database (Do not commit local SQLite/PostgreSQL data dumps)
 *.sqlite
 *.db
+*.dump
 
 # Python
 __pycache__/
