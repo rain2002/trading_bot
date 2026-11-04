@@ -1,33 +1,90 @@
 import os
 import json
 import math
+import hashlib
+import logging
 from typing import Optional, Dict, Any
+
+from trading_system.app.common.logger import get_logger
+
+logger = get_logger("StopLossManager")
+
+# ==============================================================================
+# Institutional Immutable Code-Level Fallback Constants
+# ==============================================================================
+HARD_STOP_LOSS_PCT: float = -0.08          # -8% maximum drawdown from entry (hard risk ceiling)
+TRAILING_STOP_TRIGGER_PCT: float = 0.15   # +15% profit triggers trailing stop
+TRAILING_STOP_DISTANCE_PCT: float = 0.05  # 5% trailing stop buffer below peak
+BREAKEVEN_TRIGGER_PCT: float = 0.05       # +5% gain triggers breakeven ratchet
+
 
 class StopLossManager:
     """
     Manages persistent bot & user-overridden stop-loss thresholds per position.
     Stores configurations in a JSON file to sync across Quant Bot & Dashboard UI.
+
+    Institutional Risk Lock:
+    - Protects capital by physically preventing looser risk configurations.
+    - If stop_loss_config.json is modified at runtime with values looser than
+      the hard limits (e.g. -0.15 vs -0.08), the system rejects the mutation and
+      falls back to the immutable code-level constants.
     """
+
+    HARD_STOP_LOSS_PCT: float = HARD_STOP_LOSS_PCT
+    TRAILING_STOP_TRIGGER_PCT: float = TRAILING_STOP_TRIGGER_PCT
+    TRAILING_STOP_DISTANCE_PCT: float = TRAILING_STOP_DISTANCE_PCT
+    BREAKEVEN_TRIGGER_PCT: float = BREAKEVEN_TRIGGER_PCT
+
     def __init__(self, config_path: Optional[str] = None):
         if config_path is None:
             config_path = os.path.join(os.path.dirname(__file__), "stop_loss_config.json")
         self.config_path = config_path
+        self._last_mtime: float = 0.0
+        self._file_hash: Optional[str] = None
         self._load()
 
     def _load(self):
         self.config: Dict[str, Any] = {}
         if os.path.exists(self.config_path):
             try:
+                self._last_mtime = os.path.getmtime(self.config_path)
                 with open(self.config_path, "r", encoding="utf-8") as f:
-                    self.config = json.load(f)
-                    self.global_default_pct = float(self.config.get("global_default_pct", -0.08))
-                    self.overrides: Dict[str, float] = self.config.get("overrides", {})
-            except Exception:
-                self.global_default_pct = -0.08
+                    content = f.read()
+                    self._file_hash = hashlib.sha256(content.encode("utf-8")).hexdigest()
+                    self.config = json.loads(content)
+
+                raw_default = float(self.config.get("global_default_pct", self.HARD_STOP_LOSS_PCT))
+
+                # Runtime Hash / Boundary Lock:
+                # Reject any stop-loss looser than HARD_STOP_LOSS_PCT (e.g., -0.15 < -0.08 is looser)
+                if raw_default < self.HARD_STOP_LOSS_PCT or raw_default > 0:
+                    logger.warning(
+                        f"[RISK LOCK VIOLATION] Configured stop loss ({raw_default}) in {self.config_path} "
+                        f"is looser than immutable limit ({self.HARD_STOP_LOSS_PCT}). Falling back to {self.HARD_STOP_LOSS_PCT}."
+                    )
+                    self.global_default_pct = self.HARD_STOP_LOSS_PCT
+                else:
+                    self.global_default_pct = raw_default
+
+                self.overrides: Dict[str, float] = self.config.get("overrides", {})
+                for sym, val in list(self.overrides.items()):
+                    if float(val) < -0.12 or float(val) > 0:
+                        logger.warning(f"[RISK LOCK VIOLATION] Override for {sym} ({val}) is excessive. Clamping to {self.HARD_STOP_LOSS_PCT}.")
+                        self.overrides[sym] = self.HARD_STOP_LOSS_PCT
+            except Exception as e:
+                logger.warning(f"Error loading stop loss config: {e}. Falling back to immutable constants.")
+                self.global_default_pct = self.HARD_STOP_LOSS_PCT
                 self.overrides = {}
         else:
-            self.global_default_pct = -0.08
+            self.global_default_pct = self.HARD_STOP_LOSS_PCT
             self.overrides = {}
+
+    def _verify_runtime_lock(self):
+        """Checks if configuration file was mutated on disk at runtime."""
+        if os.path.exists(self.config_path):
+            current_mtime = os.path.getmtime(self.config_path)
+            if current_mtime != self._last_mtime:
+                self._load()
 
     def _save(self):
         try:
@@ -36,16 +93,20 @@ class StopLossManager:
             data["overrides"] = self.overrides
             with open(self.config_path, "w", encoding="utf-8") as f:
                 json.dump(data, f, indent=4)
+            if os.path.exists(self.config_path):
+                self._last_mtime = os.path.getmtime(self.config_path)
         except Exception as e:
-            print(f"Error saving stop loss config: {e}")
+            logger.error(f"Error saving stop loss config: {e}")
 
     def get_stop_loss_pct(self, symbol: str) -> float:
-        """Returns stop-loss as negative decimal, e.g. -0.08."""
+        """Returns stop-loss as negative decimal, e.g. -0.08, enforcing runtime lock."""
+        self._verify_runtime_lock()
         sym = symbol.upper()
         return float(self.overrides.get(sym, self.global_default_pct))
 
     def is_custom_override(self, symbol: str) -> bool:
         """Checks if ticker has an active user manual override."""
+        self._verify_runtime_lock()
         return symbol.upper() in self.overrides
 
     def has_override(self, symbol: str) -> bool:
@@ -53,7 +114,8 @@ class StopLossManager:
         return self.is_custom_override(symbol)
 
     def get_global_default_pct(self) -> float:
-        """Returns the bot global default stop loss percentage."""
+        """Returns the bot global default stop loss percentage, enforcing runtime lock."""
+        self._verify_runtime_lock()
         return self.global_default_pct
 
     def set_stop_loss_pct(self, symbol: str, pct: float):
@@ -62,6 +124,10 @@ class StopLossManager:
         if abs(val) > 1.0:
             val = val / 100.0
         val = -abs(val)
+        # Cap overrides to institutional max risk floor (-12%)
+        if val < -0.12:
+            logger.warning(f"[RISK LOCK] Override stop {val} exceeds hard risk limit. Clamping to {self.HARD_STOP_LOSS_PCT}.")
+            val = self.HARD_STOP_LOSS_PCT
         self.overrides[symbol.upper()] = round(val, 4)
         self._save()
 
@@ -73,11 +139,19 @@ class StopLossManager:
             self._save()
 
     def set_global_default_pct(self, pct: float):
-        """Sets bot global default stop loss percentage."""
+        """Sets bot global default stop loss percentage, bounded by immutable HARD_STOP_LOSS_PCT."""
         val = float(pct)
         if abs(val) > 1.0:
             val = val / 100.0
-        self.global_default_pct = round(-abs(val), 4)
+        val = -abs(val)
+        # Runtime Lock: reject looser values
+        if val < self.HARD_STOP_LOSS_PCT:
+            logger.warning(
+                f"[RISK LOCK] Attempted to set global stop loss {val} looser than hard limit "
+                f"{self.HARD_STOP_LOSS_PCT}. Enforcing {self.HARD_STOP_LOSS_PCT}."
+            )
+            val = self.HARD_STOP_LOSS_PCT
+        self.global_default_pct = round(val, 4)
         self._save()
 
     def get_stop_price(self, symbol: str, avg_entry: float) -> float:
@@ -123,6 +197,7 @@ class StopLossManager:
         4. 50-day SMA Trend Breakdown (close < 97.5% of 50-SMA)
         5. Dip-Buy Mean-Reversion Target Exit (BB Mid / RSI > 60)
         """
+        self._verify_runtime_lock()
         if avg_entry <= 0:
             return {"should_exit": False, "reason": None}
 
