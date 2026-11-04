@@ -457,7 +457,18 @@ def execute_quant_live_cycle():
                 "price_hint": current_price
             }
             if risk_engine.evaluate_trade(trade_request, current_positions, total_equity=total_equity, current_invested_value=current_invested_value):
-                result = execution.submit_order(trade_request)
+                try:
+                    result = execution.submit_order(trade_request)
+                except Exception as e:
+                    print(f" -> [CRITICAL NETWORK HALT] Order submission threw exception for {sym}: {e}")
+                    notifier = QuantNotifier()
+                    notifier.send_discord_alert(
+                        title="🚨 BATCH EXECUTION ABORTED",
+                        message=f"Critical network exception on order {side} {abs(qty_to_trade)} {sym}: {e}. Aborting remaining batch immediately to protect capital.",
+                        color=16711680
+                    )
+                    break
+
                 if result.get("status") in ("SUBMITTED", "FILLED"):
                     executed_orders_log.append({"symbol": sym, "side": side, "qty": abs(qty_to_trade)})
                     friction = trade.get("estimated_friction", 0.0)
@@ -473,7 +484,19 @@ def execute_quant_live_cycle():
                         current_positions[sym] = current_positions.get(sym, 0.0) + abs(qty_to_trade)
                         pos_tracker.record_entry(sym, "DIP_BUY" if h_tag == "DIP" else "MOMENTUM", current_price, quantity=abs(qty_to_trade))
                 else:
-                    print(f" -> [BROKER REJECT] Order failed for {sym}: {result.get('error', result.get('status'))}")
+                    err_status = result.get("status", "UNKNOWN")
+                    err_msg = result.get("error", err_status)
+                    print(f" -> [BROKER REJECT] Order failed for {sym}: {err_msg}")
+                    # If network or connectivity failed, immediately abort batch to prevent partial or corrupted execution
+                    if err_status in ("NETWORK_ERROR", "CONNECTION_ERROR", "TIMEOUT"):
+                        print(f" -> [CRITICAL NETWORK HALT] Aborting order execution batch immediately to preserve capital.")
+                        notifier = QuantNotifier()
+                        notifier.send_discord_alert(
+                            title="🚨 BATCH EXECUTION ABORTED",
+                            message=f"Network error during routing of {sym}: {err_msg}. Aborting remaining order batch. Resting stops remain intact.",
+                            color=16711680
+                        )
+                        break
             else:
                 print(f" -> [RISK HALT] Trade rejected by Risk Engine: {sym} {qty_to_trade}")
 

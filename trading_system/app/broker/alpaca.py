@@ -2,22 +2,30 @@ import os
 import time
 import logging
 from typing import Dict, Any, Optional, List
-from trading_system.app.common.interfaces import BrokerAdapter
 import requests
 
-logger = logging.getLogger("AlpacaBrokerAdapter")
+from trading_system.app.common.interfaces import (
+    BrokerAdapter,
+    BrokerAPIError,
+    BrokerConnectionError,
+    OrderExecutionError,
+)
 
-class BrokerAPIError(RuntimeError):
-    """Raised when the broker API fails or is unreachable in live trading mode."""
-    pass
+logger = logging.getLogger("AlpacaBrokerAdapter")
 
 class AlpacaBrokerAdapter(BrokerAdapter):
     """
     Adapter to interface with Alpaca (Paper or Live).
-    Institutional fail-closed architecture: retries transient errors and raises BrokerAPIError
+    Institutional fail-closed architecture: retries transient errors and raises BrokerConnectionError / OrderExecutionError
     instead of returning fake numbers or silent empty lists.
     """
-    def __init__(self, api_key: str, api_secret: str, base_url: Optional[str] = None):
+    def __init__(
+        self,
+        api_key: str,
+        api_secret: str,
+        base_url: Optional[str] = None,
+        notifier: Optional[Any] = None,
+    ):
         self.api_key = api_key
         self.api_secret = api_secret
         env_url = os.getenv("ALPACA_BASE_URL", "https://paper-api.alpaca.markets")
@@ -26,6 +34,38 @@ class AlpacaBrokerAdapter(BrokerAdapter):
             "APCA-API-KEY-ID": self.api_key,
             "APCA-API-SECRET-KEY": self.api_secret
         }
+        self.notifier = notifier
+
+    def _trigger_emergency_alert(self, title: str, error_message: str):
+        """Dispatch emergency fail-closed alert to Discord/Telegram via QuantNotifier."""
+        try:
+            if self.notifier is None:
+                from trading_system.app.notifications.notifier import QuantNotifier
+                self.notifier = QuantNotifier()
+            
+            full_msg = (
+                f"🚨 **[ALPACA BROKER FAIL-CLOSED ALERT]**\n"
+                f"**Event:** {title}\n"
+                f"**Error Details:** {error_message}\n"
+                f"**Action Taken:** Execution cycle halted. Zero live orders placed. Capital preserved."
+            )
+            if hasattr(self.notifier, "send_discord_alert"):
+                self.notifier.send_discord_alert(title=f"🚨 {title}", message=full_msg, color=16711680)
+            elif hasattr(self.notifier, "send_discord_message"):
+                self.notifier.send_discord_message(full_msg)
+        except Exception as alert_err:
+            logger.error(f"Failed to dispatch emergency broker alert: {alert_err}")
+
+    def is_connected(self) -> bool:
+        """Actively check if Alpaca account endpoint is reachable and authenticated."""
+        if not self.api_key or self.api_key == "mock":
+            return True
+        try:
+            resp = requests.get(f"{self.base_url}/v2/account", headers=self.headers, timeout=5)
+            return resp.status_code == 200
+        except Exception as e:
+            logger.warning(f"Alpaca connection health check failed: {e}")
+            return False
         
     def get_positions(self) -> Dict[str, float]:
         """Fetch actual positions from the broker normalized with '-' for dual-class shares."""
@@ -78,17 +118,22 @@ class AlpacaBrokerAdapter(BrokerAdapter):
         """Fetch recent order executions directly from Alpaca."""
         if not self.api_key or self.api_key == "mock":
             return []
-        try:
-            response = requests.get(
-                f"{self.base_url}/v2/orders?status=all&limit={limit}",
-                headers=self.headers,
-                timeout=8
-            )
-            if response.status_code == 200:
+        last_err = None
+        for attempt in range(3):
+            try:
+                response = requests.get(
+                    f"{self.base_url}/v2/orders?status=all&limit={limit}",
+                    headers=self.headers,
+                    timeout=8
+                )
+                response.raise_for_status()
                 return response.json()
-        except Exception as e:
-            logger.warning(f"Error fetching recent orders: {e}")
-        return []
+            except Exception as e:
+                last_err = e
+                logger.warning(f"Attempt {attempt+1}/3 failed in get_recent_orders: {e}")
+                time.sleep(0.5 * (attempt + 1))
+        self._trigger_emergency_alert("Fetch Recent Orders Failed", str(last_err))
+        raise BrokerConnectionError(f"Fail-Closed: Unable to fetch recent orders from Alpaca: {last_err}") from last_err
 
     def cancel_all_orders(self) -> bool:
         """Cancel all open/pending orders on Alpaca to prevent wash trades and duplicate fills."""
@@ -96,10 +141,16 @@ class AlpacaBrokerAdapter(BrokerAdapter):
             return True
         try:
             resp = requests.delete(f"{self.base_url}/v2/orders", headers=self.headers, timeout=10)
-            return resp.status_code in (200, 204, 207)
+            if resp.status_code in (200, 204, 207):
+                return True
+            err_msg = f"HTTP {resp.status_code}: {resp.text}"
+            self._trigger_emergency_alert("Cancel All Orders Failed", err_msg)
+            raise OrderExecutionError(f"Fail-Closed: Cancel all orders rejected: {err_msg}")
+        except OrderExecutionError:
+            raise
         except Exception as e:
-            logger.warning(f"Error canceling all orders: {e}")
-            return False
+            self._trigger_emergency_alert("Cancel All Orders Network Error", str(e))
+            raise OrderExecutionError(f"Fail-Closed: Cancel all orders failed due to network error: {e}") from e
 
     def cancel_pending_buy_orders(self) -> int:
         """
@@ -242,13 +293,15 @@ class AlpacaBrokerAdapter(BrokerAdapter):
         """Fetch all currently open/active orders from Alpaca."""
         if not self.api_key or self.api_key == "mock":
             return []
-        try:
-            response = requests.get(
-                f"{self.base_url}/v2/orders?status=open&limit=500",
-                headers=self.headers,
-                timeout=8
-            )
-            if response.status_code == 200:
+        last_err = None
+        for attempt in range(3):
+            try:
+                response = requests.get(
+                    f"{self.base_url}/v2/orders?status=open&limit=500",
+                    headers=self.headers,
+                    timeout=8
+                )
+                response.raise_for_status()
                 raw_orders = response.json()
                 results = []
                 for o in raw_orders:
@@ -272,9 +325,12 @@ class AlpacaBrokerAdapter(BrokerAdapter):
                         "time_in_force": str(o.get("time_in_force", "")).upper(),
                     })
                 return results
-        except Exception:
-            pass
-        return []
+            except Exception as e:
+                last_err = e
+                logger.warning(f"Attempt {attempt+1}/3 failed in get_open_orders: {e}")
+                time.sleep(0.5 * (attempt + 1))
+        self._trigger_emergency_alert("Fetch Open Orders Failed", str(last_err))
+        raise BrokerConnectionError(f"Fail-Closed: Unable to fetch open orders from Alpaca: {last_err}") from last_err
 
     def cancel_order(self, order_id: str) -> Dict[str, Any]:
         """Cancel a specific open order on Alpaca."""
@@ -291,9 +347,14 @@ class AlpacaBrokerAdapter(BrokerAdapter):
                     err_text = err_json.get("message", err_text)
                 except Exception:
                     pass
-                return {"success": False, "error": err_text or f"HTTP {resp.status_code}"}
+                err_msg = err_text or f"HTTP {resp.status_code}"
+                self._trigger_emergency_alert(f"Cancel Order Failed: {order_id}", err_msg)
+                raise OrderExecutionError(f"Fail-Closed: Order cancellation rejected: {err_msg}")
+        except OrderExecutionError:
+            raise
         except Exception as e:
-            return {"success": False, "error": str(e)}
+            self._trigger_emergency_alert(f"Cancel Order Network Error: {order_id}", str(e))
+            raise OrderExecutionError(f"Fail-Closed: Failed to cancel order {order_id}: {e}") from e
 
     def replace_order(
         self,

@@ -55,6 +55,21 @@ class PositionSizer(ABC):
         """Determine position size based on signal confidence and risk parameters."""
         pass
 
+class BrokerAPIError(RuntimeError):
+    """Base exception for broker communication or execution failures."""
+    pass
+
+
+class BrokerConnectionError(BrokerAPIError):
+    """Raised when broker API connection fails, disconnects, times out, or fails auth."""
+    pass
+
+
+class OrderExecutionError(BrokerAPIError):
+    """Raised when order submission, validation, or modification fails on the broker."""
+    pass
+
+
 class ExecutionAdapter(ABC):
     @abstractmethod
     def submit_order(self, order: Any) -> Any:
@@ -70,6 +85,26 @@ class BrokerAdapter(ABC):
     @abstractmethod
     def get_order_status(self, order_id: str) -> str:
         """Fetch true order status from the broker."""
+        pass
+
+    @abstractmethod
+    def is_connected(self) -> bool:
+        """Check if broker API connection is currently active and responsive."""
+        pass
+
+    @abstractmethod
+    def get_positions_detailed(self) -> List[Dict[str, Any]]:
+        """Fetch detailed positions including entry price, current price, and unrealized PnL."""
+        pass
+
+    @abstractmethod
+    def get_account_details(self) -> Dict[str, Any]:
+        """Fetch comprehensive account metrics."""
+        pass
+
+    @abstractmethod
+    def get_account_equity(self) -> float:
+        """Fetch total portfolio equity."""
         pass
 
 class ReconciliationService(ABC):
