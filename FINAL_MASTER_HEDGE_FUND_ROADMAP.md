@@ -71,10 +71,24 @@ flowchart TD
    - **Tactical Cash Reserve Buffer**: Incoming SIP cash does NOT FOMO-chase stocks at all-time highs. It is parked in the Tactical Cash / Liquid Reserve, earning risk-free yield and protecting principal.
    - **Opportunistic Dip Deployment**: Dry powder is selectively deployed when the Phase 2 Mean-Reversion engine detects high-quality oversold pullbacks (RSI14 < 35, Lower Bollinger Band) or top-tier ML breakout setups.
    - **30-Day Tactical Drip Feeder**: If the market enters an extended runaway bull market with no deep pullbacks for 30 consecutive days, the engine gradually drips unspent SIP cash into the highest-ranked momentum compounders so cash never sits permanently idle.
-4. **Dynamic Capacity Sizing ($0$ to $10$ Positions)**:
-   - Eliminates rigid quotas: holds anywhere from **$0$ to $10$ positions** ($K \in [0, 10]$) based strictly on market conviction and the 15% cost floor.
-5. **Fail-Closed Broker Safety**:
-   - Eliminates all mock/fake fallbacks. If an API disconnects, the engine immediately **fails closed** (freezes new orders, leaves resting broker GTC stops active, and sends an alert to Discord).
+5. **Dynamic Capacity Sizing ($0$ to $10$ Positions)**:
+   - Eliminates rigid quotas: holds anywhere from **$0$ to $10$ positions** ($K \in [0, 10]$) based strictly on market conviction, risk budget, and the 15% cost floor.
+6. **Earnings Event-Risk Blackout Gate**:
+   - **Rule**: **Zero new swing entries allowed within 2 trading days before a company's scheduled quarterly earnings release**.
+   - Prevents binary event risk: eliminates gap-downs that jump straight through trailing stops before the market open.
+7. **Macro Regime Flip Whipsaw Damping**:
+   - **Rule**: The macro market regime filter must hold a new state for **2 consecutive closes** before triggering a portfolio rebalance, and cannot flip states more than **once in 10 trading days**.
+   - Eliminates noisy whipsawing and unnecessary turnover/tax burn in choppy sideways markets.
+8. **Exchange Surveillance & Circuit Band Filter**:
+   - **Rule**: Automatically rejects stocks placed under regulatory surveillance (SEBI ASM/GSM lists) or stocks locked in daily price circuit bands.
+   - Ensures 100% order execution liquidity; guarantees positions can always be exited smoothly.
+9. **The 2.0% Annual Running-Cost Cap**:
+   - **Rule**: Total fixed infrastructure expenses (data feeds, hosting) must stay **$\le 2.0\%$ of fund equity annually**.
+   - On a ₹50k–₹80k account, this strictly enforces **\$0 out-of-pocket spend (Free GitHub Actions + Free yfinance/NSE feeds)** until bot profits exceed ₹40,000–₹50,000.
+10. **Boss-Away Watchdog Mode**:
+    - **Rule**: The system expects a routine one-tap handshake ping from the Boss every 14 days. If no ping is received (e.g., traveling, illness), the bot freezes all new entries while keeping every stop-loss and trailing runner fully active. Normal operations resume instantly upon check-in.
+11. **Fail-Closed Broker Safety**:
+    - Eliminates all mock/fake fallbacks. If an API disconnects or returns an error, the engine immediately **fails closed** (freezes new orders, leaves resting broker GTC stops active, and sends an alert to Discord).
 
 ---
 
@@ -155,9 +169,10 @@ Phase 4: Genetic Rules & Loop Engineering (STAGED -> Offline Research Engine)
 #### Chapter 1 Operational Deliverables:
 1. **Realistic Fee Engine**: Deducts real STT (0.1%), flat DP charges (₹15.34/sell), GST, and stamp duty in Indian backtests, and regulatory clearing fees in US tests.
 2. **Total Return Benchmark**: Benchmarks against S&P 500 / Nifty **with dividends reinvested** (Total Return Index) to prevent exaggerated alpha claims.
-3. **Fail-Closed Broker Adapters**: Zero placeholder fallbacks; fails closed safely on any network glitch.
-4. **100% Free Cloud Execution**: GitHub Actions scheduled cron at **3:15 PM IST / 3:45 PM ET** (PC can remain turned off).
-5. **Discord Channel Alerting**: Real-time trade executions, daily NAV snapshots, and risk warnings piped to your private Discord server.
+3. **Realistic Stop Slippage & Surveillance Filters**: Fills stops at next available traded price (accounting for gap-downs) and excludes stocks on ASM/GSM or locked in circuit limits.
+4. **Fail-Closed Broker Adapters**: Zero placeholder fallbacks; fails closed safely on any network glitch.
+5. **100% Free Cloud Execution**: GitHub Actions scheduled cron at **3:15 PM IST / 3:45 PM ET** (PC can remain turned off).
+6. **Discord Channel Alerting**: Real-time trade executions, daily NAV snapshots, and risk warnings piped to your private Discord server.
 
 ---
 
@@ -197,6 +212,10 @@ graph TD
 4. **The 13-Week Paper Phase (Gate A & Gate B Clearances)**:
    - **Gate A (Statistical Stress Clearance)**: Out-of-sample CAGR $\ge 15.0\%$ after all fees/taxes/slippage, max DD $\le -25.0\%$, $\ge 100$ OOS trades, parameter stability plateaus ($\pm 20\%$), Monte Carlo worst 5th-percentile DD within -30.0%.
    - **Gate B (Live Forward Paper Clearance)**: 13 consecutive weeks of forward paper execution on live quotes (Alpaca paper), minimum 4 consecutive weeks of zero crashed runs, live paper performance tracks backtest metrics, and emergency Discord kill-switch drill successfully verified.
+5. **Event-Risk & Macro Whipsaw Damping Shield**:
+   - **Earnings Blackout**: Automatically bans opening new swing entries 2 days prior to corporate earnings reports.
+   - **Regime Persistence**: Enforces 2-close confirmation before reallocating between cash and risk assets, eliminating whipsaw tax/fee churn.
+   - **Boss-Away Watchdog**: 14-day inactivity freeze ensuring the bot safely idles in trailing protection if you are traveling or offline.
 
 ---
 
