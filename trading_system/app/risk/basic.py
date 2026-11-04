@@ -1,5 +1,72 @@
-from typing import Any, Optional
+from typing import Any, Optional, Dict
 from trading_system.app.common.interfaces import RiskEngine
+
+
+class ImmutableRiskViolationError(ValueError):
+    """Raised when an algorithm, user config, or optimizer attempts to loosen immutable risk limits."""
+    pass
+
+
+# ==============================================================================
+# Institutional Immutable Risk Constants
+# ==============================================================================
+HARD_STOP_LOSS_PCT: float = -0.08        # -8% maximum hard stop loss floor
+CRO_MAX_DRAWDOWN_PCT: float = -0.18      # -18% fund-level maximum drawdown ceiling
+MAX_POSITIONS_CEILING: int = 10          # 10 maximum concurrent holdings
+LONG_ONLY_MANDATE: bool = True           # Strictly long-only cash equities
+
+
+def validate_risk_config(config: Dict[str, Any]) -> bool:
+    """
+    Validates a loaded market/risk config against the fund's immutable code-level constants.
+    Raises ImmutableRiskViolationError if any limit is loosened.
+    """
+    # 1. Hard stop loss check
+    stop_key = None
+    for k in ["hard_stop", "hard_stop_loss_pct", "global_default_pct"]:
+        if k in config:
+            stop_key = k
+            break
+    if stop_key:
+        stop = float(config[stop_key])
+        if stop < HARD_STOP_LOSS_PCT:
+            raise ImmutableRiskViolationError(
+                f"Immutable Risk Breach: Configured stop loss {stop} is looser than immutable ceiling {HARD_STOP_LOSS_PCT}."
+            )
+
+    # 2. Max concurrent positions ceiling check
+    pos_key = None
+    for k in ["max_positions", "max_holdings"]:
+        if k in config:
+            pos_key = k
+            break
+    if pos_key:
+        max_pos = int(config[pos_key])
+        if max_pos > MAX_POSITIONS_CEILING:
+            raise ImmutableRiskViolationError(
+                f"Immutable Risk Breach: max_positions ({max_pos}) exceeds fund ceiling ({MAX_POSITIONS_CEILING})."
+            )
+
+    # 3. Long-only mandate check
+    if config.get("allow_shorting", False) or config.get("short_selling_enabled", False):
+        raise ImmutableRiskViolationError(
+            "Immutable Risk Breach: Short selling is strictly prohibited under the fund's Long-Only Mandate."
+        )
+
+    # 4. Max drawdown check
+    dd_key = None
+    for k in ["max_drawdown", "cro_max_drawdown_pct"]:
+        if k in config:
+            dd_key = k
+            break
+    if dd_key:
+        dd = float(config[dd_key])
+        if dd < CRO_MAX_DRAWDOWN_PCT:
+            raise ImmutableRiskViolationError(
+                f"Immutable Risk Breach: Max drawdown limit {dd} is looser than immutable floor {CRO_MAX_DRAWDOWN_PCT}."
+            )
+
+    return True
 
 
 class BasicRiskEngine(RiskEngine):
@@ -25,6 +92,8 @@ class BasicRiskEngine(RiskEngine):
     ):
         self.max_position_pct = max_position_pct
         self.max_portfolio_pct = max_portfolio_pct
+        if kwargs.get("config"):
+            validate_risk_config(kwargs["config"])
 
     def evaluate_trade(
         self,

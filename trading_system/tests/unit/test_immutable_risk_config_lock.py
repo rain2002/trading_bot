@@ -11,6 +11,14 @@ from trading_system.app.config.stop_loss_manager import (
     TRAILING_STOP_DISTANCE_PCT,
     BREAKEVEN_TRIGGER_PCT
 )
+from trading_system.app.risk.basic import (
+    BasicRiskEngine,
+    validate_risk_config,
+    ImmutableRiskViolationError,
+    CRO_MAX_DRAWDOWN_PCT,
+    MAX_POSITIONS_CEILING,
+    LONG_ONLY_MANDATE
+)
 
 
 def test_immutable_risk_constants_match_institutional_spec():
@@ -88,3 +96,46 @@ def test_set_global_default_rejects_looser_mutations(tmp_path: Path):
     # Setting a looser stop (e.g. -15%) is rejected and clamped to -8% (-0.08)
     sl.set_global_default_pct(-0.15)
     assert sl.get_global_default_pct() == -0.08
+
+
+def test_validate_risk_config_raises_on_immutable_breaches():
+    """
+    Asserts that validate_risk_config immediately raises ImmutableRiskViolationError
+    when configurations attempt to widen stops, allow shorting, increase position ceiling,
+    or loosen maximum drawdown.
+    """
+    # 1. Stop loss breach: -15% stop is looser than -8% floor
+    with pytest.raises(ImmutableRiskViolationError, match="Configured stop loss"):
+        validate_risk_config({"hard_stop": -0.15})
+
+    with pytest.raises(ImmutableRiskViolationError, match="Configured stop loss"):
+        validate_risk_config({"hard_stop_loss_pct": -0.12})
+
+    # 2. Position ceiling breach: 15 positions exceeds 10 ceiling
+    with pytest.raises(ImmutableRiskViolationError, match="exceeds fund ceiling"):
+        validate_risk_config({"max_positions": 15})
+
+    with pytest.raises(ImmutableRiskViolationError, match="exceeds fund ceiling"):
+        validate_risk_config({"max_holdings": 12})
+
+    # 3. Shorting violation: shorting is forbidden under Long-Only mandate
+    with pytest.raises(ImmutableRiskViolationError, match="Short selling is strictly prohibited"):
+        validate_risk_config({"allow_shorting": True})
+
+    # 4. Max drawdown breach: -25% drawdown is looser than -18% ceiling
+    with pytest.raises(ImmutableRiskViolationError, match="Max drawdown limit"):
+        validate_risk_config({"cro_max_drawdown_pct": -0.25})
+
+    # 5. Compliant configuration passes cleanly
+    compliant_config = {
+        "hard_stop": -0.08,
+        "max_positions": 10,
+        "allow_shorting": False,
+        "cro_max_drawdown_pct": -0.18
+    }
+    assert validate_risk_config(compliant_config) is True
+
+    # 6. BasicRiskEngine halts on violation during initialization
+    with pytest.raises(ImmutableRiskViolationError):
+        BasicRiskEngine(config={"hard_stop": -0.15})
+
