@@ -29,6 +29,16 @@ class MarketConfig:
     gst_pct_on_brokerage: float = 0.0
     stamp_duty_bps: float = 0.0
     sec_finra_fee_bps: float = 0.0
+    # Statutory Indian Delivery Fee Schedule (Dhan / NSE)
+    brokerage_delivery_flat: float = 0.0
+    dp_charge_per_sale: float = 0.0
+    tax_rate_stt_buy: float = 0.0
+    tax_rate_stt_sell: float = 0.0
+    stamp_duty_buy: float = 0.0
+    exchange_turnover_rate: float = 0.0
+    sebi_turnover_rate: float = 0.0
+    gst_rate: float = 0.18
+    cost_floor_max_pct: float = 0.15
     max_holdings: int = 10
     target_position_weight: float = 0.10
     max_single_stock: float = 0.12
@@ -115,6 +125,16 @@ class MarketConfig:
             gst_pct_on_brokerage=float(costs.get("gst_pct_on_brokerage", 0.0)),
             stamp_duty_bps=float(costs.get("stamp_duty_bps", 0.0)),
             sec_finra_fee_bps=float(costs.get("sec_finra_fee_bps", 0.0)),
+            # Statutory Indian Costs
+            brokerage_delivery_flat=float(costs.get("brokerage_delivery_flat", costs.get("commission_flat", 0.0))),
+            dp_charge_per_sale=float(costs.get("dp_charge_per_sale", 15.34 if data.get("market_code") == "IN" else 0.0)),
+            tax_rate_stt_buy=float(costs.get("tax_rate_stt_buy", costs.get("tax_rate_stt", 0.001 if data.get("market_code") == "IN" else 0.0))),
+            tax_rate_stt_sell=float(costs.get("tax_rate_stt_sell", costs.get("tax_rate_stt", 0.001 if data.get("market_code") == "IN" else 0.0))),
+            stamp_duty_buy=float(costs.get("stamp_duty_buy", (costs.get("stamp_duty_bps", 1.5) / 10000.0) if data.get("market_code") == "IN" else 0.0)),
+            exchange_turnover_rate=float(costs.get("exchange_turnover_rate", (costs.get("exchange_turnover_bps", 0.345) / 10000.0) if data.get("market_code") == "IN" else 0.0)),
+            sebi_turnover_rate=float(costs.get("sebi_turnover_rate", 0.000001 if data.get("market_code") == "IN" else 0.0)),
+            gst_rate=float(costs.get("gst_rate", costs.get("gst_pct_on_brokerage", 0.18))),
+            cost_floor_max_pct=float(rules.get("cost_floor_max_pct", 0.15)),
             max_holdings=int(rules.get("max_holdings", 10)),
             target_position_weight=float(rules.get("target_position_weight", 0.10)),
             max_single_stock=float(rules.get("max_single_stock", 0.12)),
@@ -182,50 +202,104 @@ class MarketConfig:
 
         return tickers
 
-    def calculate_transaction_costs(self, trade_value: float, shares: float, side: str = "BUY") -> float:
+    def calculate_transaction_costs(
+        self,
+        trade_value: float,
+        shares: float = 0.0,
+        side: str = "BUY",
+        return_breakdown: bool = False
+    ) -> Any:
         """
-        Computes accurate total transaction friction (slippage + brokerage + exchange turnover fee + GST + STT/taxes).
+        Computes accurate total transaction friction:
+        - Delivery Brokerage
+        - Statutory Taxes (STT, Stamp Duty)
+        - Exchange Turnover Fee & SEBI Turnover Fee
+        - Depository Participant (DP) Fee (flat ₹15.34 on SELL only)
+        - GST on taxable services (Brokerage + Exchange + SEBI + DP Fee)
+        - Execution Slippage (e.g. 5 bps)
         """
-        trade_value = abs(trade_value)
-        shares = abs(shares)
+        trade_value = abs(float(trade_value))
+        shares = abs(float(shares))
         side_norm = side.strip().upper()
 
-        # 1. Slippage (e.g. 5 bps = 0.05%)
-        slippage = trade_value * (self.slippage_bps / 10000.0)
-
-        # 2. Brokerage / Commission
-        comm = self.commission_flat
-        if self.commission_per_share > 0:
-            comm += shares * self.commission_per_share
-        if self.commission_bps > 0:
-            comm += trade_value * (self.commission_bps / 10000.0)
-
-        # 3. Exchange Turnover / Regulatory Fees
-        exchange_fee = 0.0
-        if self.exchange_turnover_bps > 0:
-            exchange_fee = trade_value * (self.exchange_turnover_bps / 10000.0)
-
-        sec_fee = 0.0
-        if self.sec_finra_fee_bps > 0 and side_norm == "SELL":
-            sec_fee = trade_value * (self.sec_finra_fee_bps / 10000.0)
-
-        # 4. GST / VAT on Brokerage and Exchange Fees (e.g., 18% in India)
-        gst_tax = 0.0
-        if self.gst_pct_on_brokerage > 0:
-            gst_tax = (comm + exchange_fee) * self.gst_pct_on_brokerage
-
-        # 5. Transaction Taxes (STT, Stamp Duty)
-        taxes = 0.0
         if self.market_code == "IN":
-            # In India: STT applies to both BUY & SELL on delivery (0.1%)
-            if self.tax_rate_stt > 0:
-                taxes += trade_value * self.tax_rate_stt
-            # Stamp Duty in India applies to BUY only (1.5 bps = 0.015%)
-            if self.stamp_duty_bps > 0 and side_norm == "BUY":
-                taxes += trade_value * (self.stamp_duty_bps / 10000.0)
-        else:
-            if self.tax_rate_stt > 0:
-                taxes += trade_value * self.tax_rate_stt
+            brokerage = self.brokerage_delivery_flat
 
-        total_friction = slippage + comm + exchange_fee + sec_fee + gst_tax + taxes
-        return round(total_friction, 4)
+            # STT: 0.1% on Buy value AND 0.1% on Sell value (Delivery)
+            stt_rate = self.tax_rate_stt_buy if side_norm == "BUY" else self.tax_rate_stt_sell
+            stt = trade_value * stt_rate
+
+            # Stamp Duty: 0.015% on Buy value only
+            stamp_duty = (trade_value * self.stamp_duty_buy) if side_norm == "BUY" else 0.0
+
+            # Exchange Turnover Fee: 0.00345% on Buy and Sell value
+            exchange_fee = trade_value * self.exchange_turnover_rate
+
+            # SEBI Turnover Fee: 0.0001% (₹10 per crore) on Buy and Sell
+            sebi_fee = trade_value * self.sebi_turnover_rate
+
+            # DP Charge: Flat ₹15.34 deducted ONLY on sell transactions, per scrip, per day
+            dp_fee = self.dp_charge_per_sale if side_norm == "SELL" else 0.0
+
+            # GST: 18% on (Brokerage + Exchange Fee + SEBI Fee + DP Fee)
+            taxable_services = brokerage + exchange_fee + sebi_fee + dp_fee
+            gst = taxable_services * self.gst_rate
+
+            # Execution Slippage (5 bps default)
+            slippage = trade_value * (self.slippage_bps / 10000.0)
+
+            statutory_total = brokerage + stt + stamp_duty + exchange_fee + sebi_fee + dp_fee + gst
+            total_friction = statutory_total + slippage
+
+            if return_breakdown:
+                return {
+                    "trade_value": trade_value,
+                    "side": side_norm,
+                    "brokerage": round(brokerage, 4),
+                    "stt": round(stt, 4),
+                    "stamp_duty": round(stamp_duty, 4),
+                    "exchange_fee": round(exchange_fee, 4),
+                    "sebi_fee": round(sebi_fee, 4),
+                    "dp_charge": round(dp_fee, 4),
+                    "gst": round(gst, 4),
+                    "statutory_total": round(statutory_total, 4),
+                    "slippage": round(slippage, 4),
+                    "total": round(total_friction, 4),
+                }
+            return round(total_friction, 4)
+        else:
+            # US / other markets
+            slippage = trade_value * (self.slippage_bps / 10000.0)
+            comm = self.commission_flat
+            if self.commission_per_share > 0:
+                comm += shares * self.commission_per_share
+            if self.commission_bps > 0:
+                comm += trade_value * (self.commission_bps / 10000.0)
+
+            sec_fee = (trade_value * (self.sec_finra_fee_bps / 10000.0)) if side_norm == "SELL" else 0.0
+            total_friction = slippage + comm + sec_fee
+
+            if return_breakdown:
+                return {
+                    "trade_value": trade_value,
+                    "side": side_norm,
+                    "brokerage": round(comm, 4),
+                    "sec_fee": round(sec_fee, 4),
+                    "slippage": round(slippage, 4),
+                    "total": round(total_friction, 4),
+                }
+            return round(total_friction, 4)
+
+    def validate_cost_floor_gate(
+        self,
+        estimated_round_trip_costs: float,
+        expected_trade_profit: float,
+        max_cost_pct: float = 0.15
+    ) -> bool:
+        """
+        15% Cost Floor Gate:
+        Rejects trade if total estimated round-trip costs exceed 15% of expected trade profit.
+        """
+        if expected_trade_profit <= 0:
+            return False
+        return estimated_round_trip_costs <= (max_cost_pct * expected_trade_profit)

@@ -35,15 +35,15 @@ def test_market_config_transaction_costs():
     """Transaction costs must account for local taxes like STT, Stamp Duty, GST, and exchange fees."""
     # India:
     # Buy ₹100,000 worth of shares:
-    # 5 bps slippage (₹50) + ₹20 flat + 0.35 bps turnover (₹3.50) + 18% GST on (₹20+₹3.50=₹4.23) + 0.1% STT (₹100) + 1.5 bps stamp duty (₹15) = ₹192.73
+    # 5 bps slippage (₹50) + ₹0 brokerage + 0.00345% turnover (₹3.45) + 0.0001% SEBI (₹0.10) + 18% GST (₹0.64) + 0.1% STT (₹100) + 0.015% stamp duty (₹15) = ₹169.19
     india = MarketConfig.load("IN")
     costs_in_buy = india.calculate_transaction_costs(trade_value=100000.0, shares=100, side="BUY")
-    assert pytest.approx(costs_in_buy, 0.01) == 192.73
+    assert pytest.approx(costs_in_buy, 0.01) == 169.19
 
     # Sell ₹100,000 worth of shares:
-    # Stamp duty is BUY only (₹0). Total = ₹177.73
+    # Stamp duty is BUY only (₹0). Flat DP charge ₹15.34 + 18% GST on (turnover+SEBI+DP) = ₹172.29
     costs_in_sell = india.calculate_transaction_costs(trade_value=100000.0, shares=100, side="SELL")
-    assert pytest.approx(costs_in_sell, 0.01) == 177.73
+    assert pytest.approx(costs_in_sell, 0.01) == 172.29
 
     # US:
     # Sell $10,000 worth of shares:

@@ -34,13 +34,15 @@
         "pre_market_scan": "09:00"
     },
     "costs": {
-        "slippage_bps": 5.0,
-        "commission_per_share": 0.0,
-        "commission_flat": 20.0,
-        "tax_rate_stt": 0.001,
-        "stamp_duty_bps": 1.5,
-        "exchange_turnover_bps": 0.35,
-        "gst_pct_on_brokerage": 0.18
+        "brokerage_delivery_flat": 0.0,
+        "dp_charge_per_sale": 15.34,
+        "tax_rate_stt_buy": 0.001,
+        "tax_rate_stt_sell": 0.001,
+        "stamp_duty_buy": 0.00015,
+        "exchange_turnover_rate": 0.0000345,
+        "sebi_turnover_rate": 0.000001,
+        "gst_rate": 0.18,
+        "slippage_bps": 5.0
     },
     "portfolio_rules": {
         "max_holdings": 10,

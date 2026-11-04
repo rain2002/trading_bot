@@ -39,10 +39,19 @@ class BasicRiskEngine(RiskEngine):
         is always safe from a risk perspective).
         """
         symbol = trade_request.get("symbol")
-        proposed_quantity = trade_request.get("quantity", 0)
-        price_hint = trade_request.get("price_hint", 0.0)
+        proposed_quantity = trade_request.get("quantity", trade_request.get("shares", 0))
+        price_hint = trade_request.get("price_hint", trade_request.get("price", 0.0))
 
-        current_qty = portfolio_state.get(symbol, 0.0)
+        if isinstance(portfolio_state, dict) and "positions" in portfolio_state and isinstance(portfolio_state["positions"], dict):
+            positions_map = portfolio_state["positions"]
+        elif isinstance(portfolio_state, dict):
+            positions_map = portfolio_state
+        else:
+            positions_map = {}
+
+        current_qty = positions_map.get(symbol, 0.0)
+        if isinstance(current_qty, dict):
+            current_qty = current_qty.get("qty", 0.0)
         
         # Sells: allow closing/reducing long positions, but block unvetted short sales
         if proposed_quantity < 0:
@@ -75,8 +84,8 @@ class BasicRiskEngine(RiskEngine):
         else:
             # Fallback estimation when exact invested value is not provided
             total_other_exposure = 0.0
-            for sym, val in portfolio_state.items():
-                if sym == symbol:
+            for sym, val in positions_map.items():
+                if sym in (symbol, "cash", "total_equity", "equity", "available_funds", "buying_power"):
                     continue
                 if isinstance(val, dict):
                     mv = val.get("market_value") or (abs(float(val.get("qty", 0))) * float(val.get("price", 0)))
@@ -92,5 +101,16 @@ class BasicRiskEngine(RiskEngine):
                 f"exceeds ceiling ${max_portfolio_dollar:,.0f} ({self.max_portfolio_pct*100:.0f}%)"
             )
             return False
+
+        # 3. Cost Floor Gate (reject trade if estimated friction exceeds 15% of expected profit)
+        expected_profit = trade_request.get("expected_profit")
+        estimated_friction = trade_request.get("estimated_friction")
+        if expected_profit is not None and estimated_friction is not None:
+            if float(expected_profit) > 0 and float(estimated_friction) > 0.15 * float(expected_profit):
+                print(
+                    f"   [RISK BLOCK - COST FLOOR GATE] {symbol}: Estimated friction {estimated_friction:.2f} "
+                    f"exceeds 15% of expected trade profit {expected_profit:.2f}."
+                )
+                return False
 
         return True
