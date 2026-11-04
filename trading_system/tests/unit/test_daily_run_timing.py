@@ -1,5 +1,4 @@
 import os
-import yaml
 import pytest
 from trading_system.app.config.market_config import MarketConfig
 
