@@ -56,6 +56,29 @@ class QuantNotifier:
             logger.warning(f"Failed to dispatch Discord webhook: {e}")
             return False
 
+    def send_discord_alert(self, title: str, message: str, color: int = 16711680) -> bool:
+        """
+        Dispatches a rich embed alert (e.g., stop-loss trigger, broker fail-closed event)
+        to the configured Discord webhook.
+        """
+        if not self.discord_url:
+            return False
+        try:
+            payload = {
+                "embeds": [
+                    {
+                        "title": title,
+                        "description": message,
+                        "color": color,
+                    }
+                ]
+            }
+            resp = requests.post(self.discord_url, json=payload, timeout=8)
+            return resp.status_code in (200, 204)
+        except Exception as e:
+            logger.warning(f"Failed to dispatch Discord embed alert: {e}")
+            return False
+
     def send_telegram_message(self, content: str) -> bool:
         if not self.tg_token or not self.tg_chat_id:
             return False
