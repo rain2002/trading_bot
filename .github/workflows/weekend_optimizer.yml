@@ -12,7 +12,7 @@ jobs:
   optimize:
     runs-on: ubuntu-latest
     permissions:
-      contents: write
+      contents: read
     
     steps:
       - name: Checkout Repository
@@ -32,3 +32,17 @@ jobs:
       - name: Run Walk-Forward Optimizer (Diagnostic Audit Only)
         run: |
           PYTHONPATH=. python trading_system/scripts/weekend_optimizer.py
+
+      - name: Verify Live Configurations Untouched
+        run: |
+          git status --porcelain trading_system/app/config/markets/
+          test -z "$(git status --porcelain trading_system/app/config/markets/)" || (echo "FATAL: Live market configs were altered!" && exit 1)
+
+      - name: Upload Diagnostic Report & Candidate Staging Artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: weekend-optimizer-report
+          path: |
+            WEEKEND_OPTIMIZER_REPORT.md
+            trading_system/app/config/candidate_params.json
