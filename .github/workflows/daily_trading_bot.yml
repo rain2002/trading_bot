@@ -1,4 +1,4 @@
-name: V2 Daily Paper Trading Engine
+name: V2 Daily Paper & Live Trading Engine
 
 concurrency:
   group: trading-bot-execution
@@ -6,29 +6,28 @@ concurrency:
 
 on:
   schedule:
-    # Runs at 19:05 UTC every weekday (Mon-Fri)
-    # 19:05 UTC = 2:05 PM EST / 3:05 PM EDT
-    # Allows ample buffer before US market close at 4:00 PM EST against GitHub Actions queue latency
-    - cron: '05 19 * * 1-5'
+    # 09:45 UTC = 3:15 PM IST (Mon-Fri) - Indian Market Rebalance (NSE/BSE)
+    - cron: '45 09 * * 1-5'
+    # 19:45 UTC = 3:45 PM EDT (Mon-Fri) - US Market Rebalance (S&P 500)
+    - cron: '45 19 * * 1-5'
   
-  # Allow manual triggering from the GitHub Actions tab
+  # Allow manual execution and market selection
   workflow_dispatch:
+    inputs:
+      market:
+        description: 'Target Trading Market'
+        required: true
+        default: 'AUTO'
+        type: choice
+        options:
+          - AUTO
+          - IN
+          - US
 
 jobs:
   trade:
     runs-on: ubuntu-latest
     
-    # Map GitHub Secrets directly to the Python environment
-    env:
-      PAPER_API_KEY: ${{ secrets.PAPER_API_KEY }}
-      PAPER_API_SECRET: ${{ secrets.PAPER_API_SECRET }}
-      DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
-      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-      TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-      # Ephemeral SQLite DB since state is sourced directly from Alpaca and position tracker
-      DATABASE_URL: sqlite:///trading_db.sqlite 
-      PYTHONPATH: .
-
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -44,19 +43,62 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Run V2 Quant Brain Engine
+      - name: Determine Target Market
+        id: select_market
         run: |
+          if [ "${{ github.event.inputs.market }}" = "IN" ]; then
+            echo "TARGET_MARKET=IN" >> $GITHUB_ENV
+          elif [ "${{ github.event.inputs.market }}" = "US" ]; then
+            echo "TARGET_MARKET=US" >> $GITHUB_ENV
+          elif [ "${{ github.event.schedule }}" = "45 09 * * 1-5" ]; then
+            echo "TARGET_MARKET=IN" >> $GITHUB_ENV
+          else
+            echo "TARGET_MARKET=US" >> $GITHUB_ENV
+          fi
+
+      - name: Run Quant Trading Engine
+        env:
+          TRADING_MARKET: ${{ env.TARGET_MARKET }}
+          # US Credentials (Alpaca)
+          ALPACA_API_KEY: ${{ secrets.ALPACA_API_KEY || secrets.PAPER_API_KEY }}
+          ALPACA_SECRET_KEY: ${{ secrets.ALPACA_SECRET_KEY || secrets.PAPER_API_SECRET }}
+          PAPER_API_KEY: ${{ secrets.PAPER_API_KEY }}
+          PAPER_API_SECRET: ${{ secrets.PAPER_API_SECRET }}
+          # India Credentials (Groww)
+          GROWW_API_KEY: ${{ secrets.GROWW_API_KEY }}
+          GROWW_API_SECRET: ${{ secrets.GROWW_API_SECRET }}
+          GROWW_AUTH_TOKEN: ${{ secrets.GROWW_AUTH_TOKEN }}
+          INDIA_API_KEY: ${{ secrets.INDIA_API_KEY || secrets.GROWW_API_KEY }}
+          INDIA_API_SECRET: ${{ secrets.INDIA_API_SECRET || secrets.GROWW_API_SECRET }}
+          INDIA_TOTP_SECRET: ${{ secrets.INDIA_TOTP_SECRET || secrets.GROWW_AUTH_TOKEN }}
+          # Notifications
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          # Local State DB
+          DATABASE_URL: sqlite:///trading_db.sqlite
+          PYTHONPATH: .
+        run: |
+          echo "=========================================================="
+          echo "Executing Quant Rebalance Cycle for Market: $TARGET_MARKET"
+          echo "=========================================================="
           python trading_system/scripts/run_quant_bot.py
 
       - name: Workflow Failure Alert Notification
         if: failure()
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          TARGET_MARKET: ${{ env.TARGET_MARKET }}
         run: |
           python -c "
           import os, requests
           webhook = os.getenv('DISCORD_WEBHOOK_URL')
           tg_token = os.getenv('TELEGRAM_BOT_TOKEN')
           tg_chat = os.getenv('TELEGRAM_CHAT_ID')
-          msg = '🚨 CRITICAL ALERT: Daily Trading Bot workflow run failed in GitHub Actions!'
+          market = os.getenv('TARGET_MARKET', 'UNKNOWN')
+          msg = f'🚨 **[CRITICAL FAILURE]** Daily Trading Bot workflow run failed in GitHub Actions for Market: {market}!'
           if webhook:
               try: requests.post(webhook, json={'content': msg}, timeout=10)
               except: pass

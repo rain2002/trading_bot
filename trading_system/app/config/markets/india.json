@@ -31,7 +31,11 @@
         "timezone": "Asia/Kolkata",
         "open": "09:15",
         "close": "15:30",
-        "pre_market_scan": "09:00"
+        "pre_market_scan": "14:45",
+        "rebalance_dispatch": "15:15",
+        "order_cutoff": "15:25",
+        "execution_type": "MOC_OR_BUFFERED_LIMIT",
+        "limit_buffer_pct": 0.002
     },
     "costs": {
         "brokerage_delivery_flat": 0.0,

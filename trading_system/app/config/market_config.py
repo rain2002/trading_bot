@@ -20,6 +20,11 @@ class MarketConfig:
     trading_timezone: str
     open_time: str
     close_time: str
+    pre_market_scan: str = "14:45"
+    rebalance_dispatch: str = "15:15"
+    order_cutoff: str = "15:25"
+    execution_type: str = "MOC_OR_BUFFERED_LIMIT"
+    limit_buffer_pct: float = 0.002
     slippage_bps: float = 5.0
     commission_per_share: float = 0.0
     commission_flat: float = 0.0
@@ -116,6 +121,11 @@ class MarketConfig:
             trading_timezone=hrs.get("timezone", "America/New_York"),
             open_time=hrs.get("open", "09:30"),
             close_time=hrs.get("close", "16:00"),
+            pre_market_scan=str(hrs.get("pre_market_scan", "14:45" if data.get("market_code") == "IN" else "15:15")),
+            rebalance_dispatch=str(hrs.get("rebalance_dispatch", "15:15" if data.get("market_code") == "IN" else "15:45")),
+            order_cutoff=str(hrs.get("order_cutoff", "15:25" if data.get("market_code") == "IN" else "15:55")),
+            execution_type=str(hrs.get("execution_type", "MOC_OR_BUFFERED_LIMIT")),
+            limit_buffer_pct=float(hrs.get("limit_buffer_pct", 0.002)),
             slippage_bps=float(costs.get("slippage_bps", 5.0)),
             commission_per_share=float(costs.get("commission_per_share", 0.0)),
             commission_flat=float(costs.get("commission_flat", 0.0)),
