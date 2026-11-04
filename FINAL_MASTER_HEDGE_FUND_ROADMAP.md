@@ -158,21 +158,24 @@ Phase 4: Genetic Rules & Loop Engineering (STAGED -> Offline Research Engine)
 
 #### The 3-Stage Geographic Progression Pipeline:
 1. **Stage 1 (Current Proving Ground - 13 Weeks)**: **US Alpaca Paper Trading**. Current setup continues uninterrupted on live market feeds. Tests the core logic, execution stability, and risk management through 13 consecutive weeks to clear Gate A and Gate B with \$0 out of pocket.
-2. **Stage 2 (Real INR Proving Ground - ₹50k to ₹80k)**: **Indian Equities (NSE via Dhan/Groww)**. Once validated on Alpaca, port to Indian live markets with real INR capital. Employs a share price ceiling (₹2,500–₹3,500 max per share) to prevent single-share allocation skew in small accounts. Deducts flat ₹15.34 DP fees, 0.1% STT, GST, and stamp duty.
+2. **Stage 2 (Real INR Proving Ground - ₹50k to ₹80k)**: **Indian Equities (NSE via Dhan/Groww)**. Once validated on Alpaca, port to Indian live markets with real INR capital. Employs the **dynamic whole-share rule** (skips any stock where 1 share costs $> 25\%$ of the intended position size; ensures clean position sizing and scales naturally as capital compounds). Deducts flat ₹15.34 DP fees, 0.1% STT, GST, and stamp duty.
 3. **Stage 3 (Dual-Track Global Compounding)**: **Global US Equities from India**. Expand back to live US markets using Alpaca or Interactive Brokers under the passive RBI Liberalised Remittance Scheme (LRS) route.
 
 #### The Compute & Hardware Split Architecture ($0 Cost):
 - **Daily 3:15 PM IST / 3:45 PM ET Cloud Execution**: Runs on **Free GitHub Actions**. Consumes ~2 minutes per run (~44 minutes/month out of 2,000 free minutes). Reads frozen models, scans daily market bars, tracks stops, and dispatches Discord alerts. Runs 100% reliably even if the Boss's PC is powered off.
 - **Genetic Strategy Mutation & Retraining**: Runs **locally on the Boss's PC** on weekends or ad-hoc whenever the Boss turns on the PC. Pushes updated lightweight configuration files to Git.
-- **Dedicated 24/7 Server/VPS (Chapter 3)**: Deferred until the bot completes 13 weeks of paper trading and the Boss chooses to fund dedicated hardware from trading profits.
+- **Dedicated 24/7 Server/VPS (Chapter 3)**: Gated by the **50x Running-Cost Rule** (account equity must reach at least $50\times$ the annual hosting/data fee, e.g. ₹2.4 Lakhs to ₹5.0 Lakhs from accumulated compounding profits, before enabling paid infrastructure).
 
-#### Chapter 1 Operational Deliverables:
-1. **Realistic Fee Engine**: Deducts real STT (0.1%), flat DP charges (₹15.34/sell), GST, and stamp duty in Indian backtests, and regulatory clearing fees in US tests.
-2. **Total Return Benchmark**: Benchmarks against S&P 500 / Nifty **with dividends reinvested** (Total Return Index) to prevent exaggerated alpha claims.
-3. **Realistic Stop Slippage & Surveillance Filters**: Fills stops at next available traded price (accounting for gap-downs) and excludes stocks on ASM/GSM or locked in circuit limits.
-4. **Fail-Closed Broker Adapters**: Zero placeholder fallbacks; fails closed safely on any network glitch.
-5. **100% Free Cloud Execution**: GitHub Actions scheduled cron at **3:15 PM IST / 3:45 PM ET** (PC can remain turned off).
-6. **Discord Channel Alerting**: Real-time trade executions, daily NAV snapshots, and risk warnings piped to your private Discord server.
+#### Chapter 1 Operational Deliverables & Phase 1 Build Sheet:
+1. **Task 1: Fail-Closed Groww Adapter** (`trading_system/app/broker/groww.py`): Strip mock holdings, fake balances, and default ₹1,000 fallback prices. Test forces API error to confirm order abortion and Discord alert.
+2. **Task 2: Broker-Wide Fail-Closed Enforcement** (`trading_system/app/broker/`): Ensure Alpaca and all broker adapters follow the exact same fail-closed pattern.
+3. **Task 3: Exact Indian Cost Engine** (`trading_system/app/config/markets/india.json`): Implement Dhan-accurate flat ₹15.34 DP fee, 0.1% STT on delivery, stamp duty, exchange turnover fees, SEBI turnover charges, and 18% GST. Verified by unit tests on a sample ₹10,000 round-trip trade to the exact paisa.
+4. **Task 4: Freeze Weekly Auto-Tuner** (`scripts/weekend_optimizer.py`): Restrict auto-tuner to diagnostic report generation only; physically lock live parameter settings from automated tampering.
+5. **Task 5: Intraday Bar Archiver** (`trading_system/app/data/`): Scheduled data pipeline saving raw Indian market bars for future research (read-only, zero trading).
+6. **Task 6: Secrets & Repo Hygiene**: Scan git history for leaked credentials, enforce GitHub Secrets for API keys, and pin all package dependencies in `requirements.txt`.
+7. **Task 7: Immutable Risk Config Lock**: Implement startup check in risk loader that aborts execution if hard stop (-8%), max drawdown (-18%), or position ceilings have been altered.
+8. **Task 8: Test Baseline Stabilization** (`trading_system/tests/unit/`): Fix unit test discrepancies and establish 100% passing test baseline for all core modules.
+9. **Task 9: Daily Run Timing Finalization**: Formalize closing data scan timing (e.g. 14:45 IST run vs. next-day market open order execution) in `india.json` and workflow crons.
 
 ---
 
