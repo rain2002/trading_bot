@@ -20,6 +20,8 @@ from trading_system.app.broker.alpaca import AlpacaBrokerAdapter, BrokerAPIError
 from trading_system.app.broker.groww import GrowwBrokerAdapter
 from trading_system.app.execution.alpaca_live import AlpacaExecutionAdapter
 from trading_system.app.risk.basic import BasicRiskEngine
+from trading_system.app.risk.cro import ChiefRiskOfficer, CRORiskStatus
+from trading_system.app.accounting.unitized_nav import UnitizedNAVEngine
 from trading_system.app.notifications.notifier import QuantNotifier
 from trading_system.app.features.regime import RegimeDetector, UniversalLocalIndexRegimeEngine
 from trading_system.app.strategies.ensembles.ensemble_allocator import EnsembleAllocator
@@ -62,7 +64,7 @@ def execute_quant_live_cycle():
 
     risk_engine = BasicRiskEngine(max_position_pct=market.max_single_stock, max_portfolio_pct=0.95)
     
-    print("\n[1/4] Syncing with Broker for LIVE Positions...")
+    print("\n[1/5] Syncing with Broker for LIVE Positions & Unitized NAV...")
     try:
         current_positions = broker.get_positions()
         print(f"Broker reports we hold: {current_positions}")
@@ -72,6 +74,12 @@ def execute_quant_live_cycle():
         print(f"\n[CRITICAL BROKER ERROR] Could not securely fetch account state: {e}")
         print("Failing closed: Halting trading cycle without placing orders.")
         return
+
+    # Update institutional Unitized NAV accounting
+    nav_engine = UnitizedNAVEngine(initial_capital=total_equity if total_equity > 0 else (1000000.0 if market.market_code == "IN" else 100000.0))
+    current_nav_per_unit = nav_engine.update_portfolio_valuation(total_equity)
+    fund_metrics = nav_engine.get_fund_performance_metrics()
+    print(f" -> Unitized NAV: {market.currency_symbol}{current_nav_per_unit:.2f}/unit | True Trading Return: {fund_metrics['true_trading_return_pct']:+.2f}% | Tactical Reserve: {market.currency_symbol}{fund_metrics['tactical_cash_reserve']:,.2f}")
 
     # Market Calendar & Holiday Check
     market_is_open = True
@@ -204,11 +212,42 @@ def execute_quant_live_cycle():
     print(f"  Max Total Exposure: {MAX_EXPOSURE*100:.0f}% (Liquid Cash Reserve: {(1.0-MAX_EXPOSURE)*100:.0f}%)")
     print(f"  Strategy Mix: Momentum={strat_weights.get('momentum', 0)*100:.0f}% | Dip-Buying={strat_weights.get('mean_reversion', 0)*100:.0f}%")
 
-    if regime == "CRASH_WARNING":
+    # Tactical Cash Reserve Dip Deployment / 30-Day Drip Feeder
+    if len(mean_rev_signals) > 0 and regime != "CRASH_WARNING":
+        deployed_dip = nav_engine.deploy_opportunistic_dip_cash(deployment_pct=0.50)
+        if deployed_dip > 0:
+            print(f"  [TACTICAL SIP BUFFER] Deployed {market.currency_symbol}{deployed_dip:,.2f} dry powder into Mean-Reversion dip buys.")
+    else:
+        drip_cash = nav_engine.evaluate_30_day_drip_feeder()
+        if drip_cash > 0:
+            print(f"  [TACTICAL DRIP FEEDER] Market ran 30 days without dip; dripped {market.currency_symbol}{drip_cash:,.2f} into momentum compounders.")
+
+    # --- PHASE 2: CENTRAL CHIEF RISK OFFICER (CRO) EVALUATION ---
+    print(f"\n[2b/5] Activating Central Chief Risk Officer (CRO) Supervisory Evaluation...")
+    cro = ChiefRiskOfficer()
+    cro_status: CRORiskStatus = cro.evaluate_daily_cycle(
+        current_nav=total_equity,
+        as_of_time=datetime.now(),
+        macro_regime=regime
+    )
+    print(f"  CRO Drawdown Tier: {cro_status.ladder_level} | Scale Factor: {cro_status.exposure_scale_factor:.2f}x")
+    print(f"  CRO Fiduciary Status: {cro_status.action_summary}")
+
+    # Check 2.0% Daily Loss Circuit Breaker
+    if cro_status.daily_circuit_breaker_active:
+        print("  🚨 [CRO DAILY CIRCUIT BREAKER ACTIVE] Single-day loss breached 2.0% limit. Halting new trade allocations.")
+        notifier = QuantNotifier()
+        notifier.send_discord_alert(
+            title="🚨 CRO DAILY CIRCUIT BREAKER TRIPPED",
+            message=f"Single-day portfolio loss breached 2.0% limit. All new trade entries HALTED today to preserve capital. Existing positions managed by resting stops.",
+            color=16711680
+        )
+
+    if regime == "CRASH_WARNING" or cro_status.crash_warning_active:
         print("  [CRASH WARNING] Moving to 100% Cash Buffer. Preserving capital.")
 
     # --- STOP-LOSS ENGINE (Dynamic Bot & User-Overridden Limits) ---
-    print("\n[2c/4] Checking Open Positions for Stop-Loss Limits...")
+    print("\n[2c/5] Checking Open Positions for Stop-Loss Limits...")
     sl_manager = StopLossManager()
     stop_loss_liquidations = set()
     pos_pnl_map = {}
@@ -238,6 +277,38 @@ def execute_quant_live_cycle():
     effective_cap = getattr(ensemble, "last_effective_cap", ensemble.max_single_stock)
     risk_engine.max_position_pct = max(0.15, effective_cap)
 
+    # CRO Safeguard Application:
+    if not cro_status.can_enter_new_trades or cro_status.daily_circuit_breaker_active:
+        print(f"  [CRO RESTRICTION] New entry trading gated by CRO ({cro_status.action_summary}). Clearing new targets.")
+        target_weights = {s: w for s, w in target_weights.items() if s in current_positions}
+    elif cro_status.exposure_scale_factor < 1.0:
+        print(f"  [CRO SCALE] Applying Drawdown Ladder Scale Factor {cro_status.exposure_scale_factor:.2f}x to target weights...")
+        target_weights = {s: round(w * cro_status.exposure_scale_factor, 4) for s, w in target_weights.items()}
+        MAX_EXPOSURE = min(MAX_EXPOSURE, MAX_EXPOSURE * cro_status.exposure_scale_factor)
+
+    # Prospective New Entries Gating: Earnings Blackout & Circuit Filters
+    for sym in list(target_weights.keys()):
+        if sym not in current_positions:
+            # 1. Check Earnings Blackout Gate
+            if not cro.check_earnings_blackout(sym, as_of_date=datetime.now().date()):
+                print(f"  -> [CRO EARNINGS BLACKOUT] {sym}: Earnings proximity detected. Entry omitted.")
+                del target_weights[sym]
+                continue
+
+            # 2. Check Exchange Surveillance & Circuit Limit Gate
+            try:
+                p_df = brain.data_provider.get_data_as_of(sym, datetime.now())
+                if p_df is not None and not p_df.empty and len(p_df) >= 2 and 'close' in p_df:
+                    p_prev = float(p_df['close'].iloc[-2])
+                    p_curr = float(p_df['close'].iloc[-1])
+                    pct_chg = (p_curr - p_prev) / p_prev if p_prev > 0 else 0.0
+                    if not cro.check_exchange_surveillance_and_circuits(sym, price_change_pct=pct_chg):
+                        print(f"  -> [CRO CIRCUIT/SURVEILLANCE BLOCK] {sym}: Circuit band hit ({pct_chg*100:+.2f}%). Entry omitted.")
+                        del target_weights[sym]
+                        continue
+            except Exception as e:
+                logger.warning(f"Could not verify circuit status for {sym}: {e}")
+
     if target_weights:
         print(f"\nPhase 2/3 Ensemble: Allocated to {len(target_weights)} Holdings (Dynamic Single-Stock Cap: {effective_cap*100:.1f}%):")
         for sym, weight in sorted(target_weights.items(), key=lambda x: x[1], reverse=True):
@@ -255,7 +326,7 @@ def execute_quant_live_cycle():
             print("No qualifying signals today. Holding 100% Cash.")
     # ----------------------------
         
-    print("\n[3/4] Reconciling QUANT Targets against Broker State...")
+    print("\n[3/5] Reconciling QUANT Targets against Broker State...")
     pos_tracker = PositionTracker()
     recent_orders = broker.get_recent_orders(limit=200)
     
@@ -270,9 +341,9 @@ def execute_quant_live_cycle():
     detailed_positions = broker.get_positions_detailed()
     pos_tracker.sync_with_broker(current_positions, detailed_positions, recent_orders)
     
-    # CRASH REGIME: If macro crash warning, force full liquidation of all positions to 100% cash
-    if MAX_EXPOSURE <= 0.0 or regime == "CRASH_WARNING":
-        print("  [CRASH WARNING ACTIVE] Liquidating all open holdings to 100% Cash Buffer.")
+    # CRASH REGIME / EMERGENCY HALT: force full liquidation of all positions to 100% cash
+    if MAX_EXPOSURE <= 0.0 or regime == "CRASH_WARNING" or cro_status.crash_warning_active or cro_status.ladder_level == "EMERGENCY_HALT":
+        print("  [CRASH / EMERGENCY HALT ACTIVE] Liquidating all open holdings to 100% Cash Buffer.")
         for open_sym in current_positions.keys():
             target_weights[open_sym] = 0.0
             pos_tracker.record_exit(open_sym)
@@ -354,7 +425,7 @@ def execute_quant_live_cycle():
                 for s in new_buy_targets:
                     target_weights[s] = min(round(target_weights[s] * scale, 4), effective_cap)
             
-    print("\n[4/4] Routing Orders to Risk Engine & Alpaca...")
+    print("\n[4/5] Routing Orders to Risk Engine & Broker...")
     executed_orders_log = []
     run_timestamp_tag = datetime.now().strftime('%Y%m%d_%H%M')
     
@@ -529,6 +600,10 @@ def execute_quant_live_cycle():
             overall_pnl_pct=acc_details["overall_pnl_pct"],
             regime_info=regime_description,
             currency_symbol=market.currency_symbol,
+            cro_tier=cro_status.ladder_level,
+            nav_per_unit=fund_metrics.get("nav_per_unit"),
+            true_trading_return_pct=fund_metrics.get("true_trading_return_pct"),
+            tactical_cash_reserve=fund_metrics.get("tactical_cash_reserve"),
         )
     except Exception as e:
         print(f"Notification dispatch failed: {e}")
