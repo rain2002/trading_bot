@@ -37,6 +37,7 @@ htmlcov/
 
 # Backtest Run Artifacts
 equity_curve_*.csv
+*cache.json
 
 # IDEs
 .vscode/

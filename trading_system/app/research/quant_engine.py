@@ -12,6 +12,7 @@ from trading_system.app.data.yfinance_provider import YFinanceDataProvider
 from trading_system.app.strategies.ensembles.mean_reversion import MeanReversionStrategy
 from trading_system.app.ml.feature_pipeline import MLFeaturePipeline
 from trading_system.app.config.stop_loss_manager import StopLossManager
+from trading_system.app.research.buffett_moat import BuffettMoatScorecard
 
 logger = logging.getLogger("QuantEngine")
 
@@ -250,6 +251,7 @@ class QuantEngine:
     def __init__(self, enable_ml_gating: bool = False, ml_min_probability: float = 0.48):
         self.data_provider = YFinanceDataProvider()
         self.mean_reversion = MeanReversionStrategy()
+        self.moat_scorecard = BuffettMoatScorecard()
         self.enable_ml_gating = enable_ml_gating
         self.ml_min_probability = ml_min_probability
         self.ml_model = None
@@ -292,6 +294,12 @@ class QuantEngine:
         mean_rev_signals: List[Dict[str, Any]] = []
 
         for symbol in universe:
+            # Buffett Moat & Quality Scorecard Fundamental Gate (Chapter 2, Pod 1)
+            is_moat_pass, moat_reason, moat_card = self.moat_scorecard.is_approved_for_investment(symbol)
+            if not is_moat_pass:
+                logger.info(f"[BUFFETT MOAT VETO] {symbol}: {moat_reason}. Bypassing candidate.")
+                continue
+
             df = self.data_provider.get_data_as_of(symbol, as_of_time)
             if df.empty or len(df) < 50:
                 continue
@@ -322,6 +330,7 @@ class QuantEngine:
                         logger.debug(f"ML gating error for {symbol}: {e}")
 
                 if ml_confirmed:
+                    moat_tag = f" | Moat: {moat_card.get('moat_class')} ({moat_card.get('moat_score', 0):.0f}/100)" if moat_card.get("moat_class") else ""
                     momentum_signals.append({
                         "symbol": symbol,
                         "holding_type": "MOMENTUM",
@@ -329,7 +338,9 @@ class QuantEngine:
                         "confidence": judgment["confidence"],
                         "conviction_score": round(raw_conviction, 4),
                         "ml_prob": round(ml_prob, 4) if ml_prob is not None else None,
-                        "rationale": judgment["rationale"] + (f" | ML Confirmed: {ml_prob*100:.1f}%" if ml_prob is not None else "")
+                        "moat_score": moat_card.get("moat_score"),
+                        "moat_class": moat_card.get("moat_class"),
+                        "rationale": judgment["rationale"] + (f" | ML Confirmed: {ml_prob*100:.1f}%" if ml_prob is not None else "") + moat_tag
                     })
 
             # 2. Mean-Reversion Dip-Buy Judgment (Oversold Quality)
@@ -355,13 +366,16 @@ class QuantEngine:
                         logger.debug(f"ML dip-buy gating error for {symbol}: {e}")
 
                 if ml_confirmed:
+                    moat_tag = f" | Moat: {moat_card.get('moat_class')} ({moat_card.get('moat_score', 0):.0f}/100)" if moat_card.get("moat_class") else ""
                     mean_rev_signals.append({
                         "symbol": symbol,
                         "holding_type": "DIP_BUY",
                         "signal": 1,
                         "confidence": round(mr_conf, 4),
                         "ml_prob": round(ml_prob, 4) if ml_prob is not None else None,
-                        "rationale": mr_sig.get("rationale", "") + (f" | ML Confirmed: {ml_prob*100:.1f}%" if ml_prob is not None else "")
+                        "moat_score": moat_card.get("moat_score"),
+                        "moat_class": moat_card.get("moat_class"),
+                        "rationale": mr_sig.get("rationale", "") + (f" | ML Confirmed: {ml_prob*100:.1f}%" if ml_prob is not None else "") + moat_tag
                     })
 
         return {
