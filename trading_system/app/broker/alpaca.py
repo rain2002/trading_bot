@@ -270,25 +270,34 @@ class AlpacaBrokerAdapter(BrokerAdapter):
         """Fetch historical equity curve for the account directly from Alpaca (defaults to 13-week institutional trail)."""
         if not self.api_key or self.api_key == "mock":
             return None
-        try:
-            import pandas as pd
-            from datetime import datetime
-            url = f"{self.base_url}/v2/account/portfolio/history?period={period}&timeframe={timeframe}"
-            resp = requests.get(url, headers=self.headers, timeout=10)
-            if resp.status_code == 200:
-                data = resp.json()
-                timestamps = [datetime.fromtimestamp(ts) for ts in data.get("timestamp", [])]
-                df = pd.DataFrame({
-                    "timestamp": timestamps,
-                    "equity": data.get("equity", []),
-                    "profit_loss": data.get("profit_loss", []),
-                    "profit_loss_pct": data.get("profit_loss_pct", [])
-                }).dropna()
-                if not df.empty and (df["equity"] > 0).any():
-                    return df
+        import pandas as pd
+        from datetime import datetime
 
-            # Fallback if specific period returned empty or zero-equity
-            if period == "13W":
+        # Retry loop for resilience against transient network/API drops
+        for attempt in range(3):
+            try:
+                url = f"{self.base_url}/v2/account/portfolio/history?period={period}&timeframe={timeframe}"
+                resp = requests.get(url, headers=self.headers, timeout=10)
+                if resp.status_code == 200:
+                    data = resp.json()
+                    timestamps = [datetime.fromtimestamp(ts) for ts in data.get("timestamp", [])]
+                    df = pd.DataFrame({
+                        "timestamp": timestamps,
+                        "equity": data.get("equity", []),
+                        "profit_loss": data.get("profit_loss", []),
+                        "profit_loss_pct": data.get("profit_loss_pct", [])
+                    }).dropna()
+                    # Filter out zero-equity padding from before account creation
+                    df_valid = df[df["equity"] > 0].copy()
+                    if len(df_valid) >= 2:
+                        return df_valid
+            except Exception as e:
+                logger.warning(f"Attempt {attempt+1}/3 failed in get_portfolio_history ({period}): {e}")
+                time.sleep(0.5)
+
+        # Fallback to period='all' if specific period returned insufficient/empty data
+        if period != "all":
+            try:
                 fallback_url = f"{self.base_url}/v2/account/portfolio/history?period=all&timeframe={timeframe}"
                 fb_resp = requests.get(fallback_url, headers=self.headers, timeout=10)
                 if fb_resp.status_code == 200:
@@ -300,10 +309,12 @@ class AlpacaBrokerAdapter(BrokerAdapter):
                         "profit_loss": fb_data.get("profit_loss", []),
                         "profit_loss_pct": fb_data.get("profit_loss_pct", [])
                     }).dropna()
-                    if not fb_df.empty:
-                        return fb_df
-        except Exception:
-            pass
+                    fb_valid = fb_df[fb_df["equity"] > 0].copy()
+                    if not fb_valid.empty:
+                        return fb_valid
+            except Exception as e:
+                logger.warning(f"Fallback to period=all failed in get_portfolio_history: {e}")
+
         return None
 
     def get_open_orders(self) -> List[Dict[str, Any]]:

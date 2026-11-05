@@ -139,3 +139,31 @@ def test_alpaca_cancel_order_fails_closed_on_network_drop(mock_notifier):
             broker.cancel_order("test-order-123")
 
         assert "Delete timed out" in str(exc_info.value)
+
+
+def test_alpaca_get_portfolio_history_filters_zero_padding():
+    """get_portfolio_history() strips zero-equity days from account history."""
+    broker = AlpacaBrokerAdapter(api_key="LIVE_KEY", api_secret="LIVE_SECRET")
+    mock_resp = MagicMock()
+    mock_resp.status_code = 200
+    mock_resp.json.return_value = {
+        "timestamp": [1600000000, 1600086400, 1600172800, 1600259200],
+        "equity": [0.0, 0.0, 100000.0, 101500.0],
+        "profit_loss": [0.0, 0.0, 0.0, 1500.0],
+        "profit_loss_pct": [0.0, 0.0, 0.0, 0.015],
+    }
+
+    with patch("requests.get", return_value=mock_resp):
+        df = broker.get_portfolio_history(period="13W")
+        assert df is not None
+        assert len(df) == 2
+        assert (df["equity"] > 0).all()
+        assert df["equity"].iloc[0] == 100000.0
+        assert df["equity"].iloc[1] == 101500.0
+
+
+def test_alpaca_get_portfolio_history_mock_returns_none():
+    """Mock/unauthenticated broker returns None rather than throwing an unhandled exception."""
+    broker = AlpacaBrokerAdapter(api_key="mock", api_secret="mock")
+    assert broker.get_portfolio_history(period="all") is None
+
