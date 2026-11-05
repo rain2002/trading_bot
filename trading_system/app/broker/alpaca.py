@@ -266,8 +266,8 @@ class AlpacaBrokerAdapter(BrokerAdapter):
         logger.warning(f"Could not fetch latest Alpaca price for {symbol}")
         return 0.0
 
-    def get_portfolio_history(self, period: str = "1M", timeframe: str = "1D") -> Any:
-        """Fetch historical equity curve for the account directly from Alpaca."""
+    def get_portfolio_history(self, period: str = "13W", timeframe: str = "1D") -> Any:
+        """Fetch historical equity curve for the account directly from Alpaca (defaults to 13-week institutional trail)."""
         if not self.api_key or self.api_key == "mock":
             return None
         try:
@@ -284,7 +284,24 @@ class AlpacaBrokerAdapter(BrokerAdapter):
                     "profit_loss": data.get("profit_loss", []),
                     "profit_loss_pct": data.get("profit_loss_pct", [])
                 }).dropna()
-                return df
+                if not df.empty and (df["equity"] > 0).any():
+                    return df
+
+            # Fallback if specific period returned empty or zero-equity
+            if period == "13W":
+                fallback_url = f"{self.base_url}/v2/account/portfolio/history?period=all&timeframe={timeframe}"
+                fb_resp = requests.get(fallback_url, headers=self.headers, timeout=10)
+                if fb_resp.status_code == 200:
+                    fb_data = fb_resp.json()
+                    fb_timestamps = [datetime.fromtimestamp(ts) for ts in fb_data.get("timestamp", [])]
+                    fb_df = pd.DataFrame({
+                        "timestamp": fb_timestamps,
+                        "equity": fb_data.get("equity", []),
+                        "profit_loss": fb_data.get("profit_loss", []),
+                        "profit_loss_pct": fb_data.get("profit_loss_pct", [])
+                    }).dropna()
+                    if not fb_df.empty:
+                        return fb_df
         except Exception:
             pass
         return None

@@ -108,10 +108,14 @@ class QuantNotifier:
         overall_pnl_pct: float = 0.0,
         regime_info: str = "NORMAL (Conviction Filter Active)",
         currency_symbol: str = "$",
+        cro_tier: Optional[str] = None,
+        nav_per_unit: Optional[float] = None,
+        true_trading_return_pct: Optional[float] = None,
+        tactical_cash_reserve: Optional[float] = None,
     ):
         """
         Formats and dispatches the daily rebalance report with Today's Return,
-        Overall Return, Cash Reserve status, and Detailed Holdings to configured channels.
+        Overall Return, Cash Reserve status, Unitized NAV, CRO Risk Tier, and Detailed Holdings.
         """
         # Format today's return indicator
         today_sign = "+" if today_pnl >= 0 else ""
@@ -122,6 +126,21 @@ class QuantNotifier:
         overall_emoji = "🚀" if overall_pnl >= 0 else "🔻"
 
         cash_pct = (cash / equity * 100) if equity > 0 else 0.0
+
+        extra_metrics = ""
+        tg_extra_metrics = ""
+        if nav_per_unit is not None:
+            t_sign = "+" if (true_trading_return_pct or 0.0) >= 0 else ""
+            t_ret = true_trading_return_pct or 0.0
+            extra_metrics += f"🏷️ **Unitized NAV:** {currency_symbol}{nav_per_unit:,.2f}/unit (True Trading Return: {t_sign}{t_ret:.2f}%)\n"
+            tg_extra_metrics += f"🏷️ *Unitized NAV:* {currency_symbol}{nav_per_unit:,.2f}/unit (True Trading Return: {t_sign}{t_ret:.2f}%)\n"
+        if tactical_cash_reserve is not None and tactical_cash_reserve > 0:
+            extra_metrics += f"🎯 **Tactical SIP Buffer:** {currency_symbol}{tactical_cash_reserve:,.2f} dry powder\n"
+            tg_extra_metrics += f"🎯 *Tactical SIP Buffer:* {currency_symbol}{tactical_cash_reserve:,.2f} dry powder\n"
+        if cro_tier is not None:
+            extra_metrics += f"🛡️ **CRO Drawdown Tier:** {cro_tier}\n"
+            tg_cro = str(cro_tier).replace('_', ' ')
+            tg_extra_metrics += f"🛡️ *CRO Drawdown Tier:* {tg_cro}\n"
 
         # Determine effective holdings count
         effective_count = len(positions_detailed) if positions_detailed is not None else open_positions_count
@@ -186,6 +205,7 @@ class QuantNotifier:
             f"🤖 **QUANT BOT DAILY REBALANCE REPORT**\n"
             f"━━━━━━━━━━━━━━━━━━━━\n"
             f"💰 **Total Equity:** {currency_symbol}{equity:,.2f}\n"
+            f"{extra_metrics}"
             f"📈 **Today's Return:** {today_emoji} {today_sign}{currency_symbol}{today_pnl:,.2f} ({today_sign}{today_pnl_pct:.2f}%)\n"
             f"🏆 **Overall Return:** {overall_emoji} {overall_sign}{currency_symbol}{overall_pnl:,.2f} ({overall_sign}{overall_pnl_pct:.2f}%)\n"
             f"💵 **Cash Reserve:** {currency_symbol}{cash:,.2f} ({cash_pct:.1f}% uninvested buffer)\n"
@@ -214,6 +234,7 @@ class QuantNotifier:
                 f"🤖 *QUANT BOT DAILY REBALANCE REPORT*\n"
                 f"━━━━━━━━━━━━━━━━━━━━\n"
                 f"💰 *Total Equity:* {currency_symbol}{equity:,.2f}\n"
+                f"{tg_extra_metrics}"
                 f"📈 *Today's Return:* {today_emoji} {today_sign}{currency_symbol}{today_pnl:,.2f} ({today_sign}{today_pnl_pct:.2f}%)\n"
                 f"🏆 *Overall Return:* {overall_emoji} {overall_sign}{currency_symbol}{overall_pnl:,.2f} ({overall_sign}{overall_pnl_pct:.2f}%)\n"
                 f"💵 *Cash Reserve:* {currency_symbol}{cash:,.2f} ({cash_pct:.1f}% uninvested buffer)\n"
