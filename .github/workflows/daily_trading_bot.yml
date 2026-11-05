@@ -84,6 +84,14 @@ jobs:
           echo "=========================================================="
           python trading_system/scripts/run_quant_bot.py
 
+      - name: Persist Fiduciary State Artifacts
+        if: always()
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add trading_system/data/cro_state.json trading_system/data/unitized_nav_ledger.json trading_system/data/portfolio_state_metadata.json 2>/dev/null || true
+          git diff --staged --quiet || (git commit -m "chore(state): persist live CRO state and unitized NAV ledger [skip ci]" && git push)
+
       - name: Workflow Failure Alert Notification
         if: failure()
         env:
