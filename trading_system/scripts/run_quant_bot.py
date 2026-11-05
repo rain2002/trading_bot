@@ -19,6 +19,7 @@ from trading_system.app.research.quant_engine import QuantEngine, InvestorSkills
 from trading_system.app.broker.alpaca import AlpacaBrokerAdapter, BrokerAPIError
 from trading_system.app.broker.groww import GrowwBrokerAdapter
 from trading_system.app.execution.alpaca_live import AlpacaExecutionAdapter
+from trading_system.app.execution.dhan_fallback import OneClickOrderSafetyNet
 from trading_system.app.risk.basic import BasicRiskEngine
 from trading_system.app.risk.cro import ChiefRiskOfficer, CRORiskStatus
 from trading_system.app.accounting.unitized_nav import UnitizedNAVEngine
@@ -538,6 +539,15 @@ def execute_quant_live_cycle():
                         message=f"Critical network exception on order {side} {abs(qty_to_trade)} {sym}: {e}. Aborting remaining batch immediately to protect capital.",
                         color=16711680
                     )
+                    # Pod 2: 1-Click Mobile Safety Net Fallback
+                    remaining_trades = [t for t in planned_trades if t["symbol"] not in [x["symbol"] for x in executed_orders_log]]
+                    if remaining_trades and market.market_code == "IN":
+                        safety_net = OneClickOrderSafetyNet()
+                        safety_net.dispatch_fallback_basket_card(
+                            orders=remaining_trades,
+                            reason=f"Broker routing halted ({e}). 1-Click mobile execution available.",
+                            currency_symbol=market.currency_symbol
+                        )
                     break
 
                 if result.get("status") in ("SUBMITTED", "FILLED"):
@@ -559,7 +569,7 @@ def execute_quant_live_cycle():
                     err_msg = result.get("error", err_status)
                     print(f" -> [BROKER REJECT] Order failed for {sym}: {err_msg}")
                     # If network or connectivity failed, immediately abort batch to prevent partial or corrupted execution
-                    if err_status in ("NETWORK_ERROR", "CONNECTION_ERROR", "TIMEOUT"):
+                    if err_status in ("NETWORK_ERROR", "CONNECTION_ERROR", "TIMEOUT", "AUTH_FAILED", "TOKEN_EXPIRED"):
                         print(f" -> [CRITICAL NETWORK HALT] Aborting order execution batch immediately to preserve capital.")
                         notifier = QuantNotifier()
                         notifier.send_discord_alert(
@@ -567,6 +577,15 @@ def execute_quant_live_cycle():
                             message=f"Network error during routing of {sym}: {err_msg}. Aborting remaining order batch. Resting stops remain intact.",
                             color=16711680
                         )
+                        # Pod 2: 1-Click Mobile Safety Net Fallback
+                        remaining_trades = [t for t in planned_trades if t["symbol"] not in [x["symbol"] for x in executed_orders_log]]
+                        if remaining_trades and market.market_code == "IN":
+                            safety_net = OneClickOrderSafetyNet()
+                            safety_net.dispatch_fallback_basket_card(
+                                orders=remaining_trades,
+                                reason=f"Broker rejection ({err_msg}). 1-Click mobile execution available.",
+                                currency_symbol=market.currency_symbol
+                            )
                         break
             else:
                 print(f" -> [RISK HALT] Trade rejected by Risk Engine: {sym} {qty_to_trade}")
