@@ -783,9 +783,14 @@ class GrowwBrokerAdapter(BrokerAdapter):
                 return o.get("status", "UNKNOWN")
         return "UNKNOWN"
 
-    def get_portfolio_history(self, period: str = "1M", timeframe: str = "1D") -> Optional[pd.DataFrame]:
-        """Generate/fetch historical equity curve for Indian portfolio."""
-        days = 30 if period == "1M" else 90
+    def get_portfolio_history(self, period: str = "13W", timeframe: str = "1D") -> Optional[pd.DataFrame]:
+        """Generate/fetch historical equity curve for Indian portfolio (13-week institutional trail)."""
+        if period in ("13W", "3M", "90D", "all"):
+            days = 91  # 13 weeks
+        elif period == "1M":
+            days = 30
+        else:
+            days = 91
         now = datetime.now()
         timestamps = [now - timedelta(days=d) for d in range(days, -1, -1)]
         

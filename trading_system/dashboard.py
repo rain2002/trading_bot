@@ -682,7 +682,7 @@ PAGE_OPTIONS = [
     "📊 Portfolio Overview",
     "📋 Positions & Stop-Loss",
     "⚡ Manual Order Desk & Execution",
-    "🏆 30-Day Incubation Scorecard",
+    "🏆 13-Week Incubation Scorecard",
     "📜 Order Activity Log",
     "🧠 Quant Brain & Strategy",
     "🛡️ Risk Safeguards"
@@ -698,6 +698,8 @@ try:
             if qp_page in opt.lower():
                 st.session_state.current_page = opt
                 break
+        if any(k in qp_page for k in ("13-week", "13w", "30-day", "scorecard", "incubation", "trial")):
+            st.session_state.current_page = "🏆 13-Week Incubation Scorecard"
 except Exception:
     pass
 

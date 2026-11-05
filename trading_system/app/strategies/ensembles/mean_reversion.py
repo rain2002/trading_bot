@@ -26,7 +26,7 @@ class MeanReversionStrategy:
         bb_window: int = 20,
         bb_std: float = 2.0,
         rsi_window: int = 14,
-        rsi_oversold: float = 38.0,
+        rsi_oversold: float = 35.0,  # Fiduciary Roadmap Spec: RSI14 < 35.0
         rsi_exit: float = 55.0,
     ):
         self.bb_window = bb_window
@@ -89,20 +89,42 @@ class MeanReversionStrategy:
             confidence = min(1.0, 0.70 + (self.rsi_oversold - rsi) * 0.015)
             return {
                 "signal": 1,
+                "strategy": "MEAN_REVERSION_DIP",
                 "confidence": round(confidence, 2),
                 "rationale": f"Mean-Reversion BUY: Price ({current_price:.2f}) near BB Lower ({bb_lower:.2f}), RSI is {rsi:.1f}",
+                "indicators": {
+                    "current_price": round(current_price, 2),
+                    "bb_lower": round(bb_lower, 2),
+                    "bb_mid": round(bb_mid, 2),
+                    "bb_upper": round(curr.get("bb_upper", current_price), 2),
+                    "rsi": round(rsi, 2),
+                    "sma_200": round(sma_200, 2)
+                }
             }
 
         # EXIT Condition: Price reached middle band or RSI normalized
         if current_price >= bb_mid or rsi >= self.rsi_exit:
             return {
                 "signal": -1,  # Close long position / mean reverted
+                "strategy": "MEAN_REVERSION_DIP",
                 "confidence": 0.75,
                 "rationale": f"Mean-Reversion EXIT: Reverted to mean ({bb_mid:.2f}), RSI is {rsi:.1f}",
+                "indicators": {
+                    "current_price": round(current_price, 2),
+                    "bb_mid": round(bb_mid, 2),
+                    "rsi": round(rsi, 2)
+                }
             }
 
         return {
             "signal": 0,
+            "strategy": "MEAN_REVERSION_DIP",
             "confidence": 0.50,
             "rationale": f"Mean-Reversion HOLD/NEUTRAL: RSI={rsi:.1f}, BB Lower={bb_lower:.2f}",
+            "indicators": {
+                "current_price": round(current_price, 2),
+                "bb_lower": round(bb_lower, 2),
+                "bb_mid": round(bb_mid, 2),
+                "rsi": round(rsi, 2)
+            }
         }
