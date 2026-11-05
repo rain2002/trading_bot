@@ -1,0 +1,38 @@
+{
+  "CBRE": {
+    "symbol": "CBRE",
+    "holding_type": "MOMENTUM",
+    "entry_date": "2026-10-28",
+    "entry_price": 124.415333,
+    "peak_price": 141.16,
+    "quantity": 45.0,
+    "updated_at": "2026-11-04T20:02:02.747354"
+  },
+  "HUBB": {
+    "symbol": "HUBB",
+    "holding_type": "MOMENTUM",
+    "entry_date": "2026-10-30",
+    "entry_price": 432.49,
+    "peak_price": 438.41,
+    "quantity": 6.0,
+    "updated_at": "2026-11-04T20:02:05.600930"
+  },
+  "FTNT": {
+    "symbol": "FTNT",
+    "holding_type": "MOMENTUM",
+    "entry_date": "2026-11-02",
+    "entry_price": 133.687805,
+    "peak_price": 133.687805,
+    "quantity": 64.0,
+    "updated_at": "2026-11-04T20:02:01.599536"
+  },
+  "SNA": {
+    "symbol": "SNA",
+    "holding_type": "MOMENTUM",
+    "entry_date": "2026-10-28",
+    "entry_price": 361.31,
+    "peak_price": 368.805,
+    "quantity": 15.0,
+    "updated_at": "2026-11-04T20:02:07.526966"
+  }
+}
