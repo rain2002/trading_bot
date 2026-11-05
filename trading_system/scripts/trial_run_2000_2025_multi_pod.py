@@ -33,8 +33,8 @@ START_DATE = "2000-01-03"
 END_DATE = "2025-12-30"
 INITIAL_CAPITAL = 1000.0  # Exactly $1,000 USD
 SLIPPAGE_BPS = 5.0        # 5 bps institutional slippage
-MAX_POD1_POSITIONS = 12   # Pod 1 equity slots (target ~8% each)
-POD1_TARGET_ALLOC = 0.08  # 8% target per position
+MAX_POD1_POSITIONS = 10   # Pod 1 high-conviction equity slots (target ~10% each)
+POD1_TARGET_ALLOC = 0.10  # 10% baseline target per position
 POD2_ALLOC_PCT = 0.20     # Pod 2 Stat Arb allocation pool
 
 # Curated GICS Industry Pairs for Pod 2 Stat Arb (Strictly Cointegrated)
@@ -479,8 +479,23 @@ def run_multi_pod_simulation():
 
             cands.sort(key=lambda x: x["score"], reverse=True)
 
+            # Ed Thorp Fractional Kelly Position Sizing (Causal rolling evaluation on closed trades)
+            past_equity_trades = [t for t in trade_log if t.get("pod") == "POD1_EQUITY" and t["action"] == "SELL"]
+            if len(past_equity_trades) >= 20:
+                recent = past_equity_trades[-50:]  # Rolling last 50 closed trades
+                wins = [t["pnl_pct"] for t in recent if t["pnl_pct"] > 0]
+                losses = [abs(t["pnl_pct"]) for t in recent if t["pnl_pct"] < 0]
+                p_win = len(wins) / len(recent) if recent else 0.42
+                avg_w = np.mean(wins) if wins else 0.18
+                avg_l = np.mean(losses) if losses else 0.07
+                b_ratio = avg_w / avg_l if avg_l > 0 else 2.5
+                f_star = p_win - (1.0 - p_win) / b_ratio
+                kelly_alloc = float(np.clip(0.40 * f_star, 0.08, 0.15))
+            else:
+                kelly_alloc = 1.0 / MAX_POD1_POSITIONS
+
             slot_budget = (cash * 0.98) / open_slots
-            target_alloc = min(max(total_equity * (1.0 / MAX_POD1_POSITIONS), slot_budget), total_equity * 0.12)
+            target_alloc = min(max(total_equity * kelly_alloc, slot_budget), total_equity * 0.15)
 
             for cand in cands[:open_slots]:
                 if cash < 25.0:
