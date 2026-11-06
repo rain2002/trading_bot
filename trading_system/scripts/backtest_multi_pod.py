@@ -172,6 +172,8 @@ def run_simulation(
     positions: Dict[str, float] = {}       # sym -> shares (Strictly >= 0)
     entry_prices: Dict[str, float] = {}    # sym -> entry price
     peak_prices: Dict[str, float] = {}     # sym -> peak price
+    hwm = INITIAL_CAPITAL
+    emergency_halt = False
 
     trade_log = []
     equity_curve = {}
@@ -457,6 +459,20 @@ def print_comparative_tear_sheet(normal_res: Dict[str, Any], stressed_res: Dict[
     print(f"{'Terminal Wealth Advantage over SPY':<38} | {normal_res['terminal_wealth_advantage']:>13.2f}x      | {stressed_res['terminal_wealth_advantage']:>17.2f}x")
     print("=" * 90)
 
+    # Gate A Fiduciary Clearance Audit
+    gate_a_passed = bool(
+        stressed_res['cagr_pct'] > stressed_res['spy_cagr_pct']
+        and stressed_res['max_drawdown_pct'] >= -25.0
+    )
+    status_str = "PASSED" if gate_a_passed else "FAILED (Drawdown Violation)"
+    print(f"\nGATE A FIDUCIARY CLEARANCE VERDICT: {status_str}")
+    if not gate_a_passed:
+        print(f"  [X] Max Drawdown Fail: {stressed_res['max_drawdown_pct']:.2f}% (Limit: -25.00%, Hard Cap: -30.00%)")
+        print(f"  [!] Stage 2 Live Deployment BLOCKED. Strategy must undergo incubation in Stage 1 forward paper trading.")
+    else:
+        print(f"  [OK] Stressed Max Drawdown {stressed_res['max_drawdown_pct']:.2f}% meets <= -25.00% threshold.")
+    print("=" * 90)
+
 
 def main():
     parser = argparse.ArgumentParser(description="Institutional Long-Only Point-in-Time 26-Year Backtester")
@@ -523,7 +539,10 @@ def main():
         "normal_run": {k: v for k, v in normal_res.items() if k != "equity_series"},
         "stressed_run": {k: v for k, v in stressed_res.items() if k != "equity_series"},
         "gate_a_evaluated_on": "stressed_run",
-        "gate_a_passed": bool(stressed_res["cagr_pct"] > stressed_res["spy_cagr_pct"] and stressed_res["max_drawdown_pct"] > -40.0),
+        "gate_a_passed": bool(
+            stressed_res["cagr_pct"] > stressed_res["spy_cagr_pct"]
+            and stressed_res["max_drawdown_pct"] >= -25.0
+        ),
         "holdout_opened": args.open_holdout,
         "frozen_kelly_fraction": FROZEN_KELLY_FRACTION,
         "frozen_mom_lookback": FROZEN_MOM_LOOKBACK,

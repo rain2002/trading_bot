@@ -7,3 +7,13 @@ date,commit_hash,kelly_fraction,lookback_days,cagr_pct,max_drawdown_pct,sharpe_r
 2026-11-04 20:00:00,f8bd332,0.4,90,13.01,-34.5,0.61,False,Variant 3 Pre-Audit Multi-Pod with Pairs (Stressed 7.5 bps)
 2026-11-05 19:30:00,f8bd332,0.4,90,12.83,-33.48,0.61,True,Variant 4 Audited Long-Only Clean Invariant (Normal 5.0 bps)
 2026-11-05 19:39:50,f8bd332,0.4,90,12.64,-34.11,0.60,True,Variant 4 Audited Long-Only Clean Invariant (Stressed 7.5 bps)
+2026-11-06 02:05:33,c2c77ea,0.4,90,12.1,-34.0,0.7,False,Normal Run (5.0 bps) | IN_SAMPLE
+2026-11-06 02:05:33,c2c77ea,0.4,90,11.91,-34.11,0.69,False,Stressed Run (7.5 bps) [Gate A] | IN_SAMPLE
+2026-11-06 02:10:12,2680849,0.4,90,0.73,-23.47,0.14,False,Normal Run (5.0 bps) | IN_SAMPLE
+2026-11-06 02:10:12,2680849,0.4,90,0.51,-23.5,0.11,False,Stressed Run (7.5 bps) [Gate A] | IN_SAMPLE
+2026-11-06 02:11:19,2680849,0.4,90,3.12,-25.07,0.33,False,Normal Run (5.0 bps) | IN_SAMPLE
+2026-11-06 02:11:19,2680849,0.4,90,3.71,-24.57,0.34,False,Stressed Run (7.5 bps) [Gate A] | IN_SAMPLE
+2026-11-06 02:12:02,2680849,0.4,90,3.11,-24.51,0.31,False,Normal Run (5.0 bps) | IN_SAMPLE
+2026-11-06 02:12:02,2680849,0.4,90,2.8,-25.4,0.31,False,Stressed Run (7.5 bps) [Gate A] | IN_SAMPLE
+2026-11-06 02:13:18,2680849,0.4,90,12.1,-34.0,0.7,False,Normal Run (5.0 bps) | IN_SAMPLE
+2026-11-06 02:13:18,2680849,0.4,90,11.91,-34.11,0.69,False,Stressed Run (7.5 bps) [Gate A] | IN_SAMPLE
