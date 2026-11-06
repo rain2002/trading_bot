@@ -5,8 +5,8 @@
     "last_boss_ping": "2026-11-05T01:58:17.587328+00:00",
     "confirmed_regime": "TRENDING_BULL",
     "last_regime_flip_date": null,
-    "emergency_halt_active": false,
-    "regime_candidate": "BULL_TRENDING",
+    "emergency_halt_active": true,
+    "regime_candidate": "VOLATILITY_CAUTION",
     "regime_candidate_count": 1,
     "kill_switch_drill_verified": true,
     "last_drill_record": {
