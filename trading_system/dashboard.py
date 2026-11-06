@@ -1383,11 +1383,13 @@ if page == "📊 Portfolio Overview":
             <div class="groww-header">
                 <div class="metric-left">
                     <div class="legend-row" style="font-size: 0.88rem; color: #8F9CAE; font-weight: 500; text-transform: capitalize;">
-                        <span>Current</span> <span class="dot-purple" style="width: 8px; height: 8px; background-color: #8B5CF6; border-radius: 2px; display: inline-block; margin-left: 6px;"></span>
+                        <span>Current</span> <span id="legend-dot" class="dot-purple" style="width: 8px; height: 8px; background-color: #8B5CF6; border-radius: 2px; display: inline-block; margin-left: 6px;"></span>
                     </div>
                     <div class="big-number" id="current-display">{CURRENCY_SYMBOL}{equity:,.2f}</div>
                     <div class="return-row" id="return-row" style="font-size: 0.92rem;">
-                        <span id="pnl-span" style="font-weight: 600; color: {'#00D09C' if today_pnl >= 0 else '#EB5B56'};">{format_pnl_str(today_pnl)} ({format_pct_str(today_pnl_pct)})</span>
+                        <div id="pnl-badge" class="return-glass-badge {'badge-green' if today_pnl >= 0 else 'badge-red'}">
+                            <span id="pnl-span" style="font-weight: 600;">{format_pnl_str(today_pnl)} ({format_pct_str(today_pnl_pct)})</span>
+                        </div>
                         <span id="tf-tag" class="tf-sub" style="color: #717D96; margin-left: 6px;">All time</span>
                     </div>
                 </div>
@@ -1557,7 +1559,7 @@ if page == "📊 Portfolio Overview":
         const areaOp0 = isPos ? '0.14' : '0.18';
         const areaOp70 = isPos ? '0.02' : '0.03';
 
-        pnlBadge.className = 'return-glass-badge ' + (isPos ? 'badge-green' : 'badge-red');
+        if (pnlBadge) pnlBadge.className = 'return-glass-badge ' + (isPos ? 'badge-green' : 'badge-red');
         pnlSpan.innerHTML = `${{sign}}${{formatCurrency(Math.abs(pnl), currentCurrency)}} (${{pnlPct >= 0 ? '+' : ''}}${{pnlPct.toFixed(2)}}%)`;
         document.getElementById('tf-tag').innerText = activeTimeframe === 'All' ? 'All time' : activeTimeframe;
         
@@ -1706,7 +1708,7 @@ if page == "📊 Portfolio Overview":
         const pointColor = isPointPos ? '#00D09C' : '#EB5B56';
         const pnlBadge = document.getElementById('pnl-badge');
         const pnlSpan = document.getElementById('pnl-span');
-        pnlBadge.className = 'return-glass-badge ' + (isPointPos ? 'badge-green' : 'badge-red');
+        if (pnlBadge) pnlBadge.className = 'return-glass-badge ' + (isPointPos ? 'badge-green' : 'badge-red');
         pnlSpan.innerHTML = `${{sign}}${{formatCurrency(Math.abs(pnl), currentCurrency)}} (${{pnlPct >= 0 ? '+' : ''}}${{pnlPct.toFixed(2)}}%)`;
         document.getElementById('tf-tag').innerText = dateStr;
 
