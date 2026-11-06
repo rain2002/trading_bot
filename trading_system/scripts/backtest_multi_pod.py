@@ -5,7 +5,7 @@ Mathematical Framework:
   1. Core Strategy         : Clenow Exponential Relative Strength Momentum (Slope * R^2)
   2. Dynamic Sizing        : Ed Thorp Fractional Kelly Criterion (Frozen 40% f*, Causal Rolling Expectancy)
   3. Holding Invariant     : Two-Tier Profit Trailing (100-SMA initial / 150-SMA + 22% Peak on Winners)
-  4. Fiduciary Invariant   : Strictly Long-Only Equities (Zero Shorting, Zero Pairs, Share Count >= 0)
+  4. Fiduciary Invariant   : Strictly Long-Only Equities (Share Count >= 0)
   5. Macro Risk Gate       : Dual-Horizon Trend & Breadth Thrust (Buffered 200-SMA / 50-SMA Reclaim)
   6. Point-in-Time Universe: 2,720 Historical Reconstitution Events (Zero Survivorship Bias)
   7. Corporate Actions     : Cash Dividends Reinvested + Continuous Split Adjustments
@@ -486,7 +486,7 @@ def main():
     print("=" * 90)
     print(">>> INSTITUTIONAL LONG-ONLY 26-YEAR POINT-IN-TIME BACKTEST (2000 - 2025) <<<")
     print(f"Starting Capital         : ${INITIAL_CAPITAL:,.2f} USD")
-    print(f"Strategy Mandate         : Strictly Long-Only Equities (Zero Shorting / Zero Pairs)")
+    print(f"Strategy Mandate         : Strictly Long-Only Equities (Share Count >= 0)")
     print(f"Testing Horizon          : {START_DATE} to {active_end_date} {'[HOLDOUT OPENED]' if args.open_holdout else '[12-MONTH HOLDOUT RESERVED]'}")
     print(f"Frozen Kelly Settings    : f* Multiplier = {FROZEN_KELLY_FRACTION:.2f} | Lookback = {FROZEN_MOM_LOOKBACK}d | Bounds = [{FROZEN_MIN_ALLOC*100:.0f}%, {FROZEN_MAX_ALLOC*100:.0f}%]")
     print(f"Core Alpha Strategy      : Clenow Exponential Relative Strength (Slope*R^2) + Two-Tier Trailing")
@@ -561,6 +561,8 @@ def main():
         kelly_fraction=FROZEN_KELLY_FRACTION,
         lookback_days=FROZEN_MOM_LOOKBACK,
         is_holdout_opened=args.open_holdout,
+        script="backtest_multi_pod.py",
+        universe="US_SP500",
         notes=f"Normal Run ({args.slippage:.1f} bps) | {'HOLDOUT_OPENED' if args.open_holdout else 'IN_SAMPLE'}"
     )
     log_trial(
@@ -570,6 +572,8 @@ def main():
         kelly_fraction=FROZEN_KELLY_FRACTION,
         lookback_days=FROZEN_MOM_LOOKBACK,
         is_holdout_opened=args.open_holdout,
+        script="backtest_multi_pod.py",
+        universe="US_SP500",
         notes=f"Stressed Run ({stressed_slippage:.1f} bps) [Gate A] | {'HOLDOUT_OPENED' if args.open_holdout else 'IN_SAMPLE'}"
     )
     print(f"[OK] Runs appended to trial_log.csv (Holdout opened: {args.open_holdout})\n")

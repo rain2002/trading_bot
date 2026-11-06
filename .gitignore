@@ -35,12 +35,13 @@ htmlcov/
 *.pkl
 *.joblib.bak
 
-# Backtest Run Artifacts
+# Backtest Run Artifacts & Historical Price Caches (rebuilt locally via cache scripts)
 equity_curve_*.csv
 trades_log_*.csv
 corporate_actions_*.csv
-trading_system/data/historical_cache/*.csv
-trading_system/data/historical_cache_nse/*.csv
+trading_system/data/historical_cache/
+trading_system/data/historical_cache_nse/
+*.parquet
 *cache.json
 *capture*.py
 
