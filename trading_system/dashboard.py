@@ -952,6 +952,7 @@ if page == "📊 Portfolio Overview":
         <div style="display: flex; gap: 8px; align-items: center;">
             <span class="status-pill"><span class="pulse-dot"></span> LIVE EXECUTION READY</span>
             <span class="status-pill" style="border-color: rgba(0, 208, 156, 0.25); color: #00D09C;">{broker_live_badge}</span>
+            <span class="status-pill" style="border-color: rgba(255, 255, 255, 0.14); color: #FFFFFF;">{'NSE ML GATE' if is_india_mode else 'PHASE 3 ML GATE'}</span>
         </div>
     </div>
     """, unsafe_allow_html=True)
@@ -992,61 +993,7 @@ if page == "📊 Portfolio Overview":
     </div>
     """, unsafe_allow_html=True)
 
-# 5-CARD UNIFORM KPI DECK (Clean, Pixel-Perfect Matching Heights & Alignment)
-    k1, k2, k3, k4, k5 = st.columns(5)
-
-    with k1:
-        st.markdown(f"""
-        <div class="cyber-kpi-card">
-            <div class="kpi-title">PORTFOLIO TOTAL EQUITY</div>
-            <div class="kpi-value"><div class="metric-big">{CURRENCY_SYMBOL}{equity:,.2f}</div></div>
-            <div class="kpi-badge-row"><div class="metric-badge-uniform">NAV REAL-TIME</div></div>
-        </div>
-        """, unsafe_allow_html=True)
-
-    with k2:
-        pnl_class = "metric-big-green" if today_pnl >= 0 else "metric-big-red"
-        badge_class = "metric-badge-mint" if today_pnl >= 0 else "metric-badge-danger"
-        st.markdown(f"""
-        <div class="cyber-kpi-card">
-            <div class="kpi-title">TODAY'S SESSION P&L</div>
-            <div class="kpi-value"><div class="{pnl_class}">{format_pnl_str(today_pnl)}</div></div>
-            <div class="kpi-badge-row"><div class="{badge_class}">{format_pct_str(today_pnl_pct)} TODAY</div></div>
-        </div>
-        """, unsafe_allow_html=True)
-
-    with k3:
-        all_class = "metric-big-green" if overall_pnl >= 0 else "metric-big-red"
-        badge_all_class = "metric-badge-mint" if overall_pnl >= 0 else "metric-badge-danger"
-        st.markdown(f"""
-        <div class="cyber-kpi-card">
-            <div class="kpi-title">INCEPTION NET RETURN</div>
-            <div class="kpi-value"><div class="{all_class}">{format_pnl_str(overall_pnl)}</div></div>
-            <div class="kpi-badge-row"><div class="{badge_all_class}">{format_pct_str(overall_pnl_pct)} NET ALPHA</div></div>
-        </div>
-        """, unsafe_allow_html=True)
-
-    with k4:
-        st.markdown(f"""
-        <div class="cyber-kpi-card">
-            <div class="kpi-title">LIQUID CASH BUFFER</div>
-            <div class="kpi-value"><div class="metric-big">{CURRENCY_SYMBOL}{cash:,.2f}</div></div>
-            <div class="kpi-badge-row"><div class="metric-badge-uniform">{cash_pct:.1f}% PRESERVED</div></div>
-        </div>
-        """, unsafe_allow_html=True)
-
-    with k5:
-        tier_title = "NIFTY 100 ML GATE" if is_india_mode else "PHASE 3 ML GATE"
-        tier_badge = "SEBI DELIVERY OPTIMIZED" if is_india_mode else "ML ALPHA GATE ACTIVE"
-        st.markdown(f"""
-        <div class="cyber-kpi-card">
-            <div class="kpi-title">AI ARCHITECTURE TIER</div>
-            <div class="kpi-value"><div class="metric-big">{'NSE ML' if is_india_mode else 'PHASE 3'}</div></div>
-            <div class="kpi-badge-row"><div class="metric-badge-mint">{tier_badge}</div></div>
-        </div>
-        """, unsafe_allow_html=True)
-
-    # ==============================================================================
+# ==============================================================================
     # 📈 GROWW-STYLE HERO LINE GRAPH: CURRENT VS INVESTED PORTFOLIO TRAJECTORY
     # (1M | 6M | 1Y | 3Y | 5Y | All)
     # ==============================================================================
@@ -1096,6 +1043,12 @@ if page == "📊 Portfolio Overview":
             sliced = df.iloc[-min(len(df), max(2, days)):]
         return sliced
 
+    # Enforce terminal equity on historical dataset to perfectly match live account equity
+    if not df_clean.empty:
+        df_clean.iloc[-1, df_clean.columns.get_loc("equity")] = round(float(equity), 2)
+        df_clean.iloc[-1, df_clean.columns.get_loc("profit_loss")] = round(float(equity - initial_capital), 2)
+        df_clean.iloc[-1, df_clean.columns.get_loc("profit_loss_pct")] = round(float((equity - initial_capital) / initial_capital), 4)
+
     timeframe_configs = {
         "1M": 30,
         "6M": 180,
@@ -1107,7 +1060,9 @@ if page == "📊 Portfolio Overview":
 
     packaged_datasets = {}
     for tf_key, days_span in timeframe_configs.items():
-        sub_df = slice_history(df_clean, days_span)
+        sub_df = slice_history(df_clean, days_span).copy()
+        if not sub_df.empty:
+            sub_df.iloc[-1, sub_df.columns.get_loc("equity")] = round(float(equity), 2)
         packaged_datasets[tf_key] = {
             "dates": [ts.strftime("%b %d, %Y") for ts in sub_df["timestamp"]],
             "equity": [round(float(v), 2) for v in sub_df["equity"]],
