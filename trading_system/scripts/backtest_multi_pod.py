@@ -3,7 +3,7 @@ Production Institutional 26-Year Point-in-Time Long-Only Backtester (2000 - 2025
 ================================================================================
 Mathematical Framework:
   1. Core Strategy         : Clenow Exponential Relative Strength Momentum (Slope * R^2)
-  2. Dynamic Sizing        : Ed Thorp Fractional Kelly Criterion (causal rolling expectancy)
+  2. Dynamic Sizing        : Ed Thorp Fractional Kelly Criterion (Frozen 40% f*, Causal Rolling Expectancy)
   3. Holding Invariant     : Two-Tier Profit Trailing (100-SMA initial / 150-SMA + 22% Peak on Winners)
   4. Fiduciary Invariant   : Strictly Long-Only Equities (Zero Shorting, Zero Pairs, Share Count >= 0)
   5. Macro Risk Gate       : Dual-Horizon Trend & Breadth Thrust (Buffered 200-SMA / 50-SMA Reclaim)
@@ -12,6 +12,8 @@ Mathematical Framework:
   8. Cash Reserve Compounding: Daily Historical 3-Month US Treasury Bill Interest (^IRX)
   9. Strict Fiduciary Guard: Zero Machine Learning Training on Test Data (Strictly Causal <= t)
   10. Stress-Test Protocol : Normal Costs (5.0 bps) & Stressed Costs (+50% Slippage = 7.5 bps)
+  11. Holdout Protocol     : Backtest ends 12 months early by default (ends 2024-12-31); --open-holdout to extend
+  12. Anti-Overfitting Log : Every backtest iteration automatically logged to data/trial_log.csv
 """
 
 import warnings
@@ -32,14 +34,23 @@ PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..
 sys.path.insert(0, PROJECT_ROOT)
 
 from trading_system.app.data.constituent_manager import PointInTimeConstituentManager
+from trading_system.app.validation.trial_logger import log_trial
 
 CACHE_DIR = os.path.join(PROJECT_ROOT, "trading_system", "data", "historical_cache")
 
 START_DATE = "2000-01-03"
-END_DATE = "2025-12-30"
-INITIAL_CAPITAL = 1000.0  # Exactly $1,000 USD
-DEFAULT_SLIPPAGE_BPS = 5.0  # 5 bps institutional baseline
-MAX_CORE_POSITIONS = 10   # 10 High-Conviction Core Slots
+DEFAULT_END_DATE = "2024-12-31"   # Default in-sample: 12 months early to protect untouched holdout
+HOLDOUT_END_DATE = "2025-12-30"   # Full horizon with out-of-sample holdout opened
+
+# FROZEN PARAMETERS (Strict anti-overfitting protocol: frozen before runs, no tweaking after results)
+FROZEN_KELLY_FRACTION = 0.40      # Frozen half-Kelly dampener (40% f*)
+FROZEN_MOM_LOOKBACK = 90          # Frozen 90-day exponential regression window
+FROZEN_MIN_ALLOC = 0.08           # Frozen 8% lower bound
+FROZEN_MAX_ALLOC = 0.15           # Frozen 15% upper bound
+
+INITIAL_CAPITAL = 1000.0          # Exactly $1,000 USD
+DEFAULT_SLIPPAGE_BPS = 5.0        # 5 bps institutional baseline
+MAX_CORE_POSITIONS = 10           # 10 High-Conviction Core Slots
 
 
 def normalize_index(df: pd.DataFrame) -> pd.DataFrame:
@@ -70,7 +81,7 @@ def calc_vectorized_momentum(series: np.ndarray, window: int = 90) -> np.ndarray
     return scores
 
 
-def load_market_data() -> Tuple[Any, pd.DataFrame, pd.Series, pd.Series, Dict[str, Any], list]:
+def load_market_data(end_date: str = DEFAULT_END_DATE) -> Tuple[Any, pd.DataFrame, pd.Series, pd.Series, Dict[str, Any], list]:
     """Load benchmark, interest rates, PIT constituents, and precalculate causal features once."""
     print("[1/4] Loading Point-in-Time Index Constituent Manager...", flush=True)
     constituent_mgr = PointInTimeConstituentManager()
@@ -119,7 +130,7 @@ def load_market_data() -> Tuple[Any, pd.DataFrame, pd.Series, pd.Series, Dict[st
             close_s = pd.Series(close, index=df.index)
             sma100 = close_s.rolling(100, min_periods=30).mean().values
             sma150 = close_s.rolling(150, min_periods=50).mean().values
-            mom90 = calc_vectorized_momentum(close, window=90)
+            mom90 = calc_vectorized_momentum(close, window=FROZEN_MOM_LOOKBACK)
 
             norm_sym = PointInTimeConstituentManager.normalize_symbol(base)
             precalc[norm_sym] = {
@@ -137,7 +148,7 @@ def load_market_data() -> Tuple[Any, pd.DataFrame, pd.Series, pd.Series, Dict[st
 
     print(f"  Precalculated causal features for {len(precalc)} stocks in {time.time()-t0:.2f}s.", flush=True)
 
-    timeline = sorted([d for d in spy_df.index if pd.to_datetime(START_DATE) <= d <= pd.to_datetime(END_DATE)])
+    timeline = sorted([d for d in spy_df.index if pd.to_datetime(START_DATE) <= d <= pd.to_datetime(end_date)])
     print(f"[4/4] Timeline aligned: {len(timeline)} trading days from {timeline[0].date()} to {timeline[-1].date()}\n", flush=True)
 
     return constituent_mgr, spy_df, macro_bull, irx_yield, precalc, timeline
@@ -299,7 +310,7 @@ def run_simulation(
 
             cands.sort(key=lambda x: x["score"], reverse=True)
 
-            # Ed Thorp Fractional Kelly Position Sizing (Causal rolling expectancy on past closed trades)
+            # Ed Thorp Fractional Kelly Position Sizing (Strictly Frozen Causal Expectancy)
             past_closed = [t for t in trade_log if t["action"] == "SELL"]
             if len(past_closed) >= 20:
                 recent = past_closed[-50:]
@@ -310,12 +321,12 @@ def run_simulation(
                 avg_l = np.mean(losses) if losses else 0.07
                 b_ratio = avg_w / avg_l if avg_l > 0 else 2.5
                 f_star = p_win - (1.0 - p_win) / b_ratio
-                kelly_alloc = float(np.clip(0.40 * f_star, 0.08, 0.15))
+                kelly_alloc = float(np.clip(FROZEN_KELLY_FRACTION * f_star, FROZEN_MIN_ALLOC, FROZEN_MAX_ALLOC))
             else:
                 kelly_alloc = 1.0 / MAX_CORE_POSITIONS
 
             slot_budget = (cash * 0.98) / open_slots
-            target_alloc = min(max(total_equity * kelly_alloc, slot_budget), total_equity * 0.15)
+            target_alloc = min(max(total_equity * kelly_alloc, slot_budget), total_equity * FROZEN_MAX_ALLOC)
 
             for cand in cands[:open_slots]:
                 if cash < 25.0:
@@ -429,7 +440,7 @@ def print_comparative_tear_sheet(normal_res: Dict[str, Any], stressed_res: Dict[
     print(f"{'Metric':<38} | {'Normal (5.0 bps)':<22} | {'Stressed (7.5 bps) [Gate A]':<26}")
     print("-" * 90)
     print(f"{'Starting Capital':<38} | ${normal_res['starting_capital']:>14,.2f} USD  | ${stressed_res['starting_capital']:>18,.2f} USD")
-    print(f"{'Terminal Account Equity (2025)':<38} | ${normal_res['terminal_equity']:>14,.2f} USD  | ${stressed_res['terminal_equity']:>18,.2f} USD")
+    print(f"{'Terminal Account Equity':<38} | ${normal_res['terminal_equity']:>14,.2f} USD  | ${stressed_res['terminal_equity']:>18,.2f} USD")
     print(f"{'Total Cumulative Return':<38} | {normal_res['total_return_pct']:>13,.2f}%      | {stressed_res['total_return_pct']:>17,.2f}%")
     print(f"{'Compound Annual Growth Rate (CAGR)':<38} | {normal_res['cagr_pct']:>13.2f}%      | {stressed_res['cagr_pct']:>17.2f}%")
     print(f"{'Maximum Drawdown (Peak-to-Trough)':<38} | {normal_res['max_drawdown_pct']:>13.2f}%      | {stressed_res['max_drawdown_pct']:>17.2f}%")
@@ -451,20 +462,24 @@ def main():
     parser = argparse.ArgumentParser(description="Institutional Long-Only Point-in-Time 26-Year Backtester")
     parser.add_argument("--slippage", type=float, default=5.0, help="Baseline slippage in bps (default: 5.0)")
     parser.add_argument("--stress-only", action="store_true", help="Run only the stressed configuration")
+    parser.add_argument("--open-holdout", action="store_true", help="Open the 12-month out-of-sample holdout window (ends 2025-12-30). Logs promotion event.")
     args = parser.parse_args()
+
+    active_end_date = HOLDOUT_END_DATE if args.open_holdout else DEFAULT_END_DATE
 
     print("=" * 90)
     print(">>> INSTITUTIONAL LONG-ONLY 26-YEAR POINT-IN-TIME BACKTEST (2000 - 2025) <<<")
     print(f"Starting Capital         : ${INITIAL_CAPITAL:,.2f} USD")
     print(f"Strategy Mandate         : Strictly Long-Only Equities (Zero Shorting / Zero Pairs)")
+    print(f"Testing Horizon          : {START_DATE} to {active_end_date} {'[HOLDOUT OPENED]' if args.open_holdout else '[12-MONTH HOLDOUT RESERVED]'}")
+    print(f"Frozen Kelly Settings    : f* Multiplier = {FROZEN_KELLY_FRACTION:.2f} | Lookback = {FROZEN_MOM_LOOKBACK}d | Bounds = [{FROZEN_MIN_ALLOC*100:.0f}%, {FROZEN_MAX_ALLOC*100:.0f}%]")
     print(f"Core Alpha Strategy      : Clenow Exponential Relative Strength (Slope*R^2) + Two-Tier Trailing")
-    print(f"Position Sizing Engine   : Ed Thorp Fractional Kelly Criterion (Rolling Causal Expectancy)")
     print(f"Macro Risk Architecture  : Dual-Horizon Trend (Buffered 200-SMA / 50-SMA Reclaim)")
     print(f"Cash Compounding         : Daily Historical 3-Month US Treasury Bill Yield (^IRX)")
     print(f"Fiduciary Invariants     : Daily Non-Negative Share Assertion | Strict PIT Reconstitution")
     print("=" * 90 + "\n")
 
-    constituent_mgr, spy_df, macro_bull, irx_yield, precalc, timeline = load_market_data()
+    constituent_mgr, spy_df, macro_bull, irx_yield, precalc, timeline = load_market_data(end_date=active_end_date)
 
     # 1. Normal Run (5.0 bps baseline)
     normal_res = run_simulation(
@@ -475,7 +490,7 @@ def main():
         precalc=precalc,
         timeline=timeline,
         slippage_bps=args.slippage,
-        label="Normal Costs (5.0 bps)"
+        label=f"Normal Costs ({args.slippage:.1f} bps)"
     )
 
     # 2. Stressed Run (+50% Slippage = 7.5 bps)
@@ -509,12 +524,36 @@ def main():
         "stressed_run": {k: v for k, v in stressed_res.items() if k != "equity_series"},
         "gate_a_evaluated_on": "stressed_run",
         "gate_a_passed": bool(stressed_res["cagr_pct"] > stressed_res["spy_cagr_pct"] and stressed_res["max_drawdown_pct"] > -40.0),
+        "holdout_opened": args.open_holdout,
+        "frozen_kelly_fraction": FROZEN_KELLY_FRACTION,
+        "frozen_mom_lookback": FROZEN_MOM_LOOKBACK,
         "timestamp": pd.Timestamp.now().isoformat()
     }
     json_path = os.path.join(PROJECT_ROOT, "trading_system", "data", "backtest_results_gate_a.json")
     with open(json_path, "w", encoding="utf-8") as jf:
         json.dump(summary_data, jf, indent=2)
     print(f"[OK] Gate A results summary saved to: {json_path}")
+
+    # Append runs to trial_log.csv (anti-overfitting defense)
+    log_trial(
+        cagr_pct=normal_res["cagr_pct"],
+        max_drawdown_pct=normal_res["max_drawdown_pct"],
+        sharpe_ratio=normal_res["sharpe_ratio"],
+        kelly_fraction=FROZEN_KELLY_FRACTION,
+        lookback_days=FROZEN_MOM_LOOKBACK,
+        is_holdout_opened=args.open_holdout,
+        notes=f"Normal Run ({args.slippage:.1f} bps) | {'HOLDOUT_OPENED' if args.open_holdout else 'IN_SAMPLE'}"
+    )
+    log_trial(
+        cagr_pct=stressed_res["cagr_pct"],
+        max_drawdown_pct=stressed_res["max_drawdown_pct"],
+        sharpe_ratio=stressed_res["sharpe_ratio"],
+        kelly_fraction=FROZEN_KELLY_FRACTION,
+        lookback_days=FROZEN_MOM_LOOKBACK,
+        is_holdout_opened=args.open_holdout,
+        notes=f"Stressed Run ({stressed_slippage:.1f} bps) [Gate A] | {'HOLDOUT_OPENED' if args.open_holdout else 'IN_SAMPLE'}"
+    )
+    print(f"[OK] Runs appended to trial_log.csv (Holdout opened: {args.open_holdout})\n")
 
 
 if __name__ == "__main__":

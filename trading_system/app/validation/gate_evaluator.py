@@ -20,6 +20,7 @@ Gate B (Live Forward Paper Clearance - 13 Weeks):
 """
 
 import os
+import math
 import json
 import logging
 from dataclasses import dataclass, field
@@ -27,6 +28,7 @@ from datetime import datetime, timezone
 from typing import Dict, Any, List, Optional, Tuple
 
 from trading_system.app.common.logger import get_logger
+from trading_system.app.validation.trial_logger import get_trial_count
 
 logger = get_logger("GateEvaluator")
 
@@ -39,6 +41,8 @@ class GateAClearanceReport:
     total_trades: int
     parameter_stability: float
     monte_carlo_p5_dd: float
+    deflated_sharpe: float = 1.0
+    num_trials: int = 1
     criteria: Dict[str, Dict[str, Any]] = field(default_factory=dict)
     summary: str = ""
 
@@ -67,11 +71,48 @@ class GateEvaluator:
     GATE_A_MIN_TRADES: int = 100            # 100 trades sample size
     GATE_A_MIN_STABILITY: float = 0.80      # 80% plateau stability
     GATE_A_WORST_P5_MC_DD: float = -0.30    # -30.0% Monte Carlo 5th percentile
+    GATE_A_MIN_DSR: float = 0.95            # 95.0% Deflated Sharpe Ratio confidence
 
     # Gate B Hard Cutoffs
     GATE_B_MIN_WEEKS: int = 13              # 13 weeks forward incubation
     GATE_B_CONSECUTIVE_STABLE_WEEKS: int = 4 # 4 weeks zero crashes
     GATE_B_MAX_INCUBATION_DD: float = -0.10 # -10.0% max DD in incubation
+
+    @staticmethod
+    def compute_deflated_sharpe(
+        sharpe: float,
+        num_trials: int,
+        num_observations: int = 1260,
+        skewness: float = 0.0,
+        kurtosis: float = 3.0,
+        var_sharpe: float = 0.15
+    ) -> float:
+        """
+        Bailey & Lopez de Prado (2014) Deflated Sharpe Ratio (DSR).
+        Computes the probability that the estimated Sharpe ratio exceeds
+        the expected maximum Sharpe ratio under the null hypothesis of selection bias:
+        DSR = Phi( (SR - E[max SR]) / SE )
+        """
+        if num_trials <= 1:
+            e_max_sr = 0.0
+        else:
+            euler_mascheroni = 0.5772156649
+            try:
+                from scipy import stats
+                z1 = stats.norm.ppf(1.0 - 1.0 / num_trials)
+                z2 = stats.norm.ppf(1.0 - 1.0 / (num_trials * math.e))
+            except Exception:
+                z1 = math.sqrt(2.0 * math.log(num_trials))
+                z2 = math.sqrt(2.0 * math.log(num_trials * math.e))
+            e_max_sr = math.sqrt(var_sharpe) * ((1.0 - euler_mascheroni) * z1 + euler_mascheroni * z2)
+
+        denom = 1.0 - skewness * sharpe + ((kurtosis - 1.0) / 4.0) * (sharpe ** 2)
+        se = math.sqrt(max(denom, 1e-4) / max(num_observations - 1, 1))
+        z = (sharpe - e_max_sr) / max(se, 1e-6)
+
+        # Standard normal CDF via math.erf
+        dsr = 0.5 * (1.0 + math.erf(z / math.sqrt(2.0)))
+        return float(dsr)
 
     @classmethod
     def evaluate_gate_a(
@@ -80,10 +121,15 @@ class GateEvaluator:
         max_drawdown: float,
         total_trades: int,
         parameter_stability: float,
-        monte_carlo_p5_dd: float
+        monte_carlo_p5_dd: float,
+        sharpe_ratio: Optional[float] = None,
+        num_trials: Optional[int] = None,
+        trial_log_path: Optional[str] = None,
+        num_observations: int = 1260
     ) -> GateAClearanceReport:
         """
-        Evaluates backtest / walk-forward candidate against Gate A criteria.
+        Evaluates backtest / walk-forward candidate against Gate A criteria,
+        including Bailey & Lopez de Prado Deflated Sharpe Ratio against logged trials.
         """
         cagr_pass = oos_cagr >= cls.GATE_A_MIN_CAGR
         dd_pass = max_drawdown >= cls.GATE_A_MAX_DRAWDOWN
@@ -91,7 +137,24 @@ class GateEvaluator:
         stability_pass = parameter_stability >= cls.GATE_A_MIN_STABILITY
         mc_pass = monte_carlo_p5_dd >= cls.GATE_A_WORST_P5_MC_DD
 
-        all_passed = cagr_pass and dd_pass and trades_pass and stability_pass and mc_pass
+        # Deflated Sharpe Check
+        if num_trials is None:
+            trials_logged = get_trial_count(trial_log_path)
+        else:
+            trials_logged = max(1, int(num_trials))
+
+        if sharpe_ratio is not None:
+            dsr = cls.compute_deflated_sharpe(
+                sharpe=sharpe_ratio,
+                num_trials=trials_logged,
+                num_observations=num_observations
+            )
+            dsr_pass = dsr >= cls.GATE_A_MIN_DSR
+        else:
+            dsr = 1.0
+            dsr_pass = True
+
+        all_passed = cagr_pass and dd_pass and trades_pass and stability_pass and mc_pass and dsr_pass
 
         criteria = {
             "cagr": {
@@ -123,11 +186,18 @@ class GateEvaluator:
                 "actual": round(monte_carlo_p5_dd * 100, 2),
                 "threshold": round(cls.GATE_A_WORST_P5_MC_DD * 100, 2),
                 "passed": mc_pass
+            },
+            "deflated_sharpe": {
+                "name": "Deflated Sharpe Ratio (>= 95.0% Confidence)",
+                "actual": round(dsr * 100, 2),
+                "threshold": round(cls.GATE_A_MIN_DSR * 100, 2),
+                "trials_logged": trials_logged,
+                "passed": dsr_pass
             }
         }
 
         if all_passed:
-            summary = "GATE A PASSED: All 5 statistical stress hurdles cleared. Qualified for paper incubation."
+            summary = "GATE A PASSED: All 6 statistical stress hurdles cleared (including Deflated Sharpe). Qualified for paper incubation."
         else:
             failed_keys = [k for k, v in criteria.items() if not v["passed"]]
             summary = f"GATE A REJECTED: Failed criteria: {', '.join(failed_keys)}."
@@ -139,6 +209,8 @@ class GateEvaluator:
             total_trades=total_trades,
             parameter_stability=parameter_stability,
             monte_carlo_p5_dd=monte_carlo_p5_dd,
+            deflated_sharpe=round(dsr, 4),
+            num_trials=trials_logged,
             criteria=criteria,
             summary=summary
         )
