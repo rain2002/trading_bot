@@ -17,7 +17,6 @@ from typing import Optional, Dict, Any
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
 
 CANONICAL_LOG_PATH = os.path.join(PROJECT_ROOT, "trading_system", "data", "trial_log.csv")
-ROOT_LOG_PATH = os.path.join(PROJECT_ROOT, "data", "trial_log.csv")
 
 CSV_COLUMNS = [
     "date",
@@ -69,8 +68,7 @@ def log_trial(
     target_paths: Optional[list] = None
 ) -> Dict[str, Any]:
     """
-    Appends a new trial row to the trial log.
-    Synchronizes across both trading_system/data/trial_log.csv and data/trial_log.csv.
+    Appends a new trial row to the canonical trial log (trading_system/data/trial_log.csv).
     """
     if commit_hash is None:
         commit_hash = get_current_commit_hash()
@@ -87,7 +85,7 @@ def log_trial(
         "notes": str(notes)
     }
 
-    paths = target_paths or [CANONICAL_LOG_PATH, ROOT_LOG_PATH]
+    paths = target_paths or [CANONICAL_LOG_PATH]
     for path in paths:
         initialize_trial_log(path)
         df_row = pd.DataFrame([entry])
@@ -98,24 +96,22 @@ def log_trial(
 
 def get_trial_count(log_path: Optional[str] = None) -> int:
     """Read the number of logged trials."""
-    candidates = [log_path, CANONICAL_LOG_PATH, ROOT_LOG_PATH]
-    for p in candidates:
-        if p and os.path.exists(p) and os.path.getsize(p) > 0:
-            try:
-                df = pd.read_csv(p)
-                return max(1, len(df))
-            except Exception:
-                pass
+    path = log_path or CANONICAL_LOG_PATH
+    if path and os.path.exists(path) and os.path.getsize(path) > 0:
+        try:
+            df = pd.read_csv(path)
+            return max(1, len(df))
+        except Exception:
+            pass
     return 1
 
 
 def get_trial_log_df(log_path: Optional[str] = None) -> pd.DataFrame:
     """Load the trial log as a DataFrame."""
-    candidates = [log_path, CANONICAL_LOG_PATH, ROOT_LOG_PATH]
-    for p in candidates:
-        if p and os.path.exists(p) and os.path.getsize(p) > 0:
-            try:
-                return pd.read_csv(p)
-            except Exception:
-                pass
+    path = log_path or CANONICAL_LOG_PATH
+    if path and os.path.exists(path) and os.path.getsize(path) > 0:
+        try:
+            return pd.read_csv(path)
+        except Exception:
+            pass
     return pd.DataFrame(columns=CSV_COLUMNS)

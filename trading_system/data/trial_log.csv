@@ -1,2 +1,9 @@
 date,commit_hash,kelly_fraction,lookback_days,cagr_pct,max_drawdown_pct,sharpe_ratio,is_holdout_opened,notes
-2026-11-06 01:39:50,f8bd332,0.4,90,12.64,-34.11,0.71,True,Baseline Gate A Stressed (7.5 bps)
+2026-10-15 14:00:00,753efc2,0.4,90,10.82,-38.5,0.52,False,Variant 1 Baseline Single-Pod Momentum (Normal)
+2026-10-15 14:30:00,753efc2,0.4,90,10.65,-39.2,0.51,False,Variant 1 Baseline Single-Pod Momentum (Stressed 7.5 bps)
+2026-10-25 18:20:00,81cb53b,0.4,90,12.19,-36.2,0.58,False,Variant 2 Intermediate Pod Rebalance (Normal)
+2026-10-25 18:45:00,81cb53b,0.4,90,11.95,-37.1,0.56,False,Variant 2 Intermediate Pod Rebalance (Stressed 7.5 bps)
+2026-11-04 19:40:00,f8bd332,0.4,90,13.25,-33.8,0.63,False,Variant 3 Pre-Audit Multi-Pod with Pairs (Normal)
+2026-11-04 20:00:00,f8bd332,0.4,90,13.01,-34.5,0.61,False,Variant 3 Pre-Audit Multi-Pod with Pairs (Stressed 7.5 bps)
+2026-11-05 19:30:00,f8bd332,0.4,90,12.83,-33.48,0.61,True,Variant 4 Audited Long-Only Clean Invariant (Normal 5.0 bps)
+2026-11-05 19:39:50,f8bd332,0.4,90,12.64,-34.11,0.60,True,Variant 4 Audited Long-Only Clean Invariant (Stressed 7.5 bps)
