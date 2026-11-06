@@ -756,33 +756,18 @@ if page == "📊 Portfolio Overview":
     hdr_sub = "NIFTY 100 QUANTUM ENSEMBLE • SEBI CNC CASH DELIVERY • GROWW REAL-TIME TELEMETRY" if is_india_mode else "PHASE 2 MULTI-STRATEGY ENSEMBLE • PHASE 3 ML ALPHA GATE • REAL-TIME BROKER TELEMETRY"
     broker_live_badge = "GROWW NSE LIVE" if (is_india_mode and not getattr(broker, 'is_mock', True)) else ("GROWW PAPER SIMULATED" if is_india_mode else "ALPACA PAPER LIVE")
 
-    col_hdr_l, col_hdr_r = st.columns([3.8, 1.4])
-    with col_hdr_l:
-        st.markdown(f"""
-        <div class="hud-header" style="margin-bottom: 0px; border-bottom: none;">
-            <div>
-                <div class="hud-title">BL/S® <span class="hud-title-accent">// QUANTUM TERMINAL {'[INDIA NSE]' if is_india_mode else ''}</span></div>
-                <div class="hud-subtitle">{hdr_sub}</div>
-            </div>
-            <div style="display: flex; gap: 8px; align-items: center;">
-                <span class="status-pill"><span class="pulse-dot"></span> LIVE EXECUTION READY</span>
-                <span class="status-pill" style="border-color: rgba(130, 251, 189, 0.25); color: #82FBBD;">{broker_live_badge}</span>
-            </div>
+    st.markdown(f"""
+    <div class="hud-header" style="margin-bottom: 16px;">
+        <div>
+            <div class="hud-title">BL/S® <span class="hud-title-accent">// QUANTUM TERMINAL {'[INDIA NSE]' if is_india_mode else ''}</span></div>
+            <div class="hud-subtitle">{hdr_sub}</div>
         </div>
-        """, unsafe_allow_html=True)
-    with col_hdr_r:
-        if not is_india_mode:
-            if st.button("🇮🇳 Switch to India Version (₹)", key="btn_hdr_toggle_india", use_container_width=True, type="secondary"):
-                st.session_state.market_region = "INDIA"
-                st.query_params["market"] = "india"
-                st.rerun()
-        else:
-            if st.button("🇺🇸 Switch to US Version ($)", key="btn_hdr_toggle_us", use_container_width=True, type="secondary"):
-                st.session_state.market_region = "US"
-                st.query_params["market"] = "us"
-                st.rerun()
-
-    st.markdown("<div style='margin-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.08);'></div>", unsafe_allow_html=True)
+        <div style="display: flex; gap: 8px; align-items: center;">
+            <span class="status-pill"><span class="pulse-dot"></span> LIVE EXECUTION READY</span>
+            <span class="status-pill" style="border-color: rgba(130, 251, 189, 0.25); color: #82FBBD;">{broker_live_badge}</span>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
 
     # 5-CARD UNIFORM KPI DECK (Clean, Pixel-Perfect Matching Heights & Alignment)
     k1, k2, k3, k4, k5 = st.columns(5)
@@ -1659,27 +1644,14 @@ if page == "📊 Portfolio Overview":
 # PAGE 2: 📋 POSITIONS & STOP-LOSS MONITOR
 # ==============================================================================
 elif page == "📋 Positions & Stop-Loss":
-    col_p_hdr, col_p_btn = st.columns([3.8, 1.4])
-    with col_p_hdr:
-        title_txt = "📋 Active Indian Holdings & GTT Stop-Loss Gating (NSE)" if is_india_mode else "📋 Active Equity Holdings & Stop-Loss Gating"
-        sub_txt = "NSE CASH CNC BASIS • UNREALIZED P&L (₹) • SEBI DELIVERY GTT STOP PROTOCOL" if is_india_mode else "REAL-TIME COST BASIS • UNREALIZED P&L ($) • MANDATORY -8% STOP GATING PROTOCOL"
-        st.markdown(f"""
-        <div class="page-title-box">
-            <div class="page-title">{title_txt}</div>
-            <div class="page-subtitle">{sub_txt}</div>
-        </div>
-        """, unsafe_allow_html=True)
-    with col_p_btn:
-        if not is_india_mode:
-            if st.button("🇮🇳 Switch to India Version (₹)", key="btn_hdr_toggle_india_pos", use_container_width=True, type="secondary"):
-                st.session_state.market_region = "INDIA"
-                st.query_params["market"] = "india"
-                st.rerun()
-        else:
-            if st.button("🇺🇸 Switch to US Version ($)", key="btn_hdr_toggle_us_pos", use_container_width=True, type="secondary"):
-                st.session_state.market_region = "US"
-                st.query_params["market"] = "us"
-                st.rerun()
+    title_txt = "📋 Active Indian Holdings & GTT Stop-Loss Gating (NSE)" if is_india_mode else "📋 Active Equity Holdings & Stop-Loss Gating"
+    sub_txt = "NSE CASH CNC BASIS • UNREALIZED P&L (₹) • SEBI DELIVERY GTT STOP PROTOCOL" if is_india_mode else "REAL-TIME COST BASIS • UNREALIZED P&L ($) • MANDATORY -8% STOP GATING PROTOCOL"
+    st.markdown(f"""
+    <div class="page-title-box">
+        <div class="page-title">{title_txt}</div>
+        <div class="page-subtitle">{sub_txt}</div>
+    </div>
+    """, unsafe_allow_html=True)
 
     positions = broker.get_positions_detailed()
 
@@ -2111,27 +2083,14 @@ elif page == "📋 Positions & Stop-Loss":
 # PAGE: ⚡ MANUAL ORDER DESK & EXECUTION
 # ==============================================================================
 elif page == "⚡ Manual Order Desk & Execution":
-    col_m_hdr, col_m_btn = st.columns([3.8, 1.4])
-    with col_m_hdr:
-        m_title = "⚡ Manual Order Desk & Live Execution (NSE)" if is_india_mode else "⚡ Manual Order Desk & Execution Controls"
-        m_sub = "PROMPT BOT ORDER PLACEMENT • NIFTY 100 DICTIONARY • REAL-TIME OPEN ORDER MANIPULATION" if is_india_mode else "PROMPT BOT ORDER PLACEMENT • BOT UNIVERSE DICTIONARY • REAL-TIME OPEN ORDER MANIPULATION"
-        st.markdown(f"""
-        <div class="page-title-box">
-            <div class="page-title">{m_title}</div>
-            <div class="page-subtitle">{m_sub}</div>
-        </div>
-        """, unsafe_allow_html=True)
-    with col_m_btn:
-        if not is_india_mode:
-            if st.button("🇮🇳 Switch to India Version (₹)", key="btn_hdr_toggle_india_man", use_container_width=True, type="secondary"):
-                st.session_state.market_region = "INDIA"
-                st.query_params["market"] = "india"
-                st.rerun()
-        else:
-            if st.button("🇺🇸 Switch to US Version ($)", key="btn_hdr_toggle_us_man", use_container_width=True, type="secondary"):
-                st.session_state.market_region = "US"
-                st.query_params["market"] = "us"
-                st.rerun()
+    m_title = "⚡ Manual Order Desk & Live Execution (NSE)" if is_india_mode else "⚡ Manual Order Desk & Execution Controls"
+    m_sub = "PROMPT BOT ORDER PLACEMENT • NIFTY 100 DICTIONARY • REAL-TIME OPEN ORDER MANIPULATION" if is_india_mode else "PROMPT BOT ORDER PLACEMENT • BOT UNIVERSE DICTIONARY • REAL-TIME OPEN ORDER MANIPULATION"
+    st.markdown(f"""
+    <div class="page-title-box">
+        <div class="page-title">{m_title}</div>
+        <div class="page-subtitle">{m_sub}</div>
+    </div>
+    """, unsafe_allow_html=True)
 
     open_orders = broker.get_open_orders()
     stock_dict = broker.get_stock_dictionary()
