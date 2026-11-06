@@ -50,7 +50,7 @@ code, pre, .mono-font {
 
 /* Velvet Matte Obsidian Canvas - Pure Black Architectural Aesthetic */
 .stApp {
-    background: #050507 !important;
+    background: #0A0D14 !important;
     background-attachment: fixed !important;
 }
 
@@ -67,7 +67,7 @@ code, pre, .mono-font {
 
 /* Minimalist Studio Sidebar */
 section[data-testid="stSidebar"] {
-    background: #070709 !important;
+    background: #0D1017 !important;
     border-right: 1px solid rgba(255, 255, 255, 0.07) !important;
     box-shadow: 12px 0 40px rgba(0, 0, 0, 0.9) !important;
 }
@@ -130,19 +130,19 @@ section[data-testid="stSidebar"] div.stButton > button:not([kind="primary"]):not
 /* Active Page Link (Blacklead Mint Accent) */
 section[data-testid="stSidebar"] div.stButton > button[kind="primary"],
 section[data-testid="stSidebar"] div.stButton > button[data-testid="stBaseButton-primary"] {
-    background: rgba(130, 251, 189, 0.08) !important;
-    color: #82FBBD !important;
-    border: 1px solid rgba(130, 251, 189, 0.28) !important;
-    border-left: 3px solid #82FBBD !important;
+    background: rgba(0, 208, 156, 0.08) !important;
+    color: #00D09C !important;
+    border: 1px solid rgba(0, 208, 156, 0.28) !important;
+    border-left: 3px solid #00D09C !important;
     font-weight: 600 !important;
-    box-shadow: 0 2px 14px rgba(130, 251, 189, 0.12) !important;
+    box-shadow: 0 2px 14px rgba(0, 208, 156, 0.12) !important;
 }
 
 section[data-testid="stSidebar"] div.stButton > button[kind="primary"]:hover,
 section[data-testid="stSidebar"] div.stButton > button[data-testid="stBaseButton-primary"]:hover {
-    background: rgba(130, 251, 189, 0.12) !important;
-    color: #82FBBD !important;
-    border-color: rgba(130, 251, 189, 0.4) !important;
+    background: rgba(0, 208, 156, 0.12) !important;
+    color: #00D09C !important;
+    border-color: rgba(0, 208, 156, 0.4) !important;
 }
 
 /* Align text and emojis inside the button strictly to the left */
@@ -213,7 +213,7 @@ div[data-testid="stSegmentedControl"] button[data-checked="true"] {
 }
 
 .cyber-kpi-card {
-    background: #0D0E12 !important;
+    background: #121622 !important;
     border: 1px solid rgba(255, 255, 255, 0.08) !important;
     border-radius: 12px !important;
     padding: 14px 16px !important;
@@ -283,7 +283,7 @@ div[data-testid="stSegmentedControl"] button[data-checked="true"] {
     font-size: 1.65rem;
     font-weight: 700;
     letter-spacing: -0.035em;
-    color: #82FBBD;
+    color: #00D09C;
     line-height: 1;
     margin: 0;
 }
@@ -292,7 +292,7 @@ div[data-testid="stSegmentedControl"] button[data-checked="true"] {
     font-size: 1.65rem;
     font-weight: 700;
     letter-spacing: -0.035em;
-    color: #FF9A9C;
+    color: #EB5B56;
     line-height: 1;
     margin: 0;
 }
@@ -322,9 +322,9 @@ div[data-testid="stSegmentedControl"] button[data-checked="true"] {
     padding: 2px 8px;
     border-radius: 9999px;
     margin: 0;
-    background: rgba(130, 251, 189, 0.09);
-    color: #82FBBD;
-    border: 1px solid rgba(130, 251, 189, 0.25);
+    background: rgba(0, 208, 156, 0.09);
+    color: #00D09C;
+    border: 1px solid rgba(0, 208, 156, 0.25);
 }
 
 .metric-badge-danger {
@@ -337,14 +337,14 @@ div[data-testid="stSegmentedControl"] button[data-checked="true"] {
     padding: 2px 8px;
     border-radius: 9999px;
     margin: 0;
-    background: rgba(255, 154, 156, 0.09);
-    color: #FF9A9C;
-    border: 1px solid rgba(255, 154, 156, 0.25);
+    background: rgba(235, 91, 86, 0.09);
+    color: #EB5B56;
+    border: 1px solid rgba(235, 91, 86, 0.25);
 }
 
 /* Standard Studio Card Container */
 .cyber-card {
-    background: #0D0E12 !important;
+    background: #121622 !important;
     border: 1px solid rgba(255, 255, 255, 0.08) !important;
     border-radius: 12px !important;
     padding: 18px 22px !important;
@@ -363,7 +363,7 @@ div[data-testid="stSegmentedControl"] button[data-checked="true"] {
     justify-content: space-between;
     align-items: center;
     padding: 14px 20px;
-    background: #0D0E12 !important;
+    background: #121622 !important;
     border: 1px solid rgba(255, 255, 255, 0.08) !important;
     border-radius: 12px !important;
     margin-bottom: 18px;
@@ -380,7 +380,7 @@ div[data-testid="stSegmentedControl"] button[data-checked="true"] {
     gap: 8px;
 }
 .hud-title-accent {
-    color: #82FBBD;
+    color: #00D09C;
 }
 
 .hud-subtitle {
@@ -411,8 +411,8 @@ div[data-testid="stSegmentedControl"] button[data-checked="true"] {
     width: 7px;
     height: 7px;
     border-radius: 50%;
-    background-color: #82FBBD;
-    box-shadow: 0 0 8px #82FBBD;
+    background-color: #00D09C;
+    box-shadow: 0 0 8px #00D09C;
     animation: radar-pulse 2s infinite;
     display: inline-block;
 }
@@ -450,6 +450,159 @@ div[data-testid="stSegmentedControl"] button[data-checked="true"] {
     overflow: hidden !important;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
 }
+
+/* ==============================================================================
+   GROWW INDIA DESIGN SYSTEM ENHANCEMENTS
+   ============================================================================== */
+
+/* Groww Signature 5-Metric Holdings Summary Banner */
+.groww-summary-card {
+    background: #121622 !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    border-radius: 14px !important;
+    padding: 16px 22px !important;
+    margin-bottom: 16px !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
+    display: grid !important;
+    grid-template-columns: repeat(5, 1fr) !important;
+    gap: 16px !important;
+}
+
+.groww-summary-item {
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+}
+
+.groww-summary-item:not(:last-child) {
+    border-right: 1px solid rgba(255, 255, 255, 0.07) !important;
+    padding-right: 16px !important;
+}
+
+.groww-item-label {
+    font-size: 0.72rem !important;
+    color: #8F9CAE !important;
+    font-weight: 500 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.08em !important;
+    margin-bottom: 5px !important;
+    font-family: 'DM Mono', monospace !important;
+}
+
+.groww-item-val {
+    font-size: 1.45rem !important;
+    font-weight: 700 !important;
+    color: #FFFFFF !important;
+    line-height: 1.15 !important;
+    letter-spacing: -0.025em !important;
+}
+
+.groww-item-val-green {
+    font-size: 1.45rem !important;
+    font-weight: 700 !important;
+    color: #00D09C !important;
+    line-height: 1.15 !important;
+    letter-spacing: -0.025em !important;
+}
+
+.groww-item-val-red {
+    font-size: 1.45rem !important;
+    font-weight: 700 !important;
+    color: #EB5B56 !important;
+    line-height: 1.15 !important;
+    letter-spacing: -0.025em !important;
+}
+
+.groww-item-sub {
+    font-size: 0.70rem !important;
+    margin-top: 4px !important;
+    color: #71717A !important;
+    font-family: 'DM Mono', monospace !important;
+}
+
+/* Groww Holdings Card Deck (Page 2) */
+.groww-holding-row {
+    background: #121622;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    padding: 14px 18px;
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+}
+
+.groww-holding-row:hover {
+    border-color: rgba(255, 255, 255, 0.18);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
+}
+
+.groww-avatar {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: #1A202E;
+    color: #00D09C;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.82rem;
+    border: 1px solid rgba(0, 208, 156, 0.25);
+    margin-right: 12px;
+    flex-shrink: 0;
+}
+
+/* Groww Order Placement BUY / SELL Segmented Buttons */
+.groww-order-box {
+    background: #121622;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 14px;
+    padding: 20px;
+    box-shadow: 0 6px 25px rgba(0, 0, 0, 0.5);
+}
+
+.groww-order-summary-box {
+    background: #0B0E14;
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    border-radius: 10px;
+    padding: 12px 16px;
+    margin: 14px 0;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.76rem;
+}
+
+.groww-order-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 4px 0;
+}
+
+/* Groww BUY and SELL Action Buttons */
+div.stButton > button[key="btn_groww_buy"],
+div.stButton > button[data-testid="stBaseButton-primary"]:has(div:contains("BUY")),
+div.stButton > button[data-testid="stBaseButton-primary"]:has(p:contains("BUY")) {
+    background: #00D09C !important;
+    border-color: #00D09C !important;
+    color: #000000 !important;
+    font-weight: 700 !important;
+    box-shadow: 0 4px 16px rgba(0, 208, 156, 0.35) !important;
+}
+
+div.stButton > button[key="btn_groww_sell"],
+div.stButton > button[data-testid="stBaseButton-primary"]:has(div:contains("SELL")),
+div.stButton > button[data-testid="stBaseButton-primary"]:has(p:contains("SELL")) {
+    background: #EB5B56 !important;
+    border-color: #EB5B56 !important;
+    color: #FFFFFF !important;
+    font-weight: 700 !important;
+    box-shadow: 0 4px 16px rgba(235, 91, 86, 0.35) !important;
+}
+
 </style>
 """, unsafe_allow_html=True)
 
@@ -536,6 +689,7 @@ overall_pnl_pct = acc_details.get("overall_pnl_pct", 0.0)
 cash_pct = (cash / equity * 100) if equity > 0 else 0.0
 invested_capital = equity - cash
 invested_pct = (invested_capital / equity * 100) if equity > 0 else 0.0
+initial_capital = float(getattr(broker, 'initial_capital', 1000000.0 if is_india_mode else 100000.0))
 
 def format_pnl_str(val: float) -> str:
     """Format currency P&L cleanly as +$X,XXX.XX / +₹X,XXX.XX or -$X,XXX.XX / -₹X,XXX.XX."""
@@ -605,7 +759,7 @@ def create_donut_chart(
         labels=labels,
         values=values,
         hole=hole,
-        marker=dict(colors=colors, line=dict(color='#070A12', width=1.5)),
+        marker=dict(colors=colors, line=dict(color='#121622', width=1.5)),
         textposition='inside',
         textinfo='percent' if len(labels) <= 4 else 'none',
         hovertemplate="<b>%{label}</b><br>Value: %{value}<br>Share: %{percent}<extra></extra>"
@@ -646,13 +800,13 @@ def create_donut_chart(
 st.sidebar.markdown("""
 <div style="padding: 12px 0 16px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.08); margin-bottom: 16px;">
     <div style="font-size: 1.18rem; font-weight: 700; letter-spacing: -0.03em; color: #FFFFFF; display: flex; align-items: center; gap: 8px;">
-        BL/S® <span style="color: #82FBBD;">// QUANTUM</span>
+        ANTIGRAVITY <span style="color: #00D09C;">// QUANTUM</span>
     </div>
     <div style="font-family: 'DM Mono', monospace; font-size: 0.66rem; color: #71717A; letter-spacing: 0.12em; text-transform: uppercase; margin-top: 4px;">
         DIGITAL TRADING DESK
     </div>
     <div style="margin-top: 10px;">
-        <span class="status-pill" style="padding: 3px 9px; font-size: 0.66rem; border-color: rgba(130, 251, 189, 0.28); color: #82FBBD;">
+        <span class="status-pill" style="padding: 3px 9px; font-size: 0.66rem; border-color: rgba(0, 208, 156, 0.28); color: #00D09C;">
             <span class="pulse-dot"></span> LIVE EXECUTION READY
         </span>
     </div>
@@ -660,10 +814,10 @@ st.sidebar.markdown("""
 """, unsafe_allow_html=True)
 
 # Persistent Sidebar Account Strip
-nav_pnl_color = "#82FBBD" if today_pnl >= 0 else "#FF9A9C"
-nav_all_color = "#82FBBD" if overall_pnl >= 0 else "#FF9A9C"
+nav_pnl_color = "#00D09C" if today_pnl >= 0 else "#EB5B56"
+nav_all_color = "#00D09C" if overall_pnl >= 0 else "#EB5B56"
 st.sidebar.markdown(f"""
-<div style="background: #0D0E12; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 10px; padding: 12px 14px; margin-bottom: 16px; font-family: 'DM Mono', monospace; box-shadow: 0 4px 16px rgba(0,0,0,0.5);">
+<div style="background: #121622; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 10px; padding: 12px 14px; margin-bottom: 16px; font-family: 'DM Mono', monospace; box-shadow: 0 4px 16px rgba(0,0,0,0.5);">
     <div style="font-size: 0.64rem; color: #71717A; letter-spacing: 0.12em; text-transform: uppercase;">PORTFOLIO NAV</div>
     <div style="font-size: 1.30rem; font-weight: 700; color: #FFFFFF; margin: 3px 0; font-family: 'Space Grotesk', sans-serif; letter-spacing: -0.03em;">{CURRENCY_SYMBOL}{equity:,.2f}</div>
     <div style="display: flex; justify-content: space-between; font-size: 0.70rem; color: #71717A; margin-top: 5px; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 5px;">
@@ -737,14 +891,14 @@ solvency_label = "SEBI 100% CNC CASH" if is_india_mode else "100% LONG-ONLY"
 
 st.sidebar.markdown("<div style='margin-top: 20px;'></div>", unsafe_allow_html=True)
 st.sidebar.markdown(f"""
-<div style="font-family: 'DM Mono', monospace; font-size: 0.68rem; color: #71717A; line-height: 1.7; padding: 10px 12px; background: #0D0E12; border-radius: 8px; border: 1px solid rgba(255,255,255,0.06);">
-    <div>BROKER: <span style="color: #82FBBD;">{broker_label}</span></div>
-    <div>EXCHANGE: <span style="color: #82FBBD;">{exchange_label}</span></div>
-    <div>OPEN ORDERS: <span style="color: {'#82FBBD' if open_orders_count > 0 else '#A1A1AA'};">{open_orders_count} QUEUED</span></div>
-    <div>BUYING POWER: <span style="color: #82FBBD;">{CURRENCY_SYMBOL}{buying_power:,.2f}</span></div>
-    <div>ACTIVE ARCH: <span style="color: #82FBBD;">{active_arch}</span></div>
+<div style="font-family: 'DM Mono', monospace; font-size: 0.68rem; color: #71717A; line-height: 1.7; padding: 10px 12px; background: #121622; border-radius: 8px; border: 1px solid rgba(255,255,255,0.06);">
+    <div>BROKER: <span style="color: #00D09C;">{broker_label}</span></div>
+    <div>EXCHANGE: <span style="color: #00D09C;">{exchange_label}</span></div>
+    <div>OPEN ORDERS: <span style="color: {'#00D09C' if open_orders_count > 0 else '#A1A1AA'};">{open_orders_count} QUEUED</span></div>
+    <div>BUYING POWER: <span style="color: #00D09C;">{CURRENCY_SYMBOL}{buying_power:,.2f}</span></div>
+    <div>ACTIVE ARCH: <span style="color: #00D09C;">{active_arch}</span></div>
     <div>MARKET HOURS: <span style="color: #A1A1AA;">{market_hours}</span></div>
-    <div>SOLVENCY: <span style="color: #82FBBD;">{solvency_label}</span></div>
+    <div>SOLVENCY: <span style="color: #00D09C;">{solvency_label}</span></div>
 </div>
 """, unsafe_allow_html=True)
 
@@ -759,17 +913,53 @@ if page == "📊 Portfolio Overview":
     st.markdown(f"""
     <div class="hud-header" style="margin-bottom: 16px;">
         <div>
-            <div class="hud-title">BL/S® <span class="hud-title-accent">// QUANTUM TERMINAL {'[INDIA NSE]' if is_india_mode else ''}</span></div>
+            <div class="hud-title">ANTIGRAVITY <span class="hud-title-accent">// QUANTUM TERMINAL {'[INDIA NSE]' if is_india_mode else ''}</span></div>
             <div class="hud-subtitle">{hdr_sub}</div>
         </div>
         <div style="display: flex; gap: 8px; align-items: center;">
             <span class="status-pill"><span class="pulse-dot"></span> LIVE EXECUTION READY</span>
-            <span class="status-pill" style="border-color: rgba(130, 251, 189, 0.25); color: #82FBBD;">{broker_live_badge}</span>
+            <span class="status-pill" style="border-color: rgba(0, 208, 156, 0.25); color: #00D09C;">{broker_live_badge}</span>
         </div>
     </div>
     """, unsafe_allow_html=True)
 
-    # 5-CARD UNIFORM KPI DECK (Clean, Pixel-Perfect Matching Heights & Alignment)
+        # GROWW INDIA SIGNATURE 5-METRIC HOLDINGS SUMMARY CARD
+    tot_pnl_cls = "groww-item-val-green" if overall_pnl >= 0 else "groww-item-val-red"
+    tot_pnl_icon = "▲" if overall_pnl >= 0 else "▼"
+    day_pnl_cls = "groww-item-val-green" if today_pnl >= 0 else "groww-item-val-red"
+    day_pnl_icon = "▲" if today_pnl >= 0 else "▼"
+
+    st.markdown(f"""
+    <div class="groww-summary-card">
+        <div class="groww-summary-item">
+            <div class="groww-item-label">Current Value</div>
+            <div class="groww-item-val">{CURRENCY_SYMBOL}{equity:,.2f}</div>
+            <div class="groww-item-sub">Live NAV Telemetry</div>
+        </div>
+        <div class="groww-summary-item">
+            <div class="groww-item-label">Invested Value</div>
+            <div class="groww-item-val">{CURRENCY_SYMBOL}{initial_capital:,.2f}</div>
+            <div class="groww-item-sub">Base Principal Capital</div>
+        </div>
+        <div class="groww-summary-item">
+            <div class="groww-item-label">Total Returns</div>
+            <div class="{tot_pnl_cls}">{tot_pnl_icon} {format_pnl_str(overall_pnl)}</div>
+            <div class="groww-item-sub" style="color: {'#00D09C' if overall_pnl >= 0 else '#EB5B56'}; font-weight: 600;">{format_pct_str(overall_pnl_pct)} Net Alpha</div>
+        </div>
+        <div class="groww-summary-item">
+            <div class="groww-item-label">1D Returns</div>
+            <div class="{day_pnl_cls}">{day_pnl_icon} {format_pnl_str(today_pnl)}</div>
+            <div class="groww-item-sub" style="color: {'#00D09C' if today_pnl >= 0 else '#EB5B56'}; font-weight: 600;">{format_pct_str(today_pnl_pct)} Today</div>
+        </div>
+        <div class="groww-summary-item">
+            <div class="groww-item-label">Available Cash</div>
+            <div class="groww-item-val">{CURRENCY_SYMBOL}{cash:,.2f}</div>
+            <div class="groww-item-sub">{cash_pct:.1f}% Preserved Buffer</div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+# 5-CARD UNIFORM KPI DECK (Clean, Pixel-Perfect Matching Heights & Alignment)
     k1, k2, k3, k4, k5 = st.columns(5)
 
     with k1:
@@ -922,7 +1112,7 @@ if page == "📊 Portfolio Overview":
     /* Architectural Obsidian Card */
     .glass-hero-card {{
         position: relative;
-        background: #0D0E12;
+        background: #121622;
         border: 1px solid rgba(255, 255, 255, 0.08);
         border-radius: 12px;
         padding: 22px 26px 18px 26px;
@@ -976,19 +1166,19 @@ if page == "📊 Portfolio Overview":
     .dot-mint {{
         width: 8px;
         height: 8px;
-        background-color: #82FBBD;
+        background-color: #00D09C;
         border-radius: 2px;
         display: inline-block;
-        box-shadow: 0 0 8px rgba(130, 251, 189, 0.4);
+        box-shadow: 0 0 8px rgba(0, 208, 156, 0.4);
     }}
     
     .dot-red {{
         width: 8px;
         height: 8px;
-        background-color: #FF9A9C;
+        background-color: #EB5B56;
         border-radius: 2px;
         display: inline-block;
-        box-shadow: 0 0 8px rgba(255, 154, 156, 0.4);
+        box-shadow: 0 0 8px rgba(235, 91, 86, 0.4);
     }}
     
     .dot-grey {{
@@ -1029,15 +1219,15 @@ if page == "📊 Portfolio Overview":
     }}
     
     .badge-green {{
-        background: rgba(130, 251, 189, 0.08);
-        border: 1px solid rgba(130, 251, 189, 0.28);
-        color: #82FBBD;
+        background: rgba(0, 208, 156, 0.08);
+        border: 1px solid rgba(0, 208, 156, 0.28);
+        color: #00D09C;
     }}
     
     .badge-red {{
-        background: rgba(255, 154, 156, 0.08);
-        border: 1px solid rgba(255, 154, 156, 0.28);
-        color: #FF9A9C;
+        background: rgba(235, 91, 86, 0.08);
+        border: 1px solid rgba(235, 91, 86, 0.28);
+        color: #EB5B56;
     }}
     
     .tf-sub {{
@@ -1152,35 +1342,186 @@ if page == "📊 Portfolio Overview":
         z-index: 100;
         line-height: 1.5;
     }}
-    </style>
+    
+/* ==============================================================================
+   GROWW INDIA DESIGN SYSTEM ENHANCEMENTS
+   ============================================================================== */
+
+/* Groww Signature 5-Metric Holdings Summary Banner */
+.groww-summary-card {
+    background: #121622 !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    border-radius: 14px !important;
+    padding: 16px 22px !important;
+    margin-bottom: 16px !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
+    display: grid !important;
+    grid-template-columns: repeat(5, 1fr) !important;
+    gap: 16px !important;
+}
+
+.groww-summary-item {
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+}
+
+.groww-summary-item:not(:last-child) {
+    border-right: 1px solid rgba(255, 255, 255, 0.07) !important;
+    padding-right: 16px !important;
+}
+
+.groww-item-label {
+    font-size: 0.72rem !important;
+    color: #8F9CAE !important;
+    font-weight: 500 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.08em !important;
+    margin-bottom: 5px !important;
+    font-family: 'DM Mono', monospace !important;
+}
+
+.groww-item-val {
+    font-size: 1.45rem !important;
+    font-weight: 700 !important;
+    color: #FFFFFF !important;
+    line-height: 1.15 !important;
+    letter-spacing: -0.025em !important;
+}
+
+.groww-item-val-green {
+    font-size: 1.45rem !important;
+    font-weight: 700 !important;
+    color: #00D09C !important;
+    line-height: 1.15 !important;
+    letter-spacing: -0.025em !important;
+}
+
+.groww-item-val-red {
+    font-size: 1.45rem !important;
+    font-weight: 700 !important;
+    color: #EB5B56 !important;
+    line-height: 1.15 !important;
+    letter-spacing: -0.025em !important;
+}
+
+.groww-item-sub {
+    font-size: 0.70rem !important;
+    margin-top: 4px !important;
+    color: #71717A !important;
+    font-family: 'DM Mono', monospace !important;
+}
+
+/* Groww Holdings Card Deck (Page 2) */
+.groww-holding-row {
+    background: #121622;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    padding: 14px 18px;
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+}
+
+.groww-holding-row:hover {
+    border-color: rgba(255, 255, 255, 0.18);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
+}
+
+.groww-avatar {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: #1A202E;
+    color: #00D09C;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.82rem;
+    border: 1px solid rgba(0, 208, 156, 0.25);
+    margin-right: 12px;
+    flex-shrink: 0;
+}
+
+/* Groww Order Placement BUY / SELL Segmented Buttons */
+.groww-order-box {
+    background: #121622;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 14px;
+    padding: 20px;
+    box-shadow: 0 6px 25px rgba(0, 0, 0, 0.5);
+}
+
+.groww-order-summary-box {
+    background: #0B0E14;
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    border-radius: 10px;
+    padding: 12px 16px;
+    margin: 14px 0;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.76rem;
+}
+
+.groww-order-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 4px 0;
+}
+
+/* Groww BUY and SELL Action Buttons */
+div.stButton > button[key="btn_groww_buy"],
+div.stButton > button[data-testid="stBaseButton-primary"]:has(div:contains("BUY")),
+div.stButton > button[data-testid="stBaseButton-primary"]:has(p:contains("BUY")) {
+    background: #00D09C !important;
+    border-color: #00D09C !important;
+    color: #000000 !important;
+    font-weight: 700 !important;
+    box-shadow: 0 4px 16px rgba(0, 208, 156, 0.35) !important;
+}
+
+div.stButton > button[key="btn_groww_sell"],
+div.stButton > button[data-testid="stBaseButton-primary"]:has(div:contains("SELL")),
+div.stButton > button[data-testid="stBaseButton-primary"]:has(p:contains("SELL")) {
+    background: #EB5B56 !important;
+    border-color: #EB5B56 !important;
+    color: #FFFFFF !important;
+    font-weight: 700 !important;
+    box-shadow: 0 4px 16px rgba(235, 91, 86, 0.35) !important;
+}
+
+</style>
     </head>
     <body>
     <div class="glass-hero-card">
         <div class="card-content-layer">
             <div class="groww-header">
                 <div class="metric-left">
-                    <div class="legend-row">
-                        <span>// VALUATION TRAJECTORY</span> <span id="legend-dot" class="dot-mint" style="margin-left:4px;"></span>
+                    <div class="legend-row" style="font-size: 0.88rem; color: #8F9CAE; font-weight: 500; text-transform: capitalize;">
+                        <span>Current</span> <span class="dot-purple" style="width: 8px; height: 8px; background-color: #8B5CF6; border-radius: 2px; display: inline-block; margin-left: 6px;"></span>
                     </div>
                     <div class="big-number" id="current-display">{CURRENCY_SYMBOL}{equity:,.2f}</div>
-                    <div class="return-row" id="return-row">
-                        <div id="pnl-badge" class="return-glass-badge {'badge-green' if today_pnl >= 0 else 'badge-red'}">
-                            <span id="pnl-span">{format_pnl_str(today_pnl)} ({format_pct_str(today_pnl_pct)})</span>
-                        </div>
-                        <span id="tf-tag" class="tf-sub">All time</span>
+                    <div class="return-row" id="return-row" style="font-size: 0.92rem;">
+                        <span id="pnl-span" style="font-weight: 600; color: {'#00D09C' if today_pnl >= 0 else '#EB5B56'};">{format_pnl_str(today_pnl)} ({format_pct_str(today_pnl_pct)})</span>
+                        <span id="tf-tag" class="tf-sub" style="color: #717D96; margin-left: 6px;">All time</span>
                     </div>
                 </div>
                 <div class="metric-right">
-                    <div style="display: flex; align-items: center; gap: 8px;">
+                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 2px;">
                         <div class="currency-pill-box">
                             <button class="curr-btn {'active' if not is_india_mode else ''}" id="btn-usd" onclick="setCurrency('USD')">$ USD</button>
                             <button class="curr-btn {'active' if is_india_mode else ''}" id="btn-inr" onclick="setCurrency('INR')">&#8377; INR</button>
                         </div>
-                        <div class="legend-row">
-                            <span class="dot-grey"></span> <span>INVESTED BASELINE</span>
+                        <div class="legend-row" style="font-size: 0.88rem; color: #8F9CAE; font-weight: 500; text-transform: capitalize;">
+                            <span class="dot-grey" style="width: 8px; height: 8px; background-color: #717D96; border-radius: 2px; display: inline-block; margin-right: 6px;"></span> <span>Invested</span>
                         </div>
                     </div>
-                    <div class="big-number" id="invested-display" style="font-size: 1.55rem; color: #A1A1AA;">{CURRENCY_SYMBOL}{initial_capital:,.2f}</div>
+                    <div class="big-number" id="invested-display" style="font-size: 2.25rem; font-weight: 700; color: #FFFFFF;">{CURRENCY_SYMBOL}{initial_capital:,.2f}</div>
                 </div>
             </div>
 
@@ -1189,27 +1530,27 @@ if page == "📊 Portfolio Overview":
                     <defs>
                         <!-- Dynamic Studio Mint / Crimson Drop Shadow Filter -->
                         <filter id="neon-glow" x="-20%" y="-20%" width="140%" height="140%">
-                            <feDropShadow id="glow-shadow" dx="0" dy="0" stdDeviation="3.2" flood-color="#82FBBD" flood-opacity="0.38" />
+                            <feDropShadow id="glow-shadow" dx="0" dy="0" stdDeviation="3.2" flood-color="#00D09C" flood-opacity="0.38" />
                         </filter>
                         
                         <!-- Dynamic Studio Line Stroke Gradient -->
                         <linearGradient id="stroke-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                            <stop id="stroke-stop-0" offset="0%" stop-color="#5EEAD4" />
-                            <stop id="stroke-stop-100" offset="100%" stop-color="#82FBBD" />
+                            <stop id="stroke-stop-0" offset="0%" stop-color="#00D09C" />
+                            <stop id="stroke-stop-100" offset="100%" stop-color="#00D09C" />
                         </linearGradient>
 
                         <!-- Subtle Volumetric Area Fill Gradient -->
                         <linearGradient id="area-gradient" x1="0" y1="0" x2="0" y2="1">
-                            <stop id="area-stop-0" offset="0%" stop-color="#82FBBD" stop-opacity="0.14" />
-                            <stop id="area-stop-70" offset="70%" stop-color="#82FBBD" stop-opacity="0.02" />
-                            <stop id="area-stop-100" offset="100%" stop-color="#82FBBD" stop-opacity="0.00" />
+                            <stop id="area-stop-0" offset="0%" stop-color="#00D09C" stop-opacity="0.14" />
+                            <stop id="area-stop-70" offset="70%" stop-color="#00D09C" stop-opacity="0.02" />
+                            <stop id="area-stop-100" offset="100%" stop-color="#00D09C" stop-opacity="0.00" />
                         </linearGradient>
 
                         <!-- Vertical Cursor Beam Gradient -->
                         <linearGradient id="cursor-beam" x1="0" y1="0" x2="0" y2="1">
-                            <stop id="cursor-stop-0" offset="0%" stop-color="#82FBBD" stop-opacity="0.75" />
-                            <stop id="cursor-stop-75" offset="75%" stop-color="#82FBBD" stop-opacity="0.2" />
-                            <stop id="cursor-stop-100" offset="100%" stop-color="#82FBBD" stop-opacity="0.0" />
+                            <stop id="cursor-stop-0" offset="0%" stop-color="#00D09C" stop-opacity="0.75" />
+                            <stop id="cursor-stop-75" offset="75%" stop-color="#00D09C" stop-opacity="0.2" />
+                            <stop id="cursor-stop-100" offset="100%" stop-color="#00D09C" stop-opacity="0.0" />
                         </linearGradient>
                     </defs>
 
@@ -1229,9 +1570,9 @@ if page == "📊 Portfolio Overview":
                     <line id="cursor-line" x1="0" y1="6" x2="0" y2="248" stroke="url(#cursor-beam)" stroke-width="1.2" stroke-dasharray="2,2" style="display:none;" />
 
                     <!-- Tracking Circles -->
-                    <circle id="cursor-halo" r="9" fill="rgba(130, 251, 189, 0.18)" style="display:none;" />
-                    <circle id="cursor-dot-mint" r="4.5" fill="#050507" stroke="#82FBBD" stroke-width="2" style="display:none;" />
-                    <circle id="cursor-dot-grey" r="3.5" fill="#050507" stroke="#71717A" stroke-width="1.5" style="display:none;" />
+                    <circle id="cursor-halo" r="9" fill="rgba(0, 208, 156, 0.18)" style="display:none;" />
+                    <circle id="cursor-dot-mint" r="4.5" fill="#0A0D14" stroke="#00D09C" stroke-width="2" style="display:none;" />
+                    <circle id="cursor-dot-grey" r="3.5" fill="#0A0D14" stroke="#71717A" stroke-width="1.5" style="display:none;" />
                 </svg>
                 <div class="live-tooltip" id="live-tooltip"></div>
             </div>
@@ -1331,8 +1672,8 @@ if page == "📊 Portfolio Overview":
         const pnlSpan = document.getElementById('pnl-span');
         const sign = pnl >= 0 ? '+' : '-';
         const isPos = pnl >= 0;
-        const themeColor = isPos ? '#82FBBD' : '#FF9A9C';
-        const strokeStart = isPos ? '#5EEAD4' : '#FFA9AA';
+        const themeColor = isPos ? '#00D09C' : '#EB5B56';
+        const strokeStart = isPos ? '#00D09C' : '#EB5B56';
         const areaOp0 = isPos ? '0.14' : '0.18';
         const areaOp70 = isPos ? '0.02' : '0.03';
 
@@ -1370,7 +1711,7 @@ if page == "📊 Portfolio Overview":
         if (legendDot) legendDot.className = isPos ? 'dot-mint' : 'dot-red';
 
         dotMint.setAttribute('stroke', themeColor);
-        cursorHalo.setAttribute('fill', isPos ? 'rgba(130, 251, 189, 0.18)' : 'rgba(255, 154, 156, 0.18)');
+        cursorHalo.setAttribute('fill', isPos ? 'rgba(0, 208, 156, 0.18)' : 'rgba(235, 91, 86, 0.18)');
 
         // Scale SVG coordinate system
         const allVals = equities.concat(investedArr);
@@ -1482,7 +1823,7 @@ if page == "📊 Portfolio Overview":
         const pnlPct = (pnl / invVal) * 100;
         const sign = pnl >= 0 ? '+' : '-';
         const isPointPos = pnl >= 0;
-        const pointColor = isPointPos ? '#82FBBD' : '#FF9A9C';
+        const pointColor = isPointPos ? '#00D09C' : '#EB5B56';
         const pnlBadge = document.getElementById('pnl-badge');
         const pnlSpan = document.getElementById('pnl-span');
         pnlBadge.className = 'return-glass-badge ' + (isPointPos ? 'badge-green' : 'badge-red');
@@ -1490,7 +1831,7 @@ if page == "📊 Portfolio Overview":
         document.getElementById('tf-tag').innerText = dateStr;
 
         dotMint.setAttribute('stroke', pointColor);
-        cursorHalo.setAttribute('fill', isPointPos ? 'rgba(130, 251, 189, 0.18)' : 'rgba(255, 154, 156, 0.18)');
+        cursorHalo.setAttribute('fill', isPointPos ? 'rgba(0, 208, 156, 0.18)' : 'rgba(235, 91, 86, 0.18)');
         
         // Tooltip position & content
         tooltip.style.display = 'block';
@@ -1572,7 +1913,7 @@ if page == "📊 Portfolio Overview":
             fig.update_traces(
                 textposition='inside',
                 textinfo='percent+label',
-                marker=dict(line=dict(color='#070A12', width=1.5)),
+                marker=dict(line=dict(color='#121622', width=1.5)),
                 hovertemplate=f"<b>%{{label}}</b><br>Allocation: {CURRENCY_SYMBOL}%{{value:,.2f}}<br>Share: %{{percent}}<extra></extra>"
             )
             fig.update_layout(
@@ -1582,7 +1923,7 @@ if page == "📊 Portfolio Overview":
                 plot_bgcolor='rgba(0,0,0,0)',
                 font=dict(family="Space Grotesk, sans-serif", color="#FFFFFF"),
                 annotations=[dict(
-                    text=f"<b>PORTFOLIO</b><br><span style='font-size:18px; color:#82FBBD;'>{CURRENCY_SYMBOL}{equity:,.0f}</span><br><span style='font-size:11px; color:#71717A;'>CASH {cash_pct:.1f}%</span>",
+                    text=f"<b>PORTFOLIO</b><br><span style='font-size:18px; color:#00D09C;'>{CURRENCY_SYMBOL}{equity:,.0f}</span><br><span style='font-size:11px; color:#71717A;'>CASH {cash_pct:.1f}%</span>",
                     x=0.5, y=0.5,
                     font_size=15,
                     font_family="Space Grotesk",
@@ -1595,7 +1936,7 @@ if page == "📊 Portfolio Overview":
         with col_stats:
             st.markdown("""
             <div class="cyber-card" style="margin-top: 25px;">
-                <div class="kpi-title" style="color: #82FBBD; font-size: 0.72rem;">// 03. EXPOSURE TELEMETRY</div>
+                <div class="kpi-title" style="color: #00D09C; font-size: 0.72rem;">// 03. EXPOSURE TELEMETRY</div>
             """, unsafe_allow_html=True)
 
             st.markdown(f"""
@@ -1605,7 +1946,7 @@ if page == "📊 Portfolio Overview":
             </div>
             <div style="display: flex; justify-content: space-between; padding: 9px 0; border-bottom: 1px solid rgba(255,255,255,0.06); font-family: 'DM Mono', monospace; font-size: 0.82rem;">
                 <span style="color: #71717A;">Liquid Cash Reserve:</span>
-                <span style="color: #82FBBD; font-weight: 600;">{CURRENCY_SYMBOL}{cash:,.2f} ({cash_pct:.1f}%)</span>
+                <span style="color: #00D09C; font-weight: 600;">{CURRENCY_SYMBOL}{cash:,.2f} ({cash_pct:.1f}%)</span>
             </div>
             <div style="display: flex; justify-content: space-between; padding: 9px 0; border-bottom: 1px solid rgba(255,255,255,0.06); font-family: 'DM Mono', monospace; font-size: 0.82rem;">
                 <span style="color: #71717A;">Active Holdings:</span>
@@ -1624,13 +1965,13 @@ if page == "📊 Portfolio Overview":
             winners = df_pos[df_pos['unrealized_pl'] > 0]
             losers = df_pos[df_pos['unrealized_pl'] < 0]
             win_rate = (len(winners) / len(df_pos) * 100) if len(df_pos) > 0 else 0.0
-            wr_color = "#82FBBD" if win_rate >= 50.0 else "#FF9A9C"
+            wr_color = "#00D09C" if win_rate >= 50.0 else "#EB5B56"
 
             st.markdown(f"""
             <div style="margin-top: 15px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.08);">
                 <div style="display: flex; justify-content: space-between; font-family: 'DM Mono', monospace; font-size: 0.78rem; margin-bottom: 6px;">
                     <span style="color: #71717A;">Win Rate on Open Positions:</span>
-                    <span style="font-weight: 700;"><b style="color: {wr_color};">{win_rate:.1f}%</b> (<b style="color: #82FBBD;">{len(winners)} Green</b> / <b style="color: #FF9A9C;">{len(losers)} Red</b>)</span>
+                    <span style="font-weight: 700;"><b style="color: {wr_color};">{win_rate:.1f}%</b> (<b style="color: #00D09C;">{len(winners)} Green</b> / <b style="color: #EB5B56;">{len(losers)} Red</b>)</span>
                 </div>
             </div>
             </div>
@@ -1770,17 +2111,17 @@ elif page == "📋 Positions & Stop-Loss":
 
             h_labels = ["Profitable (> 0%)", "Holding in Safe Buffer", "Near Stop Watchlist (< 2.5%)", "Stop Breach Triggered"]
             h_values = [prof_count, hold_count, watch_count, breach_count]
-            h_colors = ["#82FBBD", "#52525B", "#FBBF24", "#FF9A9C"]
+            h_colors = ["#00D09C", "#52525B", "#FBBF24", "#EB5B56"]
 
             f_labels = [l for l, v in zip(h_labels, h_values) if v > 0]
             f_values = [v for v in h_values if v > 0]
             f_colors = [c for c, v in zip(h_colors, h_values) if v > 0]
 
-            health_center = f"<b>HEALTH</b><br><span style='font-size:18px; color:{'#82FBBD' if breach_count == 0 else '#FF9A9C'};'>{win_rate:.0f}%</span><br><span style='font-size:10px; color:#71717A;'>WIN RATE</span>"
+            health_center = f"<b>HEALTH</b><br><span style='font-size:18px; color:{'#00D09C' if breach_count == 0 else '#EB5B56'};'>{win_rate:.0f}%</span><br><span style='font-size:10px; color:#71717A;'>WIN RATE</span>"
             fig_health = create_donut_chart(
                 labels=f_labels if f_values else ["Active Holdings"],
                 values=f_values if f_values else [len(positions)],
-                colors=f_colors if f_values else ["#82FBBD"],
+                colors=f_colors if f_values else ["#00D09C"],
                 center_text=health_center,
                 title="HOLDING HEALTH & STOP-LOSS GATING DISTRIBUTION",
                 height=260,
@@ -1799,9 +2140,9 @@ elif page == "📋 Positions & Stop-Loss":
                 c_labels = top_holdings["symbol"].tolist()
                 c_values = top_holdings["market_value"].round(2).tolist()
 
-            pos_palette = ["#00F2FE", "#82FBBD", "#3B82F6", "#A855F7", "#FFB800", "#FF007F", "#71717A"]
+            pos_palette = ["#00F2FE", "#00D09C", "#3B82F6", "#A855F7", "#FFB800", "#FF007F", "#71717A"]
             total_holdings_val = df_pos["market_value"].sum()
-            conc_center = f"<b>INVESTED</b><br><span style='font-size:16px; color:#82FBBD;'>{CURRENCY_SYMBOL}{total_holdings_val:,.0f}</span><br><span style='font-size:10px; color:#71717A;'>{len(positions)} ASSETS</span>"
+            conc_center = f"<b>INVESTED</b><br><span style='font-size:16px; color:#00D09C;'>{CURRENCY_SYMBOL}{total_holdings_val:,.0f}</span><br><span style='font-size:10px; color:#71717A;'>{len(positions)} ASSETS</span>"
 
             fig_conc = create_donut_chart(
                 labels=c_labels,
@@ -1834,22 +2175,22 @@ elif page == "📋 Positions & Stop-Loss":
         def color_pnl_cells(v):
             if isinstance(v, (int, float)):
                 if v > 0:
-                    return "color: #82FBBD; font-weight: 600;"
+                    return "color: #00D09C; font-weight: 600;"
                 elif v < 0:
-                    return "color: #FF9A9C; font-weight: 600;"
+                    return "color: #EB5B56; font-weight: 600;"
             return ""
 
         def color_buffer_cells(v):
             if isinstance(v, (int, float)):
                 if v <= 2.5:
-                    return "color: #FF9A9C; font-weight: 600;"
+                    return "color: #EB5B56; font-weight: 600;"
                 else:
-                    return "color: #82FBBD; font-weight: 600;"
+                    return "color: #00D09C; font-weight: 600;"
             return ""
 
         def color_stop_limit(v):
             if isinstance(v, (int, float)):
-                return "color: #FF9A9C; font-weight: 600;"
+                return "color: #EB5B56; font-weight: 600;"
             return ""
 
         styled_pos_df = (
@@ -1870,11 +2211,74 @@ elif page == "📋 Positions & Stop-Loss":
             })
         )
 
-        st.dataframe(
-            styled_pos_df,
-            width='stretch',
-            hide_index=True
-        )
+        # ----------------------------------------------------------------------
+        # GROWW INDIA SIGNATURE HOLDINGS VIEW & INSTITUTIONAL GRID
+        # ----------------------------------------------------------------------
+        view_tabs = st.tabs(["🌱 Groww Holdings Card View", "📋 Detailed Institutional Grid"])
+        
+        with view_tabs[0]:
+            st.markdown("<div style='margin-bottom: 8px;'></div>", unsafe_allow_html=True)
+            for _, r in df_pos.sort_values(by="market_value", ascending=False).iterrows():
+                h_sym = r["symbol"]
+                h_clean = h_sym.replace(".NS", "").replace(".BO", "")
+                h_avatar = h_clean[:2].upper()
+                h_shares = r["Shares"]
+                h_cur = r[f"Current Price ({CURRENCY_SYMBOL})"]
+                h_entry = r[f"Avg Entry ({CURRENCY_SYMBOL})"]
+                h_mkt = r[f"Market Value ({CURRENCY_SYMBOL})"]
+                h_pl = r[f"Unrealized P&L ({CURRENCY_SYMBOL})"]
+                h_ret = r["Return (%)"]
+                h_sp = r[f"Stop Price ({CURRENCY_SYMBOL})"]
+                h_breached = r["is_breached"]
+                h_pos = (h_pl >= 0)
+                h_color = "#00D09C" if h_pos else "#EB5B56"
+                h_icon = "▲" if h_pos else "▼"
+                h_tag = "NSE CNC" if is_india_mode else "US EQUITY"
+                
+                gtt_pill_style = "border-color: rgba(235, 91, 86, 0.35); color: #EB5B56;" if h_breached else "border-color: rgba(0, 208, 156, 0.28); color: #00D09C;"
+                gtt_pill_text = f"🛑 BREACH: {CURRENCY_SYMBOL}{h_sp:,.2f}" if h_breached else f"🛡️ GTT: {CURRENCY_SYMBOL}{h_sp:,.2f}"
+
+                st.markdown(f"""
+                <div class="groww-holding-row">
+                    <div style="display: flex; align-items: center;">
+                        <div class="groww-avatar">{h_avatar}</div>
+                        <div>
+                            <div style="font-size: 0.96rem; font-weight: 700; color: #FFFFFF; display: flex; align-items: center; gap: 6px;">
+                                {h_clean} <span style="font-size: 0.68rem; color: #8F9CAE; font-weight: 500; font-family: 'DM Mono', monospace; background: rgba(255,255,255,0.06); padding: 1px 6px; border-radius: 4px;">{h_tag}</span>
+                            </div>
+                            <div style="font-size: 0.74rem; color: #8F9CAE; margin-top: 3px; font-family: 'DM Mono', monospace;">
+                                {h_shares:,.0f} shares • Avg. {CURRENCY_SYMBOL}{h_entry:,.2f}
+                            </div>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 24px; align-items: center;">
+                        <div style="text-align: right;">
+                            <div style="font-size: 0.96rem; font-weight: 700; color: #FFFFFF;">{CURRENCY_SYMBOL}{h_cur:,.2f}</div>
+                            <div style="font-size: 0.72rem; color: #8F9CAE; font-family: 'DM Mono', monospace;">LTP (Market)</div>
+                        </div>
+                        <div style="text-align: right; min-width: 140px;">
+                            <div style="font-size: 0.96rem; font-weight: 700; color: {h_color};">
+                                {h_icon} {format_pnl_str(h_pl)}
+                            </div>
+                            <div style="font-size: 0.74rem; font-weight: 600; color: {h_color}; font-family: 'DM Mono', monospace;">
+                                {format_pct_str(h_ret)}
+                            </div>
+                        </div>
+                        <div style="text-align: right; min-width: 130px;">
+                            <span class="status-pill" style="font-size: 0.68rem; {gtt_pill_style}">
+                                {gtt_pill_text}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+
+        with view_tabs[1]:
+            st.dataframe(
+                styled_pos_df,
+                width='stretch',
+                hide_index=True
+            )
 
         if not critical.empty:
             st.error(f"⚠️ {len(critical)} position(s) have breached their designated stop-loss threshold and will be liquidated on the next session cycle!")
@@ -1889,13 +2293,13 @@ elif page == "📋 Positions & Stop-Loss":
         <div class="cyber-card" style="margin-bottom: 14px;">
             <div style="display: flex; justify-content: space-between; align-items: center;">
                 <div>
-                    <div class="kpi-title" style="color: #82FBBD; font-size: 0.78rem; letter-spacing: 0.12em;">// 02. EDITABLE STOP-LOSS CONTROL DESK</div>
+                    <div class="kpi-title" style="color: #00D09C; font-size: 0.78rem; letter-spacing: 0.12em;">// 02. EDITABLE STOP-LOSS CONTROL DESK</div>
                     <div style="font-size: 0.78rem; color: #71717A; margin-top: 3px;">
                         Alter the stop-loss limit for any active position. Custom overrides are stored persistently in bot configuration and instantly enforced by both the Quant Engine and live risk monitors.
                     </div>
                 </div>
                 <div>
-                    <span class="status-pill" style="border-color: rgba(130,251,189,0.3); color: #82FBBD;">BOT DEFAULT: {sl_manager.global_default_pct*100:.1f}%</span>
+                    <span class="status-pill" style="border-color: rgba(130,251,189,0.3); color: #00D09C;">BOT DEFAULT: {sl_manager.global_default_pct*100:.1f}%</span>
                 </div>
             </div>
         </div>
@@ -1922,9 +2326,9 @@ elif page == "📋 Positions & Stop-Loss":
                 pos_dollar_buf = pos_cur_price - pos_active_stop_price
                 pos_pct_buf = (pos_dollar_buf / pos_cur_price * 100) if pos_cur_price > 0 else 0.0
 
-                badge_bg = "rgba(255, 184, 0, 0.12)" if pos_is_custom else "rgba(130, 251, 189, 0.1)"
-                badge_border = "rgba(255, 184, 0, 0.35)" if pos_is_custom else "rgba(130, 251, 189, 0.28)"
-                badge_text_c = "#FFB800" if pos_is_custom else "#82FBBD"
+                badge_bg = "rgba(255, 184, 0, 0.12)" if pos_is_custom else "rgba(0, 208, 156, 0.1)"
+                badge_border = "rgba(255, 184, 0, 0.35)" if pos_is_custom else "rgba(0, 208, 156, 0.28)"
+                badge_text_c = "#FFB800" if pos_is_custom else "#00D09C"
                 badge_label = "✏️ USER CUSTOM OVERRIDE" if pos_is_custom else "🤖 BOT ALGORITHM DEFAULT"
 
                 st.markdown(f"""
@@ -1945,15 +2349,15 @@ elif page == "📋 Positions & Stop-Loss":
                     </div>
                     <div style="display: flex; justify-content: space-between; font-size: 0.76rem; color: #71717A; margin-top: 5px;">
                         <span>Current Position P&L:</span>
-                        <span style="color: {'#82FBBD' if pos_pl >= 0 else '#FF9A9C'}; font-weight: 600;">{format_pnl_str(pos_pl)} ({format_pct_str(pos_plpc)})</span>
+                        <span style="color: {'#00D09C' if pos_pl >= 0 else '#EB5B56'}; font-weight: 600;">{format_pnl_str(pos_pl)} ({format_pct_str(pos_plpc)})</span>
                     </div>
                     <div style="display: flex; justify-content: space-between; font-size: 0.76rem; color: #71717A; margin-top: 8px; padding-top: 7px; border-top: 1px solid rgba(255,255,255,0.06);">
                         <span>Active Stop-Loss Trigger:</span>
-                        <span style="color: #FF9A9C; font-weight: 600;">{CURRENCY_SYMBOL}{pos_active_stop_price:,.2f} ({pos_active_sl_pct*100:+.1f}%)</span>
+                        <span style="color: #EB5B56; font-weight: 600;">{CURRENCY_SYMBOL}{pos_active_stop_price:,.2f} ({pos_active_sl_pct*100:+.1f}%)</span>
                     </div>
                     <div style="display: flex; justify-content: space-between; font-size: 0.76rem; color: #71717A; margin-top: 5px;">
                         <span>Safety Buffer to Stop:</span>
-                        <span style="color: {'#82FBBD' if pos_pct_buf > 2.5 else '#FF9A9C'}; font-weight: 600;">{'+' if pos_dollar_buf >= 0 else ''}{CURRENCY_SYMBOL}{pos_dollar_buf:,.2f} ({pos_pct_buf:+.1f}%)</span>
+                        <span style="color: {'#00D09C' if pos_pct_buf > 2.5 else '#EB5B56'}; font-weight: 600;">{'+' if pos_dollar_buf >= 0 else ''}{CURRENCY_SYMBOL}{pos_dollar_buf:,.2f} ({pos_pct_buf:+.1f}%)</span>
                     </div>
                 </div>
                 """, unsafe_allow_html=True)
@@ -2002,18 +2406,18 @@ elif page == "📋 Positions & Stop-Loss":
                 staged_dist_curr_pct = (staged_dist_curr / pos_cur_price * 100) if pos_cur_price > 0 else 0.0
 
                 st.markdown(f"""
-                <div style="background: #0D0E12; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px; padding: 10px 14px; margin: 10px 0; font-family: 'DM Mono', monospace; font-size: 0.74rem;">
+                <div style="background: #121622; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px; padding: 10px 14px; margin: 10px 0; font-family: 'DM Mono', monospace; font-size: 0.74rem;">
                     <div style="display: flex; justify-content: space-between; padding-bottom: 4px;">
                         <span style="color: #71717A;">NEW STOP TRIGGER:</span>
                         <span style="color: #FFFFFF; font-weight: 600;">{CURRENCY_SYMBOL}{staged_stop_price:,.2f} ({staged_pct*100:+.1f}% from Entry)</span>
                     </div>
                     <div style="display: flex; justify-content: space-between; padding-bottom: 4px; border-bottom: 1px solid rgba(255,255,255,0.06);">
                         <span style="color: #71717A;">DISTANCE FROM CURRENT PRICE:</span>
-                        <span style="color: {'#82FBBD' if staged_dist_curr > 0 else '#FF9A9C'}; font-weight: 600;">{'+' if staged_dist_curr >= 0 else ''}{CURRENCY_SYMBOL}{staged_dist_curr:,.2f} ({staged_dist_curr_pct:+.1f}%)</span>
+                        <span style="color: {'#00D09C' if staged_dist_curr > 0 else '#EB5B56'}; font-weight: 600;">{'+' if staged_dist_curr >= 0 else ''}{CURRENCY_SYMBOL}{staged_dist_curr:,.2f} ({staged_dist_curr_pct:+.1f}%)</span>
                     </div>
                     <div style="display: flex; justify-content: space-between; padding-top: 4px;">
                         <span style="color: #71717A;">MAX DOWNSIDE AT-RISK CAPITAL:</span>
-                        <span style="color: #FF9A9C; font-weight: 600;">-{CURRENCY_SYMBOL}{abs(staged_total_loss):,.2f} ({int(pos_qty)} shares)</span>
+                        <span style="color: #EB5B56; font-weight: 600;">-{CURRENCY_SYMBOL}{abs(staged_total_loss):,.2f} ({int(pos_qty)} shares)</span>
                     </div>
                 </div>
                 """, unsafe_allow_html=True)
@@ -2063,7 +2467,7 @@ elif page == "📋 Positions & Stop-Loss":
                 if sel_pos_data:
                     pnl_v = sel_pos_data.get("unrealized_pl", 0.0)
                     plpc_v = sel_pos_data.get("unrealized_plpc", 0.0) * 100
-                    pnl_c = "#82FBBD" if pnl_v >= 0 else "#FF9A9C"
+                    pnl_c = "#00D09C" if pnl_v >= 0 else "#EB5B56"
                     st.markdown(f"<div style='font-family:\"DM Mono\",monospace; font-size:0.75rem; color:#71717A; margin-top:-6px; margin-bottom:8px;'>Holding: <b style='color:#FFFFFF;'>{sel_pos_data.get('qty')} shares</b> | Market Val: <b style='color:#FFFFFF;'>{CURRENCY_SYMBOL}{sel_pos_data.get('market_value', 0):,.2f}</b> | P&L: <b style='color:{pnl_c};'>{format_pnl_str(pnl_v)} ({format_pct_str(plpc_v)})</b></div>", unsafe_allow_html=True)
             with liq_col2:
                 st.markdown("<div style='margin-top: 28px;'></div>", unsafe_allow_html=True)
@@ -2143,8 +2547,8 @@ elif page == "⚡ Manual Order Desk & Execution":
         with d_desk1:
             power_labels = ["Invested Capital", "Liquid Cash Reserve"]
             power_values = [round(max(0.0, invested_capital), 2), round(max(0.0, cash), 2)]
-            power_colors = ["#82FBBD", "#3B82F6"]
-            power_center = f"<b>EQUITY</b><br><span style='font-size:16px; color:#82FBBD;'>{CURRENCY_SYMBOL}{equity:,.0f}</span><br><span style='font-size:10px; color:#71717A;'>TOTAL NAV</span>"
+            power_colors = ["#00D09C", "#3B82F6"]
+            power_center = f"<b>EQUITY</b><br><span style='font-size:16px; color:#00D09C;'>{CURRENCY_SYMBOL}{equity:,.0f}</span><br><span style='font-size:10px; color:#71717A;'>TOTAL NAV</span>"
             fig_power = create_donut_chart(
                 labels=power_labels,
                 values=power_values,
@@ -2184,7 +2588,7 @@ elif page == "⚡ Manual Order Desk & Execution":
         desk_sub_prompt = "Select an Indian stock from the bot's NIFTY 100 universe dictionary and configure order sizing by either Rupee capital (₹) or whole share quantity (SEBI CNC)." if is_india_mode else "Select a stock from the bot's S&P 500 universe dictionary and configure order sizing by either exact dollar value ($) or share quantity."
         st.markdown(f"""
         <div class="cyber-card" style="margin-bottom: 12px;">
-            <div class="kpi-title" style="color: #82FBBD; font-size: 0.76rem; letter-spacing: 0.12em;">// 01. PROMPT BOT ORDER EXECUTION</div>
+            <div class="kpi-title" style="color: #00D09C; font-size: 0.76rem; letter-spacing: 0.12em;">// 01. PROMPT BOT ORDER EXECUTION</div>
             <div style="font-size: 0.78rem; color: #71717A; margin-top: 4px; line-height: 1.4;">
                 {desk_sub_prompt}
             </div>
@@ -2235,26 +2639,44 @@ elif page == "⚡ Manual Order Desk & Execution":
         existing_plpc = (existing_pos["unrealized_plpc"] * 100) if existing_pos else 0.0
 
         st.markdown(f"""
-        <div style="padding: 10px 14px; background: #070709; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px; margin-bottom: 14px; font-family: 'DM Mono', monospace; font-size: 0.78rem;">
+        <div style="padding: 10px 14px; background: #0D1017; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px; margin-bottom: 14px; font-family: 'DM Mono', monospace; font-size: 0.78rem;">
             <div style="display: flex; justify-content: space-between; align-items: center;">
                 <span>TICKER: <b style="color: #FFFFFF; font-size: 0.95rem;">{selected_symbol}</b></span>
-                <span>LIVE PRICE: <b style="color: #82FBBD; font-size: 0.95rem;">{CURRENCY_SYMBOL}{curr_price:,.2f}</b></span>
+                <span>LIVE PRICE: <b style="color: #00D09C; font-size: 0.95rem;">{CURRENCY_SYMBOL}{curr_price:,.2f}</b></span>
             </div>
             <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 6px; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 6px; color: #71717A;">
                 <span>PORTFOLIO STATUS:</span>
                 <span>
-                    {f"Holding {existing_qty} shares ({CURRENCY_SYMBOL}{existing_val:,.2f} | <b style='color: {'#82FBBD' if existing_pnl >= 0 else '#FF9A9C'};'>{format_pnl_str(existing_pnl)} ({format_pct_str(existing_plpc)})</b>)" if existing_qty > 0 else "<span style='color: #71717A;'>No Active Position (0 Shares)</span>"}
+                    {f"Holding {existing_qty} shares ({CURRENCY_SYMBOL}{existing_val:,.2f} | <b style='color: {'#00D09C' if existing_pnl >= 0 else '#EB5B56'};'>{format_pnl_str(existing_pnl)} ({format_pct_str(existing_plpc)})</b>)" if existing_qty > 0 else "<span style='color: #71717A;'>No Active Position (0 Shares)</span>"}
                 </span>
             </div>
         </div>
         """, unsafe_allow_html=True)
 
-        # Order Parameters
-        order_side_col, order_type_col = st.columns(2)
-        with order_side_col:
-            order_side = st.selectbox("Action / Side", options=["BUY", "SELL"], index=0, key="order_side_select")
-        with order_type_col:
+        # Groww-style Segmented BUY / SELL Switcher
+        if "groww_order_action" not in st.session_state:
+            st.session_state.groww_order_action = "BUY"
+
+        st.markdown('''<div style="font-family: 'DM Mono', monospace; font-size: 0.68rem; color: #8F9CAE; text-transform: uppercase; margin-bottom: 6px; letter-spacing: 0.08em;">TRANSACTION SIDE</div>''', unsafe_allow_html=True)
+        col_tab_b, col_tab_s = st.columns(2)
+        with col_tab_b:
+            is_b_active = (st.session_state.groww_order_action == "BUY")
+            if st.button("BUY", key="btn_groww_buy", use_container_width=True, type="primary" if is_b_active else "secondary"):
+                st.session_state.groww_order_action = "BUY"
+                st.rerun()
+        with col_tab_s:
+            is_s_active = (st.session_state.groww_order_action == "SELL")
+            if st.button("SELL", key="btn_groww_sell", use_container_width=True, type="primary" if is_s_active else "secondary"):
+                st.session_state.groww_order_action = "SELL"
+                st.rerun()
+
+        order_side = st.session_state.groww_order_action
+
+        order_type_col1, order_prod_col2 = st.columns(2)
+        with order_type_col1:
             order_type = st.selectbox("Order Type", options=["MARKET", "LIMIT"], index=0, key="order_type_select")
+        with order_prod_col2:
+            st.selectbox("Product Type", options=["Delivery (CNC)" if is_india_mode else "Cash Delivery"], index=0, disabled=True, key="prod_type_select")
 
         limit_price = None
         if order_type == "LIMIT":
@@ -2312,19 +2734,24 @@ elif page == "⚡ Manual Order Desk & Execution":
         post_weight = ((existing_val + calc_notional) / equity * 100) if equity > 0 else 0.0
         is_cap_breach = (post_weight > 15.0) and (order_side == "BUY")
 
+        brokerage_label = "₹0 (Zero Delivery Brokerage)" if is_india_mode else "$0 (Free Paper Trading)"
         st.markdown(f"""
-        <div style="background: #0D0E12; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px; padding: 10px 14px; margin: 12px 0; font-family: 'DM Mono', monospace; font-size: 0.74rem;">
-            <div style="display: flex; justify-content: space-between; padding-bottom: 4px;">
-                <span style="color: #71717A;">ESTIMATED ORDER NOTIONAL:</span>
-                <span style="color: #FFFFFF; font-weight: 600;">{CURRENCY_SYMBOL}{calc_notional:,.2f}</span>
+        <div style="background: #0B0E14; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 10px; padding: 12px 16px; margin: 14px 0; font-family: 'DM Mono', monospace; font-size: 0.76rem;">
+            <div style="display: flex; justify-content: space-between; padding-bottom: 5px;">
+                <span style="color: #8F9CAE;">REQUIRED MARGIN:</span>
+                <span style="color: #FFFFFF; font-weight: 700; font-size: 0.90rem;">{CURRENCY_SYMBOL}{calc_notional:,.2f}</span>
             </div>
-            <div style="display: flex; justify-content: space-between; padding-bottom: 4px; border-bottom: 1px solid rgba(255,255,255,0.06);">
-                <span style="color: #71717A;">POST-TRADE ALLOCATION:</span>
-                <span style="color: {'#FF9A9C' if is_cap_breach else '#82FBBD'}; font-weight: 600;">{post_weight:.1f}% of Equity (15% Max)</span>
+            <div style="display: flex; justify-content: space-between; padding-bottom: 5px;">
+                <span style="color: #8F9CAE;">AVAILABLE BALANCE:</span>
+                <span style="color: #00D09C; font-weight: 600;">{CURRENCY_SYMBOL}{buying_power:,.2f}</span>
             </div>
-            <div style="display: flex; justify-content: space-between; padding-top: 4px;">
-                <span style="color: #71717A;">REMAINING CASH BUFFER:</span>
-                <span style="color: #82FBBD; font-weight: 600;">{CURRENCY_SYMBOL}{max(0.0, cash - (calc_notional if order_side == 'BUY' else -calc_notional)):,.2f}</span>
+            <div style="display: flex; justify-content: space-between; padding-bottom: 5px; border-bottom: 1px solid rgba(255,255,255,0.06);">
+                <span style="color: #8F9CAE;">POST-TRADE ALLOCATION:</span>
+                <span style="color: {'#EB5B56' if is_cap_breach else '#00D09C'}; font-weight: 600;">{post_weight:.1f}% of Equity (15% Max)</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; padding-top: 5px;">
+                <span style="color: #8F9CAE;">BROKERAGE CHARGES:</span>
+                <span style="color: #00D09C; font-weight: 600;">{brokerage_label}</span>
             </div>
         </div>
         """, unsafe_allow_html=True)
@@ -2378,13 +2805,13 @@ elif page == "⚡ Manual Order Desk & Execution":
         st.markdown(f"""
         <div class="cyber-card" style="margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;">
             <div>
-                <div class="kpi-title" style="color: #82FBBD; font-size: 0.76rem; letter-spacing: 0.12em;">// 02. ACTIVE PLACED ORDERS QUEUE</div>
+                <div class="kpi-title" style="color: #00D09C; font-size: 0.76rem; letter-spacing: 0.12em;">// 02. ACTIVE PLACED ORDERS QUEUE</div>
                 <div style="font-size: 0.78rem; color: #71717A; margin-top: 4px;">
                     Inspect, modify, or cancel currently queued & pending orders on {target_desk_broker}.
                 </div>
             </div>
             <div>
-                <span class="status-pill" style="border-color: rgba(130,251,189,0.3); color: #82FBBD;">{len(open_orders)} LIVE</span>
+                <span class="status-pill" style="border-color: rgba(130,251,189,0.3); color: #00D09C;">{len(open_orders)} LIVE</span>
             </div>
         </div>
         """, unsafe_allow_html=True)
@@ -2407,8 +2834,8 @@ elif page == "⚡ Manual Order Desk & Execution":
 
             # Render individual orders with cancel & modify buttons
             for idx, o in enumerate(open_orders):
-                side_color = "#82FBBD" if o["side"] == "BUY" else "#FF9A9C"
-                badge_border = "rgba(130, 251, 189, 0.3)" if o["side"] == "BUY" else "rgba(255, 154, 156, 0.3)"
+                side_color = "#00D09C" if o["side"] == "BUY" else "#EB5B56"
+                badge_border = "rgba(0, 208, 156, 0.3)" if o["side"] == "BUY" else "rgba(235, 91, 86, 0.3)"
                 lp_str = f"@ {CURRENCY_SYMBOL}{o['limit_price']:,.2f}" if o.get("limit_price") else ""
                 sub_time = o.get("submitted_at", "")[11:19] if len(o.get("submitted_at", "")) >= 19 else ""
                 
@@ -2422,7 +2849,7 @@ elif page == "⚡ Manual Order Desk & Execution":
                                 <span style="font-size: 0.68rem; color: #71717A;">{o['type']} {lp_str}</span>
                             </div>
                             <div style="display: flex; align-items: center; gap: 8px;">
-                                <span style="font-size: 0.68rem; color: #82FBBD; background: rgba(130,251,189,0.08); padding: 2px 6px; border-radius: 4px; border: 1px solid rgba(130,251,189,0.2);">{o['status']}</span>
+                                <span style="font-size: 0.68rem; color: #00D09C; background: rgba(130,251,189,0.08); padding: 2px 6px; border-radius: 4px; border: 1px solid rgba(130,251,189,0.2);">{o['status']}</span>
                                 <span style="font-size: 0.68rem; color: #71717A;">{sub_time} UTC</span>
                             </div>
                         </div>
@@ -2483,7 +2910,7 @@ elif page == "⚡ Manual Order Desk & Execution":
         st.markdown("<div style='margin-top: 20px;'></div>", unsafe_allow_html=True)
         st.markdown("""
         <div class="cyber-card">
-            <div class="kpi-title" style="color: #FF9A9C; font-size: 0.74rem;">// 03. QUICK POSITION LIQUIDATOR</div>
+            <div class="kpi-title" style="color: #EB5B56; font-size: 0.74rem;">// 03. QUICK POSITION LIQUIDATOR</div>
             <div style="font-size: 0.78rem; color: #71717A; margin-top: 4px; line-height: 1.4;">
                 Manually exit or close any open equity position via immediate broker market sell.
             </div>
@@ -2496,7 +2923,7 @@ elif page == "⚡ Manual Order Desk & Execution":
             if chosen_pos:
                 chosen_pnl = chosen_pos['unrealized_pl']
                 chosen_plpc = chosen_pos['unrealized_plpc'] * 100
-                chosen_pnl_color = "#82FBBD" if chosen_pnl >= 0 else "#FF9A9C"
+                chosen_pnl_color = "#00D09C" if chosen_pnl >= 0 else "#EB5B56"
                 st.markdown(f"<div style='font-family:\"DM Mono\",monospace; font-size:0.75rem; color:#71717A; margin-bottom:8px;'>Holds: <b style='color:#FFFFFF;'>{chosen_pos['qty']} shares</b> | Market Value: <b style='color:#FFFFFF;'>{CURRENCY_SYMBOL}{chosen_pos['market_value']:,.2f}</b> | PnL: <b style='color:{chosen_pnl_color};'>{format_pnl_str(chosen_pnl)} ({format_pct_str(chosen_plpc)})</b></div>", unsafe_allow_html=True)
                 if st.button(f"🚨 MARKET CLOSE {close_sym} POSITION", type="secondary", key="desk_close_pos_btn", use_container_width=True):
                     with st.spinner(f"Liquidating position in {close_sym}..."):
@@ -2622,8 +3049,8 @@ elif page in ("🏆 13-Week Incubation Scorecard", "🏆 30-Day Incubation Score
 
     # Sleek Equity Curve (Blacklead Studio Minimalist Edition)
     fig_equity = go.Figure()
-    curve_color = "#82FBBD" if net_change >= 0 else "#FF9A9C"
-    curve_fill = "rgba(130, 251, 189, 0.08)" if net_change >= 0 else "rgba(255, 154, 156, 0.08)"
+    curve_color = "#00D09C" if net_change >= 0 else "#EB5B56"
+    curve_fill = "rgba(0, 208, 156, 0.08)" if net_change >= 0 else "rgba(235, 91, 86, 0.08)"
     fig_equity.add_trace(go.Scatter(
         x=df_history["timestamp"],
         y=df_history["equity"],
@@ -2663,8 +3090,8 @@ elif page in ("🏆 13-Week Incubation Scorecard", "🏆 30-Day Incubation Score
     with inc_c1:
         m_labels = ["Sessions Completed", "Sessions Remaining"]
         m_values = [sessions_done, sessions_rem]
-        m_colors = ["#82FBBD", "#27272A"]
-        m_center = f"<b>PROGRESS</b><br><span style='font-size:18px; color:#82FBBD;'>{progress_pct:.0f}%</span><br><span style='font-size:10px; color:#71717A;'>WEEK {current_week}/13</span>"
+        m_colors = ["#00D09C", "#27272A"]
+        m_center = f"<b>PROGRESS</b><br><span style='font-size:18px; color:#00D09C;'>{progress_pct:.0f}%</span><br><span style='font-size:10px; color:#71717A;'>WEEK {current_week}/13</span>"
 
         fig_inc_prog = create_donut_chart(
             labels=m_labels,
@@ -2689,10 +3116,10 @@ elif page in ("🏆 13-Week Incubation Scorecard", "🏆 30-Day Incubation Score
 
         s_labels = ["Winning Sessions", "Losing Sessions"] + (["Flat Sessions"] if flat_days > 0 else [])
         s_values = [win_days, loss_days] + ([flat_days] if flat_days > 0 else [])
-        s_colors = ["#82FBBD", "#FF9A9C"] + (["#52525B"] if flat_days > 0 else [])
+        s_colors = ["#00D09C", "#EB5B56"] + (["#52525B"] if flat_days > 0 else [])
         tot_s = max(1, win_days + loss_days)
         s_win_rate = (win_days / tot_s) * 100
-        s_center = f"<b>DAY WIN RATE</b><br><span style='font-size:18px; color:{'#82FBBD' if s_win_rate >= 50 else '#FF9A9C'};'>{s_win_rate:.0f}%</span><br><span style='font-size:10px; color:#71717A;'>{win_days}W - {loss_days}L</span>"
+        s_center = f"<b>DAY WIN RATE</b><br><span style='font-size:18px; color:{'#00D09C' if s_win_rate >= 50 else '#EB5B56'};'>{s_win_rate:.0f}%</span><br><span style='font-size:10px; color:#71717A;'>{win_days}W - {loss_days}L</span>"
 
         fig_inc_win = create_donut_chart(
             labels=s_labels,
@@ -2845,7 +3272,7 @@ elif page in ("⚡ Order Activity Log", "📜 Order Activity Log"):
             sells_count = int((df_all_orders["Side"] == "SELL").sum())
             side_labels = ["Buy Orders", "Sell Orders"]
             side_values = [buys_count, sells_count]
-            side_colors = ["#82FBBD", "#FF9A9C"]
+            side_colors = ["#00D09C", "#EB5B56"]
             tot_orders = len(df_all_orders)
             side_center = f"<b>ORDERS</b><br><span style='font-size:18px; color:#FFFFFF;'>{tot_orders}</span><br><span style='font-size:10px; color:#71717A;'>LIFETIME</span>"
 
@@ -2866,9 +3293,9 @@ elif page in ("⚡ Order Activity Log", "📜 Order Activity Log"):
             stat_values = list(status_counts.values())
             stat_colors_map = {
                 "FILLED": "#00F2FE",
-                "NEW": "#82FBBD",
+                "NEW": "#00D09C",
                 "ACCEPTED": "#3B82F6",
-                "CANCELED": "#FF9A9C",
+                "CANCELED": "#EB5B56",
                 "EXPIRED": "#71717A",
                 "REPLACED": "#FFB800"
             }
@@ -2950,16 +3377,16 @@ elif page in ("⚡ Order Activity Log", "📜 Order Activity Log"):
         session_sells = sum(filtered_df["Side"] == "SELL")
 
         st.markdown(f"""
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px; margin-bottom: 12px; padding: 11px 18px; background: #0D0E12; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 10px; font-family: 'DM Mono', monospace; font-size: 0.80rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px; margin-bottom: 12px; padding: 11px 18px; background: #121622; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 10px; font-family: 'DM Mono', monospace; font-size: 0.80rem;">
             <div style="display: flex; gap: 14px; align-items: center;">
                 <span style="color: #FFFFFF; font-weight: 700; font-size: 0.86rem;">// LEDGER STATUS:</span>
-                <span style="color: #82FBBD; font-weight: 600;">{session_orders} Matching Orders</span>
+                <span style="color: #00D09C; font-weight: 600;">{session_orders} Matching Orders</span>
                 <span style="color: #52525B;">|</span>
-                <span style="color: #FFFFFF;">Volume: <b style="color: #82FBBD;">{CURRENCY_SYMBOL}{session_vol:,.2f}</b></span>
+                <span style="color: #FFFFFF;">Volume: <b style="color: #00D09C;">{CURRENCY_SYMBOL}{session_vol:,.2f}</b></span>
             </div>
             <div style="display: flex; gap: 12px; color: #71717A;">
-                <span>BUYS: <b style="color: #82FBBD;">{session_buys}</b></span>
-                <span>SELLS: <b style="color: #FF9A9C;">{session_sells}</b></span>
+                <span>BUYS: <b style="color: #00D09C;">{session_buys}</b></span>
+                <span>SELLS: <b style="color: #EB5B56;">{session_sells}</b></span>
             </div>
         </div>
         """, unsafe_allow_html=True)
@@ -3009,7 +3436,7 @@ elif page in ("⚡ Order Activity Log", "📜 Order Activity Log"):
         with p_col2:
             st.markdown(f"""
             <div style="text-align: center; font-family: 'DM Mono', monospace; font-size: 0.80rem; color: #71717A; padding-top: 8px;">
-                Page <b style="color: #82FBBD;">{st.session_state.order_ledger_page}</b> of <b style="color: #FFFFFF;">{total_pages}</b> • Displaying rows {start_row + 1} – {end_row} of {total_rows}
+                Page <b style="color: #00D09C;">{st.session_state.order_ledger_page}</b> of <b style="color: #FFFFFF;">{total_pages}</b> • Displaying rows {start_row + 1} – {end_row} of {total_rows}
             </div>
             """, unsafe_allow_html=True)
 
@@ -3028,9 +3455,9 @@ elif page in ("⚡ Order Activity Log", "📜 Order Activity Log"):
                 d_notional = d_df["Total Value"].sum()
 
                 st.markdown(f"""
-                <div style="padding: 8px 12px; background: #0D0E12; border-left: 3px solid #82FBBD; border-radius: 6px; margin: 8px 0; font-family: 'DM Mono', monospace; font-size: 0.80rem; display: flex; justify-content: space-between;">
+                <div style="padding: 8px 12px; background: #121622; border-left: 3px solid #00D09C; border-radius: 6px; margin: 8px 0; font-family: 'DM Mono', monospace; font-size: 0.80rem; display: flex; justify-content: space-between;">
                     <span><b>📅 {d}</b> — {len(d_df)} Orders</span>
-                    <span>Volume: <b style="color: #82FBBD;">{CURRENCY_SYMBOL}{d_notional:,.2f}</b> (<b style="color: #82FBBD;">{d_buys} Buys</b> / <b style="color: #FF9A9C;">{d_sells} Sells</b>)</span>
+                    <span>Volume: <b style="color: #00D09C;">{CURRENCY_SYMBOL}{d_notional:,.2f}</b> (<b style="color: #00D09C;">{d_buys} Buys</b> / <b style="color: #EB5B56;">{d_sells} Sells</b>)</span>
                 </div>
                 """, unsafe_allow_html=True)
 
@@ -3097,8 +3524,8 @@ elif page == "🧠 Quant Brain & Strategy":
     with qb_c1:
         alpha_labels = ["Velocity Momentum (ROC-20)", "Trend Extension Anchor (SMA)"]
         alpha_values = [70, 30]
-        alpha_colors = ["#82FBBD", "#3B82F6"]
-        alpha_center = "<b>WEIGHT</b><br><span style='font-size:18px; color:#82FBBD;'>70%</span><span style='font-size:12px; color:#71717A;'>/30%</span><br><span style='font-size:10px; color:#71717A;'>ALPHA SPLIT</span>"
+        alpha_colors = ["#00D09C", "#3B82F6"]
+        alpha_center = "<b>WEIGHT</b><br><span style='font-size:18px; color:#00D09C;'>70%</span><span style='font-size:12px; color:#71717A;'>/30%</span><br><span style='font-size:10px; color:#71717A;'>ALPHA SPLIT</span>"
 
         fig_alpha_weight = create_donut_chart(
             labels=alpha_labels,
@@ -3114,7 +3541,7 @@ elif page == "🧠 Quant Brain & Strategy":
     with qb_c2:
         ml_labels = ["Multi-Horizon Momentum", "Trend & MA Architecture", "Volatility & ATR Spreads", "Volume & Flow Surges"]
         ml_values = [35, 25, 20, 20]
-        ml_colors = ["#82FBBD", "#00F2FE", "#A855F7", "#FFB800"]
+        ml_colors = ["#00D09C", "#00F2FE", "#A855F7", "#FFB800"]
         ml_center = "<b>FEATURES</b><br><span style='font-size:18px; color:#A855F7;'>18</span><br><span style='font-size:10px; color:#71717A;'>150 TREES</span>"
 
         fig_ml_feat = create_donut_chart(
@@ -3175,7 +3602,7 @@ elif page == "🛡️ Risk Safeguards":
         p_rates = m_diag.get("rates_pillar", {})
 
         st.markdown("""
-        <div style="font-family: 'DM Mono', monospace; font-size: 0.72rem; color: #82FBBD; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 8px;">
+        <div style="font-family: 'DM Mono', monospace; font-size: 0.72rem; color: #00D09C; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 8px;">
             // LIVE 4-PILLAR INSTITUTIONAL MACRO RADAR & TAIL-RISK TELEMETRY
         </div>
         """, unsafe_allow_html=True)
@@ -3183,7 +3610,7 @@ elif page == "🛡️ Risk Safeguards":
         mr_c1, mr_c2, mr_c3, mr_c4, mr_c5 = st.columns(5)
 
         with mr_c1:
-            msi_color = "#82FBBD" if m_msi < 0.35 else ("#FFB800" if m_msi < 0.65 else "#FF9A9C")
+            msi_color = "#00D09C" if m_msi < 0.35 else ("#FFB800" if m_msi < 0.65 else "#EB5B56")
             st.markdown(f"""
             <div class="cyber-kpi-card">
                 <div class="kpi-title">MACRO STRESS INDEX (MSI)</div>
@@ -3195,7 +3622,7 @@ elif page == "🛡️ Risk Safeguards":
         with mr_c2:
             dist_200 = p_trend.get("distance_to_200_pct", 0.0)
             tr_val = p_trend.get("trend_ratio", 0.0)
-            t_color = "#82FBBD" if dist_200 >= 0 else "#FF9A9C"
+            t_color = "#00D09C" if dist_200 >= 0 else "#EB5B56"
             st.markdown(f"""
             <div class="cyber-kpi-card">
                 <div class="kpi-title">1. EQUITY TREND ANCHOR</div>
@@ -3207,7 +3634,7 @@ elif page == "🛡️ Risk Safeguards":
         with mr_c3:
             c_ratio = p_credit.get("credit_ratio")
             c_state = p_credit.get("credit_state", "HEALTHY")
-            c_color = "#82FBBD" if c_state == "HEALTHY" else ("#FFB800" if c_state == "DETERIORATING" else "#FF9A9C")
+            c_color = "#00D09C" if c_state == "HEALTHY" else ("#FFB800" if c_state == "DETERIORATING" else "#EB5B56")
             c_ratio_str = f"{c_ratio:.4f}" if c_ratio else "N/A"
             st.markdown(f"""
             <div class="cyber-kpi-card">
@@ -3220,7 +3647,7 @@ elif page == "🛡️ Risk Safeguards":
         with mr_c4:
             v_val = p_vol.get("vix")
             v_state = p_vol.get("vol_state", "CALM")
-            v_color = "#82FBBD" if (v_val and v_val < 20) else ("#FFB800" if (v_val and v_val < 28) else "#FF9A9C")
+            v_color = "#00D09C" if (v_val and v_val < 20) else ("#FFB800" if (v_val and v_val < 28) else "#EB5B56")
             v_str = f"{v_val:.2f}" if v_val else "N/A"
             st.markdown(f"""
             <div class="cyber-kpi-card">
@@ -3261,11 +3688,11 @@ elif page == "🛡️ Risk Safeguards":
             <div class="hud-title" style="font-size: 1.02rem;">1. Multi-Asset Macro Weather & Crash Radar</div>
             <div style="font-size: 0.82rem; color: #71717A; margin-top: 8px; line-height: 1.6;">
                 Continuous evaluation of <b>NIFTY 50</b> (200 SMA & Trend Ratio) & <b>INDIA VIX</b> (India mode) or <b>SPY</b>, <b>QQQ</b>, and <b>VIX</b> (US mode):
-                <br>• <b style="color: #82FBBD;">BULL_NORMAL:</b> 95% Max Exposure (Full Risk-On Momentum)
+                <br>• <b style="color: #00D09C;">BULL_NORMAL:</b> 95% Max Exposure (Full Risk-On Momentum)
                 <br>• <b style="color: #FFFFFF;">BULL_ROTATION:</b> 85% Exposure (QQQ &lt; 50 SMA Tech Fatigue; Value Rotation)
                 <br>• <b style="color: #FFFFFF;">BULL_CHOPPY:</b> 85% Max Exposure (Dip-Buying Focus, 15% Cash Shield)
                 <br>• <b style="color: #FFB800;">VOLATILITY_CAUTION:</b> 60% Exposure (VIX &gt; 22; 40% Cash Defense)
-                <br>• <b style="color: #FF9A9C;">CRASH_WARNING:</b> 0% Exposure (SPY &lt; 200 SMA or VIX &ge; 28; 100% Cash / Treasury Halt)
+                <br>• <b style="color: #EB5B56;">CRASH_WARNING:</b> 0% Exposure (SPY &lt; 200 SMA or VIX &ge; 28; 100% Cash / Treasury Halt)
             </div>
         </div>
 
@@ -3314,8 +3741,8 @@ elif page == "🛡️ Risk Safeguards":
     with rs_c1:
         regime_labels = ["Max Equity Exposure Limit", "Mandatory Cash Defense Buffer"]
         regime_values = [95.0, 5.0]
-        regime_colors = ["#82FBBD", "#27272A"]
-        regime_center = "<b>REGIME</b><br><span style='font-size:18px; color:#82FBBD;'>95%</span><br><span style='font-size:10px; color:#71717A;'>BULL_NORMAL</span>"
+        regime_colors = ["#00D09C", "#27272A"]
+        regime_center = "<b>REGIME</b><br><span style='font-size:18px; color:#00D09C;'>95%</span><br><span style='font-size:10px; color:#71717A;'>BULL_NORMAL</span>"
 
         fig_regime = create_donut_chart(
             labels=regime_labels,
@@ -3331,7 +3758,7 @@ elif page == "🛡️ Risk Safeguards":
     with rs_c2:
         cap_labels = ["Single Stock Max Ceiling", "Uncapped Universe Equity Capacity", "Minimum Cash Buffer"]
         cap_values = [15.0, 80.0, 5.0]
-        cap_colors = ["#FFB800", "#3B82F6", "#82FBBD"]
+        cap_colors = ["#FFB800", "#3B82F6", "#00D09C"]
         cap_center = "<b>HARD CAP</b><br><span style='font-size:18px; color:#FFB800;'>15.0%</span><br><span style='font-size:10px; color:#71717A;'>MAX / ASSET</span>"
 
         fig_cap = create_donut_chart(
