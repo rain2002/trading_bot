@@ -41,6 +41,7 @@ trades_log_*.csv
 corporate_actions_*.csv
 trading_system/data/historical_cache/*.csv
 *cache.json
+*capture*.py
 
 # IDEs
 .vscode/

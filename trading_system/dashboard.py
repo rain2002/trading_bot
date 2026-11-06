@@ -582,10 +582,27 @@ div[data-testid="stSegmentedControl"] button[data-checked="true"] {
     padding: 4px 0;
 }
 
-/* Groww BUY and SELL Action Buttons */
-div.stButton > button[key="btn_groww_buy"],
-div.stButton > button[data-testid="stBaseButton-primary"]:has(div:contains("BUY")),
-div.stButton > button[data-testid="stBaseButton-primary"]:has(p:contains("BUY")) {
+/* Universal Groww Primary & Action Buttons */
+button[kind="primary"],
+button[data-testid="stBaseButton-primary"] {
+    background: #00D09C !important;
+    border: 1px solid #00D09C !important;
+    color: #000000 !important;
+    font-weight: 700 !important;
+    border-radius: 8px !important;
+    box-shadow: 0 3px 12px rgba(0, 208, 156, 0.25) !important;
+}
+
+button[kind="primary"]:hover,
+button[data-testid="stBaseButton-primary"]:hover {
+    background: #00E5AB !important;
+    border-color: #00E5AB !important;
+    color: #000000 !important;
+}
+
+/* Groww BUY vs SELL Segmented Switcher */
+button[aria-label="BUY"][kind="primary"],
+button[aria-label="BUY"][data-testid="stBaseButton-primary"] {
     background: #00D09C !important;
     border-color: #00D09C !important;
     color: #000000 !important;
@@ -593,14 +610,30 @@ div.stButton > button[data-testid="stBaseButton-primary"]:has(p:contains("BUY"))
     box-shadow: 0 4px 16px rgba(0, 208, 156, 0.35) !important;
 }
 
-div.stButton > button[key="btn_groww_sell"],
-div.stButton > button[data-testid="stBaseButton-primary"]:has(div:contains("SELL")),
-div.stButton > button[data-testid="stBaseButton-primary"]:has(p:contains("SELL")) {
+button[aria-label="SELL"][kind="primary"],
+button[aria-label="SELL"][data-testid="stBaseButton-primary"] {
     background: #EB5B56 !important;
     border-color: #EB5B56 !important;
     color: #FFFFFF !important;
     font-weight: 700 !important;
     box-shadow: 0 4px 16px rgba(235, 91, 86, 0.35) !important;
+}
+
+button[aria-label="SELL"][kind="primary"]:hover,
+button[aria-label="SELL"][data-testid="stBaseButton-primary"]:hover {
+    background: #F87171 !important;
+    border-color: #F87171 !important;
+    color: #FFFFFF !important;
+}
+
+/* Sidebar Navigation Link Overrides (Ensure subtle sidebar active state) */
+section[data-testid="stSidebar"] div.stButton > button[kind="primary"],
+section[data-testid="stSidebar"] div.stButton > button[data-testid="stBaseButton-primary"] {
+    background: rgba(0, 208, 156, 0.08) !important;
+    color: #00D09C !important;
+    border: 1px solid rgba(0, 208, 156, 0.28) !important;
+    border-left: 3px solid #00D09C !important;
+    box-shadow: 0 2px 14px rgba(0, 208, 156, 0.12) !important;
 }
 
 </style>
@@ -1474,10 +1507,27 @@ if page == "📊 Portfolio Overview":
     padding: 4px 0;
 }
 
-/* Groww BUY and SELL Action Buttons */
-div.stButton > button[key="btn_groww_buy"],
-div.stButton > button[data-testid="stBaseButton-primary"]:has(div:contains("BUY")),
-div.stButton > button[data-testid="stBaseButton-primary"]:has(p:contains("BUY")) {
+/* Universal Groww Primary & Action Buttons */
+button[kind="primary"],
+button[data-testid="stBaseButton-primary"] {
+    background: #00D09C !important;
+    border: 1px solid #00D09C !important;
+    color: #000000 !important;
+    font-weight: 700 !important;
+    border-radius: 8px !important;
+    box-shadow: 0 3px 12px rgba(0, 208, 156, 0.25) !important;
+}
+
+button[kind="primary"]:hover,
+button[data-testid="stBaseButton-primary"]:hover {
+    background: #00E5AB !important;
+    border-color: #00E5AB !important;
+    color: #000000 !important;
+}
+
+/* Groww BUY vs SELL Segmented Switcher */
+button[aria-label="BUY"][kind="primary"],
+button[aria-label="BUY"][data-testid="stBaseButton-primary"] {
     background: #00D09C !important;
     border-color: #00D09C !important;
     color: #000000 !important;
@@ -1485,14 +1535,30 @@ div.stButton > button[data-testid="stBaseButton-primary"]:has(p:contains("BUY"))
     box-shadow: 0 4px 16px rgba(0, 208, 156, 0.35) !important;
 }
 
-div.stButton > button[key="btn_groww_sell"],
-div.stButton > button[data-testid="stBaseButton-primary"]:has(div:contains("SELL")),
-div.stButton > button[data-testid="stBaseButton-primary"]:has(p:contains("SELL")) {
+button[aria-label="SELL"][kind="primary"],
+button[aria-label="SELL"][data-testid="stBaseButton-primary"] {
     background: #EB5B56 !important;
     border-color: #EB5B56 !important;
     color: #FFFFFF !important;
     font-weight: 700 !important;
     box-shadow: 0 4px 16px rgba(235, 91, 86, 0.35) !important;
+}
+
+button[aria-label="SELL"][kind="primary"]:hover,
+button[aria-label="SELL"][data-testid="stBaseButton-primary"]:hover {
+    background: #F87171 !important;
+    border-color: #F87171 !important;
+    color: #FFFFFF !important;
+}
+
+/* Sidebar Navigation Link Overrides (Ensure subtle sidebar active state) */
+section[data-testid="stSidebar"] div.stButton > button[kind="primary"],
+section[data-testid="stSidebar"] div.stButton > button[data-testid="stBaseButton-primary"] {
+    background: rgba(0, 208, 156, 0.08) !important;
+    color: #00D09C !important;
+    border: 1px solid rgba(0, 208, 156, 0.28) !important;
+    border-left: 3px solid #00D09C !important;
+    box-shadow: 0 2px 14px rgba(0, 208, 156, 0.12) !important;
 }
 
 </style>
