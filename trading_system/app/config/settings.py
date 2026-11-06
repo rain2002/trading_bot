@@ -34,6 +34,9 @@ class Settings(BaseSettings):
     MAX_SINGLE_POSITION: float = Field(default=0.20, description="Max weight for a single ticker")
     MAX_DAILY_LOSS: float = Field(default=0.05, description="Kill switch daily loss threshold (5%)")
 
+    # Moat Scorecard Configuration (Pod 1 Fundamental Quality)
+    MOAT_MODE: str = Field(default="shadow", description="Moat scorecard mode: 'shadow' (log-only) or 'gate' (blocking veto)")
+
     # Notifications (Discord & Telegram)
     DISCORD_WEBHOOK_URL: Optional[str] = None
     TELEGRAM_BOT_TOKEN: Optional[str] = None

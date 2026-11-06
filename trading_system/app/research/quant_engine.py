@@ -11,6 +11,7 @@ from trading_system.app.common.database import SessionLocal
 from trading_system.app.data.yfinance_provider import YFinanceDataProvider
 from trading_system.app.strategies.ensembles.mean_reversion import MeanReversionStrategy
 from trading_system.app.ml.feature_pipeline import MLFeaturePipeline
+from trading_system.app.config.settings import settings
 from trading_system.app.config.stop_loss_manager import StopLossManager
 from trading_system.app.research.buffett_moat import BuffettMoatScorecard
 
@@ -245,15 +246,22 @@ class InvestorSkillsHeuristics:
 class QuantEngine:
     """
     Multi-Engine Quant Brain coordinating Momentum Leaders, Mean-Reversion Dip-Buys,
-    and optional Machine Learning Alpha Gating. Defaults to rules-only to prevent
-    single-market curve-fitting across diverse international jurisdictions.
+    Buffett Moat Quality Scorecard (Shadow vs Gate modes), and optional Machine Learning
+    Alpha Gating. Defaults to rules-only to prevent single-market curve-fitting across
+    diverse international jurisdictions.
     """
-    def __init__(self, enable_ml_gating: bool = False, ml_min_probability: float = 0.48):
+    def __init__(
+        self,
+        enable_ml_gating: bool = False,
+        ml_min_probability: float = 0.48,
+        moat_mode: Optional[str] = None
+    ):
         self.data_provider = YFinanceDataProvider()
         self.mean_reversion = MeanReversionStrategy()
         self.moat_scorecard = BuffettMoatScorecard()
         self.enable_ml_gating = enable_ml_gating
         self.ml_min_probability = ml_min_probability
+        self.moat_mode = (moat_mode or getattr(settings, "MOAT_MODE", "shadow")).lower()
         self.ml_model = None
         self.ml_pipeline = None
         if self.enable_ml_gating:
@@ -294,10 +302,20 @@ class QuantEngine:
         mean_rev_signals: List[Dict[str, Any]] = []
 
         for symbol in universe:
-            # Buffett Moat & Quality Scorecard Fundamental Gate (Chapter 2, Pod 1)
+            # Buffett Moat & Quality Scorecard (Fundamental Quality Audit)
             is_moat_pass, moat_reason, moat_card = self.moat_scorecard.is_approved_for_investment(symbol)
-            if not is_moat_pass:
-                logger.info(f"[BUFFETT MOAT VETO] {symbol}: {moat_reason}. Bypassing candidate.")
+            moat_score = moat_card.get("moat_score")
+            moat_class = moat_card.get("moat_class", "UNRATED")
+
+            logger.info(
+                f"[BUFFETT MOAT AUDIT] {symbol}: Score={moat_score}/100 ({moat_class}) | "
+                f"Mode={self.moat_mode} | Approved={is_moat_pass} ({moat_reason})"
+            )
+
+            # In 'gate' mode, veto candidate if fundamental moat score fails
+            # In 'shadow' mode, log-only (non-blocking) and attach moat_score to signal
+            if self.moat_mode == "gate" and not is_moat_pass:
+                logger.info(f"[BUFFETT MOAT VETO] {symbol}: {moat_reason}. Mode=gate -> Bypassing candidate.")
                 continue
 
             df = self.data_provider.get_data_as_of(symbol, as_of_time)

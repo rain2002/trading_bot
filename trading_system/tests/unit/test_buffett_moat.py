@@ -146,7 +146,7 @@ class TestBuffettMoatScorecard:
         import numpy as np
         from trading_system.app.research.quant_engine import QuantEngine
 
-        brain = QuantEngine(enable_ml_gating=False)
+        brain = QuantEngine(enable_ml_gating=False, moat_mode="gate")
 
         # Create mock bullish data for two symbols
         dates = pd.date_range("2026-01-01", periods=100, freq="D")
