@@ -1,7 +1,7 @@
 name: V2 Daily Paper & Live Trading Engine
 
 concurrency:
-  group: trading-bot-execution
+  group: trading-state
   cancel-in-progress: false
 
 on:
@@ -27,6 +27,8 @@ on:
 jobs:
   trade:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     
     steps:
       - name: Checkout Repository
@@ -54,6 +56,16 @@ jobs:
             echo "TARGET_MARKET=IN" >> $GITHUB_ENV
           else
             echo "TARGET_MARKET=US" >> $GITHUB_ENV
+          fi
+
+      - name: Restore Fiduciary State Artifacts from State Branch
+        run: |
+          git fetch origin state 2>/dev/null || true
+          if git show-ref --verify --quiet refs/remotes/origin/state; then
+            echo "Restoring latest live state files from origin/state branch..."
+            git checkout origin/state -- trading_system/data/cro_state.json trading_system/data/unitized_nav_ledger.json trading_system/data/portfolio_state_metadata.json 2>/dev/null || true
+          else
+            echo "No origin/state branch found yet; using local repository state defaults."
           fi
 
       - name: Run Quant Trading Engine
@@ -84,13 +96,36 @@ jobs:
           echo "=========================================================="
           python trading_system/scripts/run_quant_bot.py
 
-      - name: Persist Fiduciary State Artifacts
+      - name: Persist Fiduciary State Artifacts to State Branch
         if: always()
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Stage current state files into a temporary directory
+          mkdir -p /tmp/state_artifacts
+          cp trading_system/data/cro_state.json /tmp/state_artifacts/ 2>/dev/null || true
+          cp trading_system/data/unitized_nav_ledger.json /tmp/state_artifacts/ 2>/dev/null || true
+          cp trading_system/data/portfolio_state_metadata.json /tmp/state_artifacts/ 2>/dev/null || true
+
+          # Fetch remote state branch or create orphan if not yet initialized
+          git fetch origin state 2>/dev/null || true
+          if git show-ref --verify --quiet refs/remotes/origin/state; then
+            git checkout -B state origin/state
+          else
+            git checkout --orphan state
+            git rm -rf . --quiet 2>/dev/null || true
+          fi
+
+          # Re-populate state files in state branch workspace
+          mkdir -p trading_system/data
+          cp /tmp/state_artifacts/* trading_system/data/ 2>/dev/null || true
+
           git add trading_system/data/cro_state.json trading_system/data/unitized_nav_ledger.json trading_system/data/portfolio_state_metadata.json 2>/dev/null || true
-          git diff --staged --quiet || (git commit -m "chore(state): persist live CRO state and unitized NAV ledger [skip ci]" && git push)
+
+          # Pull with rebase before pushing to guarantee conflict-free state push
+          git pull --rebase origin state 2>/dev/null || true
+          git diff --staged --quiet || (git commit -m "chore(state): persist live CRO state and unitized NAV ledger [skip ci]" && git push origin state)
 
       - name: Workflow Failure Alert Notification
         if: failure()

@@ -112,8 +112,10 @@ class TestQuantBotCROIntegration:
         """
         Verifies that QuantNotifier correctly formats and incorporates Unitized NAV,
         True Trading Return %, and CRO Drawdown Ladder tier.
+        Patches send_discord_message on QuantNotifier with an explicit webhook URL
+        to guarantee deterministic execution regardless of ambient environment variables.
         """
-        notifier = QuantNotifier()
+        notifier = QuantNotifier(discord_webhook_url="https://discord.mock/webhook")
         with patch.object(notifier, "send_discord_message", return_value=True) as mock_discord:
             notifier.send_daily_summary(
                 equity=105000.0,
