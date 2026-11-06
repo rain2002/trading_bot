@@ -40,6 +40,7 @@ equity_curve_*.csv
 trades_log_*.csv
 corporate_actions_*.csv
 trading_system/data/historical_cache/*.csv
+trading_system/data/historical_cache_nse/*.csv
 *cache.json
 *capture*.py
 
