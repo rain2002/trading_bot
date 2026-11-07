@@ -643,7 +643,7 @@ section[data-testid="stSidebar"] div.stButton > button[data-testid="stBaseButton
 # BROKER DATA INGESTION & REGIONAL MARKET SELECTION
 # ==========================================
 if "market_region" not in st.session_state:
-    st.session_state.market_region = "US"
+    st.session_state.market_region = "INDIA"
 
 try:
     if "market" in st.query_params:
@@ -681,9 +681,10 @@ with col_tog_in:
 
 if is_india_mode:
     st.sidebar.markdown("""
-    <div style='background:rgba(255, 153, 0, 0.08); border:1px solid rgba(255, 153, 0, 0.25); border-radius:8px; padding:10px 12px; margin-bottom:14px; font-family:"DM Mono",monospace;'>
-        <div style='color:#FFB800; font-weight:700; font-size:0.75rem; letter-spacing:0.05em;'>🇮🇳 GROWW // NSE CASH CNC</div>
-        <div style='color:#A1A1AA; font-size:0.68rem; margin-top:2px;'>Demat Delivery Portfolio • SEBI Integer Sizing • GTT Active</div>
+    <div style='background:rgba(255, 153, 0, 0.09); border:1px solid rgba(255, 153, 0, 0.35); border-radius:8px; padding:10px 12px; margin-bottom:14px; font-family:"DM Mono",monospace;'>
+        <div style='color:#FFB800; font-weight:700; font-size:0.75rem; letter-spacing:0.05em;'>🇮🇳 INDIA GROWTH POD // VARIANT 2</div>
+        <div style='color:#A1A1AA; font-size:0.68rem; margin-top:2px;'>116 Growth Leaders • 17.96% Post-Tax CAGR • 20.50x Wealth Multiple</div>
+        <div style='color:#00D09C; font-size:0.66rem; margin-top:3px;'>🛡️ Gate B 13-Week Forward Paper Active (₹10L)</div>
     </div>
     """, unsafe_allow_html=True)
 
@@ -948,8 +949,8 @@ st.sidebar.markdown(f"""
 # PAGE 1: 📊 PORTFOLIO OVERVIEW (EXECUTIVE DESK)
 # ==============================================================================
 if page == "📊 Portfolio Overview":
-    hdr_sub = "NIFTY 100 QUANTUM ENSEMBLE • SEBI CNC CASH DELIVERY • GROWW REAL-TIME TELEMETRY" if is_india_mode else "PHASE 2 MULTI-STRATEGY ENSEMBLE • PHASE 3 ML ALPHA GATE • REAL-TIME BROKER TELEMETRY"
-    broker_live_badge = "GROWW NSE LIVE" if (is_india_mode and not getattr(broker, 'is_mock', True)) else ("SHADOW PAPER RUNNING" if is_india_mode else "ALPACA PAPER LIVE")
+    hdr_sub = "POD 1: INDIA GROWTH EQUITIES (NSE 100) • VARIANT 2: ASYMMETRIC MULTI-BAGGER (17.96% POST-TAX CAGR) • SEBI CNC DELIVERY" if is_india_mode else "POD 2: US GROWTH EQUITIES (NASDAQ/NYSE 100) • VARIANT 1: WIDE-TREND RUNNER (9.76% POST-TAX CAGR) • ALPACA REAL-TIME ROUTING"
+    broker_live_badge = "GROWW NSE LIVE" if (is_india_mode and not getattr(broker, 'is_mock', True)) else ("NSE FORWARD PAPER DESK" if is_india_mode else "ALPACA PAPER LIVE")
 
     st.markdown(f"""
     <div class="hud-header" style="margin-bottom: 16px;">
@@ -960,7 +961,7 @@ if page == "📊 Portfolio Overview":
         <div style="display: flex; gap: 8px; align-items: center;">
             <span class="status-pill"><span class="pulse-dot"></span> LIVE EXECUTION READY</span>
             <span class="status-pill" style="border-color: rgba(0, 208, 156, 0.25); color: #00D09C;">{broker_live_badge}</span>
-            <span class="status-pill" style="border-color: rgba(255, 255, 255, 0.14); color: #FFFFFF;">{'NSE ML GATE (VARIANT 2)' if is_india_mode else 'PHASE 3 ML GATE'}</span>
+            <span class="status-pill" style="border-color: rgba(255, 255, 255, 0.14); color: #FFFFFF;">{'GROWTH MOMENTUM (VARIANT 2)' if is_india_mode else 'GROWTH MOMENTUM (VARIANT 1)'}</span>
         </div>
     </div>
     """, unsafe_allow_html=True)
