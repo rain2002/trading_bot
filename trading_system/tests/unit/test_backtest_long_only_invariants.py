@@ -13,8 +13,9 @@ def test_backtest_script_has_zero_pairs_or_short_logic():
     by inspecting the Abstract Syntax Tree (AST), checking for actual negative-share logic
     rather than fragile text substring matches on header comments.
     """
-    script_path = Path("trading_system/scripts/backtest_multi_pod.py")
-    assert script_path.exists(), "backtest_multi_pod.py must exist"
+    # Build path dynamically from __file__ so test works regardless of current working directory
+    script_path = (Path(__file__).resolve().parents[2] / "scripts" / "backtest_multi_pod.py").resolve()
+    assert script_path.exists(), f"backtest_multi_pod.py must exist at {script_path}"
 
     code = script_path.read_text(encoding="utf-8")
     tree = ast.parse(code)

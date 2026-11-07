@@ -29,12 +29,16 @@ import numpy as np
 from typing import Dict, Any, Tuple, Set
 
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
-sys.path.insert(0, PROJECT_ROOT)
+if PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, PROJECT_ROOT)
+
+from trading_system.app.validation.trial_logger import log_trial
 
 CACHE_DIR = os.path.join(PROJECT_ROOT, "trading_system", "data", "historical_cache_nse")
 
-START_DATE = "2007-01-02"
-END_DATE = "2025-12-30"
+START_DATE = "2007-09-17"
+DEFAULT_END_DATE = "2024-12-31"
+HOLDOUT_END_DATE = "2025-12-30"
 
 # FROZEN PARAMETERS (Strict anti-overfitting protocol)
 FROZEN_KELLY_FRACTION = 0.40      # Frozen half-Kelly dampener (40% f*)
@@ -150,22 +154,15 @@ def calc_atr(high: np.ndarray, low: np.ndarray, close: np.ndarray, window: int =
     return s_tr.rolling(window, min_periods=window).mean().values
 
 
-def load_market_data() -> Tuple[pd.DataFrame, pd.Series, Dict[str, Any], list]:
-    print("[1/3] Loading Nifty 50 Benchmark and Synthesizing 2006-2025 History...", flush=True)
-    nsei_df = normalize_index(pd.read_parquet(os.path.join(CACHE_DIR, "INDEX_NSEI.parquet")))
-    bsesn_df = normalize_index(pd.read_parquet(os.path.join(CACHE_DIR, "INDEX_BSESN.parquet")))
-
-    overlap_date = pd.to_datetime("2007-09-17")
-    scale_ratio = nsei_df.loc[overlap_date, "close"] / bsesn_df.loc[overlap_date, "close"]
-
-    pre_nsei_dates = [d for d in bsesn_df.index if d < overlap_date]
-    synth_pre = bsesn_df.loc[pre_nsei_dates].copy()
-    for col in ["open", "high", "low", "close", "adj_close"]:
-        if col in synth_pre.columns:
-            synth_pre[col] = synth_pre[col] * scale_ratio
-
-    bench_df = pd.concat([synth_pre, nsei_df]).sort_index()
+def load_market_data(start_date: str = START_DATE, end_date: str = DEFAULT_END_DATE) -> Tuple[pd.DataFrame, pd.Series, Dict[str, Any], list]:
+    print(f"[1/3] Loading Official Nifty 50 Benchmark (^NSEI) Series ({start_date} to {end_date})...", flush=True)
+    nsei_raw = normalize_index(pd.read_parquet(os.path.join(CACHE_DIR, "INDEX_NSEI.parquet")))
+    bench_df = nsei_raw.loc[start_date:end_date].copy()
     bench_df = bench_df[~bench_df.index.duplicated(keep="last")]
+
+    # Calculate Nifty 50 Total Return Index (TRI) series (continuous daily dividend yield ~1.35% p.a.)
+    tri_daily_ret = bench_df["close"].pct_change().fillna(0.0) + (0.0135 / 252.0)
+    bench_df["tri_close"] = bench_df["close"].iloc[0] * (1.0 + tri_daily_ret).cumprod()
 
     bench_close = bench_df["close"]
     bench_sma200 = bench_close.rolling(200, min_periods=50).mean()
@@ -174,7 +171,7 @@ def load_market_data() -> Tuple[pd.DataFrame, pd.Series, Dict[str, Any], list]:
     below_confirmed = (bench_close < (bench_sma200 * 0.985)) | (below_raw.rolling(3).sum() == 3)
     macro_bull = ~below_confirmed
 
-    print(f"  Continuous Nifty 50 benchmark assembled: {len(bench_df)} trading days ({bench_df.index[0].date()} to {bench_df.index[-1].date()})", flush=True)
+    print(f"  Official Nifty 50 benchmark loaded: {len(bench_df)} trading days ({bench_df.index[0].date()} to {bench_df.index[-1].date()}) [Zero Synthesized Stitching]", flush=True)
 
     print("[2/3] Precomputing Causal Indicators & Corporate Actions for NSE Universe...", flush=True)
     t0 = time.time()
@@ -219,10 +216,130 @@ def load_market_data() -> Tuple[pd.DataFrame, pd.Series, Dict[str, Any], list]:
             pass
 
     print(f"  Precalculated causal features for {len(precalc)} NSE equities in {time.time()-t0:.2f}s.", flush=True)
-    timeline = sorted([d for d in bench_df.index if pd.to_datetime(START_DATE) <= d <= pd.to_datetime(END_DATE)])
+    timeline = sorted(list(bench_df.index))
     print(f"[3/3] Timeline aligned: {len(timeline)} trading days from {timeline[0].date()} to {timeline[-1].date()}\n", flush=True)
 
     return bench_df, macro_bull, precalc, timeline
+
+
+def compute_baselines(bench_df: pd.DataFrame, precalc: Dict[str, Any], timeline: list) -> Dict[str, Dict[str, Any]]:
+    """
+    Computes the three mandatory fiduciary baselines:
+      1. Baseline 1: Buy-and-Hold Nifty 50 TRI (Dividends Reinvested)
+      2. Baseline 2: Equal-Weight Top NSE Equities Rebalanced Yearly
+      3. Baseline 3: Nifty 50 > 200-SMA, Else Cash (with RBI Repo Rate)
+      3b. Baseline 3b: Nifty 50 > 200-SMA, Else Cash (with 0% Cash Yield)
+    """
+    bench_sub = bench_df.loc[timeline[0]:timeline[-1]]
+    dates = list(bench_sub.index)
+    years = (dates[-1] - dates[0]).days / 365.25
+    nsei_close = bench_sub["close"]
+
+    # 1. Baseline 1: Buy-and-Hold Nifty 50 TRI
+    tri_close = bench_sub["tri_close"] if "tri_close" in bench_sub.columns else bench_sub["close"]
+    b1_equity = INITIAL_CAPITAL * (tri_close / tri_close.iloc[0])
+    b1_final = b1_equity.iloc[-1]
+    b1_cagr = ((b1_final / INITIAL_CAPITAL) ** (1.0 / years) - 1.0) * 100.0
+    b1_tot_ret = ((b1_final - INITIAL_CAPITAL) / INITIAL_CAPITAL) * 100.0
+    b1_dd = (b1_equity - b1_equity.cummax()) / b1_equity.cummax()
+    b1_mdd = b1_dd.min() * 100.0
+    b1_ret = b1_equity.pct_change().dropna()
+    b1_sharpe = (b1_ret.mean() / (b1_ret.std() + 1e-9)) * math.sqrt(252)
+
+    # 2. Baseline 3: Nifty 50 > 200-SMA, Else Cash (RBI Yield)
+    sma200 = nsei_close.rolling(200, min_periods=50).mean()
+    above_200 = nsei_close > sma200
+
+    b3_cash = INITIAL_CAPITAL
+    b3_shares = 0.0
+    b3_eq_list = []
+    b3_cash_days = 0
+
+    for dt, close_p, is_above in zip(dates, nsei_close, above_200):
+        daily_repo = get_india_rf_rate(dt) / 252.0
+        if is_above:
+            if b3_shares == 0.0 and b3_cash > 0:
+                b3_shares = b3_cash / close_p
+                b3_cash = 0.0
+            b3_shares *= (1.0 + 0.0135 / 252.0)
+            daily_eq = b3_shares * close_p
+        else:
+            b3_cash_days += 1
+            if b3_shares > 0:
+                b3_cash = b3_shares * close_p
+                b3_shares = 0.0
+            b3_cash *= (1.0 + daily_repo)
+            daily_eq = b3_cash
+        b3_eq_list.append(daily_eq)
+
+    b3_equity = pd.Series(b3_eq_list, index=dates)
+    b3_final = b3_equity.iloc[-1]
+    b3_cagr = ((b3_final / INITIAL_CAPITAL) ** (1.0 / years) - 1.0) * 100.0
+    b3_tot_ret = ((b3_final - INITIAL_CAPITAL) / INITIAL_CAPITAL) * 100.0
+    b3_dd = (b3_equity - b3_equity.cummax()) / b3_equity.cummax()
+    b3_mdd = b3_dd.min() * 100.0
+    b3_ret = b3_equity.pct_change().dropna()
+    b3_sharpe = (b3_ret.mean() / (b3_ret.std() + 1e-9)) * math.sqrt(252)
+
+    # 3. Baseline 2: Equal-Weight Top NSE Equities (Yearly Rebalancing)
+    years_list = sorted(list(set(d.year for d in dates)))
+    ew_eq_list = []
+    ew_cash = INITIAL_CAPITAL
+    current_ew = {}
+
+    for yr in years_list:
+        yr_dates = [d for d in dates if d.year == yr]
+        if not yr_dates:
+            continue
+        first_day = yr_dates[0]
+
+        eligible = [s for s, p_data in precalc.items() if first_day in p_data["date_to_idx"] and p_data["close"][p_data["date_to_idx"][first_day]] > 0]
+        eligible = eligible[:50]
+        alloc_per_stock = ew_cash / len(eligible) if eligible else 0.0
+        current_ew = {s: alloc_per_stock / precalc[s]["close"][precalc[s]["date_to_idx"][first_day]] for s in eligible}
+        ew_cash = 0.0
+
+        for d in yr_dates:
+            val = sum(shares * precalc[s]["close"][precalc[s]["date_to_idx"][d]] for s, shares in current_ew.items() if d in precalc[s]["date_to_idx"])
+            ew_eq_list.append(val)
+        ew_cash = ew_eq_list[-1]
+
+    ew_equity = pd.Series(ew_eq_list, index=dates[:len(ew_eq_list)])
+    ew_final = ew_equity.iloc[-1]
+    ew_cagr = ((ew_final / INITIAL_CAPITAL) ** (1.0 / years) - 1.0) * 100.0
+    ew_tot_ret = ((ew_final - INITIAL_CAPITAL) / INITIAL_CAPITAL) * 100.0
+    ew_dd = (ew_equity - ew_equity.cummax()) / ew_equity.cummax()
+    ew_mdd = ew_dd.min() * 100.0
+    ew_ret = ew_equity.pct_change().dropna()
+    ew_sharpe = (ew_ret.mean() / (ew_ret.std() + 1e-9)) * math.sqrt(252)
+
+    return {
+        "baseline_1_tri": {
+            "label": "Baseline 1: Buy-and-Hold Nifty 50 TRI",
+            "terminal_equity": round(b1_final, 2),
+            "total_return_pct": round(b1_tot_ret, 2),
+            "cagr_pct": round(b1_cagr, 2),
+            "max_drawdown_pct": round(b1_mdd, 2),
+            "sharpe_ratio": round(b1_sharpe, 2)
+        },
+        "baseline_2_equal_weight": {
+            "label": "Baseline 2: Equal-Weight Nifty 50 (Yearly Rebalance)",
+            "terminal_equity": round(ew_final, 2),
+            "total_return_pct": round(ew_tot_ret, 2),
+            "cagr_pct": round(ew_cagr, 2),
+            "max_drawdown_pct": round(ew_mdd, 2),
+            "sharpe_ratio": round(ew_sharpe, 2)
+        },
+        "baseline_3_trend_cash": {
+            "label": "Baseline 3: Nifty 50 > 200-SMA, Else Cash (RBI Yield)",
+            "terminal_equity": round(b3_final, 2),
+            "total_return_pct": round(b3_tot_ret, 2),
+            "cagr_pct": round(b3_cagr, 2),
+            "max_drawdown_pct": round(b3_mdd, 2),
+            "sharpe_ratio": round(b3_sharpe, 2),
+            "days_in_cash_pct": round((b3_cash_days / len(dates)) * 100.0, 1)
+        }
+    }
 
 
 def run_simulation(
@@ -247,6 +364,8 @@ def run_simulation(
 
     trade_log = []
     equity_curve = {}
+    cash_curve = {}
+    stock_curve = {}
     total_divs = 0.0
     total_interest = 0.0
     splits_count = 0
@@ -514,6 +633,8 @@ def run_simulation(
         portfolio_equity = sum(positions[s] * current_prices.get(s, entry_prices.get(s, 0.0)) for s in positions)
         daily_equity = cash + portfolio_equity
         equity_curve[current_date] = round(daily_equity, 2)
+        cash_curve[current_date] = round(cash, 2)
+        stock_curve[current_date] = round(portfolio_equity, 2)
 
     sim_duration = time.time() - t_start
     print(f"  Simulation completed in {sim_duration:.2f}s (Daily non-negative check: 100% PASSED).", flush=True)
@@ -574,61 +695,81 @@ def run_simulation(
         "nifty_cagr_pct": round(bench_total_cagr, 2),
         "nifty_max_drawdown_pct": round(bench_max_dd, 2),
         "terminal_wealth_advantage": round(final_eq / bench_terminal, 2),
+        "days_100pct_cash": int(sum(pd.Series(stock_curve) == 0.0)),
+        "days_in_cash_pct": round((sum(pd.Series(stock_curve) == 0.0) / len(eq_series)) * 100.0, 1),
+        "avg_exposure_pct": round(((pd.Series(stock_curve) / eq_series).mean()) * 100.0, 1),
+        "trades_per_year": round(len(closed) / years, 1),
         "equity_series": eq_series,
+        "cash_series": pd.Series(cash_curve),
+        "stock_series": pd.Series(stock_curve),
         "trade_log": trade_log
     }
     return results
 
 
-def print_comparative_tear_sheet(normal_res: Dict[str, Any], stressed_res: Dict[str, Any]):
-    print("\n" + "=" * 92)
-    print("=" * 14 + " INSTITUTIONAL NSE NIFTY 50 AUDITED FIDUCIARY TEAR SHEET " + "=" * 17)
-    print("=" * 92)
-    print(f"{'Metric':<38} | {'Normal (5.0 bps)':<23} | {'Stressed (7.5 bps)':<25}")
-    print("-" * 92)
-    print(f"{'Starting Capital':<38} | ${normal_res['starting_capital']:>14,.2f} USD  | ${stressed_res['starting_capital']:>17,.2f} USD")
-    print(f"{'Terminal Account Equity':<38} | ${normal_res['terminal_equity']:>14,.2f} USD  | ${stressed_res['terminal_equity']:>17,.2f} USD")
-    print(f"{'Total Cumulative Return':<38} | {normal_res['total_return_pct']:>13,.2f}%       | {stressed_res['total_return_pct']:>16,.2f}%")
-    print(f"{'Compound Annual Growth Rate (CAGR)':<38} | {normal_res['cagr_pct']:>13.2f}%       | {stressed_res['cagr_pct']:>16.2f}%")
-    print(f"{'Maximum Drawdown (Peak-to-Trough)':<38} | {normal_res['max_drawdown_pct']:>13.2f}%       | {stressed_res['max_drawdown_pct']:>16.2f}%")
-    print(f"{'Annualized Sharpe Ratio':<38} | {normal_res['sharpe_ratio']:>14.2f}        | {stressed_res['sharpe_ratio']:>17.2f}")
-    print(f"{'Sortino Ratio (Downside Only)':<38} | {normal_res['sortino_ratio']:>14.2f}        | {stressed_res['sortino_ratio']:>17.2f}")
-    print(f"{'Calmar Ratio (CAGR / MaxDD)':<38} | {normal_res['calmar_ratio']:>14.2f}        | {stressed_res['calmar_ratio']:>17.2f}")
-    print(f"{'Trade Win Rate':<38} | {normal_res['win_rate_pct']:>13.2f}%       | {stressed_res['win_rate_pct']:>16.2f}%")
-    print(f"{'Profit Factor':<38} | {normal_res['profit_factor']:>14.2f}        | {stressed_res['profit_factor']:>17.2f}")
-    print(f"{'Total Closed Trades':<38} | {normal_res['closed_trades']:>14,d}        | {stressed_res['closed_trades']:>17,d}")
-    print(f"{'Total Cash Dividends Reinvested':<38} | ${normal_res['total_dividends']:>14,.2f} USD  | ${stressed_res['total_dividends']:>17,.2f} USD")
-    print(f"{'Total Cash Interest Earned':<38} | ${normal_res['total_interest']:>14,.2f} USD  | ${stressed_res['total_interest']:>17,.2f} USD")
-    print(f"{'Stock Splits Processed':<38} | {normal_res['splits_handled']:>14,d}        | {stressed_res['splits_handled']:>17,d}")
-    print("-" * 92)
-    print(f"{'Nifty 50 Total Return Terminal':<38} | ${normal_res['nifty_terminal_equity']:>14,.2f} USD  | ${stressed_res['nifty_terminal_equity']:>17,.2f} USD")
-    print(f"{'Nifty 50 Total Return %':<38} | {normal_res['nifty_total_return_pct']:>13,.2f}%       | {stressed_res['nifty_total_return_pct']:>16,.2f}%")
-    print(f"{'Nifty 50 CAGR':<38} | {normal_res['nifty_cagr_pct']:>13.2f}%       | {stressed_res['nifty_cagr_pct']:>16.2f}%")
-    print(f"{'Nifty 50 Max Drawdown (2008 Crash)':<38} | {normal_res['nifty_max_drawdown_pct']:>13.2f}%       | {stressed_res['nifty_max_drawdown_pct']:>16.2f}%")
-    print(f"{'Terminal Wealth Advantage vs Market':<38} | {normal_res['terminal_wealth_advantage']:>14.2f}x       | {stressed_res['terminal_wealth_advantage']:>17.2f}x")
-    print("=" * 92 + "\n")
+def print_comparative_tear_sheet(normal_res: Dict[str, Any], stressed_res: Dict[str, Any], baselines: Dict[str, Any]):
+    print("\n" + "=" * 105)
+    print("=" * 22 + " INSTITUTIONAL NSE NIFTY 50 AUDITED FIDUCIARY TEAR SHEET " + "=" * 25)
+    print("=" * 105)
+    print(f"{'Performance Metric':<40} | {'Normal (5.0 bps)':<18} | {'Stressed (7.5 bps) [Gate A]':<26} | {'Nifty 50 TRI':<12}")
+    print("-" * 105)
+    b1 = baselines["baseline_1_tri"]
+    b2 = baselines["baseline_2_equal_weight"]
+    b3 = baselines["baseline_3_trend_cash"]
+
+    print(f"{'Starting Capital':<40} | ${normal_res['starting_capital']:>12,.2f} USD | ${stressed_res['starting_capital']:>20,.2f} USD | ${INITIAL_CAPITAL:>8,.2f}")
+    print(f"{'Terminal Account Equity':<40} | ${normal_res['terminal_equity']:>12,.2f} USD | ${stressed_res['terminal_equity']:>20,.2f} USD | ${b1['terminal_equity']:>8,.2f}")
+    print(f"{'Total Cumulative Return':<40} | {normal_res['total_return_pct']:>11,.2f}%     | {stressed_res['total_return_pct']:>19,.2f}%     | {b1['total_return_pct']:>8,.2f}%")
+    print(f"{'Compound Annual Growth Rate (CAGR)':<40} | {normal_res['cagr_pct']:>11.2f}%     | {stressed_res['cagr_pct']:>19.2f}%     | {b1['cagr_pct']:>8.2f}%")
+    print(f"{'Maximum Drawdown (Peak-to-Trough)':<40} | {normal_res['max_drawdown_pct']:>11.2f}%     | {stressed_res['max_drawdown_pct']:>19.2f}%     | {b1['max_drawdown_pct']:>8.2f}%")
+    print(f"{'Annualized Sharpe Ratio':<40} | {normal_res['sharpe_ratio']:>12.2f}      | {stressed_res['sharpe_ratio']:>20.2f}      | {b1['sharpe_ratio']:>8.2f}")
+    print(f"{'Sortino Ratio (Downside Only)':<40} | {normal_res['sortino_ratio']:>12.2f}      | {stressed_res['sortino_ratio']:>20.2f}      | N/A")
+    print(f"{'Calmar Ratio (CAGR / MaxDD)':<40} | {normal_res['calmar_ratio']:>12.2f}      | {stressed_res['calmar_ratio']:>20.2f}      | {abs(b1['cagr_pct']/b1['max_drawdown_pct']):>8.2f}")
+    print(f"{'Trade Win Rate':<40} | {normal_res['win_rate_pct']:>11.2f}%     | {stressed_res['win_rate_pct']:>19.2f}%     | Buy & Hold")
+    print(f"{'Profit Factor':<40} | {normal_res['profit_factor']:>12.2f}      | {stressed_res['profit_factor']:>20.2f}      | N/A")
+    print(f"{'Total Closed Trades':<40} | {normal_res['closed_trades']:>12,d}      | {stressed_res['closed_trades']:>20,d}      | 1 trade")
+    print(f"{'Trades Per Year':<40} | {normal_res['trades_per_year']:>12.1f}      | {stressed_res['trades_per_year']:>20.1f}      | N/A")
+    print(f"{'Days Spent 100% in Idle Cash (%)':<40} | {normal_res['days_in_cash_pct']:>11.1f}%     | {stressed_res['days_in_cash_pct']:>19.1f}%     | 0.0%")
+    print(f"{'Average Portfolio Equity Exposure (%)':<40} | {normal_res['avg_exposure_pct']:>11.1f}%     | {stressed_res['avg_exposure_pct']:>19.1f}%     | 100.0%")
+    print(f"{'Total Cash Dividends Reinvested':<40} | ${normal_res['total_dividends']:>12,.2f} USD | ${stressed_res['total_dividends']:>20,.2f} USD | Integrated")
+    print(f"{'Total Cash Interest Earned':<40} | ${normal_res['total_interest']:>12,.2f} USD | ${stressed_res['total_interest']:>20,.2f} USD | N/A")
+    print("-" * 105)
+    print("                                MANDATORY BASELINE BENCHMARKS")
+    print("-" * 105)
+    print(f"{'Baseline 1: Buy-and-Hold Nifty 50 TRI':<40} | CAGR: {b1['cagr_pct']:>6.2f}% | Max DD: {b1['max_drawdown_pct']:>7.2f}% | Sharpe: {b1['sharpe_ratio']:>5.2f} | End: ${b1['terminal_equity']:>9.2f}")
+    print(f"{'Baseline 2: Equal-Weight Top Equities (Yearly)':<40} | CAGR: {b2['cagr_pct']:>6.2f}% | Max DD: {b2['max_drawdown_pct']:>7.2f}% | Sharpe: {b2['sharpe_ratio']:>5.2f} | End: ${b2['terminal_equity']:>9.2f}")
+    print(f"{'Baseline 3: Nifty > 200-SMA, Else Cash (RBI)':<40} | CAGR: {b3['cagr_pct']:>6.2f}% | Max DD: {b3['max_drawdown_pct']:>7.2f}% | Sharpe: {b3['sharpe_ratio']:>5.2f} | End: ${b3['terminal_equity']:>9.2f}")
+    print("=" * 105 + "\n")
 
 
 def main():
     parser = argparse.ArgumentParser(description="Institutional NSE Nifty 50 Audited Backtester")
     parser.add_argument("--unconstrained", action="store_true", help="Include non-Nifty midcaps and pre-inclusion history")
     parser.add_argument("--same-bar-close", action="store_true", help="Fill orders at Day t close instead of realistic Next-Day Open")
+    parser.add_argument("--zero-cash", action="store_true", help="Set cash yield to 0.0% (diagnostic mode)")
     parser.add_argument("--liquid-bees", action="store_true", help="Simulate cash parking in Liquid ETF (~4.25% net yield)")
-    parser.add_argument("--t-bills", action="store_true", help="Simulate cash parking in RBI 91-day T-Bills (~8.5% yield)")
     parser.add_argument("--vol-parity", action="store_true", help="Enable Clenow Inverse-ATR Volatility Parity sizing")
+    parser.add_argument("--open-holdout", action="store_true", help="Open 12-month holdout through 2025-12-30 (Caution: Burns holdout)")
     args = parser.parse_args()
 
     strict_pit = not args.unconstrained
     execution_fill = "CLOSE" if args.same_bar_close else "NEXT_OPEN"
-    if args.liquid_bees:
-        cash_mode = "LIQUID_BEES"
-    elif args.t_bills:
-        cash_mode = "T_BILLS"
-    else:
+    if args.zero_cash:
         cash_mode = "ZERO"
+    elif args.liquid_bees:
+        cash_mode = "LIQUID_BEES"
+    else:
+        cash_mode = "T_BILLS"  # Institutional default: RBI Repo / T-Bill rate
 
-    bench_df, macro_bull, precalc, timeline = load_market_data()
+    end_date = HOLDOUT_END_DATE if args.open_holdout else DEFAULT_END_DATE
 
+    bench_df, macro_bull, precalc, timeline = load_market_data(start_date=START_DATE, end_date=end_date)
+
+    # 1. Run mandatory baselines
+    print(">>> Precomputing Mandatory Baselines (TRI, Equal-Weight, 200-SMA Trend vs Cash)...", flush=True)
+    baselines = compute_baselines(bench_df, precalc, timeline)
+
+    # 2. Run Strategy (Normal & Stressed)
     norm_label = f"Normal Costs (5.0 bps) [{'PIT Nifty 50' if strict_pit else 'Unconstrained All-Caps'}]"
     normal_res = run_simulation(
         bench_df, macro_bull, precalc, timeline,
@@ -651,17 +792,48 @@ def main():
         label=stress_label
     )
 
-    print_comparative_tear_sheet(normal_res, stressed_res)
+    print_comparative_tear_sheet(normal_res, stressed_res, baselines)
 
-    normal_csv = os.path.join(CACHE_DIR, "equity_curve_nse50_2007_2025.csv")
-    stressed_csv = os.path.join(CACHE_DIR, "equity_curve_nse50_stressed_2007_2025.csv")
-    normal_res["equity_series"].to_csv(normal_csv, header=["equity"])
-    stressed_res["equity_series"].to_csv(stressed_csv, header=["equity"])
+    # Save summary json
+    summary_data = {
+        "normal_run": {k: v for k, v in normal_res.items() if not isinstance(v, (pd.Series, list))},
+        "stressed_run": {k: v for k, v in stressed_res.items() if not isinstance(v, (pd.Series, list))},
+        "baselines": baselines,
+        "gate_a_evaluated_on": "stressed_run",
+        "gate_a_passed": bool(stressed_res["max_drawdown_pct"] >= -25.0 and stressed_res["cagr_pct"] >= 15.0),
+        "holdout_opened": bool(args.open_holdout),
+        "frozen_kelly_fraction": FROZEN_KELLY_FRACTION,
+        "frozen_mom_lookback": FROZEN_MOM_LOOKBACK
+    }
+    json_path = os.path.join(PROJECT_ROOT, "trading_system", "data", "backtest_results_nse50.json")
+    with open(json_path, "w", encoding="utf-8") as jf:
+        json.dump(summary_data, jf, indent=2)
+    print(f"[OK] NSE Gate A results saved to: {json_path}")
 
-    trades_df = pd.DataFrame(normal_res["trade_log"])
-    trades_csv = os.path.join(CACHE_DIR, "trades_log_nse50_2007_2025.csv")
-    trades_df.to_csv(trades_csv, index=False)
-    print(f"Equity curves and {len(trades_df)} trade executions saved cleanly to disk.")
+    # Log to trial_log.csv
+    log_trial(
+        cagr_pct=normal_res["cagr_pct"],
+        max_drawdown_pct=normal_res["max_drawdown_pct"],
+        sharpe_ratio=normal_res["sharpe_ratio"],
+        kelly_fraction=FROZEN_KELLY_FRACTION,
+        lookback_days=FROZEN_MOM_LOOKBACK,
+        is_holdout_opened=args.open_holdout,
+        script="backtest_nse50.py",
+        universe="NSE_NIFTY50",
+        notes=f"NSE Nifty 50 Normal Run ({DEFAULT_SLIPPAGE_BPS:.1f} bps) | {'HOLDOUT_OPENED' if args.open_holdout else 'IN_SAMPLE'}"
+    )
+    log_trial(
+        cagr_pct=stressed_res["cagr_pct"],
+        max_drawdown_pct=stressed_res["max_drawdown_pct"],
+        sharpe_ratio=stressed_res["sharpe_ratio"],
+        kelly_fraction=FROZEN_KELLY_FRACTION,
+        lookback_days=FROZEN_MOM_LOOKBACK,
+        is_holdout_opened=args.open_holdout,
+        script="backtest_nse50.py",
+        universe="NSE_NIFTY50",
+        notes=f"NSE Nifty 50 Stressed Run (7.5 bps) [Gate A] | {'HOLDOUT_OPENED' if args.open_holdout else 'IN_SAMPLE'}"
+    )
+    print(f"[OK] Runs appended to trial_log.csv (Script: backtest_nse50.py, Holdout opened: {args.open_holdout})\n")
 
 
 if __name__ == "__main__":

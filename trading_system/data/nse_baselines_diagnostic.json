@@ -1,0 +1,84 @@
+{
+  "baselines": [
+    {
+      "label": "Benchmark Ref: Nifty 50 Price Index (^NSEI)",
+      "start_val": 1000.0,
+      "end_val": 5260.65,
+      "cagr_pct": 10.08,
+      "total_return_pct": 426.07,
+      "max_drawdown_pct": -59.86,
+      "sharpe_ratio": 0.57,
+      "years": 17.29
+    },
+    {
+      "label": "Baseline 1: Buy-and-Hold Nifty 50 TRI",
+      "start_val": 1000.05,
+      "end_val": 6600.97,
+      "cagr_pct": 11.53,
+      "total_return_pct": 560.06,
+      "max_drawdown_pct": -59.43,
+      "sharpe_ratio": 0.64,
+      "years": 17.29
+    },
+    {
+      "label": "Baseline 2: Equal-Weight Top NSE Equities (Yearly Rebalance)",
+      "start_val": 1000.0,
+      "end_val": 28841.17,
+      "cagr_pct": 21.46,
+      "total_return_pct": 2784.12,
+      "max_drawdown_pct": -55.55,
+      "sharpe_ratio": 1.15,
+      "years": 17.29
+    },
+    {
+      "label": "Baseline 3: Nifty 50 > 200-SMA, Else Cash (RBI Yield)",
+      "start_val": 1000.31,
+      "end_val": 5108.39,
+      "cagr_pct": 9.89,
+      "total_return_pct": 410.68,
+      "max_drawdown_pct": -17.93,
+      "sharpe_ratio": 0.79,
+      "years": 17.29
+    },
+    {
+      "label": "Baseline 3b: Nifty 50 > 200-SMA, Else Cash (0% Yield)",
+      "start_val": 1000.0,
+      "end_val": 3719.27,
+      "cagr_pct": 7.89,
+      "total_return_pct": 271.93,
+      "max_drawdown_pct": -21.98,
+      "sharpe_ratio": 0.65,
+      "years": 17.29
+    },
+    {
+      "label": "Current Momentum Strategy (0% Cash Yield)",
+      "start_val": 1000.0,
+      "end_val": 6172.63,
+      "cagr_pct": 11.1,
+      "total_return_pct": 517.26,
+      "max_drawdown_pct": -38.43,
+      "sharpe_ratio": 0.7,
+      "years": 17.29
+    },
+    {
+      "label": "Current Momentum Strategy (RBI Repo Yield)",
+      "start_val": 1000.3,
+      "end_val": 8893.12,
+      "cagr_pct": 13.47,
+      "total_return_pct": 789.05,
+      "max_drawdown_pct": -37.82,
+      "sharpe_ratio": 0.82,
+      "years": 17.29
+    }
+  ],
+  "diagnostic": {
+    "total_days": 4238,
+    "days_in_cash_pct": 27.324209532798488,
+    "avg_exposure_pct": 67.1715637637819,
+    "total_trades": 1360,
+    "trades_per_year": 78.65818392134182,
+    "total_divs": 527.6,
+    "interest_zero": 0.0,
+    "interest_rf": 988.73
+  }
+}
