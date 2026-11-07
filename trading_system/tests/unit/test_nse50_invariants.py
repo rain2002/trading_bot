@@ -112,3 +112,46 @@ def test_india_cash_yield_and_membership_csv_integrity():
     assert "source" in df_changes.columns
     assert (df_changes["source"].str.len() > 10).all()
     assert df_changes["source"].str.contains("NSE").all()
+
+
+def test_split_date_does_not_mutate_share_count_when_prices_split_adjusted():
+    """
+    CRITICAL REGRESSION TEST (Post-Mortem Commit f038644):
+    Parquet OHLC data from Yahoo Finance is already backward split-adjusted across history.
+    On a split date (e.g. 5:1 or 10:1 split), the backtester must NEVER multiply active shares
+    by the split ratio, which would manufacture phantom equity out of thin air.
+    Active share count must remain strictly invariant across corporate split events.
+    """
+    from trading_system.scripts.backtest_nse50 import run_simulation
+
+    dates = pd.date_range("2024-01-01", periods=120, freq="B")
+    bench_df = pd.DataFrame(
+        {"close": [20000.0] * len(dates), "sma200": [18000.0] * len(dates), "sma50": [19000.0] * len(dates)},
+        index=dates
+    )
+    macro_bull = pd.Series(True, index=dates)
+
+    splits_arr = np.zeros(len(dates))
+    splits_arr[105] = 10.0  # 10:1 split event while holding (after entry at idx 100)
+
+    precalc = {
+        "TESTSTOCK.NS": {
+            "dates": dates,
+            "close": np.full(len(dates), 100.0),
+            "open": np.full(len(dates), 100.0),
+            "high": np.full(len(dates), 105.0),
+            "low": np.full(len(dates), 95.0),
+            "divs": np.zeros(len(dates)),
+            "splits": splits_arr,
+            "sma100": np.full(len(dates), 90.0),
+            "sma150": np.full(len(dates), 85.0),
+            "sma200": np.full(len(dates), 80.0),
+            "mom90": np.full(len(dates), 0.50),
+            "atr20": np.full(len(dates), 5.0),
+            "date_to_idx": {d: idx for idx, d in enumerate(dates)}
+        }
+    }
+
+    res = run_simulation(bench_df, macro_bull, precalc, list(dates), variant=1, strict_pit=False, label="Split Invariant Test")
+    assert res["splits_handled"] == 1, "Split event must be tracked in audit metadata"
+    assert res["terminal_equity"] < 150000.0, f"Phantom equity detected! Terminal: {res['terminal_equity']}"
