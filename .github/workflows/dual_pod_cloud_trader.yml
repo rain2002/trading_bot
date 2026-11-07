@@ -1,0 +1,114 @@
+name: Dual-Pod Autonomous Cloud Trader (India & US)
+
+on:
+  schedule:
+    # 03:46 UTC = 09:16 IST (Mon-Fri) - India Market Open Execution
+    - cron: '46 3 * * 1-5'
+    # 10:05 UTC = 15:35 IST (Mon-Fri) - India Market Close Scan
+    - cron: '5 10 * * 1-5'
+    # 14:31 UTC = 09:31 EST / 10:31 EDT (Mon-Fri) - US Market Open Execution
+    - cron: '31 14 * * 1-5'
+    # 21:05 UTC = 16:05 EST / 17:05 EDT (Mon-Fri) - US Market Close Scan
+    - cron: '5 21 * * 1-5'
+
+  workflow_dispatch:
+    inputs:
+      target:
+        description: 'Target Routine to Execute'
+        required: true
+        default: 'AUTO'
+        type: choice
+        options:
+          - AUTO
+          - INDIA_EXECUTE
+          - INDIA_SCAN
+          - US_EXECUTE
+          - US_SCAN
+          - REGENERATE_DASHBOARD
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: trading-cloud-state
+  cancel-in-progress: false
+
+jobs:
+  run-trader:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Codebase
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install Quant Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Determine Market Phase
+        id: determine_phase
+        run: |
+          TARGET="${{ github.event.inputs.target }}"
+          CRON="${{ github.event.schedule }}"
+
+          if [ "$TARGET" = "INDIA_EXECUTE" ] || [ "$CRON" = "46 3 * * 1-5" ]; then
+            echo "PHASE=execute" >> $GITHUB_ENV
+            echo "POD=india" >> $GITHUB_ENV
+          elif [ "$TARGET" = "INDIA_SCAN" ] || [ "$CRON" = "5 10 * * 1-5" ]; then
+            echo "PHASE=scan" >> $GITHUB_ENV
+            echo "POD=india" >> $GITHUB_ENV
+          elif [ "$TARGET" = "US_EXECUTE" ] || [ "$CRON" = "31 14 * * 1-5" ]; then
+            echo "PHASE=execute" >> $GITHUB_ENV
+            echo "POD=us" >> $GITHUB_ENV
+          elif [ "$TARGET" = "US_SCAN" ] || [ "$CRON" = "5 21 * * 1-5" ]; then
+            echo "PHASE=scan" >> $GITHUB_ENV
+            echo "POD=us" >> $GITHUB_ENV
+          elif [ "$TARGET" = "REGENERATE_DASHBOARD" ]; then
+            echo "PHASE=dashboard_only" >> $GITHUB_ENV
+            echo "POD=none" >> $GITHUB_ENV
+          else
+            # Default to India scan if triggered manually with AUTO
+            echo "PHASE=scan" >> $GITHUB_ENV
+            echo "POD=india" >> $GITHUB_ENV
+          fi
+
+      - name: Execute Dual-Pod Quant Engine
+        env:
+          PAPER_API_KEY: ${{ secrets.PAPER_API_KEY || secrets.ALPACA_API_KEY }}
+          PAPER_API_SECRET: ${{ secrets.PAPER_API_SECRET || secrets.ALPACA_SECRET_KEY }}
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          ALPACA_LIVE: "0"
+          GROWW_FALLBACK_ACTIVE: "1"
+        run: |
+          if [ "$PHASE" = "dashboard_only" ]; then
+            echo ">>> Regenerating Static Web Dashboard..."
+            python trading_system/scripts/generate_web_dashboard.py
+          else
+            echo ">>> Running Dual-Pod Routine: Phase=$PHASE, Pod=$POD"
+            python trading_system/scripts/run_dual_pod_paper.py --phase "$PHASE" --pod "$POD"
+          fi
+
+      - name: Commit and Push State Updates
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add trading_system/data/paper_* docs/index.html
+          if git diff --staged --quiet; then
+            echo "No state changes to commit."
+          else
+            git commit -m "chore(telemetry): update trading state & web dashboard [skip ci]"
+            git push origin HEAD
+          fi

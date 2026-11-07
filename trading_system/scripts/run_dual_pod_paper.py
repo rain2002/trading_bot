@@ -625,6 +625,68 @@ def main():
                 except Exception:
                     pass
             us_engine.execute_open_fills(current_opens)
+    # Dispatches live mobile notifications and regenerates web dashboard
+    dispatch_notifications_and_dashboard(india_engine, us_engine, args.phase, args.pod)
+
+
+def dispatch_notifications_and_dashboard(india_engine, us_engine, phase: str, pod: str):
+    try:
+        from trading_system.scripts.generate_web_dashboard import generate_dashboard_html
+        generate_dashboard_html()
+    except Exception as e:
+        print(f"[Dashboard Warning] Could not regenerate web dashboard: {e}")
+
+    try:
+        from trading_system.app.notifications.notifier import QuantNotifier
+        notifier = QuantNotifier()
+        if not notifier.discord_url and not (notifier.tg_token and notifier.tg_chat_id):
+            return
+
+        msg_lines = [f"⚡ **ANTIGRAVITY QUANT ALERT: {phase.upper()} CYCLE ({pod.upper()})**"]
+        if pod in ["all", "india"]:
+            in_cash = india_engine.state.get("cash", 0)
+            in_pos = india_engine.state.get("positions", {})
+            in_eq = in_cash + sum(p.get("shares", 0) * p.get("peak_price", p.get("entry_price", 0)) for p in in_pos.values())
+            in_dd = india_engine.state.get("max_drawdown", 0)
+            in_pnl = in_eq - india_engine.initial_capital
+            in_pnl_pct = (in_pnl / india_engine.initial_capital * 100) if india_engine.initial_capital > 0 else 0
+            msg_lines.append("")
+            msg_lines.append("🇮🇳 **India Growth Pod (NSE 100)**:")
+            msg_lines.append(f"• Equity: ₹{in_eq:,.0f} ({in_pnl_pct:+.2f}%) | Cash: ₹{in_cash:,.0f}")
+            msg_lines.append(f"• Active Positions: {len(in_pos)} | Max DD: {in_dd*100:.1f}%")
+            if india_engine.state.get("in_tier4_defense"):
+                msg_lines.append("• 🛡️ Bear Defense: ACTIVE (Cash Protected)")
+            if india_engine.state.get("pending_buys"):
+                buys_str = ", ".join([b["sym"] for b in india_engine.state["pending_buys"]])
+                msg_lines.append(f"• Queued Buys for Open: {buys_str}")
+            if india_engine.state.get("pending_sells"):
+                sells_str = ", ".join([s["sym"] for s in india_engine.state["pending_sells"]])
+                msg_lines.append(f"• Queued Sells for Open: {sells_str}")
+
+        if pod in ["all", "us"]:
+            us_cash = us_engine.state.get("cash", 0)
+            us_pos = us_engine.state.get("positions", {})
+            us_eq = us_cash + sum(p.get("shares", 0) * p.get("peak_price", p.get("entry_price", 0)) for p in us_pos.values())
+            us_dd = us_engine.state.get("max_drawdown", 0)
+            us_pnl = us_eq - us_engine.initial_capital
+            us_pnl_pct = (us_pnl / us_engine.initial_capital * 100) if us_engine.initial_capital > 0 else 0
+            msg_lines.append("")
+            msg_lines.append("🇺🇸 **US Growth Pod (NASDAQ/NYSE)**:")
+            msg_lines.append(f"• Equity: ${us_eq:,.2f} ({us_pnl_pct:+.2f}%) | Cash: ${us_cash:,.2f}")
+            msg_lines.append(f"• Active Positions: {len(us_pos)} | Max DD: {us_dd*100:.1f}%")
+            if us_engine.state.get("pending_sells"):
+                sells_str = ", ".join([s["sym"] for s in us_engine.state["pending_sells"]])
+                msg_lines.append(f"• Queued Sells for Open: {sells_str}")
+
+        msg = "\n".join(msg_lines)
+        if notifier.discord_url:
+            notifier.send_discord_message(msg)
+        if notifier.tg_token and notifier.tg_chat_id:
+            tg_msg = msg.replace("**", "*")
+            notifier.send_telegram_message(tg_msg)
+    except Exception as e:
+        print(f"[Notifier Warning] Could not dispatch notifications: {e}")
+
 
 
 if __name__ == "__main__":

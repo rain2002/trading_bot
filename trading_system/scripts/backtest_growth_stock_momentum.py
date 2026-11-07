@@ -62,7 +62,7 @@ def verify_protocol_lock():
     if not os.path.exists(PROTOCOL_PATH):
         raise FileNotFoundError(f"CRITICAL: Protocol specification file missing: {PROTOCOL_PATH}")
     with open(PROTOCOL_PATH, "rb") as f:
-        sha = hashlib.sha256(f.read()).hexdigest().upper()
+        sha = hashlib.sha256(f.read().replace(b'\r\n', b'\n')).hexdigest().upper()
     if sha != LOCKED_PROTOCOL_SHA256:
         raise ValueError(
             f"PRE-REGISTRATION INTEGRITY VIOLATION:\n"

@@ -27,7 +27,7 @@ def test_growth_stock_protocol_hash_lock():
     """Verify that GROWTH_STOCK_MOMENTUM_PROTOCOL.md matches its locked SHA-256."""
     assert os.path.exists(PROTOCOL_PATH), f"Protocol file missing: {PROTOCOL_PATH}"
     with open(PROTOCOL_PATH, "rb") as f:
-        computed_sha = hashlib.sha256(f.read()).hexdigest().upper()
+        computed_sha = hashlib.sha256(f.read().replace(b'\r\n', b'\n')).hexdigest().upper()
     assert computed_sha == LOCKED_PROTOCOL_SHA256, (
         f"Protocol hash mismatch! Expected {LOCKED_PROTOCOL_SHA256}, got {computed_sha}"
     )
