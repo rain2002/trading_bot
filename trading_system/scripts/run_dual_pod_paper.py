@@ -82,13 +82,78 @@ def calc_vectorized_momentum(series: np.ndarray, window: int = 90) -> float:
 
 
 class PodPaperEngine:
-    def __init__(self, pod_name: str, currency: str, initial_capital: float, state_file: str, trades_file: str):
+    def __init__(self, pod_name: str, currency: str, initial_capital: float, state_file: str, trades_file: str, live_broker: bool = True):
         self.pod_name = pod_name
         self.currency = currency
         self.initial_capital = initial_capital
         self.state_file = state_file
         self.trades_file = trades_file
+        self.live_broker = live_broker
         self.state = self._load_state()
+
+    def sync_alpaca_live(self):
+        """Synchronizes US pod state directly with live Alpaca paper account."""
+        if "US" not in self.pod_name or not self.live_broker:
+            return
+        try:
+            from trading_system.app.config.settings import settings
+            from trading_system.app.broker.alpaca import AlpacaBrokerAdapter
+
+            api_key = settings.PAPER_API_KEY
+            api_secret = settings.PAPER_API_SECRET
+            if not api_key or not api_secret or api_key == "mock":
+                print(f"[{self.pod_name}] No live Alpaca credentials configured; continuing in simulated paper mode.")
+                return
+
+            adapter = AlpacaBrokerAdapter(api_key=api_key, api_secret=api_secret)
+            if not adapter.is_connected():
+                print(f"[{self.pod_name}] Alpaca connection check failed.")
+                return
+
+            acc = adapter.get_account_details()
+            positions = adapter.get_positions_detailed()
+
+            self.state["cash"] = float(acc["cash"])
+            total_equity = float(acc["equity"])
+            if "initial_capital" not in self.state or self.state.get("initial_capital", 10000.0) == 10000.0:
+                self.state["initial_capital"] = total_equity
+            self.initial_capital = self.state.get("initial_capital", total_equity)
+            if total_equity > self.state.get("hwm_true", 0.0):
+                self.state["hwm_true"] = total_equity
+
+            # Map current live Alpaca positions
+            live_symbols = set()
+            now_str = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
+
+            for pos in positions:
+                sym = pos["symbol"]
+                live_symbols.add(sym)
+                qty = float(pos["qty"])
+                entry_p = float(pos["avg_entry_price"])
+                cur_p = float(pos["current_price"])
+
+                if sym not in self.state["positions"]:
+                    self.state["positions"][sym] = {
+                        "shares": qty,
+                        "entry_price": entry_p,
+                        "entry_date": now_str,
+                        "peak_price": max(entry_p, cur_p)
+                    }
+                else:
+                    self.state["positions"][sym]["shares"] = qty
+                    self.state["positions"][sym]["entry_price"] = entry_p
+                    prev_peak = self.state["positions"][sym].get("peak_price", entry_p)
+                    self.state["positions"][sym]["peak_price"] = max(prev_peak, cur_p)
+
+            # Clean up closed positions
+            for sym in list(self.state["positions"].keys()):
+                if sym not in live_symbols:
+                    del self.state["positions"][sym]
+
+            self._save_state()
+            print(f"[{self.pod_name}] Synced with live Alpaca: Equity=${total_equity:,.2f}, Cash=${self.state['cash']:,.2f}, Positions={len(self.state['positions'])}")
+        except Exception as e:
+            print(f"[{self.pod_name}] Alpaca sync warning: {e}")
 
     def _load_state(self) -> Dict[str, Any]:
         if os.path.exists(self.state_file):
@@ -132,6 +197,16 @@ class PodPaperEngine:
         flat_dp = INDIA_FLAT_DP_FEE if "INDIA" in self.pod_name else 0.0
         now_str = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
 
+        alpaca_adapter = None
+        if "US" in self.pod_name and self.live_broker:
+            try:
+                from trading_system.app.config.settings import settings
+                from trading_system.app.execution.alpaca_live import AlpacaExecutionAdapter
+                if settings.PAPER_API_KEY and settings.PAPER_API_SECRET and settings.PAPER_API_KEY != "mock":
+                    alpaca_adapter = AlpacaExecutionAdapter(api_key=settings.PAPER_API_KEY, api_secret=settings.PAPER_API_SECRET)
+            except Exception as e:
+                print(f"[{self.pod_name}] Alpaca adapter init error: {e}")
+
         # 1. Execute Sells
         if self.state["pending_sells"]:
             for item in self.state["pending_sells"]:
@@ -144,10 +219,22 @@ class PodPaperEngine:
                 open_p = current_open_prices.get(sym, pos["entry_price"])
                 fill_p = open_p * (1.0 - sell_fee)
                 proceeds = shares * fill_p
-                self.state["cash"] += (proceeds - flat_dp)
                 cost = pos["entry_price"]
                 gain = proceeds - (shares * cost) - flat_dp
 
+                # Route real order to Alpaca Paper if active
+                if alpaca_adapter:
+                    qty_to_sell = int(round(shares))
+                    if qty_to_sell > 0:
+                        res = alpaca_adapter.submit_order({
+                            "symbol": sym,
+                            "quantity": qty_to_sell,
+                            "side": "sell",
+                            "type": "market"
+                        })
+                        print(f"  [ALPACA ROUTED SELL] {sym:<12} {qty_to_sell} shs -> Status: {res.get('status')} (Order ID: {res.get('order_id')})")
+
+                self.state["cash"] += (proceeds - flat_dp)
                 self.log_trade({
                     "timestamp": now_str,
                     "symbol": sym,
@@ -175,9 +262,21 @@ class PodPaperEngine:
                 if open_p <= 0 or alloc < 50.0:
                     continue
                 fill_p = open_p * (1.0 + buy_fee)
-                shares = round(alloc / fill_p, 4 if self.pod_name == "US" else 2)
+                shares = round(alloc / fill_p, 4 if "US" in self.pod_name else 2)
                 cost = shares * fill_p
                 if cost <= self.state["cash"] and shares > 0:
+                    # Route real order to Alpaca Paper if active
+                    if alpaca_adapter:
+                        qty_to_buy = int(math.floor(alloc / fill_p))
+                        if qty_to_buy > 0:
+                            res = alpaca_adapter.submit_order({
+                                "symbol": sym,
+                                "quantity": qty_to_buy,
+                                "side": "buy",
+                                "type": "market"
+                            })
+                            print(f"  [ALPACA ROUTED BUY ] {sym:<12} {qty_to_buy} shs -> Status: {res.get('status')} (Order ID: {res.get('order_id')})")
+
                     self.state["cash"] -= cost
                     self.state["positions"][sym] = {
                         "shares": shares,
@@ -347,6 +446,9 @@ class PodPaperEngine:
         pd.DataFrame([eq_entry]).to_csv(EQUITY_LOG_CSV, mode="a", index=False, header=not file_exists)
 
     def print_status_tear_sheet(self):
+        if "US" in self.pod_name and self.live_broker:
+            self.sync_alpaca_live()
+
         print("\n" + "=" * 95)
         print(f"================== {self.pod_name} FORWARD PAPER TRADING STATUS TEAR SHEET ==================")
         print("=" * 95)
@@ -361,28 +463,58 @@ class PodPaperEngine:
         print(f"Pending Orders Queued       : {len(self.state['pending_sells'])} Sells, {len(self.state['pending_buys'])} Buys")
         print("-" * 95)
         if self.state["positions"]:
-            print(f"{'Symbol':<12} | {'Shares':<10} | {'Entry Price':<14} | {'Peak Price':<14} | {'Stop/Trail Ref':<18}")
+            print(f"{'Symbol':<10} | {'Shares':<8} | {'Entry Price':<12} | {'Peak Price':<12} | {'Stop Ref':<12} | {'Trail Ref':<12}")
             print("-" * 95)
-            for sym, pos in self.state["positions"].items():
-                print(f"{sym:<12} | {pos['shares']:>10.2f} | {self.currency} {pos['entry_price']:>11.2f} | {self.currency} {pos['peak_price']:>11.2f} | {self.currency} {pos['peak_price']*0.85:>15.2f}")
+            hard_stop = INDIA_HARD_STOP if "INDIA" in self.pod_name else US_HARD_STOP
+            for sym, pos in sorted(self.state["positions"].items()):
+                entry = pos["entry_price"]
+                peak = pos.get("peak_price", entry)
+                hard_stop_val = entry * (1.0 + hard_stop)
+                trail_stop_val = peak * 0.85
+                print(f"{sym:<10} | {pos['shares']:>8.1f} | {self.currency} {entry:>9.2f} | {self.currency} {peak:>9.2f} | {self.currency} {hard_stop_val:>9.2f} | {self.currency} {trail_stop_val:>9.2f}")
         else:
             print("  (Zero active equity positions currently held; capital 100% in cash yield)")
+
+        if self.state["pending_sells"]:
+            print("-" * 95)
+            print("QUEUED SELL ORDERS (To Execute at Next Open):")
+            for s in self.state["pending_sells"]:
+                print(f"  -> SELL {s['sym']:<10} | Reason: {s['reason']}")
+
+        if self.state["pending_buys"]:
+            print("-" * 95)
+            print("QUEUED BUY ORDERS (To Execute at Next Open):")
+            for b in self.state["pending_buys"]:
+                print(f"  -> BUY  {b['sym']:<10} | Alloc: {self.currency} {b['target_alloc']:>10,.2f} | Blended Mom Score: {b['score']:.2f}")
+
         print("=" * 95 + "\n")
+
+
+def normalize_df_columns(df: pd.DataFrame) -> pd.DataFrame:
+    if isinstance(df.columns, pd.MultiIndex):
+        df.columns = [c[0].lower() if isinstance(c, tuple) else str(c).lower() for c in df.columns]
+    else:
+        df.columns = [str(c).lower() for c in df.columns]
+    return df
 
 
 def fetch_yfinance_history(tickers: List[str], period: str = "1y") -> Dict[str, pd.DataFrame]:
     out = {}
     print(f"Fetching recent market data for {len(tickers)} symbols via yfinance...")
     try:
-        # Batch download for fast speed
         data = yf.download(tickers, period=period, progress=False, group_by="ticker", auto_adjust=False)
         for sym in tickers:
             try:
-                if len(tickers) == 1:
-                    df = data.copy()
+                if isinstance(data.columns, pd.MultiIndex):
+                    if sym in data.columns.levels[-1]:
+                        df = data.xs(sym, axis=1, level=-1).dropna(how="all").copy()
+                    elif sym in data.columns.levels[0]:
+                        df = data[sym].dropna(how="all").copy()
+                    else:
+                        continue
                 else:
-                    df = data[sym].dropna(how="all").copy()
-                df.columns = [c.lower() for c in df.columns]
+                    df = data.dropna(how="all").copy()
+                df.columns = [str(c).lower() for c in df.columns]
                 if len(df) >= 50:
                     out[sym] = df
             except Exception:
@@ -427,18 +559,21 @@ def main():
             print("\n>>> [POD 1: INDIA] SCANNING NSE UNIVERSE AT MARKET CLOSE (15:35 IST)...")
             with open(INDIA_TICKERS_FILE, "r") as f:
                 india_tickers = [line.strip() for line in f if line.strip() and not line.startswith("#")]
-            india_data = fetch_yfinance_history(india_tickers, period="1y")
+            combined_tickers = list(set(india_tickers) | set(india_engine.state["positions"].keys()))
+            india_data = fetch_yfinance_history(combined_tickers, period="1y")
             bench_india = yf.download("^NSEI", period="1y", progress=False, auto_adjust=False)
-            bench_india.columns = [c.lower() for c in bench_india.columns]
+            bench_india = normalize_df_columns(bench_india)
             india_engine.scan_and_evaluate(india_data, bench_india)
 
         if args.pod in ["all", "us"]:
             print("\n>>> [POD 2: US] SCANNING US GROWTH UNIVERSE AT MARKET CLOSE (16:05 EST)...")
+            us_engine.sync_alpaca_live()
             with open(US_TICKERS_FILE, "r") as f:
                 us_tickers = [line.strip() for line in f if line.strip() and not line.startswith("#")]
-            us_data = fetch_yfinance_history(us_tickers, period="1y")
+            combined_tickers = list(set(us_tickers) | set(us_engine.state["positions"].keys()))
+            us_data = fetch_yfinance_history(combined_tickers, period="1y")
             bench_us = yf.download("SPY", period="1y", progress=False, auto_adjust=False)
-            bench_us.columns = [c.lower() for c in bench_us.columns]
+            bench_us = normalize_df_columns(bench_us)
             us_engine.scan_and_evaluate(us_data, bench_us)
 
     # PHASE: EXECUTE (Run at Market Open: 09:14 IST / 09:29 EST)
@@ -447,12 +582,22 @@ def main():
             print("\n>>> [POD 1: INDIA] EXECUTING QUEUED ORDERS AT MARKET OPEN (09:15 IST)...")
             with open(INDIA_TICKERS_FILE, "r") as f:
                 india_tickers = [line.strip() for line in f if line.strip() and not line.startswith("#")]
-            india_open_df = yf.download(india_tickers, period="5d", progress=False, group_by="ticker", auto_adjust=False)
+            needed_symbols = list(set(india_tickers) | set(india_engine.state["positions"].keys()) | {p["sym"] for p in india_engine.state["pending_buys"]} | {p["sym"] for p in india_engine.state["pending_sells"]})
+            india_open_df = yf.download(needed_symbols, period="5d", progress=False, group_by="ticker", auto_adjust=False)
             current_opens = {}
-            for s in india_tickers:
+            for s in needed_symbols:
                 try:
-                    df = india_open_df[s] if len(india_tickers) > 1 else india_open_df
-                    current_opens[s] = float(df["Open"].dropna().iloc[-1])
+                    if isinstance(india_open_df.columns, pd.MultiIndex):
+                        if s in india_open_df.columns.levels[-1]:
+                            df = india_open_df.xs(s, axis=1, level=-1).dropna(how="all")
+                        elif s in india_open_df.columns.levels[0]:
+                            df = india_open_df[s].dropna(how="all")
+                        else:
+                            continue
+                    else:
+                        df = india_open_df.dropna(how="all")
+                    df.columns = [str(c).lower() for c in df.columns]
+                    current_opens[s] = float(df["open"].dropna().iloc[-1])
                 except Exception:
                     pass
             india_engine.execute_open_fills(current_opens)
@@ -461,12 +606,22 @@ def main():
             print("\n>>> [POD 2: US] EXECUTING QUEUED ORDERS AT MARKET OPEN (09:30 EST)...")
             with open(US_TICKERS_FILE, "r") as f:
                 us_tickers = [line.strip() for line in f if line.strip() and not line.startswith("#")]
-            us_open_df = yf.download(us_tickers, period="5d", progress=False, group_by="ticker", auto_adjust=False)
+            needed_symbols = list(set(us_tickers) | set(us_engine.state["positions"].keys()) | {p["sym"] for p in us_engine.state["pending_buys"]} | {p["sym"] for p in us_engine.state["pending_sells"]})
+            us_open_df = yf.download(needed_symbols, period="5d", progress=False, group_by="ticker", auto_adjust=False)
             current_opens = {}
-            for s in us_tickers:
+            for s in needed_symbols:
                 try:
-                    df = us_open_df[s] if len(us_tickers) > 1 else us_open_df
-                    current_opens[s] = float(df["Open"].dropna().iloc[-1])
+                    if isinstance(us_open_df.columns, pd.MultiIndex):
+                        if s in us_open_df.columns.levels[-1]:
+                            df = us_open_df.xs(s, axis=1, level=-1).dropna(how="all")
+                        elif s in us_open_df.columns.levels[0]:
+                            df = us_open_df[s].dropna(how="all")
+                        else:
+                            continue
+                    else:
+                        df = us_open_df.dropna(how="all")
+                    df.columns = [str(c).lower() for c in df.columns]
+                    current_opens[s] = float(df["open"].dropna().iloc[-1])
                 except Exception:
                     pass
             us_engine.execute_open_fills(current_opens)
