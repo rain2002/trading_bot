@@ -552,11 +552,9 @@ def run_simulation(
                     cash += div_amount
                     total_divs += div_amount
 
-                # Stock Splits
+                # Stock Splits (Audit invariant: parquet cache OHLC prices from Yahoo Finance are already backward split-adjusted)
                 split_ratio = p_sym["splits"][idx]
                 if split_ratio > 0 and split_ratio != 1.0:
-                    positions[sym] = shares * split_ratio
-                    entry_prices[sym] = entry_prices[sym] / split_ratio
                     splits_count += 1
 
                 if price > peak_prices.get(sym, price):
