@@ -949,7 +949,7 @@ st.sidebar.markdown(f"""
 # ==============================================================================
 if page == "📊 Portfolio Overview":
     hdr_sub = "NIFTY 100 QUANTUM ENSEMBLE • SEBI CNC CASH DELIVERY • GROWW REAL-TIME TELEMETRY" if is_india_mode else "PHASE 2 MULTI-STRATEGY ENSEMBLE • PHASE 3 ML ALPHA GATE • REAL-TIME BROKER TELEMETRY"
-    broker_live_badge = "GROWW NSE LIVE" if (is_india_mode and not getattr(broker, 'is_mock', True)) else ("GATE B PAPER RUNNING" if is_india_mode else "ALPACA PAPER LIVE")
+    broker_live_badge = "GROWW NSE LIVE" if (is_india_mode and not getattr(broker, 'is_mock', True)) else ("SHADOW PAPER RUNNING" if is_india_mode else "ALPACA PAPER LIVE")
 
     st.markdown(f"""
     <div class="hud-header" style="margin-bottom: 16px;">
@@ -1880,7 +1880,7 @@ if page == "📊 Portfolio Overview":
             </div>
             <div style="display: flex; justify-content: space-between; padding: 9px 0; border-bottom: 1px solid rgba(255,255,255,0.06); font-family: 'DM Mono', monospace; font-size: 0.82rem;">
                 <span style="color: #71717A;">Active Holdings:</span>
-                <span style="color: #FFFFFF; font-weight: 600;">0 / 10 Slots ({'Gate B Forward Test' if is_india_mode else 'US Desk'})</span>
+                <span style="color: #FFFFFF; font-weight: 600;">0 / 10 Slots ({'Exploratory Shadow Track' if is_india_mode else 'US Desk'})</span>
             </div>
             <div style="display: flex; justify-content: space-between; padding: 9px 0; border-bottom: 1px solid rgba(255,255,255,0.06); font-family: 'DM Mono', monospace; font-size: 0.82rem;">
                 <span style="color: #71717A;">Macro Benchmark Status:</span>
@@ -2396,7 +2396,7 @@ elif page == "📋 Positions & Stop-Loss":
         if is_india_mode:
             st.markdown(f"""
             <div class="cyber-card" style="padding: 24px; text-align: center; border: 1px solid rgba(0, 208, 156, 0.25); background: #121622; border-radius: 12px; margin-top: 15px;">
-                <div style="font-size: 1.15rem; font-weight: 700; color: #FFFFFF; margin-bottom: 8px;">🛡️ GATE B FORWARD TESTING: 0 / 10 POSITIONS HELD</div>
+                <div style="font-size: 1.15rem; font-weight: 700; color: #FFFFFF; margin-bottom: 8px;">🛡️ EXPLORATORY SHADOW TRACKING: 0 / 10 POSITIONS HELD</div>
                 <div style="color: #00D09C; font-size: 0.95rem; font-family: 'DM Mono', monospace; margin-bottom: 12px;">100% Capital Preserved in Liquid Cash Buffer ({CURRENCY_SYMBOL}{cash:,.2f})</div>
                 <div style="color: #A1A1AA; font-size: 0.85rem; max-width: 680px; margin: 0 auto; line-height: 1.6;">
                     The autonomous cloud trading engine has safely shielded capital from equity market pullbacks via the <b>Nifty 50 (^NSEI) 50-SMA</b> trend slope filter.
@@ -3411,7 +3411,7 @@ elif page in ("⚡ Order Activity Log", "📜 Order Activity Log"):
             st.markdown(f"""
             <div class="cyber-card" style="padding: 24px; text-align: center; border: 1px solid rgba(0, 208, 156, 0.25); background: #121622; border-radius: 12px; margin-top: 15px;">
                 <div style="font-size: 1.15rem; font-weight: 700; color: #FFFFFF; margin-bottom: 8px;">📜 INDIAN POD ORDER AUDIT TRAIL</div>
-                <div style="color: #00D09C; font-size: 0.92rem; font-family: 'DM Mono', monospace; margin-bottom: 12px;">Gate B Forward Testing Active • GitHub Actions Automated Cloud Trader</div>
+                <div style="color: #00D09C; font-size: 0.92rem; font-family: 'DM Mono', monospace; margin-bottom: 12px;">Exploratory Shadow Paper Trading Active • GitHub Actions Automated Cloud Trader</div>
                 <div style="color: #A1A1AA; font-size: 0.84rem; max-width: 680px; margin: 0 auto; line-height: 1.6;">
                     No closed trades executed yet in this session. The autonomous cloud scheduler runs at <b>09:16 IST</b> (Market Open Execution) and <b>15:35 IST</b> (Market Close Scan).
                     You can also execute instant test trades anytime using the <b>Manual Order Desk</b>.
@@ -3511,7 +3511,7 @@ elif page == "🧠 Quant Brain & Strategy":
         """)
 
         st.markdown("---")
-        st.markdown("### 🤖 Gate B Forward Testing Governance")
+        st.markdown("### 🤖 Exploratory Shadow Paper Governance")
         st.markdown(r"""
         - **Macro Benchmark Gate:** Evaluates Nifty 50 (^NSEI) against its 200-SMA and 50-SMA slope. Freezes new buys and holds capital in liquid repo yield (6.5% APY) during corrections.
         - **Exit Protocols:** -12.0% Hard Stop, 150-SMA Trend Exit, and Multi-Tier Trailing Profit Locks (+25% / -15%, +50% / -20%, +100% / -25%).

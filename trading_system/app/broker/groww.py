@@ -25,6 +25,8 @@ from trading_system.app.common.interfaces import BrokerAdapter
 
 logger = logging.getLogger("GrowwBrokerAdapter")
 
+_GROWW_PRICE_CACHE: Dict[str, Any] = {}  # {symbol: (timestamp, price)}
+
 
 class BrokerAPIError(RuntimeError):
     """Base exception for Groww broker communication or execution failures."""
@@ -394,7 +396,9 @@ class GrowwBrokerAdapter(BrokerAdapter):
                     if qty <= 0:
                         continue
                     avg_p = float(pos.get("entry_price", 0.0))
-                    curr_p = self.get_latest_price(sym) or float(pos.get("peak_price", avg_p))
+                    curr_p = float(pos.get("peak_price", 0.0)) or avg_p
+                    if curr_p <= 0:
+                        curr_p = self.get_latest_price(sym) or avg_p
                     mkt_val = qty * curr_p
                     cost_val = qty * avg_p
                     unrealized_pl = mkt_val - cost_val
@@ -587,6 +591,13 @@ class GrowwBrokerAdapter(BrokerAdapter):
             except Exception as e:
                 logger.warning(f"Groww live quote fetch failed for {clean_sym}: {e}")
 
+        # Fast cache lookup (5-minute TTL)
+        now_ts = time.time()
+        if clean_sym in _GROWW_PRICE_CACHE:
+            cached_ts, cached_px = _GROWW_PRICE_CACHE[clean_sym]
+            if now_ts - cached_ts < 300.0 and cached_px > 0:
+                return cached_px
+
         # Secondary fetch via yfinance
         try:
             import yfinance as yf
@@ -595,6 +606,7 @@ class GrowwBrokerAdapter(BrokerAdapter):
             if not hist.empty and 'Close' in hist:
                 val = float(hist['Close'].iloc[-1])
                 if val > 0:
+                    _GROWW_PRICE_CACHE[clean_sym] = (now_ts, val)
                     return val
         except Exception as e:
             logger.warning(f"yfinance quote fetch failed for {clean_sym}: {e}")
@@ -794,6 +806,9 @@ class GrowwBrokerAdapter(BrokerAdapter):
             return {"success": True, "message": f"Simulated {side_norm} {int_qty} {clean_sym} executed", "order": order_record}
 
         # LIVE MODE ORDER PLACEMENT
+        from trading_system.app.broker.live_safety_fuse import verify_live_safety_fuse
+        verify_live_safety_fuse("Groww Live Trading")
+
         if not self.client or not self._connected:
             self._connected = False
             err_msg = f"Fail-Closed: Cannot submit order for {raw_sym} - Groww client is not connected."
@@ -882,7 +897,9 @@ class GrowwBrokerAdapter(BrokerAdapter):
                     sym = item.get("sym", "")
                     alloc = item.get("target_alloc", 0.0)
                     score = item.get("score", 0.0)
-                    curr_p = self.get_latest_price(sym) or 100.0
+                    curr_p = float(item.get("price", 0.0))
+                    if curr_p <= 0:
+                        curr_p = self.get_latest_price(sym) or 100.0
                     qty = int(math.floor(alloc / curr_p)) if curr_p > 0 else 1
                     orders.append({
                         "id": f"ORD-BUY-{sym}",

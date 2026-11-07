@@ -54,7 +54,7 @@ def verify_protocol_lock():
     if not os.path.exists(PROTOCOL_PATH):
         raise FileNotFoundError(f"CRITICAL: Protocol file missing: {PROTOCOL_PATH}")
     with open(PROTOCOL_PATH, "rb") as f:
-        sha = hashlib.sha256(f.read()).hexdigest().upper()
+        sha = hashlib.sha256(f.read().replace(b"\r\n", b"\n")).hexdigest().upper()
     if os.path.exists(PROTOCOL_SHA256_PATH):
         with open(PROTOCOL_SHA256_PATH, "r") as f:
             expected = f.read().strip().upper()

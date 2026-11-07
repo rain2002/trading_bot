@@ -446,6 +446,13 @@ class AlpacaBrokerAdapter(BrokerAdapter):
         client_order_id: Optional[str] = None
     ) -> Dict[str, Any]:
         """Submit a manual or bot-prompted order to Alpaca (supports value $ or quantity shares)."""
+        # Mandatory Two-Factor Live Safety Fuse: checked before ANY execution
+        is_live_endpoint = "paper-api.alpaca.markets" not in self.base_url
+        is_live_env = os.environ.get("ALPACA_LIVE", "0").lower() in ("1", "true", "yes")
+        if is_live_endpoint or is_live_env:
+            from trading_system.app.broker.live_safety_fuse import verify_live_safety_fuse
+            verify_live_safety_fuse("Alpaca Broker Adapter")
+
         if not symbol:
             return {"success": False, "error": "Stock symbol must be specified"}
             

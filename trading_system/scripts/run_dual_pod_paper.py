@@ -1,7 +1,7 @@
 """
 Production Dual-Pod Institutional Forward Paper Trading Engine
 ==============================================================
-Governs 13-Week Gate B Forward Testing across:
+Governs Exploratory Shadow Tracking (Forward Real-Time Paper Mode - Non-Gate B) across:
   - Pod 1: India Growth Equities Momentum (NSE 100 Liquid Growth Leaders, Variant 2)
   - Pod 2: US Growth Equities Momentum (NASDAQ/NYSE 100 High-Alpha Growth Leaders)
 
@@ -46,7 +46,7 @@ US_TRADES_CSV = os.path.join(DATA_DIR, "paper_trades_us.csv")
 EQUITY_LOG_CSV = os.path.join(DATA_DIR, "paper_equity_log.csv")
 
 # Institutional Default Settings
-DEFAULT_INDIA_CAPITAL = 1000000.0  # INR 10 Lakhs
+DEFAULT_INDIA_CAPITAL = 80000.0    # INR 80,000 (Mandatory Gate A scale)
 DEFAULT_US_CAPITAL = 10000.0       # USD $10,000
 
 INDIA_FLAT_DP_FEE = 14.75          # Flat Rs 14.75 per sale scrip
@@ -312,7 +312,8 @@ class PodPaperEngine:
         bench_sma50 = benchmark_data["close"].rolling(50, min_periods=20).mean().iloc[-1]
         bench_sma50_prev = benchmark_data["close"].rolling(50, min_periods=20).mean().iloc[-6]
         sma50_up = bench_sma50 > bench_sma50_prev
-        is_macro_bull = (bench_close > bench_sma200) and sma50_up
+        # Institutional Gate B Macro Sentinel: Benchmark trading above structural 200-SMA
+        is_macro_bull = bench_close > bench_sma200
 
         print(f"\n[{self.pod_name} RADAR] Benchmark: Close={bench_close:.2f} vs 200-SMA={bench_sma200:.2f} | 50-SMA Sloping Up={sma50_up} -> Regime: [{'BULL' if is_macro_bull else 'BEAR DEFENSE'}]")
 
@@ -528,7 +529,21 @@ def main():
     parser = argparse.ArgumentParser(description="Dual-Pod Institutional Paper Trading Engine")
     parser.add_argument("--pod", choices=["all", "india", "us"], default="all", help="Target pod")
     parser.add_argument("--phase", choices=["scan", "execute", "status"], default="status", help="Trading cycle phase")
+    parser.add_argument("--mode", choices=["exploratory_shadow", "gate_b"], default="exploratory_shadow", help="Incubation classification")
+    parser.add_argument("--protocol-hash", type=str, default="", help="Audited Gate A protocol hash")
     args = parser.parse_args()
+
+    # Fiduciary Code Guard: Refuse Gate B certification if Gate A has not passed
+    if args.mode == "gate_b":
+        from trading_system.app.validation.gate_evaluator import GateEvaluator
+        cleared_india = GateEvaluator.verify_gate_a_clearance_for_gate_b("Variant 2", args.protocol_hash)
+        cleared_us = GateEvaluator.verify_gate_a_clearance_for_gate_b("Variant 1", args.protocol_hash)
+        if not (cleared_india and cleared_us):
+            raise RuntimeError(
+                "CRITICAL FIDUCIARY GUARD: Gate B incubation execution REFUSED. "
+                "Neither pod variant has passed an audited Gate A stress test. "
+                "Run with '--mode exploratory_shadow' for uncertified shadow tracking."
+            )
 
     india_engine = PodPaperEngine(
         pod_name="INDIA",

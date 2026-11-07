@@ -1,3 +1,4 @@
+import os
 import requests
 import uuid
 from typing import Any
@@ -20,6 +21,13 @@ class AlpacaExecutionAdapter(ExecutionAdapter):
         }
         
     def submit_order(self, order: Any) -> Any:
+        # Mandatory Two-Factor Live Safety Fuse: checked before ANY execution
+        is_live_endpoint = "paper-api.alpaca.markets" not in self.base_url
+        is_live_env = os.environ.get("ALPACA_LIVE", "0").lower() in ("1", "true", "yes")
+        if is_live_endpoint or is_live_env:
+            from trading_system.app.broker.live_safety_fuse import verify_live_safety_fuse
+            verify_live_safety_fuse("Alpaca Live Trading Engine")
+
         symbol = order.get("symbol")
         quantity = order.get("quantity")
         if not symbol or not quantity:

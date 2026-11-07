@@ -51,8 +51,8 @@ def generate_dashboard_html() -> str:
     us_trades = load_csv(US_TRADES_CSV)
     eq_log = load_csv(EQUITY_LOG_CSV)
 
-    in_cash = in_state.get("cash", 1000000.0)
-    in_initial = in_state.get("initial_capital", 1000000.0)
+    in_cash = in_state.get("cash", 80000.0)
+    in_initial = in_state.get("initial_capital", 80000.0)
     in_pos = in_state.get("positions", {})
     in_pending_buys = in_state.get("pending_buys", [])
     in_pending_sells = in_state.get("pending_sells", [])
@@ -85,7 +85,14 @@ def generate_dashboard_html() -> str:
     dates = []
     in_navs = []
     us_navs = []
-    if not eq_log.empty:
+    if not eq_log.empty and "pod" in eq_log.columns and "total_equity" in eq_log.columns:
+        piv = eq_log.pivot_table(index="date", columns="pod", values="total_equity", aggfunc="last").ffill()
+        dates = [str(d) for d in piv.index]
+        in_series = piv["INDIA"] if "INDIA" in piv.columns else pd.Series([in_equity]*len(dates), index=piv.index)
+        us_series = piv["US"] if "US" in piv.columns else pd.Series([us_equity]*len(dates), index=piv.index)
+        in_navs = [float(v) for v in in_series.fillna(in_equity)]
+        us_navs = [float(v) for v in us_series.fillna(us_equity)]
+    elif not eq_log.empty:
         for _, row in eq_log.iterrows():
             d = str(row.get("date", ""))
             dates.append(d)
@@ -146,11 +153,21 @@ def generate_dashboard_html() -> str:
     recent_trades_rows = ""
     combined_trades = []
     if not in_trades.empty:
-        for _, r in in_trades.tail(5).iterrows():
-            combined_trades.append(("🇮🇳 IN", str(r.get("date","")), str(r.get("symbol","")), str(r.get("side","")), float(r.get("price",0)), float(r.get("net_pnl",0)), "₹"))
+        for _, r in in_trades.tail(10).iterrows():
+            dt = str(r.get("timestamp", r.get("date", "")))
+            sym = str(r.get("symbol", ""))
+            side = str(r.get("action", r.get("side", "")))
+            px = float(r.get("fill_price", r.get("price", 0.0)))
+            pnl = float(r.get("realized_pnl", r.get("net_pnl", 0.0)))
+            combined_trades.append(("🇮🇳 IN", dt, sym, side, px, pnl, "₹"))
     if not us_trades.empty:
-        for _, r in us_trades.tail(5).iterrows():
-            combined_trades.append(("🇺🇸 US", str(r.get("date","")), str(r.get("symbol","")), str(r.get("side","")), float(r.get("price",0)), float(r.get("net_pnl",0)), "$"))
+        for _, r in us_trades.tail(10).iterrows():
+            dt = str(r.get("timestamp", r.get("date", "")))
+            sym = str(r.get("symbol", ""))
+            side = str(r.get("action", r.get("side", "")))
+            px = float(r.get("fill_price", r.get("price", 0.0)))
+            pnl = float(r.get("realized_pnl", r.get("net_pnl", 0.0)))
+            combined_trades.append(("🇺🇸 US", dt, sym, side, px, pnl, "$"))
 
     for pod, dt, sym, side, px, pnl, curr in combined_trades[-8:]:
         pnl_color = "#10B981" if pnl > 0 else ("#EF4444" if pnl < 0 else "#9CA3AF")
@@ -375,7 +392,7 @@ def generate_dashboard_html() -> str:
             <div class="logo-badge">AGY-QUANT</div>
             <div>
                 <h1>Autonomous Dual-Pod Trading Desk</h1>
-                <p style="font-size: 0.82rem; color: var(--text-muted);">Gate B Forward Test • India NSE 100 & US Mega/Mid Multi-Sector</p>
+                <p style="font-size: 0.82rem; color: var(--text-muted);">Exploratory Shadow Tracking (Real-Time Forward Paper Mode - Non-Gate B) • India NSE 100 & US Mega/Mid Multi-Sector</p>
             </div>
         </div>
         <div class="telemetry">
@@ -383,6 +400,16 @@ def generate_dashboard_html() -> str:
             <span>LAST SYNC: {now_utc}</span>
         </div>
     </header>
+
+    <div style="background: rgba(245, 158, 11, 0.12); border: 1px solid #F59E0B; border-radius: 8px; padding: 12px 18px; margin: 20px 0; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <span style="background: #F59E0B; color: #000; font-weight: 700; font-size: 0.72rem; padding: 3px 8px; border-radius: 4px; text-transform: uppercase;">Exploratory Shadow Mode</span>
+            <span style="font-size: 0.82rem; color: #FCD34D; font-weight: 500;">
+                Non-Gate B Incubation. Gate B strictly requires an audited Gate A pass. Multi-Asset Tactical Trend V2.1 remains the binding Gate A priority.
+            </span>
+        </div>
+        <span style="font-size: 0.74rem; color: var(--text-muted); font-family: monospace;">PROTOCOL: MULTI_ASSET_V2.1</span>
+    </div>
 
     <div class="kpi-grid">
         <div class="kpi-card">
@@ -417,7 +444,7 @@ def generate_dashboard_html() -> str:
 
     <div class="card">
         <div class="card-header">
-            <div class="card-title">Dual-Pod Equity Growth Curves (13-Week Gate B Track)</div>
+            <div class="card-title">Dual-Pod Equity Growth Curves (Exploratory Shadow Tracking)</div>
         </div>
         <div style="height: 280px; position: relative;">
             <canvas id="equityChart"></canvas>
@@ -491,6 +518,10 @@ def generate_dashboard_html() -> str:
                 {recent_trades_rows}
             </tbody>
         </table>
+    </div>
+
+    <div style="margin: 20px 0; padding: 14px 18px; background: rgba(30, 41, 59, 0.5); border-left: 3px solid var(--accent); border-radius: 4px; font-size: 0.80rem; color: var(--text-muted); line-height: 1.5;">
+        <strong style="color: var(--text-main);">Governance Architecture Note:</strong> Variant 1 (US) and Variant 2 (India) are monitored simultaneously under comparative exploratory shadow tracking. When any specific variant is subsequently selected for live capital incubation, that selection constitutes an independent trial and will be logged in <code>trial_log.csv</code>.
     </div>
 
     <footer>

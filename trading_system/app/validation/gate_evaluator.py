@@ -216,17 +216,80 @@ class GateEvaluator:
         )
 
     @classmethod
+    def verify_gate_a_clearance_for_gate_b(
+        cls,
+        variant_id: str,
+        protocol_hash: Optional[str] = None,
+        trial_log_path: Optional[str] = None
+    ) -> bool:
+        """
+        CODE GUARD: Fiduciary gate preventing Gate B incubation from starting
+        or being certified unless an audited Gate A PASS record exists in trial_log.csv
+        matching the specific variant_id and cryptographically locked protocol hash.
+        """
+        if trial_log_path is None:
+            trial_log_path = os.path.join(
+                os.path.dirname(__file__), "..", "..", "data", "trial_log.csv"
+            )
+        if not os.path.exists(trial_log_path):
+            logger.warning(f"Trial log not found at {trial_log_path}; Gate A clearance denied.")
+            return False
+
+        try:
+            import pandas as pd
+            df = pd.read_csv(trial_log_path)
+            if "notes" not in df.columns:
+                return False
+
+            # Check for explicit passed record matching variant
+            passed_rows = df[
+                df["notes"].str.contains(r"Gate A.*PASS", case=False, na=False) &
+                df["notes"].str.contains(variant_id, case=False, na=False)
+            ]
+            if protocol_hash:
+                passed_rows = passed_rows[passed_rows["notes"].str.contains(protocol_hash[:8], na=False)]
+
+            return len(passed_rows) > 0
+        except Exception as e:
+            logger.error(f"Error checking Gate A clearance for Gate B: {e}")
+            return False
+
+    @classmethod
     def evaluate_gate_b(
         cls,
         weeks_logged: int,
         zero_crash_weeks: int,
         max_drawdown: float,
         sl_breaches: int,
-        kill_switch_verified: bool
+        kill_switch_verified: bool,
+        variant_id: Optional[str] = None,
+        protocol_hash: Optional[str] = None
     ) -> GateBClearanceReport:
         """
         Evaluates live forward paper trading results against Gate B incubation requirements.
+        Strictly enforces prerequisite Gate A clearance.
         """
+        # Code Guard: Check prerequisite Gate A
+        if variant_id:
+            gate_a_passed = cls.verify_gate_a_clearance_for_gate_b(variant_id=variant_id, protocol_hash=protocol_hash)
+            if not gate_a_passed:
+                return GateBClearanceReport(
+                    passed=False,
+                    weeks_logged=weeks_logged,
+                    zero_crash_weeks=zero_crash_weeks,
+                    max_drawdown=max_drawdown,
+                    sl_breaches=sl_breaches,
+                    kill_switch_verified=kill_switch_verified,
+                    criteria={
+                        "gate_a_prerequisite": {
+                            "name": "Prerequisite Gate A Statistical Clearance Verified",
+                            "actual": "FAILED / UNVERIFIED",
+                            "threshold": "PASSED (Audited Gate A Clearance Required)",
+                            "passed": False
+                        }
+                    },
+                    summary=f"GATE B REFUSED: Variant '{variant_id}' has not passed Gate A with verified protocol hash. Incubation cannot be certified as Gate B."
+                )
         weeks_pass = weeks_logged >= cls.GATE_B_MIN_WEEKS
         crashes_pass = zero_crash_weeks >= cls.GATE_B_CONSECUTIVE_STABLE_WEEKS
         dd_pass = max_drawdown >= cls.GATE_B_MAX_INCUBATION_DD

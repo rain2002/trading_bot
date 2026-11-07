@@ -127,8 +127,9 @@ def test_live_groww_place_order_fails_closed_on_api_error(mock_groww_client, moc
         notifier=mock_notifier,
     )
 
-    with pytest.raises(OrderExecutionError) as exc_info:
-        adapter.place_order(symbol="INFY.NS", qty=10, side="BUY")
+    with patch("trading_system.app.broker.live_safety_fuse.verify_live_safety_fuse", return_value=True):
+        with pytest.raises(OrderExecutionError) as exc_info:
+            adapter.place_order(symbol="INFY.NS", qty=10, side="BUY")
 
     assert "HTTP 502" in str(exc_info.value)
     assert adapter.is_connected() is False

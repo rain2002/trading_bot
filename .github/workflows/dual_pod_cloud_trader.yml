@@ -32,7 +32,7 @@ permissions:
   id-token: write
 
 concurrency:
-  group: trading-cloud-state
+  group: trading-state
   cancel-in-progress: false
 
 jobs:
@@ -83,6 +83,16 @@ jobs:
             echo "POD=india" >> $GITHUB_ENV
           fi
 
+      - name: Restore Fiduciary State Artifacts from State Branch
+        run: |
+          git fetch origin state 2>/dev/null || true
+          if git show-ref --verify --quiet refs/remotes/origin/state; then
+            echo "Restoring latest state files from origin/state branch..."
+            git checkout origin/state -- trading_system/data/paper_state_india.json trading_system/data/paper_state_us.json trading_system/data/paper_equity_log.csv trading_system/data/paper_trades_india.csv trading_system/data/paper_trades_us.csv 2>/dev/null || true
+          else
+            echo "No origin/state branch found; using local repository state defaults."
+          fi
+
       - name: Execute Dual-Pod Quant Engine
         env:
           PAPER_API_KEY: ${{ secrets.PAPER_API_KEY || secrets.ALPACA_API_KEY }}
@@ -101,14 +111,33 @@ jobs:
             python trading_system/scripts/run_dual_pod_paper.py --phase "$PHASE" --pod "$POD"
           fi
 
-      - name: Commit and Push State Updates
+      - name: Persist Telemetry & State Artifacts to Dedicated State Branch
+        if: always()
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add trading_system/data/paper_* docs/index.html
-          if git diff --staged --quiet; then
-            echo "No state changes to commit."
+
+          # Stage current state files into a temporary directory
+          mkdir -p /tmp/state_artifacts
+          cp trading_system/data/paper_* /tmp/state_artifacts/ 2>/dev/null || true
+          cp docs/index.html /tmp/state_artifacts/ 2>/dev/null || true
+
+          # Fetch remote state branch or create orphan if not yet initialized
+          git fetch origin state 2>/dev/null || true
+          if git show-ref --verify --quiet refs/remotes/origin/state; then
+            git checkout -B state origin/state
           else
-            git commit -m "chore(telemetry): update trading state & web dashboard [skip ci]"
-            git push origin HEAD
+            git checkout --orphan state
+            git rm -rf . --quiet 2>/dev/null || true
           fi
+
+          # Re-populate state files in state branch workspace
+          mkdir -p trading_system/data docs
+          cp /tmp/state_artifacts/paper_* trading_system/data/ 2>/dev/null || true
+          cp /tmp/state_artifacts/index.html docs/ 2>/dev/null || true
+
+          git add trading_system/data/paper_* docs/index.html 2>/dev/null || true
+
+          # Pull with rebase before pushing to guarantee conflict-free state push
+          git pull --rebase origin state 2>/dev/null || true
+          git diff --staged --quiet || (git commit -m "chore(telemetry): update live paper trading state & dashboard [skip ci]" && git push origin state)

@@ -9,6 +9,7 @@ credentials.json
 *token*.json
 *.pem
 *.key
+LIVE_TRADING_CONFIRMATION_FUSE.key
 
 # Database (Do not commit local SQLite/PostgreSQL data dumps)
 *.sqlite
@@ -50,3 +51,4 @@ trading_system/data/circulars/*.pdf
 .vscode/
 .idea/
 .DS_Store
+trading_system/data/daemon_state.json
