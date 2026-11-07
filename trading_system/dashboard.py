@@ -726,12 +726,12 @@ cash = acc_details.get("cash", 0.0)
 buying_power = acc_details.get("buying_power", cash)
 today_pnl = acc_details.get("today_pnl", 0.0)
 today_pnl_pct = acc_details.get("today_pnl_pct", 0.0)
-overall_pnl = acc_details.get("overall_pnl", 0.0)
-overall_pnl_pct = acc_details.get("overall_pnl_pct", 0.0)
+initial_capital = float(getattr(broker, 'initial_capital', 1000000.0 if is_india_mode else 100000.0))
+overall_pnl = equity - initial_capital
+overall_pnl_pct = (overall_pnl / initial_capital * 100) if initial_capital > 0 else 0.0
 cash_pct = (cash / equity * 100) if equity > 0 else 0.0
 invested_capital = equity - cash
 invested_pct = (invested_capital / equity * 100) if equity > 0 else 0.0
-initial_capital = float(getattr(broker, 'initial_capital', 1000000.0 if is_india_mode else 100000.0))
 
 def format_pnl_str(val: float) -> str:
     """Format currency P&L cleanly as +$X,XXX.XX / +₹X,XXX.XX or -$X,XXX.XX / -₹X,XXX.XX."""

@@ -24,8 +24,10 @@ class AlpacaBrokerAdapter(BrokerAdapter):
         api_key: Optional[str] = None,
         api_secret: Optional[str] = None,
         base_url: Optional[str] = None,
+        initial_capital: Optional[float] = None,
         notifier: Optional[Any] = None,
     ):
+        self.initial_capital = initial_capital or float(os.getenv("INITIAL_CAPITAL", 100000.0))
         self.api_key = api_key or os.getenv("ALPACA_API_KEY") or os.getenv("ALPACA_KEY") or ""
         self.api_secret = api_secret or os.getenv("ALPACA_SECRET_KEY") or os.getenv("ALPACA_SECRET") or ""
         env_url = os.getenv("ALPACA_BASE_URL", "https://paper-api.alpaca.markets")
@@ -228,8 +230,8 @@ class AlpacaBrokerAdapter(BrokerAdapter):
                 today_pnl = equity - last_equity
                 today_pnl_pct = (today_pnl / last_equity * 100) if last_equity > 0 else 0.0
                 
-                # Use starting equity from account or environment
-                initial_capital = float(os.getenv("INITIAL_CAPITAL", last_equity if last_equity > 0 else equity))
+                # Use starting equity from configuration (defaults to $100,000.00 base principal)
+                initial_capital = getattr(self, "initial_capital", 100000.0)
                 overall_pnl = equity - initial_capital
                 overall_pnl_pct = (overall_pnl / initial_capital * 100) if initial_capital > 0 else 0.0
                 
