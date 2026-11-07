@@ -123,3 +123,54 @@ def test_us_pod_alpaca_sync_and_routing(tmp_path, monkeypatch):
     assert submitted_orders[0]["side"] == "sell"
     assert submitted_orders[0]["quantity"] == 20
     assert "NVDA" not in engine.state["positions"]
+
+
+def test_volatility_targeting_and_regional_invariants(tmp_path, monkeypatch):
+    state_file = str(tmp_path / "test_vol_state.json")
+    trades_file = str(tmp_path / "test_vol_trades.csv")
+    dummy_log = str(tmp_path / "dummy_equity_log.csv")
+    monkeypatch.setattr("trading_system.scripts.run_dual_pod_paper.EQUITY_LOG_CSV", dummy_log)
+
+    engine = PodPaperEngine(
+        pod_name="INDIA",
+        currency="INR",
+        initial_capital=80000.0,
+        state_file=state_file,
+        trades_file=trades_file
+    )
+
+    # 1. Bear defense test: benchmark below 200 SMA
+    dates = pd.date_range("2024-01-01", periods=250, freq="B")
+    # Declining prices so current close < 200 SMA
+    prices = [25000.0 - i * 20.0 for i in range(250)]
+    bench_df = pd.DataFrame({"close": prices}, index=dates)
+
+    sym_data = {
+        "RELIANCE.NS": pd.DataFrame({
+            "close": [2800.0] * 250,
+            "open": [2800.0] * 250,
+            "volume": [1000000] * 250
+        }, index=dates)
+    }
+
+    engine.scan_and_evaluate(sym_data, bench_df)
+    # Under bear defense, no buy orders must be queued, cash is 100% preserved
+    assert len(engine.state["pending_buys"]) == 0
+    assert engine.state["cash"] == 80000.0
+
+    # 2. Bull trending test with low volatility
+    bull_prices = [15000.0 + i * 50.0 for i in range(250)]
+    bull_bench_df = pd.DataFrame({"close": bull_prices}, index=dates)
+
+    # Momentum candidate above 50, 150, 200 SMA
+    cand_prices = [100.0 + i * 2.0 for i in range(250)]
+    cand_df = pd.DataFrame({
+        "close": cand_prices,
+        "open": cand_prices,
+        "volume": [2000000] * 250
+    }, index=dates)
+
+    engine.scan_and_evaluate({"TITAN.NS": cand_df}, bull_bench_df)
+    assert len(engine.state["pending_buys"]) == 1
+    assert engine.state["pending_buys"][0]["sym"] == "TITAN.NS"
+

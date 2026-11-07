@@ -312,16 +312,34 @@ class PodPaperEngine:
         """Step E & F: Scan market closes, evaluate stops/trails, and queue Next-Day Open orders."""
         now_str = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
 
-        # 1. Benchmark Macro Filter
-        bench_close = benchmark_data["close"].iloc[-1]
-        bench_sma200 = benchmark_data["close"].rolling(200, min_periods=50).mean().iloc[-1]
-        bench_sma50 = benchmark_data["close"].rolling(50, min_periods=20).mean().iloc[-1]
-        bench_sma50_prev = benchmark_data["close"].rolling(50, min_periods=20).mean().iloc[-6]
+        # 1. Benchmark Macro Filter & Volatility Radar (Quant Science Model)
+        bench_close = float(benchmark_data["close"].iloc[-1])
+        bench_sma200 = float(benchmark_data["close"].rolling(200, min_periods=50).mean().iloc[-1])
+        bench_sma50 = float(benchmark_data["close"].rolling(50, min_periods=20).mean().iloc[-1])
+        bench_sma50_prev = float(benchmark_data["close"].rolling(50, min_periods=20).mean().iloc[-6])
         sma50_up = bench_sma50 > bench_sma50_prev
-        # Institutional Gate B Macro Sentinel: Benchmark trading above structural 200-SMA
-        is_macro_bull = bench_close > bench_sma200
 
-        print(f"\n[{self.pod_name} RADAR] Benchmark: Close={bench_close:.2f} vs 200-SMA={bench_sma200:.2f} | 50-SMA Sloping Up={sma50_up} -> Regime: [{'BULL' if is_macro_bull else 'BEAR DEFENSE'}]")
+        # Volatility Radar & Momentum Crash Sentinel
+        bench_ret_series = benchmark_data["close"].pct_change()
+        bench_vol_20d = float(bench_ret_series.rolling(20).std().iloc[-1] * (252 ** 0.5)) if len(bench_ret_series) >= 20 else 0.15
+        bench_ret_6m = float(benchmark_data["close"].pct_change(min(126, len(benchmark_data)-1)).iloc[-1]) if len(benchmark_data) > 20 else 0.0
+
+        target_vol = 0.16 if self.pod_name == "INDIA" else 0.14
+        vol_scale = min(1.0, target_vol / max(bench_vol_20d, 0.08)) if not np.isnan(bench_vol_20d) and bench_vol_20d > 0 else 1.0
+
+        is_structural_bear = (bench_close < bench_sma200) or (bench_ret_6m < 0.0 and bench_vol_20d > 0.24)
+        if is_structural_bear:
+            macro_regime = "BEAR_DEFENSE"
+            max_exposure = 0.0
+        elif vol_scale < 0.75:
+            macro_regime = "VOLATILITY_CAUTION"
+            max_exposure = round(vol_scale, 2)
+        else:
+            macro_regime = "BULL_TRENDING"
+            max_exposure = 1.0
+
+        is_macro_bull = macro_regime != "BEAR_DEFENSE"
+        print(f"\n[{self.pod_name} RADAR] Benchmark: Close={bench_close:.2f} vs 200-SMA={bench_sma200:.2f} | 20D Vol={bench_vol_20d*100:.1f}% (Scale={vol_scale:.2f}) -> Regime: [{macro_regime}] Max Exposure: {max_exposure*100:.0f}%")
 
         # 2. Mark to Market & Peak Update
         port_equity = 0.0
@@ -391,10 +409,14 @@ class PodPaperEngine:
         for s in signals_to_exit:
             print(f"  [SIGNAL QUEUED SELL] {s['sym']:<12} -> Reason: {s['reason']}")
 
-        # 4. Candidate Screening & Entry Sizing
+        # 4. Candidate Screening & Dynamic Allocation (Quant Science Volatility-Targeted Sizing)
+        # Policy: INDIA is STRICTLY LONG-ONLY with 100% Cash Defense (Zero Shorting / Zero Futures).
+        # USA operates Long Momentum + Regime Volatility Cash Scaling (Optional ETF Short Hedge on margin).
         active_and_pending_count = len(self.state["positions"]) - len(self.state["pending_sells"])
-        if is_macro_bull and active_and_pending_count < MAX_CORE_POSITIONS and self.state["cash"] > 100.0:
-            open_slots = MAX_CORE_POSITIONS - active_and_pending_count
+        max_allowed_slots = int(math.floor(MAX_CORE_POSITIONS * max_exposure))
+
+        if is_macro_bull and active_and_pending_count < max_allowed_slots and self.state["cash"] > 100.0:
+            open_slots = max_allowed_slots - active_and_pending_count
             cands = []
             min_price = 20.0 if self.pod_name == "INDIA" else 10.0
 
@@ -421,7 +443,7 @@ class PodPaperEngine:
             cands.sort(key=lambda x: x["score"], reverse=True)
             selected = cands[:open_slots]
 
-            alloc_per_cand = (total_equity * 0.10)
+            alloc_per_cand = (total_equity * 0.10) * max_exposure
             pending_buys = []
             avail_cash = self.state["cash"] * 0.96
             for c in selected:
@@ -433,6 +455,12 @@ class PodPaperEngine:
                 print(f"  [SIGNAL QUEUED BUY ] {c['sym']:<12} Target: {self.currency} {alloc:>9.2f} | Score: {c['score']:.2f}")
 
             self.state["pending_buys"] = pending_buys
+        elif not is_macro_bull:
+            self.state["pending_buys"] = []
+            if self.pod_name == "INDIA":
+                print(f"  [INDIA CASH DEFENSE] Regime is {macro_regime} -> 100% Capital Preserved in Safe Liquid Cash (Strictly Long-Only, Zero Shorting).")
+            else:
+                print(f"  [US CASH/HEDGE DEFENSE] Regime is {macro_regime} -> Exposure dialed down into Cash (Optional SPY margin short hedge).")
 
         self._save_state()
 
