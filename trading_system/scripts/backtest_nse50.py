@@ -38,6 +38,7 @@ from trading_system.app.data.constituent_manager import PointInTimeConstituentMa
 CACHE_DIR = os.path.join(PROJECT_ROOT, "trading_system", "data", "historical_cache_nse")
 NIFTY_CHANGES_CSV = os.path.join(PROJECT_ROOT, "trading_system", "data", "nifty50_historical_components_changes.csv")
 NIFTY_START_END_CSV = os.path.join(PROJECT_ROOT, "trading_system", "data", "nifty50_ticker_start_end.csv")
+INDIA_CASH_YIELD_CSV = os.path.join(PROJECT_ROOT, "trading_system", "data", "india_cash_yield_history.csv")
 
 # Global Institutional PIT Constituent Manager for Nifty 50
 PIT_MANAGER = PointInTimeConstituentManager(
@@ -105,36 +106,45 @@ def normalize_index(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
+_CASH_YIELD_CACHE = None
+
+
+def _get_cash_yield_arrays():
+    global _CASH_YIELD_CACHE
+    if _CASH_YIELD_CACHE is None:
+        if os.path.exists(INDIA_CASH_YIELD_CSV):
+            df = pd.read_csv(INDIA_CASH_YIELD_CSV)
+            dates = pd.to_datetime(df["effective_date"]).values
+            repo = df["rbi_repo_rate"].astype(float).values
+            liquid = df["liquid_etf_net_yield"].astype(float).values
+            _CASH_YIELD_CACHE = (dates, repo, liquid)
+        else:
+            _CASH_YIELD_CACHE = (np.array([]), np.array([]), np.array([]))
+    return _CASH_YIELD_CACHE
+
+
 def get_india_rf_rate(date: pd.Timestamp) -> float:
-    """Historical Reserve Bank of India 91-Day T-Bill Yield."""
-    y = date.year
-    m = date.month
-    if y <= 2006: return 0.065
-    elif y == 2007: return 0.075
-    elif y == 2008: return 0.085 if m < 10 else 0.065
-    elif y == 2009: return 0.045
-    elif y == 2010: return 0.055
-    elif y == 2011: return 0.082
-    elif y == 2012: return 0.081
-    elif y == 2013: return 0.085
-    elif y == 2014: return 0.084
-    elif y == 2015: return 0.075
-    elif y == 2016: return 0.068
-    elif y == 2017: return 0.062
-    elif y == 2018: return 0.066
-    elif y == 2019: return 0.058
-    elif y == 2020: return 0.038
-    elif y == 2021: return 0.036
-    elif y == 2022: return 0.055
-    elif y == 2023: return 0.068
-    elif y == 2024: return 0.069
-    elif y == 2025: return 0.067
-    return 0.065
+    """Historical Reserve Bank of India Repo Rate sourced from official india_cash_yield_history.csv."""
+    dates, repo, _ = _get_cash_yield_arrays()
+    if len(dates) == 0:
+        return 0.065
+    dt_val = np.datetime64(pd.to_datetime(date).strftime("%Y-%m-%d"))
+    idx = np.searchsorted(dates, dt_val, side="right") - 1
+    if idx < 0:
+        return float(repo[0])
+    return float(repo[idx])
 
 
 def get_liquid_etf_yield(date: pd.Timestamp) -> float:
-    """Realistic retail Liquid ETF yield net of ~65 bps total expense ratio and tracking/cash drag."""
-    return max(0.0, get_india_rf_rate(date) - 0.0065)
+    """Realistic retail Liquid ETF yield net of ~65 bps total expense ratio, sourced from india_cash_yield_history.csv."""
+    dates, _, liquid = _get_cash_yield_arrays()
+    if len(dates) == 0:
+        return max(0.0, get_india_rf_rate(date) - 0.0065)
+    dt_val = np.datetime64(pd.to_datetime(date).strftime("%Y-%m-%d"))
+    idx = np.searchsorted(dates, dt_val, side="right") - 1
+    if idx < 0:
+        return float(liquid[0])
+    return float(liquid[idx])
 
 
 def calc_vectorized_momentum(series: np.ndarray, window: int = 90) -> np.ndarray:

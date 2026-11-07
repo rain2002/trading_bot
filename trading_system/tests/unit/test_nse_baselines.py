@@ -67,7 +67,7 @@ def test_india_rf_rate_causal_lookup():
     assert rate_2008 == 0.085, "Expected 8.5% during 2008 GFC peak"
 
     rate_2021 = get_india_rf_rate(pd.Timestamp("2021-06-01"))
-    assert rate_2021 == 0.036, "Expected ~3.6% during post-COVID accommodative stance"
+    assert rate_2021 == 0.040, "Expected 4.0% during post-COVID accommodative stance"
 
     rate_2024 = get_india_rf_rate(pd.Timestamp("2024-05-01"))
     assert rate_2024 >= 0.065, "Expected >=6.5% during 2024 monetary tightening"

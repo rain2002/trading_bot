@@ -21,71 +21,50 @@ if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
 CACHE_DIR = os.path.join(PROJECT_ROOT, "trading_system", "data", "historical_cache_nse")
+INDIA_CASH_YIELD_CSV = os.path.join(PROJECT_ROOT, "trading_system", "data", "india_cash_yield_history.csv")
 
 START_DATE = "2007-09-17"
 END_DATE = "2024-12-31"  # Sealed holdout 2025 preserved
 
-# RBI Repo Rate Schedule (Historical 2007 - 2025)
-REPO_SCHEDULE = [
-    ("2007-01-01", 0.0775),
-    ("2008-06-12", 0.0800),
-    ("2008-06-25", 0.0850),
-    ("2008-07-30", 0.0900),
-    ("2008-10-20", 0.0800),
-    ("2008-11-03", 0.0750),
-    ("2008-12-08", 0.0650),
-    ("2009-01-05", 0.0550),
-    ("2009-03-05", 0.0500),
-    ("2009-04-21", 0.0475),
-    ("2010-03-19", 0.0500),
-    ("2010-04-20", 0.0525),
-    ("2010-07-02", 0.0550),
-    ("2010-07-27", 0.0575),
-    ("2010-09-16", 0.0600),
-    ("2010-11-02", 0.0625),
-    ("2011-01-25", 0.0650),
-    ("2011-03-17", 0.0675),
-    ("2013-05-03", 0.0725),
-    ("2013-09-20", 0.0750),
-    ("2013-10-29", 0.0775),
-    ("2014-01-28", 0.0800),
-    ("2015-01-15", 0.0775),
-    ("2015-03-04", 0.0750),
-    ("2015-06-02", 0.0725),
-    ("2015-09-29", 0.0675),
-    ("2016-04-05", 0.0650),
-    ("2016-10-04", 0.0625),
-    ("2017-08-02", 0.0600),
-    ("2018-06-06", 0.0625),
-    ("2018-08-01", 0.0650),
-    ("2019-02-07", 0.0625),
-    ("2019-04-04", 0.0600),
-    ("2019-06-06", 0.0575),
-    ("2019-08-07", 0.0540),
-    ("2019-10-04", 0.0515),
-    ("2020-03-27", 0.0440),
-    ("2020-05-22", 0.0400),
-    ("2022-05-04", 0.0440),
-    ("2022-06-08", 0.0490),
-    ("2022-08-05", 0.0540),
-    ("2022-09-30", 0.0590),
-    ("2022-12-07", 0.0625),
-    ("2023-02-08", 0.0650),
-]
+_CASH_YIELD_CACHE = None
+
+
+def _get_cash_yield_arrays():
+    global _CASH_YIELD_CACHE
+    if _CASH_YIELD_CACHE is None:
+        if os.path.exists(INDIA_CASH_YIELD_CSV):
+            df = pd.read_csv(INDIA_CASH_YIELD_CSV)
+            dates = pd.to_datetime(df["effective_date"]).values
+            repo = df["rbi_repo_rate"].astype(float).values
+            liquid = df["liquid_etf_net_yield"].astype(float).values
+            _CASH_YIELD_CACHE = (dates, repo, liquid)
+        else:
+            _CASH_YIELD_CACHE = (np.array([]), np.array([]), np.array([]))
+    return _CASH_YIELD_CACHE
 
 
 def get_repo_rate(dt: pd.Timestamp) -> float:
-    rate = 0.065
-    dt_str = dt.strftime("%Y-%m-%d")
-    for start_dt, r in REPO_SCHEDULE:
-        if dt_str >= start_dt:
-            rate = r
-    return rate
+    """Historical Reserve Bank of India Repo Rate sourced from india_cash_yield_history.csv."""
+    dates, repo, _ = _get_cash_yield_arrays()
+    if len(dates) == 0:
+        return 0.065
+    dt_val = np.datetime64(pd.to_datetime(dt).strftime("%Y-%m-%d"))
+    idx = np.searchsorted(dates, dt_val, side="right") - 1
+    if idx < 0:
+        return float(repo[0])
+    return float(repo[idx])
 
 
 def get_liquid_etf_yield(dt: pd.Timestamp) -> float:
-    """Realistic retail Liquid ETF yield net of ~65 bps total expense ratio and cash drag."""
-    return max(0.0, get_repo_rate(dt) - 0.0065)
+    """Realistic retail Liquid ETF yield net of ~65 bps total expense ratio, sourced from india_cash_yield_history.csv."""
+    dates, _, liquid = _get_cash_yield_arrays()
+    if len(dates) == 0:
+        return max(0.0, get_repo_rate(dt) - 0.0065)
+    dt_val = np.datetime64(pd.to_datetime(dt).strftime("%Y-%m-%d"))
+    idx = np.searchsorted(dates, dt_val, side="right") - 1
+    if idx < 0:
+        return float(liquid[0])
+    return float(liquid[idx])
 
 
 def normalize_index(df: pd.DataFrame) -> pd.DataFrame:

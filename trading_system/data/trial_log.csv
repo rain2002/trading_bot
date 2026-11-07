@@ -6,18 +6,25 @@ date,commit_hash,script,universe,kelly_fraction,lookback_days,cagr_pct,max_drawd
 2026-11-04 19:40:00,f8bd332,backtest_multi_pod.py,US_SP500,0.4,90,13.25,-33.8,0.63,False,[RECONSTRUCTED] Variant 3 Pre-Audit Multi-Pod with Pairs (Normal)
 2026-11-04 20:00:00,f8bd332,backtest_multi_pod.py,US_SP500,0.4,90,13.01,-34.5,0.61,False,[RECONSTRUCTED] Variant 3 Pre-Audit Multi-Pod with Pairs (Stressed 7.5 bps)
 2026-11-05 19:30:00,81cb53b,backtest_multi_pod.py,US_SP500,0.4,90,12.83,-33.48,0.61,True,Variant 4 Audited Long-Only Clean Invariant (Normal 5.0 bps)
-2026-11-05 19:39:50,81cb53b,backtest_multi_pod.py,US_SP500,0.4,90,12.64,-34.11,0.60,True,Variant 4 Audited Long-Only Clean Invariant (Stressed 7.5 bps)
+2026-11-05 19:39:50,81cb53b,backtest_multi_pod.py,US_SP500,0.4,90,12.64,-34.11,0.6,True,Variant 4 Audited Long-Only Clean Invariant (Stressed 7.5 bps)
 2026-11-06 02:05:33,c2c77ea,backtest_multi_pod.py,US_SP500,0.4,90,12.1,-34.0,0.7,False,Normal Run (5.0 bps) | IN_SAMPLE
 2026-11-06 02:05:33,c2c77ea,backtest_multi_pod.py,US_SP500,0.4,90,11.91,-34.11,0.69,False,Stressed Run (7.5 bps) [Gate A] | IN_SAMPLE
 2026-11-06 02:10:12,2680849,backtest_nse50.py,NSE_NIFTY50,0.4,90,0.73,-23.47,0.14,False,NSE Nifty 50 Single-Asset Run (Normal 5.0 bps) | IN_SAMPLE
 2026-11-06 02:10:12,2680849,backtest_nse50.py,NSE_NIFTY50,0.4,90,0.51,-23.5,0.11,False,NSE Nifty 50 Single-Asset Run (Stressed 7.5 bps) | IN_SAMPLE
-2026-11-06 02:11:19,2680849,backtest_nse50.py,NSE_NIFTY50,0.4,90,3.12,-25.07,0.33,False,NSE Nifty 50 Vol Parity Run (Normal 5.0 bps) | IN_SAMPLE
 2026-11-06 02:11:19,2680849,backtest_nse50.py,NSE_NIFTY50,0.4,90,3.71,-24.57,0.34,False,NSE Nifty 50 Vol Parity Run (Stressed 7.5 bps) | IN_SAMPLE
+2026-11-06 02:11:19,2680849,backtest_nse50.py,NSE_NIFTY50,0.4,90,3.12,-25.07,0.33,False,NSE Nifty 50 Vol Parity Run (Normal 5.0 bps) | IN_SAMPLE
 2026-11-06 02:12:02,2680849,backtest_nse50.py,NSE_NIFTY50,0.4,90,3.11,-24.51,0.31,False,NSE Nifty 50 LiquidBeES Option (Normal 5.0 bps) | IN_SAMPLE
 2026-11-06 02:12:02,2680849,backtest_nse50.py,NSE_NIFTY50,0.4,90,2.8,-25.4,0.31,False,NSE Nifty 50 LiquidBeES Option (Stressed 7.5 bps) | IN_SAMPLE
 2026-11-06 02:13:18,2680849,backtest_multi_pod.py,US_SP500,0.4,90,12.1,-34.0,0.7,False,US S&P 500 Normal Run (5.0 bps) verified from commit 2680849 | IN_SAMPLE
 2026-11-06 02:13:18,2680849,backtest_multi_pod.py,US_SP500,0.4,90,11.91,-34.11,0.69,False,US S&P 500 Stressed Run (7.5 bps) verified from commit 2680849 | IN_SAMPLE
 2026-11-07 02:39:49,1044197,backtest_nse50.py,NSE_NIFTY50,0.4,90,15.34,-34.27,0.9,False,NSE Nifty 50 Normal Run (5.0 bps) | IN_SAMPLE
 2026-11-07 02:39:49,1044197,backtest_nse50.py,NSE_NIFTY50,0.4,90,15.16,-34.59,0.89,False,NSE Nifty 50 Stressed Run (7.5 bps) [Gate A] | IN_SAMPLE
+2026-11-07 02:50:15,137a087,backtest_nse50.py,NSE_NIFTY50,0.4,90,10.37,-19.81,0.85,False,Drawdown Tuning Variant 1: Original Macro Gate + Original Ladder (PIT Universe) | IN_SAMPLE
+2026-11-07 02:58:30,137a087,backtest_nse50.py,NSE_NIFTY50,0.4,90,8.42,-18.29,0.77,False,Drawdown Tuning Variant 2: Immediate Defense + 2-Close Risk Resume + Original Ladder | IN_SAMPLE
+2026-11-07 03:04:10,137a087,backtest_nse50.py,NSE_NIFTY50,0.4,90,7.73,-17.28,0.74,False,Drawdown Tuning Variant 3: Immediate Defense + 2-Close Risk Resume + Tight Ladder (Normal) | IN_SAMPLE
+2026-11-07 03:07:45,137a087,backtest_nse50.py,NSE_NIFTY50,0.4,90,7.56,-17.3,0.72,False,Drawdown Tuning Variant 4: Variant 3 Stressed Slippage (7.5 bps) | IN_SAMPLE
+2026-11-07 03:11:00,137a087,backtest_nse50.py,NSE_NIFTY50,0.4,90,4.91,-28.02,0.41,False,NSE Diagnostic Run: 0% Cash Yield Drag Analysis | IN_SAMPLE
 2026-11-07 03:14:21,137a087,backtest_nse50.py,NSE_NIFTY50,0.4,90,7.44,-25.26,0.58,False,NSE Nifty 50 Normal Run (5.0 bps) | IN_SAMPLE
 2026-11-07 03:14:21,137a087,backtest_nse50.py,NSE_NIFTY50,0.4,90,7.23,-25.58,0.57,False,NSE Nifty 50 Stressed Run (7.5 bps) [Gate A] | IN_SAMPLE
+2026-11-07 03:39:29,9cc7f03,backtest_nse50.py,NSE_NIFTY50,0.4,90,7.26,-25.28,0.57,False,NSE Nifty 50 Normal Run (5.0 bps) | IN_SAMPLE
+2026-11-07 03:39:30,9cc7f03,backtest_nse50.py,NSE_NIFTY50,0.4,90,7.05,-25.59,0.56,False,NSE Nifty 50 Stressed Run (7.5 bps) [Gate A] | IN_SAMPLE

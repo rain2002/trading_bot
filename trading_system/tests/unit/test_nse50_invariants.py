@@ -9,10 +9,13 @@ Validates:
   5. Next-Day Open Execution: Orders placed on rebalance day are filled at next day's open.
 """
 
+import os
 import math
 import pytest
 import numpy as np
 import pandas as pd
+
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
 from trading_system.scripts.backtest_nse50 import (
     calc_vectorized_momentum,
     calc_atr,
@@ -81,12 +84,31 @@ def test_kelly_sizing_bounds():
 
 
 def test_india_rf_rate_schedule():
-    # Test GFC crisis rate (8.5%), post-COVID low (3.6%), and modern rate (6.7%)
-    gfc_rate = get_india_rf_rate(pd.to_datetime("2008-05-15"))
+    # Test GFC crisis peak rate (8.5%), post-COVID accommodative rate (4.0%), and modern rate (6.5%)
+    gfc_rate = get_india_rf_rate(pd.to_datetime("2008-07-01"))
     assert gfc_rate == 0.085
 
     covid_rate = get_india_rf_rate(pd.to_datetime("2021-06-15"))
-    assert covid_rate == 0.036
+    assert covid_rate == 0.040
 
-    modern_rate = get_india_rf_rate(pd.to_datetime("2025-01-15"))
-    assert modern_rate == 0.067
+    modern_rate = get_india_rf_rate(pd.to_datetime("2024-05-15"))
+    assert modern_rate == 0.065
+
+
+def test_india_cash_yield_and_membership_csv_integrity():
+    """Verify that both india_cash_yield_history.csv and nifty50_membership_changes.csv have complete sources."""
+    yield_csv = os.path.join(PROJECT_ROOT, "trading_system", "data", "india_cash_yield_history.csv")
+    changes_csv = os.path.join(PROJECT_ROOT, "trading_system", "data", "nifty50_membership_changes.csv")
+    assert os.path.exists(yield_csv), "india_cash_yield_history.csv must exist"
+    assert os.path.exists(changes_csv), "nifty50_membership_changes.csv must exist"
+
+    df_yield = pd.read_csv(yield_csv)
+    assert not df_yield.empty
+    assert "source" in df_yield.columns
+    assert df_yield["source"].str.contains("Reserve Bank of India").all()
+
+    df_changes = pd.read_csv(changes_csv)
+    assert not df_changes.empty
+    assert "source" in df_changes.columns
+    assert (df_changes["source"].str.len() > 10).all()
+    assert df_changes["source"].str.contains("NSE").all()

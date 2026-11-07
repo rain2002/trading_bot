@@ -62,12 +62,12 @@
     },
     {
       "label": "Current Momentum Strategy (Liquid ETF Net Yield)",
-      "start_val": 1000.27,
-      "end_val": 3459.23,
-      "cagr_pct": 7.44,
-      "total_return_pct": 245.83,
-      "max_drawdown_pct": -25.26,
-      "sharpe_ratio": 0.58,
+      "start_val": 1000.28,
+      "end_val": 3362.01,
+      "cagr_pct": 7.26,
+      "total_return_pct": 236.11,
+      "max_drawdown_pct": -25.28,
+      "sharpe_ratio": 0.57,
       "years": 17.29
     }
   ],
@@ -79,6 +79,6 @@
     "trades_per_year": 83.97917871602083,
     "total_divs": 281.82,
     "interest_zero": 0.0,
-    "interest_rf": 645.96
+    "interest_rf": 584.67
   }
 }
