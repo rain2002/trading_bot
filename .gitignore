@@ -42,6 +42,7 @@ corporate_actions_*.csv
 trading_system/data/historical_cache/
 trading_system/data/historical_cache_nse/
 *.parquet
+trading_system/data/circulars/*.pdf
 *cache.json
 *capture*.py
 

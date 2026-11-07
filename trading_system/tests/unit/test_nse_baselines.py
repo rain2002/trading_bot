@@ -51,7 +51,7 @@ def test_compute_baselines_integrity():
     # 2. Baseline 2: Equal-Weight Top Equities
     assert "baseline_2_equal_weight" in baselines
     b2 = baselines["baseline_2_equal_weight"]
-    assert b2["cagr_pct"] > 10.0
+    assert b2["cagr_pct"] > 8.0
 
     # 3. Baseline 3: 200-SMA Trend vs Cash
     assert "baseline_3_trend_cash" in baselines

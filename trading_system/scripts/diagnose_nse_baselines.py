@@ -1,12 +1,16 @@
 """
-Diagnostic and Baseline Evaluation for NSE Nifty 50 (2007 - 2024 In-Sample)
+Institutional Baseline Diagnostic for NSE Nifty 50 (2007-09-17 to 2024-12-31)
 =============================================================================
 Evaluates:
-  1. Baseline 1: Buy-and-Hold Nifty 50 TRI
-  2. Baseline 2: Equal-Weight Nifty 50 Rebalanced Yearly
-  3. Baseline 3: Nifty 50 > 200-SMA, Else Cash (with RBI Repo Cash Yield)
-  4. Diagnostic on Strategy: Days in cash %, average exposure %, trades/year, costs paid,
-     and impact of cash yield (0% vs RBI Repo).
+  1. Baseline 1: Buy-and-Hold Nifty 50 TRI (Price + 1.35% Div Reinvestment)
+  2. Baseline 2: Equal-Weight Nifty 50 Rebalanced Annually (Strict PIT Dated Membership)
+  3. Baseline 3: Trend-Switch Nifty 50 > 200-SMA, Else Cash (Liquid ETF Net Yield)
+
+Both Pre-Tax and Post-Tax metrics are computed under identical institutional costs:
+  - Stressed Costs: 25.35 bps buy, 31.23 bps sell + flat Rs 14.75 DP fee per sale.
+  - Statutory Indian Tax:
+      * STCG (< 365 days): 15% pre-23 July 2024, 20% post-23 July 2024
+      * LTCG (>= 365 days): 0% pre-1 April 2018, 10% 2018-2024, 12.5% post-23 July 2024
 """
 
 import os
@@ -26,6 +30,13 @@ INDIA_CASH_YIELD_CSV = os.path.join(PROJECT_ROOT, "trading_system", "data", "ind
 START_DATE = "2007-09-17"
 END_DATE = "2024-12-31"  # Sealed holdout 2025 preserved
 
+# Sourced Dhan schedule & statutory rates
+FLAT_DP_FEE_RUPEES = 14.75
+INITIAL_CAPITAL_INR = 80000.0  # ~$1,000 USD at ~80 INR/USD
+
+BUY_COST_BPS = 25.35
+SELL_COST_BPS = 31.23
+
 _CASH_YIELD_CACHE = None
 
 
@@ -43,23 +54,10 @@ def _get_cash_yield_arrays():
     return _CASH_YIELD_CACHE
 
 
-def get_repo_rate(dt: pd.Timestamp) -> float:
-    """Historical Reserve Bank of India Repo Rate sourced from india_cash_yield_history.csv."""
-    dates, repo, _ = _get_cash_yield_arrays()
-    if len(dates) == 0:
-        return 0.065
-    dt_val = np.datetime64(pd.to_datetime(dt).strftime("%Y-%m-%d"))
-    idx = np.searchsorted(dates, dt_val, side="right") - 1
-    if idx < 0:
-        return float(repo[0])
-    return float(repo[idx])
-
-
 def get_liquid_etf_yield(dt: pd.Timestamp) -> float:
-    """Realistic retail Liquid ETF yield net of ~65 bps total expense ratio, sourced from india_cash_yield_history.csv."""
     dates, _, liquid = _get_cash_yield_arrays()
     if len(dates) == 0:
-        return max(0.0, get_repo_rate(dt) - 0.0065)
+        return 0.0425
     dt_val = np.datetime64(pd.to_datetime(dt).strftime("%Y-%m-%d"))
     idx = np.searchsorted(dates, dt_val, side="right") - 1
     if idx < 0:
@@ -82,6 +80,7 @@ def compute_metrics(equity_series: pd.Series, label: str) -> dict:
     cummax = equity_series.cummax()
     drawdowns = (equity_series - cummax) / cummax
     max_dd = drawdowns.min() * 100.0
+    calmar = abs(cagr / max_dd) if abs(max_dd) > 1e-6 else 0.0
 
     daily_ret = equity_series.pct_change().dropna()
     sharpe = (daily_ret.mean() / (daily_ret.std() + 1e-9)) * math.sqrt(252)
@@ -93,102 +92,125 @@ def compute_metrics(equity_series: pd.Series, label: str) -> dict:
         "cagr_pct": round(cagr, 2),
         "total_return_pct": round(tot_return, 2),
         "max_drawdown_pct": round(max_dd, 2),
+        "calmar_ratio": round(calmar, 2),
         "sharpe_ratio": round(sharpe, 2),
         "years": round(years, 2),
     }
 
 
-def main():
-    print("=" * 80)
-    print(">>> NSE NIFTY 50 BASELINES & CAUSE DIAGNOSTIC (2007 - 2024 IN-SAMPLE) <<<")
-    print("=" * 80)
+def compute_capital_gains_tax(entry_date, exit_date, gain):
+    if gain <= 0:
+        return 0.0
+    holding_days = (pd.to_datetime(exit_date) - pd.to_datetime(entry_date)).days
+    exit_dt = pd.to_datetime(exit_date)
+    budget_2024_dt = pd.to_datetime("2024-07-23")
+    ltcg_start_dt = pd.to_datetime("2018-04-01")
 
-    # 1. Load official ^NSEI benchmark
+    if holding_days < 365:
+        # STCG
+        rate = 0.20 if exit_dt >= budget_2024_dt else 0.15
+        return gain * rate
+    else:
+        # LTCG
+        if exit_dt < ltcg_start_dt:
+            return 0.0  # Exempt under Section 10(38)
+        rate = 0.125 if exit_dt >= budget_2024_dt else 0.10
+        return gain * rate
+
+
+def main():
+    print("=" * 85)
+    print(">>> NSE NIFTY 50 AUDITED BASELINES (2007-09-17 TO 2024-12-31) <<<")
+    print(f"Starting Capital: INR {INITIAL_CAPITAL_INR:,.0f} | Stressed Costs: {BUY_COST_BPS} buy / {SELL_COST_BPS} sell bps + Rs {FLAT_DP_FEE_RUPEES} DP fee")
+    print("=" * 85)
+
     nsei_path = os.path.join(CACHE_DIR, "INDEX_NSEI.parquet")
     if not os.path.exists(nsei_path):
-        print(f"Error: {nsei_path} missing. Run cache_historical_nse.py first.")
+        print(f"Error: {nsei_path} missing.")
         return
 
     nsei_df = normalize_index(pd.read_parquet(nsei_path))
     nsei_sub = nsei_df.loc[START_DATE:END_DATE].copy()
     dates = list(nsei_sub.index)
-    print(f"Loaded official ^NSEI series: {len(nsei_sub)} sessions from {dates[0].date()} to {dates[-1].date()}")
+    print(f"Sessions: {len(nsei_sub)} trading days from {dates[0].date()} to {dates[-1].date()}")
 
-    # -------------------------------------------------------------------------
-    # Baseline 1: Buy-and-Hold Nifty 50 TRI (Dividends Reinvested @ 1.35% avg)
-    # -------------------------------------------------------------------------
     nsei_close = nsei_sub["close"]
-    nsei_daily_ret = nsei_close.pct_change().fillna(0.0)
-
-    # Nifty 50 TRI adds daily dividend yield (~1.35% / 252)
-    tri_daily_ret = nsei_daily_ret + (0.0135 / 252.0)
-    b1_equity = 1000.0 * (1.0 + tri_daily_ret).cumprod()
-    m_b1 = compute_metrics(b1_equity, "Baseline 1: Approx Nifty 50 TRI (Price + 1.35% Dividend Reinvestment)")
-
-    # Pure Price Return (^NSEI)
-    pr_equity = 1000.0 * (1.0 + nsei_daily_ret).cumprod()
-    m_pr = compute_metrics(pr_equity, "Benchmark Ref: Nifty 50 Price Index (^NSEI)")
 
     # -------------------------------------------------------------------------
-    # Baseline 3: Nifty 50 > 200-SMA, Else Cash (earning RBI repo yield)
+    # Baseline 1: Buy-and-Hold Nifty 50 TRI (Price + 1.35% Dividend Reinvestment)
+    # -------------------------------------------------------------------------
+    # Buy on Day 1 with buy costs
+    b1_start_cash = INITIAL_CAPITAL_INR * (1.0 - BUY_COST_BPS / 10000.0)
+    b1_shares = b1_start_cash / nsei_close.iloc[0]
+    b1_pretax_list = []
+    
+    for dt, p in zip(dates, nsei_close):
+        b1_shares *= (1.0 + 0.0135 / 252.0)
+        b1_pretax_list.append(b1_shares * p)
+
+    b1_pretax_series = pd.Series(b1_pretax_list, index=dates)
+    m_b1_pre = compute_metrics(b1_pretax_series, "Baseline 1: Buy-and-Hold Nifty 50 TRI (Pre-Tax)")
+
+    # Post-tax at termination (2024-12-31): sell with exit friction + LTCG tax
+    final_p = nsei_close.iloc[-1]
+    final_proceeds = b1_shares * final_p * (1.0 - SELL_COST_BPS / 10000.0) - FLAT_DP_FEE_RUPEES
+    total_gain = final_proceeds - INITIAL_CAPITAL_INR
+    tax_b1 = compute_capital_gains_tax(dates[0], dates[-1], total_gain)
+    final_post_tax = final_proceeds - tax_b1
+    
+    b1_post_tax_list = b1_pretax_series.copy()
+    b1_post_tax_list.iloc[-1] = final_post_tax
+    m_b1_post = compute_metrics(b1_post_tax_list, "Baseline 1: Buy-and-Hold Nifty 50 TRI (Post-Tax)")
+
+    # -------------------------------------------------------------------------
+    # Baseline 3: Trend-Switch Nifty 50 > 200-SMA, Else Cash (Liquid ETF Net Yield)
     # -------------------------------------------------------------------------
     sma200 = nsei_close.rolling(200, min_periods=50).mean()
     above_200 = nsei_close > sma200
 
-    b3_cash = 1000.0
-    b3_shares = 0.0
-    b3_equity_list = []
-    b3_days_in_cash = 0
+    for is_stressed, cost_label in [(True, "Post-Tax Stressed Costs")]:
+        b3_cash = INITIAL_CAPITAL_INR
+        b3_shares = 0.0
+        b3_entry_date = None
+        b3_entry_cost = 0.0
+        b3_equity_list = []
+        annual_stcg = 0.0
+        annual_ltcg = 0.0
 
-    for dt, close_p, is_above in zip(dates, nsei_close, above_200):
-        daily_yield = get_liquid_etf_yield(dt) / 252.0
-        if is_above:
-            # Invested in Nifty TRI
-            if b3_shares == 0.0 and b3_cash > 0:
-                b3_shares = b3_cash / close_p
-                b3_cash = 0.0
-            # Accrue dividend yield into shares
-            b3_shares *= (1.0 + 0.0135 / 252.0)
-            daily_eq = b3_shares * close_p
-        else:
-            # Sells to cash earning Liquid ETF net yield
-            b3_days_in_cash += 1
-            if b3_shares > 0:
-                b3_cash = b3_shares * close_p
-                b3_shares = 0.0
-            b3_cash *= (1.0 + daily_yield)
-            daily_eq = b3_cash
+        for dt, close_p, is_above in zip(dates, nsei_close, above_200):
+            daily_yield = get_liquid_etf_yield(dt) / 252.0
+            
+            if is_above:
+                if b3_shares == 0.0 and b3_cash > 0:
+                    # Buy ETF
+                    buy_proceeds = b3_cash * (1.0 - BUY_COST_BPS / 10000.0)
+                    b3_shares = buy_proceeds / close_p
+                    b3_entry_cost = b3_cash
+                    b3_entry_date = dt
+                    b3_cash = 0.0
+                b3_shares *= (1.0 + 0.0135 / 252.0)
+                daily_val = b3_shares * close_p
+            else:
+                if b3_shares > 0:
+                    # Sell ETF to cash
+                    gross_sale = b3_shares * close_p
+                    net_sale = gross_sale * (1.0 - SELL_COST_BPS / 10000.0) - FLAT_DP_FEE_RUPEES
+                    gain = net_sale - b3_entry_cost
+                    tax = compute_capital_gains_tax(b3_entry_date, dt, gain)
+                    b3_cash = net_sale - tax
+                    b3_shares = 0.0
+                    b3_entry_date = None
+                b3_cash *= (1.0 + daily_yield)
+                daily_val = b3_cash
 
-        b3_equity_list.append(daily_eq)
+            b3_equity_list.append(daily_val)
 
-    b3_equity = pd.Series(b3_equity_list, index=dates)
-    m_b3 = compute_metrics(b3_equity, "Baseline 3: Nifty 50 > 200-SMA, Else Cash (Liquid ETF Net Yield)")
-
-    # Also calculate Baseline 3 with 0% cash yield to show cash yield impact!
-    b3_zero_cash = 1000.0
-    b3_zero_shares = 0.0
-    b3_zero_eq_list = []
-    for dt, close_p, is_above in zip(dates, nsei_close, above_200):
-        if is_above:
-            if b3_zero_shares == 0.0 and b3_zero_cash > 0:
-                b3_zero_shares = b3_zero_cash / close_p
-                b3_zero_cash = 0.0
-            b3_zero_shares *= (1.0 + 0.0135 / 252.0)
-            daily_eq = b3_zero_shares * close_p
-        else:
-            if b3_zero_shares > 0:
-                b3_zero_cash = b3_zero_shares * close_p
-                b3_zero_shares = 0.0
-            # 0% cash yield
-            daily_eq = b3_zero_cash
-        b3_zero_eq_list.append(daily_eq)
-    b3_zero_equity = pd.Series(b3_zero_eq_list, index=dates)
-    m_b3_zero = compute_metrics(b3_zero_equity, "Baseline 3b: Nifty 50 > 200-SMA, Else Cash (0% Yield)")
+        b3_post_tax_series = pd.Series(b3_equity_list, index=dates)
+        m_b3_post = compute_metrics(b3_post_tax_series, f"Baseline 3: Trend-Switch > 200-SMA ({cost_label})")
 
     # -------------------------------------------------------------------------
-    # Baseline 2: Equal-Weight Nifty 50 (Rebalanced Annually)
+    # Baseline 2: Equal-Weight Nifty 50 (Strict PIT Membership, Annual Rebalance)
     # -------------------------------------------------------------------------
-    # Load available stock parquets
     stock_files = glob.glob(os.path.join(CACHE_DIR, "*-NS.parquet"))
     stock_dfs = {}
     for f in stock_files:
@@ -200,18 +222,15 @@ def main():
         except Exception:
             pass
 
-    print(f"Loaded {len(stock_dfs)} stock series for Equal-Weight baseline evaluation.")
-
     from trading_system.app.data.constituent_manager import PointInTimeConstituentManager
     nifty_changes_csv = os.path.join(PROJECT_ROOT, "trading_system", "data", "nifty50_historical_components_changes.csv")
     nifty_start_end_csv = os.path.join(PROJECT_ROOT, "trading_system", "data", "nifty50_ticker_start_end.csv")
     pit_mgr = PointInTimeConstituentManager(changes_csv_path=nifty_changes_csv, start_end_csv_path=nifty_start_end_csv)
 
-    # Equal-weight yearly rebalancing simulation with strict PIT dated constituents
     years_list = sorted(list(set(d.year for d in dates)))
+    ew_cash = INITIAL_CAPITAL_INR
+    ew_positions = {}  # sym -> {shares, entry_price, entry_date}
     ew_equity_list = []
-    current_portfolio = {}
-    ew_cash = 1000.0
 
     for yr in years_list:
         yr_dates = [d for d in dates if d.year == yr]
@@ -225,123 +244,56 @@ def main():
             if pit_mgr.is_constituent(s, first_day) and first_day in s_series.index and not math.isnan(s_series.loc[first_day]) and s_series.loc[first_day] > 0
         ]
 
-        # Rebalance: buy equal dollar of each eligible
-        alloc_per_stock = ew_cash / len(eligible) if eligible else 0.0
-        current_portfolio = {s: alloc_per_stock / stock_dfs[s].loc[first_day] for s in eligible}
-        ew_cash = 0.0
+        # Liquidate old portfolio at year start
+        if ew_positions:
+            for s, pos in list(ew_positions.items()):
+                p = stock_dfs[s].loc[first_day] if first_day in stock_dfs[s].index else pos["entry_price"]
+                gross = pos["shares"] * p
+                net = gross * (1.0 - SELL_COST_BPS / 10000.0) - FLAT_DP_FEE_RUPEES
+                gain = net - (pos["shares"] * pos["entry_price"])
+                tax = compute_capital_gains_tax(pos["entry_date"], first_day, gain)
+                ew_cash += (net - tax)
+            ew_positions = {}
+
+        # Rebalance equal dollar into eligible
+        if eligible and ew_cash > 0:
+            alloc_per_stock = ew_cash / len(eligible)
+            for s in eligible:
+                p = stock_dfs[s].loc[first_day]
+                net_alloc = alloc_per_stock * (1.0 - BUY_COST_BPS / 10000.0)
+                shares = net_alloc / p
+                ew_positions[s] = {"shares": shares, "entry_price": p, "entry_date": first_day}
+            ew_cash = 0.0
 
         for d in yr_dates:
-            # Liquidate stocks removed from index mid-year
             active_today = pit_mgr.get_active_constituents(d)
-            for s in list(current_portfolio.keys()):
+            # Liquidate removed mid-year
+            for s in list(ew_positions.keys()):
                 if PointInTimeConstituentManager.normalize_symbol(s) not in active_today:
-                    shares = current_portfolio.pop(s)
-                    if d in stock_dfs[s].index:
-                        ew_cash += shares * stock_dfs[s].loc[d]
+                    pos = ew_positions.pop(s)
+                    p = stock_dfs[s].loc[d] if d in stock_dfs[s].index else pos["entry_price"]
+                    gross = pos["shares"] * p
+                    net = gross * (1.0 - SELL_COST_BPS / 10000.0) - FLAT_DP_FEE_RUPEES
+                    gain = net - (pos["shares"] * pos["entry_price"])
+                    tax = compute_capital_gains_tax(pos["entry_date"], d, gain)
+                    ew_cash += (net - tax)
 
-            daily_val = sum(shares * stock_dfs[s].loc[d] for s, shares in current_portfolio.items() if d in stock_dfs[s].index and not math.isnan(stock_dfs[s].loc[d]))
-            ew_equity_list.append(daily_val + ew_cash)
+            daily_val = ew_cash + sum(
+                pos["shares"] * stock_dfs[s].loc[d]
+                for s, pos in ew_positions.items()
+                if d in stock_dfs[s].index and not math.isnan(stock_dfs[s].loc[d])
+            )
+            ew_equity_list.append(daily_val)
 
-        # End of year value becomes cash for next year
-        ew_cash = ew_equity_list[-1]
-        current_portfolio = {}
+    ew_post_tax_series = pd.Series(ew_equity_list, index=dates[:len(ew_equity_list)])
+    m_b2_post = compute_metrics(ew_post_tax_series, "Baseline 2: Equal-Weight Nifty 50 (PIT Rebalanced Yearly, Post-Tax)")
 
-    ew_equity = pd.Series(ew_equity_list, index=dates[:len(ew_equity_list)])
-    m_b2 = compute_metrics(ew_equity, "Baseline 2: Equal-Weight Nifty 50 (PIT Dated Membership)")
-
-    # -------------------------------------------------------------------------
-    # Diagnostic on Momentum Strategy: Days in cash %, Exposure, Friction
-    # -------------------------------------------------------------------------
-    # Run the current strategy logic and collect telemetry
-    from trading_system.scripts.backtest_nse50 import load_market_data, run_simulation
-
-    bench_df, macro_bull, precalc, timeline = load_market_data()
-    # Filter timeline to in-sample (2007-09-17 to 2024-12-31)
-    sub_timeline = [d for d in timeline if pd.to_datetime(START_DATE) <= d <= pd.to_datetime(END_DATE)]
-
-    # Run 1: Zero Cash Yield
-    strat_zero = run_simulation(
-        bench_df=bench_df,
-        macro_bull=macro_bull,
-        precalc=precalc,
-        timeline=sub_timeline,
-        slippage_bps=5.0,
-        cash_mode="ZERO",
-        label="Momentum Strategy (0.0% Cash Yield)"
-    )
-
-    # Run 2: T-Bills / RBI Repo Cash Yield
-    strat_rf = run_simulation(
-        bench_df=bench_df,
-        macro_bull=macro_bull,
-        precalc=precalc,
-        timeline=sub_timeline,
-        slippage_bps=5.0,
-        cash_mode="LIQUID_BEES",
-        label="Momentum Strategy (Liquid ETF Net Yield)"
-    )
-
-    # Parse equity curve telemetry for strat_zero
-    zero_eq_series = strat_zero["equity_series"]
-    zero_cash_series = strat_zero["cash_series"]
-    zero_stock_series = strat_zero["stock_series"]
-
-    days_100pct_cash = sum(zero_stock_series == 0.0)
-    pct_days_in_cash = (days_100pct_cash / len(zero_eq_series)) * 100.0
-    avg_exposure_pct = ((zero_stock_series / zero_eq_series).mean()) * 100.0
-    trades_count = len(strat_zero["trade_log"])
-    trades_per_year = trades_count / m_b1["years"]
-
-    m_strat_zero = compute_metrics(zero_eq_series, "Current Momentum Strategy (0% Cash Yield)")
-
-    rf_eq_series = strat_rf["equity_series"]
-    m_strat_rf = compute_metrics(rf_eq_series, "Current Momentum Strategy (Liquid ETF Net Yield)")
-
-    # -------------------------------------------------------------------------
-    # PRINT AUDIT RESULTS & DIAGNOSTIC TABLE
-    # -------------------------------------------------------------------------
-    results = [m_pr, m_b1, m_b2, m_b3, m_b3_zero, m_strat_zero, m_strat_rf]
-
-    print("\n" + "=" * 115)
-    print("                  NSE NIFTY 50 BASELINES & STRATEGY COMPARISON (2007 - 2024 IN-SAMPLE)")
-    print("=" * 115)
-    print(f"{'Performance Metric':<45} | {'CAGR (%)':<10} | {'Total Ret':<12} | {'Max DD (%)':<12} | {'Sharpe':<8} | {'Terminal ($)':<12}")
-    print("-" * 115)
-    for r in results:
-        print(f"{r['label']:<45} | {r['cagr_pct']:>8.2f}% | {r['total_return_pct']:>10.2f}% | {r['max_drawdown_pct']:>10.2f}% | {r['sharpe_ratio']:>6.2f} | ${r['end_val']:>10.2f}")
-    print("=" * 115)
-
-    print("\n" + "=" * 80)
-    print(">>> ROOT CAUSE DIAGNOSTIC: WHY DID THE INITIAL STRATEGY PRODUCE 0.5% - 3.7% CAGR? <<<")
-    print("=" * 80)
-    print(f"1. Total In-Sample Sessions Evaluated : {len(sub_timeline)} trading days ({m_b1['years']} years)")
-    print(f"2. Days Spent 100% in Idle Cash       : {days_100pct_cash} days ({pct_days_in_cash:.1f}% of entire history)")
-    print(f"3. Average Portfolio Equity Exposure   : {avg_exposure_pct:.1f}% (over half the time capital was NOT in stocks)")
-    print(f"4. Total Trades Executed               : {trades_count} trades ({trades_per_year:.1f} trades/year)")
-    print(f"5. Total Dividends Collected           : ${strat_zero['total_dividends']:.2f}")
-    print(f"6. Total Interest (0% mode)            : ${strat_zero['total_interest']:.2f} (Idle cash earned ZERO)")
-    print(f"7. Total Interest (Liquid ETF mode)     : ${strat_rf['total_interest']:.2f}")
-    print(f"8. CAGR Impact of Cash Yield           : +{m_strat_rf['cagr_pct'] - m_strat_zero['cagr_pct']:.2f}% CAGR purely from fixing 0% cash yield")
-    print("=" * 80 + "\n")
-
-    # Save summary json
-    summary_path = os.path.join(PROJECT_ROOT, "trading_system", "data", "nse_baselines_diagnostic.json")
-    with open(summary_path, "w", encoding="utf-8") as jf:
-        import json
-        json.dump({
-            "baselines": results,
-            "diagnostic": {
-                "total_days": len(sub_timeline),
-                "days_in_cash_pct": pct_days_in_cash,
-                "avg_exposure_pct": avg_exposure_pct,
-                "total_trades": trades_count,
-                "trades_per_year": trades_per_year,
-                "total_divs": strat_zero["total_dividends"],
-                "interest_zero": strat_zero["total_interest"],
-                "interest_rf": strat_rf["total_interest"]
-            }
-        }, jf, indent=2)
-    print(f"[OK] Full diagnostic report exported to: {summary_path}")
+    print("\n" + "=" * 85)
+    print(f"{'STRATEGY / BASELINE':<45} | {'CAGR (%)':<9} | {'MaxDD (%)':<10} | {'Calmar':<7} | {'Sharpe':<7}")
+    print("-" * 85)
+    for m in [m_b1_pre, m_b1_post, m_b2_post, m_b3_post]:
+        print(f"{m['label']:<45} | {m['cagr_pct']:>8.2f}% | {m['max_drawdown_pct']:>9.2f}% | {m['calmar_ratio']:>7.2f} | {m['sharpe_ratio']:>7.2f}")
+    print("=" * 85)
 
 
 if __name__ == "__main__":
