@@ -1151,6 +1151,7 @@ class GrowwBrokerAdapter(BrokerAdapter):
 
     def get_portfolio_history(self, period: str = "13W", timeframe: str = "1D") -> Optional[pd.DataFrame]:
         """Generate/fetch historical equity curve for Indian portfolio (13-week institutional trail)."""
+        import pandas as pd
         # 1. Check if paper_equity_log.csv has historical records
         if self.equity_log_file and os.path.exists(self.equity_log_file):
             try:
