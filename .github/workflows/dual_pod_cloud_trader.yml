@@ -99,6 +99,7 @@ jobs:
 
       - name: Execute Dual-Pod Quant Engine
         env:
+          GATE_A_SIGNING_KEY: ${{ secrets.GATE_A_SIGNING_KEY }}
           PAPER_API_KEY: ${{ secrets.PAPER_API_KEY || secrets.ALPACA_API_KEY }}
           PAPER_API_SECRET: ${{ secrets.PAPER_API_SECRET || secrets.ALPACA_SECRET_KEY }}
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}

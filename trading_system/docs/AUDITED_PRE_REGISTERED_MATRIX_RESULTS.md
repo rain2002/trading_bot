@@ -183,3 +183,67 @@ The 7 additional trials beyond the planned 28 were logged due to recording both 
 2. **The Survivorship Reality**: When point-in-time dated constituent membership is combined with statutory taxes, flat transaction friction, and mathematically clean split data, **unleveraged equity momentum on the Nifty 50 produces ~5.5% CAGR**, underperforming a passive index investment and simple trend-following.
 3. **No Paper Trading Promotion**: Gate B will **NOT** be activated.
 4. **Holdout Preserved**: Calendar year 2025 remains pristine, unopened, and sealed.
+
+
+---
+
+## 8. Pre-Registered Multi-Asset Tactical Trend Matrix V2.1 Scoreboard
+
+**Protocol Reference**: `MULTI_ASSET_TREND_PROTOCOL_V2_1.md` (SHA-256: `4C9151EC251FE5AB871876BDF8FF3491544681DB39C87DBD60C953357DA668FA`)  
+**In-Sample Window**: `2007-09-24` to `2024-12-31` (17.27 Years | 4,235 Trading Days)  
+**Starting Capital**: ₹80,000.00 INR | **2025 Holdout Window**: Strictly Sealed & Unopened  
+
+```
+====================================================================================================================================================
+                                      MULTI-ASSET V2.1 TACTICAL TREND SCOREBOARD (POST-TAX & STRESSED)
+====================================================================================================================================================
+ Performance Metric         | Variant A (Dual Mom)  | Variant B (Anti-Whip) | Variant C (Risk-Parity) | Baseline 1 (1/N EW)   | Baseline 4 (Nifty TRI) 
+----------------------------------------------------------------------------------------------------------------------------------------------------
+ Post-Tax Stressed CAGR     | 9.82%                 | 5.26%                 | 5.41%                   | 14.17% [BENCHMARK]    | 10.14%                 
+ Max Drawdown Depth         | -26.21% [FAIL]        | -32.92% [FAIL]        | -21.89% [PASS]          | -45.20% [FAIL]        | -59.48% [FAIL]         
+ Annualized Sharpe Ratio    | 0.69                  | 0.40                  | 0.61                    | 0.98                  | 0.58                   
+ Calmar Ratio (CAGR/|DD|)   | 0.37                  | 0.16                  | 0.25                    | 0.31                  | 0.17                   
+ Terminal Equity (from 80k) | ₹4,03,650.05          | ₹1,93,982.40          | ₹1,98,920.15            | ₹7,88,899.70          | ₹4,24,431.12           
+ Total Closed Trades        | 117                   | 106                   | 60                      | 17 (Annual Rebal)     | 0 (Buy & Hold)         
+ Trades Per Year            | 6.8                   | 6.1                   | 3.5                     | 1.0                   | 0.0                    
+ Total DP Fees Paid         | ₹1,725.75             | ₹1,563.50             | ₹885.00                 | ₹250.75               | ₹0.00                  
+ Total Statutory Friction   | ₹12,061.60            | ₹10,240.15            | ₹6,412.30               | ₹4,110.50             | Deferred LTCG          
+ Total Taxes (31.2% Slab)   | ₹1,06,009.06          | ₹45,212.80            | ₹48,310.20              | ₹98,450.00            | Deferred LTCG          
+----------------------------------------------------------------------------------------------------------------------------------------------------
+ In-Sample Date Window      | 2007-09-24:2024-12-31 | 2007-09-24:2024-12-31 | 2007-09-24:2024-12-31   | 2007-09-24:2024-12-31 | 2007-09-24:2024-12-31  
+ Canonical Trial Log Row    | Row 77                | Row 79                | Row 81                  | Row 82                | Row 83                 
+ Results JSON File          | ...variant_1.json     | ...variant_2.json     | ...variant_3.json       | ...baselines_v2_1.json| ...baselines_v2_1.json 
+ Hurdle vs Baseline 1 (1/N) | FAILED (-4.35% Alpha) | FAILED (-8.91% Alpha) | FAILED (-8.76% Alpha)   | BENCHMARK HURDLE      | FAILED (-4.03% Alpha)  
+ Gate A Clearance Verdict   | >> REJECTED <<        | >> REJECTED <<        | >> REJECTED <<          | >> BENCHMARK <<       | >> BENCHMARK <<        
+====================================================================================================================================================
+```
+
+---
+
+## 9. Formal Institutional Decision: Baseline 1 (14.17% CAGR, -45.2% Max DD) as the Mandatory Benchmark Hurdle
+
+### The Decision:
+**YES. Baseline 1 (Static 1/N Equal-Weight Multi-Asset Benchmark: 14.17% CAGR, -45.2% Max Drawdown) is formally ratified as the permanent, mandatory hurdle that EVERY active trading strategy must beat on a post-tax, post-friction basis to justify active management.**
+
+### Quantitative Rationale:
+1. **Economic Opportunity Cost**: A completely passive retail or institutional investor allocating equally across the 7 macro assets (`NIFTY50`, `NEXT50`, `MIDCAP150`, `GOLDBEES`, `SILVERBEES`, `NETFGILT`, `MON100`) and rebalancing once annually turns ₹80,000 into **₹7,88,899.70** (14.17% CAGR) post-tax. Active trading variants (Variant A: ₹4.03L / 9.82% CAGR; Variant B: ₹1.94L / 5.26% CAGR; Variant C: ₹1.98L / 5.41% CAGR) destroyed between ₹3.85L and ₹5.95L in investor terminal wealth through excessive friction, bad timing, and cash drag.
+2. **The Dual Hurdle Standard**:
+   - To pass Gate A, an active system must satisfy BOTH:
+     $$\text{Strategy Post-Tax CAGR} > \text{Baseline 1 CAGR (14.17\%)}$$
+     $$\text{Strategy Peak-to-Trough Max Drawdown} \ge -25.0\% \quad (\text{vs Baseline 1's catastrophic } -45.2\% \text{ drawdown})$$
+   - If a strategy cannot beat 14.17% CAGR, active switching and stock-picking add negative alpha.
+   - If a strategy beats 14.17% CAGR but suffers $> 25.0\%$ drawdown, it fails capital preservation.
+
+---
+
+## 10. Canonical Scoreboard-to-Artifact Mapping & Parity Table
+
+Every headline number in the dashboard and institutional reports is verified to maintain exact 1:1 parity with its results JSON and `trial_log.csv`:
+
+| Variant / Baseline | Metric | Results JSON File | Trial Log Row | In-Sample Window | Gate A Verdict |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **Variant A (Dual Mom)** | 9.82% CAGR, -26.21% DD | `backtest_results_multi_asset_v2_1_variant_1.json` | Row 77 | 2007-09-24 to 2024-12-31 | REJECTED (MaxDD & Benchmark) |
+| **Variant B (Anti-Whip)**| 5.26% CAGR, -32.92% DD | `backtest_results_multi_asset_v2_1_variant_2.json` | Row 79 | 2007-09-24 to 2024-12-31 | REJECTED (MaxDD & Benchmark) |
+| **Variant C (Risk-Parity)**| 5.41% CAGR, -21.89% DD| `backtest_results_multi_asset_v2_1_variant_3.json` | Row 81 | 2007-09-24 to 2024-12-31 | REJECTED (Benchmark CAGR) |
+| **Baseline 1 (1/N Equal)**| 14.17% CAGR, -45.20% DD | `multi_asset_baselines_v2_1.json` | Row 82 | 2007-09-24 to 2024-12-31 | MANDATORY HURDLE |
+| **Baseline 4 (Nifty TRI)**| 10.14% CAGR, -59.48% DD | `multi_asset_baselines_v2_1.json` | Row 83 | 2007-09-24 to 2024-12-31 | PASSIVE MARKET BENCHMARK |

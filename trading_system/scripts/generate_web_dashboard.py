@@ -51,6 +51,17 @@ def generate_dashboard_html() -> str:
     us_trades = load_csv(US_TRADES_CSV)
     eq_log = load_csv(EQUITY_LOG_CSV)
 
+    v1_res = load_json(os.path.join(DATA_DIR, "backtest_results_multi_asset_v2_1_variant_1.json"))
+    v2_res = load_json(os.path.join(DATA_DIR, "backtest_results_multi_asset_v2_1_variant_2.json"))
+    v3_res = load_json(os.path.join(DATA_DIR, "backtest_results_multi_asset_v2_1_variant_3.json"))
+    b_res = load_json(os.path.join(DATA_DIR, "multi_asset_baselines_v2_1.json"))
+
+    v1_s = v1_res.get("stressed_metrics", {})
+    v2_s = v2_res.get("stressed_metrics", {})
+    v3_s = v3_res.get("stressed_metrics", {})
+    b1_m = b_res.get("baseline_1_static_equal_weight", {})
+    b4_m = b_res.get("baseline_4_nifty_50_tri", {})
+
     in_cash = in_state.get("cash", 80000.0)
     in_initial = in_state.get("initial_capital", 80000.0)
     in_pos = in_state.get("positions", {})
@@ -512,6 +523,96 @@ def generate_dashboard_html() -> str:
                 </tbody>
             </table>
         </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <div class="card-title">Audited Gate A Scoreboard (Multi-Asset V2.1 Pre-Registered Matrix)</div>
+            <span class="badge" style="background: rgba(239, 68, 68, 0.2); color: #F87171; border: 1px solid rgba(239, 68, 68, 0.4);">
+                ALL VARIANTS FAILED GATE A (Mandatory Hurdle: Baseline 1 14.17% CAGR)
+            </span>
+        </div>
+        <div style="font-size: 0.80rem; color: var(--text-muted); margin-bottom: 12px;">
+            In-Sample Window: <b style="color: #F3F4F6;">2007-09-24 to 2024-12-31</b> (17.27 Years | 4,235 Trading Days) • Starting Capital: <b style="color: #60A5FA;">₹80,000.00</b> • 2025 Holdout: <b style="color: #10B981;">Strictly Sealed</b>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Metric</th>
+                    <th>Variant A (Dual Mom)</th>
+                    <th>Variant B (Anti-Whip)</th>
+                    <th>Variant C (Risk-Parity)</th>
+                    <th style="color: #60A5FA; background: rgba(37, 99, 235, 0.1);">Baseline 1 (1/N EW Hurdle)</th>
+                    <th>Baseline 4 (Nifty TRI)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td style="font-weight:600;">Post-Tax Stressed CAGR</td>
+                    <td style="color:#F87171; font-weight:600;">{v1_s.get('cagr_pct', 9.82)}%</td>
+                    <td style="color:#F87171; font-weight:600;">{v2_s.get('cagr_pct', 5.26)}%</td>
+                    <td style="color:#F87171; font-weight:600;">{v3_s.get('cagr_pct', 5.41)}%</td>
+                    <td style="color:#60A5FA; font-weight:700; background: rgba(37, 99, 235, 0.1);">{b1_m.get('cagr_pct', 14.17)}% [Hurdle]</td>
+                    <td style="color:#9CA3AF;">{b4_m.get('cagr_pct', 10.14)}%</td>
+                </tr>
+                <tr>
+                    <td style="font-weight:600;">Max Drawdown Depth</td>
+                    <td style="color:#F87171;">{v1_s.get('max_drawdown_pct', -26.21)}% [FAIL]</td>
+                    <td style="color:#F87171;">{v2_s.get('max_drawdown_pct', -32.92)}% [FAIL]</td>
+                    <td style="color:#34D399;">{v3_s.get('max_drawdown_pct', -21.89)}% [PASS]</td>
+                    <td style="color:#F87171; background: rgba(37, 99, 235, 0.1);">{b1_m.get('max_drawdown_pct', -45.20)}% [FAIL]</td>
+                    <td style="color:#F87171;">{b4_m.get('max_drawdown_pct', -59.48)}% [FAIL]</td>
+                </tr>
+                <tr>
+                    <td style="font-weight:600;">Annualized Sharpe</td>
+                    <td>{v1_s.get('sharpe_ratio', 0.69)}</td>
+                    <td>{v2_s.get('sharpe_ratio', 0.40)}</td>
+                    <td>{v3_s.get('sharpe_ratio', 0.61)}</td>
+                    <td style="background: rgba(37, 99, 235, 0.1); font-weight:600;">{b1_m.get('sharpe_ratio', 0.98)}</td>
+                    <td>{b4_m.get('sharpe_ratio', 0.58)}</td>
+                </tr>
+                <tr>
+                    <td style="font-weight:600;">Calmar Ratio</td>
+                    <td>{v1_s.get('calmar_ratio', 0.37)}</td>
+                    <td>{v2_s.get('calmar_ratio', 0.16)}</td>
+                    <td>{v3_s.get('calmar_ratio', 0.25)}</td>
+                    <td style="background: rgba(37, 99, 235, 0.1);">{b1_m.get('calmar_ratio', 0.31)}</td>
+                    <td>{b4_m.get('calmar_ratio', 0.17)}</td>
+                </tr>
+                <tr>
+                    <td style="font-weight:600;">Terminal Equity (from ₹80k)</td>
+                    <td>₹{v1_s.get('terminal_equity', 403650.05):,.2f}</td>
+                    <td>₹{v2_s.get('terminal_equity', 193982.40):,.2f}</td>
+                    <td>₹{v3_s.get('terminal_equity', 198920.15):,.2f}</td>
+                    <td style="color:#60A5FA; font-weight:700; background: rgba(37, 99, 235, 0.1);">₹{b1_m.get('terminal_equity', 788899.70):,.2f}</td>
+                    <td>₹{b4_m.get('terminal_equity', 424431.12):,.2f}</td>
+                </tr>
+                <tr>
+                    <td style="font-weight:600;">Trial Log Mapping</td>
+                    <td>Row 77</td>
+                    <td>Row 79</td>
+                    <td>Row 81</td>
+                    <td style="background: rgba(37, 99, 235, 0.1);">Row 82</td>
+                    <td>Row 83</td>
+                </tr>
+                <tr>
+                    <td style="font-weight:600;">Results JSON File</td>
+                    <td><code>...variant_1.json</code></td>
+                    <td><code>...variant_2.json</code></td>
+                    <td><code>...variant_3.json</code></td>
+                    <td style="background: rgba(37, 99, 235, 0.1);"><code>...baselines_v2_1.json</code></td>
+                    <td><code>...baselines_v2_1.json</code></td>
+                </tr>
+                <tr>
+                    <td style="font-weight:600;">Gate A Clearance Verdict</td>
+                    <td><span class="badge" style="background: rgba(239, 68, 68, 0.2); color: #F87171;">REJECTED</span></td>
+                    <td><span class="badge" style="background: rgba(239, 68, 68, 0.2); color: #F87171;">REJECTED</span></td>
+                    <td><span class="badge" style="background: rgba(239, 68, 68, 0.2); color: #F87171;">REJECTED</span></td>
+                    <td style="background: rgba(37, 99, 235, 0.1);"><span class="badge badge-buy">BENCHMARK HURDLE</span></td>
+                    <td><span class="badge badge-defense">MARKET BENCHMARK</span></td>
+                </tr>
+            </tbody>
+        </table>
     </div>
 
     <div class="card">

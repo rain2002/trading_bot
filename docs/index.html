@@ -210,7 +210,7 @@
         </div>
         <div class="telemetry">
             <div class="live-dot"></div>
-            <span>LAST SYNC: 2026-11-07 21:16:47 UTC</span>
+            <span>LAST SYNC: 2026-11-07 23:03:38 UTC</span>
         </div>
     </header>
 
@@ -475,6 +475,96 @@
                 </tbody>
             </table>
         </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <div class="card-title">Audited Gate A Scoreboard (Multi-Asset V2.1 Pre-Registered Matrix)</div>
+            <span class="badge" style="background: rgba(239, 68, 68, 0.2); color: #F87171; border: 1px solid rgba(239, 68, 68, 0.4);">
+                ALL VARIANTS FAILED GATE A (Mandatory Hurdle: Baseline 1 14.17% CAGR)
+            </span>
+        </div>
+        <div style="font-size: 0.80rem; color: var(--text-muted); margin-bottom: 12px;">
+            In-Sample Window: <b style="color: #F3F4F6;">2007-09-24 to 2024-12-31</b> (17.27 Years | 4,235 Trading Days) • Starting Capital: <b style="color: #60A5FA;">₹80,000.00</b> • 2025 Holdout: <b style="color: #10B981;">Strictly Sealed</b>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Metric</th>
+                    <th>Variant A (Dual Mom)</th>
+                    <th>Variant B (Anti-Whip)</th>
+                    <th>Variant C (Risk-Parity)</th>
+                    <th style="color: #60A5FA; background: rgba(37, 99, 235, 0.1);">Baseline 1 (1/N EW Hurdle)</th>
+                    <th>Baseline 4 (Nifty TRI)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td style="font-weight:600;">Post-Tax Stressed CAGR</td>
+                    <td style="color:#F87171; font-weight:600;">9.82%</td>
+                    <td style="color:#F87171; font-weight:600;">5.26%</td>
+                    <td style="color:#F87171; font-weight:600;">5.41%</td>
+                    <td style="color:#60A5FA; font-weight:700; background: rgba(37, 99, 235, 0.1);">14.17% [Hurdle]</td>
+                    <td style="color:#9CA3AF;">10.14%</td>
+                </tr>
+                <tr>
+                    <td style="font-weight:600;">Max Drawdown Depth</td>
+                    <td style="color:#F87171;">-26.21% [FAIL]</td>
+                    <td style="color:#F87171;">-32.92% [FAIL]</td>
+                    <td style="color:#34D399;">-21.89% [PASS]</td>
+                    <td style="color:#F87171; background: rgba(37, 99, 235, 0.1);">-45.2% [FAIL]</td>
+                    <td style="color:#F87171;">-59.48% [FAIL]</td>
+                </tr>
+                <tr>
+                    <td style="font-weight:600;">Annualized Sharpe</td>
+                    <td>0.69</td>
+                    <td>0.4</td>
+                    <td>0.61</td>
+                    <td style="background: rgba(37, 99, 235, 0.1); font-weight:600;">0.98</td>
+                    <td>0.58</td>
+                </tr>
+                <tr>
+                    <td style="font-weight:600;">Calmar Ratio</td>
+                    <td>0.37</td>
+                    <td>0.16</td>
+                    <td>0.25</td>
+                    <td style="background: rgba(37, 99, 235, 0.1);">0.31</td>
+                    <td>0.17</td>
+                </tr>
+                <tr>
+                    <td style="font-weight:600;">Terminal Equity (from ₹80k)</td>
+                    <td>₹403,650.05</td>
+                    <td>₹193,861.34</td>
+                    <td>₹198,794.05</td>
+                    <td style="color:#60A5FA; font-weight:700; background: rgba(37, 99, 235, 0.1);">₹788,899.70</td>
+                    <td>₹424,431.12</td>
+                </tr>
+                <tr>
+                    <td style="font-weight:600;">Trial Log Mapping</td>
+                    <td>Row 77</td>
+                    <td>Row 79</td>
+                    <td>Row 81</td>
+                    <td style="background: rgba(37, 99, 235, 0.1);">Row 82</td>
+                    <td>Row 83</td>
+                </tr>
+                <tr>
+                    <td style="font-weight:600;">Results JSON File</td>
+                    <td><code>...variant_1.json</code></td>
+                    <td><code>...variant_2.json</code></td>
+                    <td><code>...variant_3.json</code></td>
+                    <td style="background: rgba(37, 99, 235, 0.1);"><code>...baselines_v2_1.json</code></td>
+                    <td><code>...baselines_v2_1.json</code></td>
+                </tr>
+                <tr>
+                    <td style="font-weight:600;">Gate A Clearance Verdict</td>
+                    <td><span class="badge" style="background: rgba(239, 68, 68, 0.2); color: #F87171;">REJECTED</span></td>
+                    <td><span class="badge" style="background: rgba(239, 68, 68, 0.2); color: #F87171;">REJECTED</span></td>
+                    <td><span class="badge" style="background: rgba(239, 68, 68, 0.2); color: #F87171;">REJECTED</span></td>
+                    <td style="background: rgba(37, 99, 235, 0.1);"><span class="badge badge-buy">BENCHMARK HURDLE</span></td>
+                    <td><span class="badge badge-defense">MARKET BENCHMARK</span></td>
+                </tr>
+            </tbody>
+        </table>
     </div>
 
     <div class="card">

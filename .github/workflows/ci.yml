@@ -35,5 +35,7 @@ jobs:
           python trading_system/scripts/check_no_real_credentials_or_accounts.py --all
 
       - name: Run Unit Test Suite
+        env:
+          GATE_A_SIGNING_KEY: ${{ secrets.GATE_A_SIGNING_KEY || 'CI_RUNNER_EPHEMERAL_TEST_KEY_2026' }}
         run: |
           pytest trading_system/tests/unit/ -v --tb=short

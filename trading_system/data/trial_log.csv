@@ -81,3 +81,5 @@ date,commit_hash,script,universe,kelly_fraction,lookback_days,cagr_pct,max_drawd
 2026-11-07 21:23:08,6615760,backtest_multi_asset.py,MULTI_ASSET_7,1.0,189,5.26,-32.92,0.4,False,V2.1 Variant B (Quality-Blended Anti-Whipsaw) Stressed (Gate A) | IN_SAMPLE
 2026-11-07 21:23:17,6615760,backtest_multi_asset.py,MULTI_ASSET_7,1.0,252,6.66,-20.61,0.75,False,V2.1 Variant C (Risk-Parity Vol-Inverse) Normal | IN_SAMPLE
 2026-11-07 21:23:17,6615760,backtest_multi_asset.py,MULTI_ASSET_7,1.0,252,5.41,-21.89,0.61,False,V2.1 Variant C (Risk-Parity Vol-Inverse) Stressed (Gate A) | IN_SAMPLE
+2026-11-07 23:01:11,140e3d9,backtest_multi_asset.py,MULTI_ASSET_7,1.0,0,14.17,-45.2,0.98,False,Baseline 1: Static 1/N Equal-Weight Multi-Asset Benchmark (Hurdle) | IN_SAMPLE
+2026-11-07 23:01:11,140e3d9,backtest_multi_asset.py,MULTI_ASSET_7,1.0,0,10.14,-59.48,0.58,False,Baseline 4: Nifty 50 TRI (Post-Tax Benchmark) | IN_SAMPLE

@@ -188,7 +188,8 @@ class UniversalLocalIndexRegimeEngine:
         ret = close.pct_change().dropna()
         len_ret = len(ret)
 
-        vol20 = float(ret.tail(min(20, len_ret)).std() * np.sqrt(252)) if len_ret >= 5 else 0.15
+        # Barroso & Santa-Clara (2015) 20-Day Annualized Realized Volatility Standard
+        vol20 = float(ret.tail(min(20, len_ret)).std(ddof=1) * np.sqrt(252)) if len_ret >= 5 else 0.15
         if len_ret >= 40:
             vol_base = float(ret.iloc[:-15].tail(min(60, len_ret - 15)).std() * np.sqrt(252))
             vol_trail = float(ret.tail(min(60, len_ret)).std() * np.sqrt(252))

@@ -83,9 +83,10 @@ class InvestorSkillsHeuristics:
             past_price = close_prices.iloc[-lookback_roc]
             roc_20 = (current_price - past_price) / past_price if past_price > 0 else 0.0
 
-            # 3. Volatility / Smoothness Adjustment
-            returns_tail = close_prices.pct_change().tail(20)
-            vol_20 = float(returns_tail.std()) * (252 ** 0.5) if len(returns_tail) > 5 else 0.20
+            # 3. Volatility / Smoothness Adjustment: Barroso & Santa-Clara (2015) 20-Day Realized Volatility
+            from trading_system.app.research.momentum_crash import compute_barroso_santa_clara_realized_vol
+            vol_series = compute_barroso_santa_clara_realized_vol(close_prices.pct_change(), lookback=20, annualization_factor=252.0)
+            vol_20 = float(vol_series.iloc[-1]) if len(close_prices) > 5 and not math.isnan(vol_series.iloc[-1]) else 0.20
 
             # 4. Composite Conviction Score (Risk-Adjusted Momentum)
             conviction_score = round(float((roc_20 / (vol_20 + 0.05)) * 0.7 + trend_extension * 0.3), 4)
