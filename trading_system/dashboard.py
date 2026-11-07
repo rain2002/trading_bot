@@ -1351,8 +1351,8 @@ if page == "📊 Portfolio Overview":
                     </div>
                     <div class="big-number" id="current-display">{CURRENCY_SYMBOL}{equity:,.2f}</div>
                     <div class="return-row" id="return-row" style="font-size: 0.92rem;">
-                        <div id="pnl-badge" class="return-glass-badge {'badge-green' if today_pnl >= 0 else 'badge-red'}">
-                            <span id="pnl-span" style="font-weight: 600;">{format_pnl_str(today_pnl)} ({format_pct_str(today_pnl_pct)})</span>
+                        <div id="pnl-badge" class="return-glass-badge {'badge-green' if overall_pnl >= 0 else 'badge-red'}">
+                            <span id="pnl-span" style="font-weight: 600;">{format_pnl_str(overall_pnl)} ({format_pct_str(overall_pnl_pct)})</span>
                         </div>
                         <span id="tf-tag" class="tf-sub" style="color: #717D96; margin-left: 6px;">All time</span>
                     </div>

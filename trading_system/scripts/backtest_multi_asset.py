@@ -508,6 +508,12 @@ def run_multi_asset_v2_1_simulation(
                     for t, w in raw_weights.items():
                         target_weights[t] = min(0.45, w)
 
+            if variant == 3:
+                # Variant C: Scale gross exposure by (1.0 - cash_target_pct) to respect the active CRO drawdown ladder tier
+                gross_scale = 1.0 - cash_target_pct
+                for t in list(target_weights.keys()):
+                    target_weights[t] = target_weights[t] * gross_scale
+
             # Sells: liquidate any holding not selected for target allocation
             for asset in list(positions.keys()):
                 if asset not in target_weights:
@@ -582,6 +588,8 @@ def compute_baseline_1_static_equal_weight(df: pd.DataFrame, slab_rate: float = 
             # Liquidate current positions
             for a, pos in list(positions.items()):
                 p = df.loc[d, f"{a}_open"]
+                if p <= 0 or math.isnan(p):
+                    p = df.loc[d, f"{a}_close"]
                 gross = pos["shares"] * p
                 gain = gross - (pos["shares"] * pos["entry"])
                 tax = compute_multi_asset_tax(a, pos["date"], d, gain, slab_rate=slab_rate)
@@ -593,6 +601,8 @@ def compute_baseline_1_static_equal_weight(df: pd.DataFrame, slab_rate: float = 
             alloc_per_asset = (cash * 0.99) / len(assets)
             for a in assets:
                 p = df.loc[d, f"{a}_open"]
+                if p <= 0 or math.isnan(p):
+                    p = df.loc[d, f"{a}_close"]
                 shares = alloc_per_asset / p
                 cost = shares * p
                 if cost <= cash:
@@ -622,6 +632,148 @@ def compute_baseline_1_static_equal_weight(df: pd.DataFrame, slab_rate: float = 
         "sharpe_ratio": round(sharpe, 2),
         "calmar_ratio": round(abs(cagr / max_dd), 2)
     }
+
+
+
+
+def compute_baseline_2_buy_and_hold(df: pd.DataFrame, slab_rate: float = 0.312) -> Dict[str, Any]:
+    """Baseline 2: Standalone Buy-and-Hold per asset over identical 2007-2024 window (Post-Tax)."""
+    dates = list(df.index)
+    years = (dates[-1] - dates[0]).days / 365.25
+    assets = list(ASSET_SPECS.keys())
+    results = {}
+
+    for a in assets:
+        spec = ASSET_SPECS[a]
+        open_start = df.loc[dates[0], f"{a}_open"]
+        if open_start <= 0 or math.isnan(open_start):
+            open_start = df.loc[dates[0], f"{a}_close"]
+        close_end = df.loc[dates[-1], f"{a}_close"]
+
+        brok = min(20.0, INITIAL_CAPITAL * 0.0005)
+        stamp = INITIAL_CAPITAL * (spec["stamp_buy_bps"] / 10000.0)
+        exch = INITIAL_CAPITAL * (spec["exch_bps"] / 10000.0)
+        sebi = INITIAL_CAPITAL * (spec["sebi_bps"] / 10000.0)
+        gst = (brok + exch) * 0.18
+        buy_fric = brok + stamp + exch + sebi + gst
+        shares = (INITIAL_CAPITAL - buy_fric) / open_start
+
+        curve = df[f"{a}_close"] * shares
+        gross_final = shares * close_end
+
+        brok_s = min(20.0, gross_final * 0.0005)
+        stt_s = gross_final * (spec["stt_sell_bps"] / 10000.0)
+        exch_s = gross_final * (spec["exch_bps"] / 10000.0)
+        sebi_s = gross_final * (spec["sebi_bps"] / 10000.0)
+        gst_s = (brok_s + exch_s) * 0.18
+        sell_fric = brok_s + stt_s + exch_s + sebi_s + gst_s + FLAT_DP_FEE_RUPEES
+        gain = gross_final - INITIAL_CAPITAL - sell_fric
+        tax = compute_multi_asset_tax(a, dates[0], dates[-1], gain, slab_rate=slab_rate)
+        terminal = gross_final - sell_fric - tax
+
+        cagr = ((terminal / INITIAL_CAPITAL) ** (1.0 / years) - 1.0) * 100.0
+        peak = curve.cummax()
+        max_dd = ((curve - peak) / peak).min() * 100.0
+        ret_d = curve.pct_change().dropna()
+        sharpe = (ret_d.mean() / (ret_d.std() + 1e-9)) * np.sqrt(252)
+        calmar = abs(cagr / max_dd) if abs(max_dd) > 0 else 0.0
+
+        results[a] = {
+            "label": f"Buy & Hold: {a}",
+            "cagr_pct": round(cagr, 2),
+            "max_drawdown_pct": round(max_dd, 2),
+            "sharpe_ratio": round(sharpe, 2),
+            "calmar_ratio": round(calmar, 2),
+            "terminal_equity": round(terminal, 2)
+        }
+
+    return results
+
+
+def compute_baseline_3_sma200_vs_cash(df: pd.DataFrame, slab_rate: float = 0.312) -> Dict[str, Any]:
+    """Baseline 3: Standalone 200-SMA Trend Filter vs Cash Yield per asset (Post-Tax)."""
+    dates = list(df.index)
+    years = (dates[-1] - dates[0]).days / 365.25
+    assets = list(ASSET_SPECS.keys())
+    yield_df = get_cash_yield_table()
+    results = {}
+
+    for a in assets:
+        spec = ASSET_SPECS[a]
+        sma_200 = df[f"{a}_close"].rolling(200, min_periods=50).mean()
+        cash = INITIAL_CAPITAL
+        shares = 0.0
+        entry_price = 0.0
+        entry_date = None
+        curve = {}
+        pending = None
+
+        for i, d in enumerate(dates):
+            if pending == "BUY":
+                open_p = df.loc[d, f"{a}_open"]
+                if open_p <= 0 or math.isnan(open_p):
+                    open_p = df.loc[d, f"{a}_close"]
+                brok = min(20.0, cash * 0.0005)
+                stamp = cash * (spec["stamp_buy_bps"] / 10000.0)
+                exch = cash * (spec["exch_bps"] / 10000.0)
+                sebi = cash * (spec["sebi_bps"] / 10000.0)
+                gst = (brok + exch) * 0.18
+                fric = brok + stamp + exch + sebi + gst
+                shares = (cash - fric) / open_p
+                cash = 0.0
+                entry_price = open_p
+                entry_date = d
+                pending = None
+            elif pending == "SELL":
+                open_p = df.loc[d, f"{a}_open"]
+                if open_p <= 0 or math.isnan(open_p):
+                    open_p = df.loc[d, f"{a}_close"]
+                gross = shares * open_p
+                brok = min(20.0, gross * 0.0005)
+                stt = gross * (spec["stt_sell_bps"] / 10000.0)
+                exch = gross * (spec["exch_bps"] / 10000.0)
+                sebi = gross * (spec["sebi_bps"] / 10000.0)
+                gst = (brok + exch) * 0.18
+                fric = brok + stt + exch + sebi + gst + FLAT_DP_FEE_RUPEES
+                gain = gross - (shares * entry_price) - fric
+                tax = compute_multi_asset_tax(a, entry_date, d, gain, slab_rate=slab_rate)
+                cash = gross - fric - tax
+                shares = 0.0
+                pending = None
+
+            if shares == 0.0:
+                sub_y = yield_df[yield_df["effective_date"] <= d]
+                repo = sub_y.iloc[-1]["rbi_repo_rate"] if len(sub_y) > 0 else 0.065
+                net_yield = max(0.0, repo - 0.0065) / 252.0 * (1.0 - slab_rate)
+                cash += cash * net_yield
+
+            close_p = df.loc[d, f"{a}_close"]
+            sma_val = sma_200.loc[d]
+            if shares == 0.0 and close_p > sma_val and not pd.isna(sma_val):
+                pending = "BUY"
+            elif shares > 0.0 and close_p < sma_val and not pd.isna(sma_val):
+                pending = "SELL"
+
+            curve[d] = cash + (shares * close_p)
+
+        s_b3 = pd.Series(curve)
+        cagr = ((s_b3.iloc[-1] / INITIAL_CAPITAL) ** (1.0 / years) - 1.0) * 100.0
+        peak = s_b3.cummax()
+        max_dd = ((s_b3 - peak) / peak).min() * 100.0
+        ret_d = s_b3.pct_change().dropna()
+        sharpe = (ret_d.mean() / (ret_d.std() + 1e-9)) * np.sqrt(252)
+        calmar = abs(cagr / max_dd) if abs(max_dd) > 0 else 0.0
+
+        results[a] = {
+            "label": f"200-SMA vs Cash: {a}",
+            "cagr_pct": round(cagr, 2),
+            "max_drawdown_pct": round(max_dd, 2),
+            "sharpe_ratio": round(sharpe, 2),
+            "calmar_ratio": round(calmar, 2),
+            "terminal_equity": round(s_b3.iloc[-1], 2)
+        }
+
+    return results
 
 
 def compute_baseline_4_nifty_tri(df: pd.DataFrame, slab_rate: float = 0.312) -> Dict[str, Any]:
@@ -669,11 +821,30 @@ def main():
 
     df = load_multi_asset_v2_1_data()
 
-    print("[2/3] Evaluating Mandatory Institutional Baselines...", flush=True)
+    print("[2/3] Evaluating Mandatory Institutional Baselines (All 4)...", flush=True)
     b1 = compute_baseline_1_static_equal_weight(df)
+    b2 = compute_baseline_2_buy_and_hold(df)
+    b3 = compute_baseline_3_sma200_vs_cash(df)
     b4 = compute_baseline_4_nifty_tri(df)
+
+    all_baselines = {
+        "baseline_1_static_equal_weight": b1,
+        "baseline_2_standalone_buy_and_hold": b2,
+        "baseline_3_standalone_200_sma_vs_cash": b3,
+        "baseline_4_nifty_50_tri": b4,
+        "horizon_years": round((df.index[-1] - df.index[0]).days / 365.25, 2),
+        "start_date": str(df.index[0].date()),
+        "end_date": str(df.index[-1].date()),
+        "initial_capital": INITIAL_CAPITAL
+    }
+
+    baselines_out_path = os.path.join(PROJECT_ROOT, "trading_system", "data", "multi_asset_baselines_v2_1.json")
+    with open(baselines_out_path, "w", encoding="utf-8") as f:
+        json.dump(all_baselines, f, indent=2)
+
     print(f"  {b1['label']}: CAGR {b1['cagr_pct']}%, Max DD {b1['max_drawdown_pct']}%, Calmar {b1['calmar_ratio']}")
-    print(f"  {b4['label']}: CAGR {b4['cagr_pct']}%, Max DD {b4['max_drawdown_pct']}%, Calmar {b4['calmar_ratio']}\n")
+    print(f"  {b4['label']}: CAGR {b4['cagr_pct']}%, Max DD {b4['max_drawdown_pct']}%, Calmar {b4['calmar_ratio']}")
+    print(f"  Baseline 2 & 3 computed across {len(b2)} assets and exported to multi_asset_baselines_v2_1.json\n")
 
     variants_to_run = [1, 2, 3] if args.run_all else [args.variant]
     results = {}
@@ -718,6 +889,12 @@ def main():
             "variant": var,
             "label": name,
             "protocol_sha256": protocol_sha,
+            "baselines": {
+                "baseline_1_static_equal_weight": b1,
+                "baseline_4_nifty_50_tri": b4,
+                "baseline_2_buy_and_hold_summary": {k: {"cagr_pct": v["cagr_pct"], "max_drawdown_pct": v["max_drawdown_pct"], "calmar": v["calmar_ratio"]} for k, v in b2.items()},
+                "baseline_3_sma200_summary": {k: {"cagr_pct": v["cagr_pct"], "max_drawdown_pct": v["max_drawdown_pct"], "calmar": v["calmar_ratio"]} for k, v in b3.items()}
+            },
             "stressed_metrics": {k: v for k, v in res_stress.items() if k not in ["equity_curve", "trade_log"]},
             "normal_metrics": {k: v for k, v in res_norm.items() if k not in ["equity_curve", "trade_log"]},
             "sensitivity_metrics": {k: v for k, v in res_sens.items() if k not in ["equity_curve", "trade_log"]}

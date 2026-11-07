@@ -2,6 +2,98 @@
   "variant": 2,
   "label": "Variant B (Quality-Blended Anti-Whipsaw)",
   "protocol_sha256": "4C9151EC251FE5AB871876BDF8FF3491544681DB39C87DBD60C953357DA668FA",
+  "baselines": {
+    "baseline_1_static_equal_weight": {
+      "label": "Baseline 1: Static 1/N Equal-Weight",
+      "terminal_equity": 788899.7,
+      "cagr_pct": 14.17,
+      "max_drawdown_pct": -45.2,
+      "sharpe_ratio": 0.98,
+      "calmar_ratio": 0.31
+    },
+    "baseline_4_nifty_50_tri": {
+      "label": "Baseline 4: Nifty 50 TRI (Post-Tax)",
+      "terminal_equity": 424431.12,
+      "cagr_pct": 10.14,
+      "max_drawdown_pct": -59.48,
+      "sharpe_ratio": 0.58,
+      "calmar_ratio": 0.17
+    },
+    "baseline_2_buy_and_hold_summary": {
+      "NIFTY50": {
+        "cagr_pct": 8.92,
+        "max_drawdown_pct": -59.86,
+        "calmar": 0.15
+      },
+      "NEXT50": {
+        "cagr_pct": 11.38,
+        "max_drawdown_pct": -71.84,
+        "calmar": 0.16
+      },
+      "MIDCAP150": {
+        "cagr_pct": 16.51,
+        "max_drawdown_pct": -75.07,
+        "calmar": 0.22
+      },
+      "GOLDBEES": {
+        "cagr_pct": 11.82,
+        "max_drawdown_pct": -29.35,
+        "calmar": 0.4
+      },
+      "SILVERBEES": {
+        "cagr_pct": 8.62,
+        "max_drawdown_pct": -59.65,
+        "calmar": 0.14
+      },
+      "GILT10Y": {
+        "cagr_pct": 5.88,
+        "max_drawdown_pct": -11.69,
+        "calmar": 0.5
+      },
+      "MON100": {
+        "cagr_pct": 18.09,
+        "max_drawdown_pct": -40.36,
+        "calmar": 0.45
+      }
+    },
+    "baseline_3_sma200_summary": {
+      "NIFTY50": {
+        "cagr_pct": 6.68,
+        "max_drawdown_pct": -20.99,
+        "calmar": 0.32
+      },
+      "NEXT50": {
+        "cagr_pct": NaN,
+        "max_drawdown_pct": -28.03,
+        "calmar": NaN
+      },
+      "MIDCAP150": {
+        "cagr_pct": 9.73,
+        "max_drawdown_pct": -34.73,
+        "calmar": 0.28
+      },
+      "GOLDBEES": {
+        "cagr_pct": 7.64,
+        "max_drawdown_pct": -31.28,
+        "calmar": 0.24
+      },
+      "SILVERBEES": {
+        "cagr_pct": 2.52,
+        "max_drawdown_pct": -54.57,
+        "calmar": 0.05
+      },
+      "GILT10Y": {
+        "cagr_pct": 6.93,
+        "max_drawdown_pct": -9.99,
+        "calmar": 0.69
+      },
+      "MON100": {
+        "cagr_pct": 11.82,
+        "max_drawdown_pct": -33.21,
+        "calmar": 0.36
+      }
+    }
+  },
   "stressed_metrics": {
     "label": "Variant B (Quality-Blended Anti-Whipsaw) [Stressed Gate A]",
     "variant": 2,

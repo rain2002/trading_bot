@@ -47,7 +47,7 @@ EQUITY_LOG_CSV = os.path.join(DATA_DIR, "paper_equity_log.csv")
 
 # Institutional Default Settings
 DEFAULT_INDIA_CAPITAL = 80000.0    # INR 80,000 (Mandatory Gate A scale)
-DEFAULT_US_CAPITAL = 10000.0       # USD $10,000
+DEFAULT_US_CAPITAL = 100000.0      # USD $100,000 (Alpaca Paper Desk principal)
 
 INDIA_FLAT_DP_FEE = 14.75          # Flat Rs 14.75 per sale scrip
 INDIA_BUY_BPS = 25.35              # Stressed variable costs
@@ -115,9 +115,15 @@ class PodPaperEngine:
 
             self.state["cash"] = float(acc["cash"])
             total_equity = float(acc["equity"])
-            if "initial_capital" not in self.state or self.state.get("initial_capital", 10000.0) == 10000.0:
-                self.state["initial_capital"] = total_equity
-            self.initial_capital = self.state.get("initial_capital", total_equity)
+            self.state["equity"] = total_equity
+            if "initial_capital" not in self.state:
+                if self.initial_capital == 100000.0:
+                    self.state["initial_capital"] = 100000.0
+                else:
+                    self.state["initial_capital"] = total_equity
+            elif self.state.get("initial_capital") == 97780.11:
+                self.state["initial_capital"] = 100000.0
+            self.initial_capital = float(self.state.get("initial_capital", 100000.0))
             if total_equity > self.state.get("hwm_true", 0.0):
                 self.state["hwm_true"] = total_equity
 

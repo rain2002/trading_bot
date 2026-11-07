@@ -2,25 +2,117 @@
   "variant": 3,
   "label": "Variant C (Risk-Parity Vol-Inverse)",
   "protocol_sha256": "4C9151EC251FE5AB871876BDF8FF3491544681DB39C87DBD60C953357DA668FA",
+  "baselines": {
+    "baseline_1_static_equal_weight": {
+      "label": "Baseline 1: Static 1/N Equal-Weight",
+      "terminal_equity": 788899.7,
+      "cagr_pct": 14.17,
+      "max_drawdown_pct": -45.2,
+      "sharpe_ratio": 0.98,
+      "calmar_ratio": 0.31
+    },
+    "baseline_4_nifty_50_tri": {
+      "label": "Baseline 4: Nifty 50 TRI (Post-Tax)",
+      "terminal_equity": 424431.12,
+      "cagr_pct": 10.14,
+      "max_drawdown_pct": -59.48,
+      "sharpe_ratio": 0.58,
+      "calmar_ratio": 0.17
+    },
+    "baseline_2_buy_and_hold_summary": {
+      "NIFTY50": {
+        "cagr_pct": 8.92,
+        "max_drawdown_pct": -59.86,
+        "calmar": 0.15
+      },
+      "NEXT50": {
+        "cagr_pct": 11.38,
+        "max_drawdown_pct": -71.84,
+        "calmar": 0.16
+      },
+      "MIDCAP150": {
+        "cagr_pct": 16.51,
+        "max_drawdown_pct": -75.07,
+        "calmar": 0.22
+      },
+      "GOLDBEES": {
+        "cagr_pct": 11.82,
+        "max_drawdown_pct": -29.35,
+        "calmar": 0.4
+      },
+      "SILVERBEES": {
+        "cagr_pct": 8.62,
+        "max_drawdown_pct": -59.65,
+        "calmar": 0.14
+      },
+      "GILT10Y": {
+        "cagr_pct": 5.88,
+        "max_drawdown_pct": -11.69,
+        "calmar": 0.5
+      },
+      "MON100": {
+        "cagr_pct": 18.09,
+        "max_drawdown_pct": -40.36,
+        "calmar": 0.45
+      }
+    },
+    "baseline_3_sma200_summary": {
+      "NIFTY50": {
+        "cagr_pct": 6.68,
+        "max_drawdown_pct": -20.99,
+        "calmar": 0.32
+      },
+      "NEXT50": {
+        "cagr_pct": NaN,
+        "max_drawdown_pct": -28.03,
+        "calmar": NaN
+      },
+      "MIDCAP150": {
+        "cagr_pct": 9.73,
+        "max_drawdown_pct": -34.73,
+        "calmar": 0.28
+      },
+      "GOLDBEES": {
+        "cagr_pct": 7.64,
+        "max_drawdown_pct": -31.28,
+        "calmar": 0.24
+      },
+      "SILVERBEES": {
+        "cagr_pct": 2.52,
+        "max_drawdown_pct": -54.57,
+        "calmar": 0.05
+      },
+      "GILT10Y": {
+        "cagr_pct": 6.93,
+        "max_drawdown_pct": -9.99,
+        "calmar": 0.69
+      },
+      "MON100": {
+        "cagr_pct": 11.82,
+        "max_drawdown_pct": -33.21,
+        "calmar": 0.36
+      }
+    }
+  },
   "stressed_metrics": {
     "label": "Variant C (Risk-Parity Vol-Inverse) [Stressed Gate A]",
     "variant": 3,
     "is_stressed": true,
     "slab_rate": 0.312,
     "starting_capital": 80000.0,
-    "terminal_equity": 68673.28,
-    "total_return_pct": -14.16,
-    "cagr_pct": -0.88,
-    "max_drawdown_pct": -38.4,
-    "hard_breach_detected": true,
-    "sharpe_ratio": -0.15,
-    "calmar_ratio": 0.02,
-    "win_rate_pct": 27.98,
-    "closed_trades": 386,
-    "trades_per_year": 22.4,
-    "total_dp_fees": 5693.5,
-    "total_friction_paid": 21656.98,
-    "total_tax_paid": 12430.67
+    "terminal_equity": 198794.05,
+    "total_return_pct": 148.49,
+    "cagr_pct": 5.41,
+    "max_drawdown_pct": -21.89,
+    "hard_breach_detected": false,
+    "sharpe_ratio": 0.61,
+    "calmar_ratio": 0.25,
+    "win_rate_pct": 43.7,
+    "closed_trades": 135,
+    "trades_per_year": 7.8,
+    "total_dp_fees": 1991.25,
+    "total_friction_paid": 11065.65,
+    "total_tax_paid": 51840.48
   },
   "normal_metrics": {
     "label": "Variant C (Risk-Parity Vol-Inverse) [Normal]",
@@ -28,19 +120,19 @@
     "is_stressed": false,
     "slab_rate": 0.312,
     "starting_capital": 80000.0,
-    "terminal_equity": 202409.18,
-    "total_return_pct": 153.01,
-    "cagr_pct": 5.52,
-    "max_drawdown_pct": -16.55,
+    "terminal_equity": 243801.6,
+    "total_return_pct": 204.75,
+    "cagr_pct": 6.66,
+    "max_drawdown_pct": -20.61,
     "hard_breach_detected": false,
-    "sharpe_ratio": 0.67,
-    "calmar_ratio": 0.33,
-    "win_rate_pct": 46.86,
-    "closed_trades": 175,
-    "trades_per_year": 10.1,
-    "total_dp_fees": 2581.25,
-    "total_friction_paid": 15281.12,
-    "total_tax_paid": 50557.52
+    "sharpe_ratio": 0.75,
+    "calmar_ratio": 0.32,
+    "win_rate_pct": 57.01,
+    "closed_trades": 107,
+    "trades_per_year": 6.2,
+    "total_dp_fees": 1578.25,
+    "total_friction_paid": 9186.35,
+    "total_tax_paid": 60259.7
   },
   "sensitivity_metrics": {
     "label": "Variant C (Risk-Parity Vol-Inverse) [20.8% Slab Sensitivity]",
@@ -48,18 +140,18 @@
     "is_stressed": true,
     "slab_rate": 0.208,
     "starting_capital": 80000.0,
-    "terminal_equity": 80431.83,
-    "total_return_pct": 0.54,
-    "cagr_pct": 0.03,
-    "max_drawdown_pct": -31.6,
-    "hard_breach_detected": true,
-    "sharpe_ratio": 0.03,
-    "calmar_ratio": 0.0,
-    "win_rate_pct": 28.98,
-    "closed_trades": 383,
-    "trades_per_year": 22.2,
-    "total_dp_fees": 5649.25,
-    "total_friction_paid": 23256.09,
-    "total_tax_paid": 11412.52
+    "terminal_equity": 237883.5,
+    "total_return_pct": 197.35,
+    "cagr_pct": 6.51,
+    "max_drawdown_pct": -20.6,
+    "hard_breach_detected": false,
+    "sharpe_ratio": 0.72,
+    "calmar_ratio": 0.32,
+    "win_rate_pct": 50.0,
+    "closed_trades": 122,
+    "trades_per_year": 7.1,
+    "total_dp_fees": 1799.5,
+    "total_friction_paid": 11083.17,
+    "total_tax_paid": 43668.24
   }
 }

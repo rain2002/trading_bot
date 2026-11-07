@@ -60,8 +60,8 @@ def generate_dashboard_html() -> str:
     in_dd = in_state.get("max_drawdown", 0.0)
     in_defense = in_state.get("in_tier4_defense", False)
 
-    us_cash = us_state.get("cash", 10000.0)
-    us_initial = us_state.get("initial_capital", 10000.0)
+    us_cash = us_state.get("cash", 13726.98)
+    us_initial = us_state.get("initial_capital", 100000.0)
     us_pos = us_state.get("positions", {})
     us_pending_buys = us_state.get("pending_buys", [])
     us_pending_sells = us_state.get("pending_sells", [])
