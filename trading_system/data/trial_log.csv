@@ -40,3 +40,9 @@ date,commit_hash,script,universe,kelly_fraction,lookback_days,cagr_pct,max_drawd
 2026-11-07 05:01:30,0784070,backtest_nse50.py,NSE_NIFTY50,0.4,90,3.33,-21.16,0.38,False,Pre-Registered Variant 2 (Medium Stops) Stressed [Gate A] | IN_SAMPLE
 2026-11-07 05:01:37,0784070,backtest_nse50.py,NSE_NIFTY50,0.4,90,3.84,-21.15,0.44,False,Pre-Registered Variant 3 (Tight Stops) Normal | IN_SAMPLE
 2026-11-07 05:01:37,0784070,backtest_nse50.py,NSE_NIFTY50,0.4,90,3.41,-21.18,0.4,False,Pre-Registered Variant 3 (Tight Stops) Stressed [Gate A] | IN_SAMPLE
+2026-11-07 05:20:13,821b815,backtest_multi_asset.py,MULTI_ASSET_5,1.0,126,12.57,-27.98,0.88,False,Multi-Asset Variant A (Balanced Dual Momentum) Normal (5.0 bps) | IN_SAMPLE
+2026-11-07 05:20:14,821b815,backtest_multi_asset.py,MULTI_ASSET_5,1.0,126,12.48,-28.1,0.87,False,Multi-Asset Variant A (Balanced Dual Momentum) Stressed (7.5 bps) [Gate A] | IN_SAMPLE
+2026-11-07 05:20:14,821b815,backtest_multi_asset.py,MULTI_ASSET_5,1.0,189,9.9,-22.29,0.8,False,Multi-Asset Variant B (Asymmetric High-Growth Trend) Normal (5.0 bps) | IN_SAMPLE
+2026-11-07 05:20:14,821b815,backtest_multi_asset.py,MULTI_ASSET_5,1.0,189,9.8,-22.47,0.8,False,Multi-Asset Variant B (Asymmetric High-Growth Trend) Stressed (7.5 bps) [Gate A] | IN_SAMPLE
+2026-11-07 05:20:15,821b815,backtest_multi_asset.py,MULTI_ASSET_5,1.0,252,11.67,-19.79,1.07,False,Multi-Asset Variant C (3-Asset Volatility-Inverse Momentum) Normal (5.0 bps) | IN_SAMPLE
+2026-11-07 05:20:15,821b815,backtest_multi_asset.py,MULTI_ASSET_5,1.0,252,11.62,-19.8,1.06,False,Multi-Asset Variant C (3-Asset Volatility-Inverse Momentum) Stressed (7.5 bps) [Gate A] | IN_SAMPLE

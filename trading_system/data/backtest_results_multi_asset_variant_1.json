@@ -1,0 +1,19 @@
+{
+  "label": "Variant A (Balanced Dual Momentum) [Stressed Gate A]",
+  "variant": 1,
+  "slippage_bps": 7.5,
+  "starting_capital": 80000.0,
+  "terminal_equity": 610036.28,
+  "total_return_pct": 662.55,
+  "cagr_pct": 12.48,
+  "max_drawdown_pct": -28.1,
+  "hard_breach_detected": false,
+  "sharpe_ratio": 0.87,
+  "calmar_ratio": 0.44,
+  "win_rate_pct": 59.26,
+  "profit_factor": 3.69,
+  "closed_trades": 54,
+  "trades_per_year": 3.1,
+  "total_dp_fees": 796.5,
+  "total_tax_paid": 72479.92
+}

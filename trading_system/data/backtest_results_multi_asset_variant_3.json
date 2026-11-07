@@ -1,0 +1,19 @@
+{
+  "label": "Variant C (3-Asset Volatility-Inverse Momentum) [Stressed Gate A]",
+  "variant": 3,
+  "slippage_bps": 7.5,
+  "starting_capital": 80000.0,
+  "terminal_equity": 534473.06,
+  "total_return_pct": 568.09,
+  "cagr_pct": 11.62,
+  "max_drawdown_pct": -19.8,
+  "hard_breach_detected": false,
+  "sharpe_ratio": 1.06,
+  "calmar_ratio": 0.59,
+  "win_rate_pct": 53.66,
+  "profit_factor": 3.84,
+  "closed_trades": 41,
+  "trades_per_year": 2.4,
+  "total_dp_fees": 604.75,
+  "total_tax_paid": 29708.73
+}

@@ -1,0 +1,19 @@
+{
+  "label": "Variant B (Asymmetric High-Growth Trend) [Stressed Gate A]",
+  "variant": 2,
+  "slippage_bps": 7.5,
+  "starting_capital": 80000.0,
+  "terminal_equity": 402011.84,
+  "total_return_pct": 402.51,
+  "cagr_pct": 9.8,
+  "max_drawdown_pct": -22.47,
+  "hard_breach_detected": false,
+  "sharpe_ratio": 0.8,
+  "calmar_ratio": 0.44,
+  "win_rate_pct": 60.0,
+  "profit_factor": 3.22,
+  "closed_trades": 75,
+  "trades_per_year": 4.3,
+  "total_dp_fees": 1106.25,
+  "total_tax_paid": 61083.95
+}
