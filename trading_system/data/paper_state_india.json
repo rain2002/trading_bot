@@ -1,0 +1,15 @@
+{
+  "pod_name": "INDIA",
+  "currency": "INR",
+  "cash": 1000000.0,
+  "positions": {},
+  "pending_buys": [],
+  "pending_sells": [],
+  "hwm_true": 1000000.0,
+  "hwm_ladder": 1000000.0,
+  "max_drawdown": 0.0,
+  "in_tier4_defense": false,
+  "cooling_off": 0,
+  "recovery_streak": 0,
+  "last_updated": "2026-11-07T16:43:54.018633+00:00"
+}

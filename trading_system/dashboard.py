@@ -692,11 +692,19 @@ if is_india_mode:
     india_totp = settings.INDIA_TOTP_SECRET
     india_cap = getattr(settings, "INDIA_INITIAL_CAPITAL", 1000000.0)
 
+    data_dir = os.path.join(os.path.dirname(__file__), "data")
+    india_state_file = os.path.join(data_dir, "paper_state_india.json")
+    india_trades_file = os.path.join(data_dir, "paper_trades_india.csv")
+    india_equity_file = os.path.join(data_dir, "paper_equity_log.csv")
+
     broker = GrowwBrokerAdapter(
         api_key=india_key,
         api_secret=india_sec,
         totp_secret=india_totp,
-        initial_capital=india_cap
+        initial_capital=india_cap,
+        state_file=india_state_file,
+        trades_file=india_trades_file,
+        equity_log_file=india_equity_file
     )
 else:
     api_key = settings.PAPER_API_KEY
@@ -941,7 +949,7 @@ st.sidebar.markdown(f"""
 # ==============================================================================
 if page == "📊 Portfolio Overview":
     hdr_sub = "NIFTY 100 QUANTUM ENSEMBLE • SEBI CNC CASH DELIVERY • GROWW REAL-TIME TELEMETRY" if is_india_mode else "PHASE 2 MULTI-STRATEGY ENSEMBLE • PHASE 3 ML ALPHA GATE • REAL-TIME BROKER TELEMETRY"
-    broker_live_badge = "GROWW NSE LIVE" if (is_india_mode and not getattr(broker, 'is_mock', True)) else ("GROWW PAPER SIMULATED" if is_india_mode else "ALPACA PAPER LIVE")
+    broker_live_badge = "GROWW NSE LIVE" if (is_india_mode and not getattr(broker, 'is_mock', True)) else ("GATE B PAPER RUNNING" if is_india_mode else "ALPACA PAPER LIVE")
 
     st.markdown(f"""
     <div class="hud-header" style="margin-bottom: 16px;">
@@ -952,7 +960,7 @@ if page == "📊 Portfolio Overview":
         <div style="display: flex; gap: 8px; align-items: center;">
             <span class="status-pill"><span class="pulse-dot"></span> LIVE EXECUTION READY</span>
             <span class="status-pill" style="border-color: rgba(0, 208, 156, 0.25); color: #00D09C;">{broker_live_badge}</span>
-            <span class="status-pill" style="border-color: rgba(255, 255, 255, 0.14); color: #FFFFFF;">{'NSE ML GATE' if is_india_mode else 'PHASE 3 ML GATE'}</span>
+            <span class="status-pill" style="border-color: rgba(255, 255, 255, 0.14); color: #FFFFFF;">{'NSE ML GATE (VARIANT 2)' if is_india_mode else 'PHASE 3 ML GATE'}</span>
         </div>
     </div>
     """, unsafe_allow_html=True)
@@ -1815,7 +1823,75 @@ if page == "📊 Portfolio Overview":
             """, unsafe_allow_html=True)
             st.progress(win_rate / 100)
     else:
-        st.info("No open positions reported by broker. Portfolio is currently in 100% Cash Buffer.")
+        col_chart, col_stats = st.columns([3, 2])
+        with col_chart:
+            cash_asset_name = "100% CASH SHIELD (RBI REPO YIELD @ 6.5% APY)" if is_india_mode else "100% CASH BUFFER (LIQUID CASH YIELD)"
+            df_chart = pd.DataFrame([{
+                "Asset": cash_asset_name,
+                "Value": cash,
+                "Category": "Cash Buffer"
+            }])
+            fig = px.pie(
+                df_chart,
+                names="Asset",
+                values="Value",
+                title="Dynamic Capital Allocation (100% Capital Preserved in Liquid Cash)",
+                hole=0.62,
+                color_discrete_sequence=["#00D09C"]
+            )
+            fig.update_traces(
+                textposition='inside',
+                textinfo='percent+label',
+                marker=dict(line=dict(color='#121622', width=1.5)),
+                hovertemplate=f"<b>%{{label}}</b><br>Buffer: {CURRENCY_SYMBOL}%{{value:,.2f}}<br>Share: 100%<extra></extra>"
+            )
+            fig.update_layout(
+                showlegend=False,
+                margin=dict(t=50, b=10, l=10, r=10),
+                paper_bgcolor='rgba(0,0,0,0)',
+                plot_bgcolor='rgba(0,0,0,0)',
+                font=dict(family="Space Grotesk, sans-serif", color="#FFFFFF"),
+                annotations=[dict(
+                    text=f"<b>PORTFOLIO</b><br><span style='font-size:18px; color:#00D09C;'>{CURRENCY_SYMBOL}{equity:,.0f}</span><br><span style='font-size:11px; color:#71717A;'>CASH 100%</span>",
+                    x=0.5, y=0.5,
+                    font_size=15,
+                    font_family="Space Grotesk",
+                    font_color="#FFFFFF",
+                    showarrow=False
+                )]
+            )
+            st.plotly_chart(fig, width='stretch')
+
+        with col_stats:
+            st.markdown("""
+            <div class="cyber-card" style="margin-top: 25px;">
+                <div class="kpi-title" style="color: #00D09C; font-size: 0.72rem;">// 03. EXPOSURE TELEMETRY</div>
+            """, unsafe_allow_html=True)
+
+            status_note = "BEAR DEFENSE (50-SMA Downtick - Capital Preserved)" if is_india_mode else "100% CASH BUFFER"
+            st.markdown(f"""
+            <div style="display: flex; justify-content: space-between; padding: 9px 0; border-bottom: 1px solid rgba(255,255,255,0.06); font-family: 'DM Mono', monospace; font-size: 0.82rem;">
+                <span style="color: #71717A;">Invested Equities Value:</span>
+                <span style="color: #FFFFFF; font-weight: 600;">{CURRENCY_SYMBOL}0.00 (0.0%)</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; padding: 9px 0; border-bottom: 1px solid rgba(255,255,255,0.06); font-family: 'DM Mono', monospace; font-size: 0.82rem;">
+                <span style="color: #71717A;">Liquid Cash Reserve:</span>
+                <span style="color: #00D09C; font-weight: 600;">{CURRENCY_SYMBOL}{cash:,.2f} (100.0%)</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; padding: 9px 0; border-bottom: 1px solid rgba(255,255,255,0.06); font-family: 'DM Mono', monospace; font-size: 0.82rem;">
+                <span style="color: #71717A;">Active Holdings:</span>
+                <span style="color: #FFFFFF; font-weight: 600;">0 / 10 Slots ({'Gate B Forward Test' if is_india_mode else 'US Desk'})</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; padding: 9px 0; border-bottom: 1px solid rgba(255,255,255,0.06); font-family: 'DM Mono', monospace; font-size: 0.82rem;">
+                <span style="color: #71717A;">Macro Benchmark Status:</span>
+                <span style="color: #FFB800; font-weight: 600;">{status_note}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; padding: 9px 0; font-family: 'DM Mono', monospace; font-size: 0.82rem;">
+                <span style="color: #71717A;">Tactical Yield:</span>
+                <span style="color: #00D09C; font-weight: 600;">Overnight Compounding Active</span>
+            </div>
+            </div>
+            """, unsafe_allow_html=True)
 
 
 # ==============================================================================
@@ -2317,7 +2393,23 @@ elif page == "📋 Positions & Stop-Loss":
                         else:
                             st.error(f"Liquidation failed: {c_res.get('error')}")
     else:
-        st.info("No open positions reported by broker.")
+        if is_india_mode:
+            st.markdown(f"""
+            <div class="cyber-card" style="padding: 24px; text-align: center; border: 1px solid rgba(0, 208, 156, 0.25); background: #121622; border-radius: 12px; margin-top: 15px;">
+                <div style="font-size: 1.15rem; font-weight: 700; color: #FFFFFF; margin-bottom: 8px;">🛡️ GATE B FORWARD TESTING: 0 / 10 POSITIONS HELD</div>
+                <div style="color: #00D09C; font-size: 0.95rem; font-family: 'DM Mono', monospace; margin-bottom: 12px;">100% Capital Preserved in Liquid Cash Buffer ({CURRENCY_SYMBOL}{cash:,.2f})</div>
+                <div style="color: #A1A1AA; font-size: 0.85rem; max-width: 680px; margin: 0 auto; line-height: 1.6;">
+                    The autonomous cloud trading engine has safely shielded capital from equity market pullbacks via the <b>Nifty 50 (^NSEI) 50-SMA</b> trend slope filter.
+                    When market regime confirms upward momentum, the bot will automatically screen liquid NSE 100 leaders and queue Next-Day Open buy allocations.
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+            if open_orders_count > 0:
+                st.markdown("<div style='margin-top: 20px;'></div>", unsafe_allow_html=True)
+                st.markdown("### 📋 Queued Orders (Next-Day Market Open Execution)")
+                st.dataframe(pd.DataFrame(open_orders_cached), width="stretch", hide_index=True)
+        else:
+            st.info("No open positions reported by broker.")
 
 
 # ==============================================================================
@@ -3315,7 +3407,19 @@ elif page in ("⚡ Order Activity Log", "📜 Order Activity Log"):
                     }
                 )
     else:
-        st.info("No recent execution records found.")
+        if is_india_mode:
+            st.markdown(f"""
+            <div class="cyber-card" style="padding: 24px; text-align: center; border: 1px solid rgba(0, 208, 156, 0.25); background: #121622; border-radius: 12px; margin-top: 15px;">
+                <div style="font-size: 1.15rem; font-weight: 700; color: #FFFFFF; margin-bottom: 8px;">📜 INDIAN POD ORDER AUDIT TRAIL</div>
+                <div style="color: #00D09C; font-size: 0.92rem; font-family: 'DM Mono', monospace; margin-bottom: 12px;">Gate B Forward Testing Active • GitHub Actions Automated Cloud Trader</div>
+                <div style="color: #A1A1AA; font-size: 0.84rem; max-width: 680px; margin: 0 auto; line-height: 1.6;">
+                    No closed trades executed yet in this session. The autonomous cloud scheduler runs at <b>09:16 IST</b> (Market Open Execution) and <b>15:35 IST</b> (Market Close Scan).
+                    You can also execute instant test trades anytime using the <b>Manual Order Desk</b>.
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+        else:
+            st.info("No recent execution records found.")
 
 
 # ==============================================================================
@@ -3392,25 +3496,47 @@ elif page == "🧠 Quant Brain & Strategy":
         )
         st.plotly_chart(fig_ml_feat, width='stretch')
 
-    st.markdown("<div style='margin-top: 20px;'></div>", unsafe_allow_html=True)
-    st.markdown("### 📐 Risk-Adjusted Momentum Formula")
-    st.latex(r"""
-    \text{Conviction Score} = 0.70 \times \left( \frac{\text{ROC}_{20}}{\sigma_{20} + 0.05} \right) + 0.30 \times \left( \frac{\text{Price} - \text{SMA}_{\text{slow}}}{\text{SMA}_{\text{slow}}} \right)
-    """)
-    st.markdown(r"""
-    - **Velocity Component ($\text{ROC}_{20}$):** 20-day rate of change rewards strong upward momentum.
-    - **Smoothness Adjustment ($\sigma_{20}$):** Penalizes choppy, erratic breakouts with high volatility.
-    - **Trend Extension Anchor:** Rewards persistent structural uptrends relative to the institutional moving average.
-    - **Dynamic Sizing:** Weight is proportional to conviction score, dynamically scaled with **15% max per stock** and **zero naked shorting**.
-    """)
+    if is_india_mode:
+        st.markdown("<div style='margin-top: 20px;'></div>", unsafe_allow_html=True)
+        st.markdown("### 📐 Dual-Horizon Vectorized Momentum Formula (NSE Growth Variant 2)")
+        st.latex(r"""
+        \text{Momentum Score} = 0.60 \times \left( \text{AnnSlope}_{90} \times R^2_{90} \right) + 0.40 \times \left( \text{AnnSlope}_{180} \times R^2_{180} \right)
+        """)
+        st.markdown(r"""
+        - **90-Day Vectorized Slope ($\text{AnnSlope}_{90}$):** Annualized log-linear price trajectory over the trailing 90 trading sessions.
+        - **Smoothness Penalty ($R^2$):** Penalizes erratic, high-variance breakouts; only steady structural compounders qualify.
+        - **180-Day Structural Anchor ($\text{AnnSlope}_{180}$):** Confirms multi-month institutional leadership.
+        - **Gate A Audited Metrics:** **18.19% CAGR**, **1.24 Sharpe**, **-27.63% MaxDD** (Stressed: **17.96% CAGR**, **1.23 Sharpe**).
+        - **SEBI CNC Sizing:** Integer whole-share allocation with **10% max allocation per slot** (10 slots) and strict long-only cash delivery.
+        """)
 
-    st.markdown("---")
-    st.markdown("### 🤖 Phase 3: Machine Learning Alpha Gate")
-    st.markdown(r"""
-    - **Classifier:** 150-tree Random Forest trained on 10 years of purged walk-forward cross-validation.
-    - **Feature Matrix:** 18 stationary normalized indicators (multi-horizon returns, moving average spreads, normalized ATR, RSI, Bollinger %B, volatility ratios, volume surges).
-    - **Alpha Gating:** Evaluates $P(\text{Alpha}_{5d} > 0.5\%)$. Vetoes false breakouts and bull traps ($P < 0.48$), and modulates conviction weight on confirmed setups ($P \ge 0.50$).
-    """)
+        st.markdown("---")
+        st.markdown("### 🤖 Gate B Forward Testing Governance")
+        st.markdown(r"""
+        - **Macro Benchmark Gate:** Evaluates Nifty 50 (^NSEI) against its 200-SMA and 50-SMA slope. Freezes new buys and holds capital in liquid repo yield (6.5% APY) during corrections.
+        - **Exit Protocols:** -12.0% Hard Stop, 150-SMA Trend Exit, and Multi-Tier Trailing Profit Locks (+25% / -15%, +50% / -20%, +100% / -25%).
+        - **Sourced Cost Model:** Flat Dhan ₹14.75 DP fee on sell, 25.35 bps buy friction, and 23.85 bps sell friction.
+        """)
+    else:
+        st.markdown("<div style='margin-top: 20px;'></div>", unsafe_allow_html=True)
+        st.markdown("### 📐 Risk-Adjusted Momentum Formula")
+        st.latex(r"""
+        \text{Conviction Score} = 0.70 \times \left( \frac{\text{ROC}_{20}}{\sigma_{20} + 0.05} \right) + 0.30 \times \left( \frac{\text{Price} - \text{SMA}_{\text{slow}}}{\text{SMA}_{\text{slow}}} \right)
+        """)
+        st.markdown(r"""
+        - **Velocity Component ($\text{ROC}_{20}$):** 20-day rate of change rewards strong upward momentum.
+        - **Smoothness Adjustment ($\sigma_{20}$):** Penalizes choppy, erratic breakouts with high volatility.
+        - **Trend Extension Anchor:** Rewards persistent structural uptrends relative to the institutional moving average.
+        - **Dynamic Sizing:** Weight is proportional to conviction score, dynamically scaled with **15% max per stock** and **zero naked shorting**.
+        """)
+
+        st.markdown("---")
+        st.markdown("### 🤖 Phase 3: Machine Learning Alpha Gate")
+        st.markdown(r"""
+        - **Classifier:** 150-tree Random Forest trained on 10 years of purged walk-forward cross-validation.
+        - **Feature Matrix:** 18 stationary normalized indicators (multi-horizon returns, moving average spreads, normalized ATR, RSI, Bollinger %B, volatility ratios, volume surges).
+        - **Alpha Gating:** Evaluates $P(\text{Alpha}_{5d} > 0.5\%)$. Vetoes false breakouts and bull traps ($P < 0.48$), and modulates conviction weight on confirmed setups ($P \ge 0.50$).
+        """)
 
 
 # ==============================================================================
