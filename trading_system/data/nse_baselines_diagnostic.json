@@ -11,7 +11,7 @@
       "years": 17.29
     },
     {
-      "label": "Baseline 1: Buy-and-Hold Nifty 50 TRI",
+      "label": "Baseline 1: Approx Nifty 50 TRI (Price + 1.35% Dividend Reinvestment)",
       "start_val": 1000.05,
       "end_val": 6600.97,
       "cagr_pct": 11.53,
@@ -21,23 +21,23 @@
       "years": 17.29
     },
     {
-      "label": "Baseline 2: Equal-Weight Top NSE Equities (Yearly Rebalance)",
+      "label": "Baseline 2: Equal-Weight Nifty 50 (PIT Dated Membership)",
       "start_val": 1000.0,
-      "end_val": 28841.17,
-      "cagr_pct": 21.46,
-      "total_return_pct": 2784.12,
-      "max_drawdown_pct": -55.55,
-      "sharpe_ratio": 1.15,
+      "end_val": 8970.01,
+      "cagr_pct": 13.53,
+      "total_return_pct": 797.0,
+      "max_drawdown_pct": -51.69,
+      "sharpe_ratio": 0.78,
       "years": 17.29
     },
     {
-      "label": "Baseline 3: Nifty 50 > 200-SMA, Else Cash (RBI Yield)",
-      "start_val": 1000.31,
-      "end_val": 5108.39,
-      "cagr_pct": 9.89,
-      "total_return_pct": 410.68,
-      "max_drawdown_pct": -17.93,
-      "sharpe_ratio": 0.79,
+      "label": "Baseline 3: Nifty 50 > 200-SMA, Else Cash (Liquid ETF Net Yield)",
+      "start_val": 1000.28,
+      "end_val": 4950.05,
+      "cagr_pct": 9.69,
+      "total_return_pct": 394.87,
+      "max_drawdown_pct": -18.11,
+      "sharpe_ratio": 0.77,
       "years": 17.29
     },
     {
@@ -53,32 +53,32 @@
     {
       "label": "Current Momentum Strategy (0% Cash Yield)",
       "start_val": 1000.0,
-      "end_val": 6172.63,
-      "cagr_pct": 11.1,
-      "total_return_pct": 517.26,
-      "max_drawdown_pct": -38.43,
-      "sharpe_ratio": 0.7,
+      "end_val": 2292.25,
+      "cagr_pct": 4.91,
+      "total_return_pct": 129.23,
+      "max_drawdown_pct": -28.02,
+      "sharpe_ratio": 0.41,
       "years": 17.29
     },
     {
-      "label": "Current Momentum Strategy (RBI Repo Yield)",
-      "start_val": 1000.3,
-      "end_val": 8893.12,
-      "cagr_pct": 13.47,
-      "total_return_pct": 789.05,
-      "max_drawdown_pct": -37.82,
-      "sharpe_ratio": 0.82,
+      "label": "Current Momentum Strategy (Liquid ETF Net Yield)",
+      "start_val": 1000.27,
+      "end_val": 3459.23,
+      "cagr_pct": 7.44,
+      "total_return_pct": 245.83,
+      "max_drawdown_pct": -25.26,
+      "sharpe_ratio": 0.58,
       "years": 17.29
     }
   ],
   "diagnostic": {
     "total_days": 4238,
-    "days_in_cash_pct": 27.324209532798488,
-    "avg_exposure_pct": 67.1715637637819,
-    "total_trades": 1360,
-    "trades_per_year": 78.65818392134182,
-    "total_divs": 527.6,
+    "days_in_cash_pct": 33.45917885795187,
+    "avg_exposure_pct": 59.051456062511235,
+    "total_trades": 1452,
+    "trades_per_year": 83.97917871602083,
+    "total_divs": 281.82,
     "interest_zero": 0.0,
-    "interest_rf": 988.73
+    "interest_rf": 645.96
   }
 }

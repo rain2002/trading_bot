@@ -33,8 +33,17 @@ if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
 from trading_system.app.validation.trial_logger import log_trial
+from trading_system.app.data.constituent_manager import PointInTimeConstituentManager
 
 CACHE_DIR = os.path.join(PROJECT_ROOT, "trading_system", "data", "historical_cache_nse")
+NIFTY_CHANGES_CSV = os.path.join(PROJECT_ROOT, "trading_system", "data", "nifty50_historical_components_changes.csv")
+NIFTY_START_END_CSV = os.path.join(PROJECT_ROOT, "trading_system", "data", "nifty50_ticker_start_end.csv")
+
+# Global Institutional PIT Constituent Manager for Nifty 50
+PIT_MANAGER = PointInTimeConstituentManager(
+    changes_csv_path=NIFTY_CHANGES_CSV,
+    start_end_csv_path=NIFTY_START_END_CSV
+)
 
 START_DATE = "2007-09-17"
 DEFAULT_END_DATE = "2024-12-31"
@@ -123,6 +132,11 @@ def get_india_rf_rate(date: pd.Timestamp) -> float:
     return 0.065
 
 
+def get_liquid_etf_yield(date: pd.Timestamp) -> float:
+    """Realistic retail Liquid ETF yield net of ~65 bps total expense ratio and tracking/cash drag."""
+    return max(0.0, get_india_rf_rate(date) - 0.0065)
+
+
 def calc_vectorized_momentum(series: np.ndarray, window: int = 90) -> np.ndarray:
     n = len(series)
     scores = np.full(n, np.nan)
@@ -167,9 +181,10 @@ def load_market_data(start_date: str = START_DATE, end_date: str = DEFAULT_END_D
     bench_close = bench_df["close"]
     bench_sma200 = bench_close.rolling(200, min_periods=50).mean()
 
-    below_raw = bench_close < bench_sma200
-    below_confirmed = (bench_close < (bench_sma200 * 0.985)) | (below_raw.rolling(3).sum() == 3)
-    macro_bull = ~below_confirmed
+    # Immediate defense: go defensive immediately on close < sma200 (zero lag / buffer)
+    # Risk resumption: require 2 consecutive closes above sma200 before resuming risk
+    above_200 = (bench_close > bench_sma200).astype(int)
+    macro_bull = (above_200.rolling(2, min_periods=2).sum() == 2)
 
     print(f"  Official Nifty 50 benchmark loaded: {len(bench_df)} trading days ({bench_df.index[0].date()} to {bench_df.index[-1].date()}) [Zero Synthesized Stitching]", flush=True)
 
@@ -246,7 +261,7 @@ def compute_baselines(bench_df: pd.DataFrame, precalc: Dict[str, Any], timeline:
     b1_ret = b1_equity.pct_change().dropna()
     b1_sharpe = (b1_ret.mean() / (b1_ret.std() + 1e-9)) * math.sqrt(252)
 
-    # 2. Baseline 3: Nifty 50 > 200-SMA, Else Cash (RBI Yield)
+    # 2. Baseline 3: Nifty 50 > 200-SMA, Else Cash (Liquid ETF Net Yield)
     sma200 = nsei_close.rolling(200, min_periods=50).mean()
     above_200 = nsei_close > sma200
 
@@ -256,7 +271,7 @@ def compute_baselines(bench_df: pd.DataFrame, precalc: Dict[str, Any], timeline:
     b3_cash_days = 0
 
     for dt, close_p, is_above in zip(dates, nsei_close, above_200):
-        daily_repo = get_india_rf_rate(dt) / 252.0
+        daily_yield = get_liquid_etf_yield(dt) / 252.0
         if is_above:
             if b3_shares == 0.0 and b3_cash > 0:
                 b3_shares = b3_cash / close_p
@@ -268,7 +283,7 @@ def compute_baselines(bench_df: pd.DataFrame, precalc: Dict[str, Any], timeline:
             if b3_shares > 0:
                 b3_cash = b3_shares * close_p
                 b3_shares = 0.0
-            b3_cash *= (1.0 + daily_repo)
+            b3_cash *= (1.0 + daily_yield)
             daily_eq = b3_cash
         b3_eq_list.append(daily_eq)
 
@@ -281,7 +296,7 @@ def compute_baselines(bench_df: pd.DataFrame, precalc: Dict[str, Any], timeline:
     b3_ret = b3_equity.pct_change().dropna()
     b3_sharpe = (b3_ret.mean() / (b3_ret.std() + 1e-9)) * math.sqrt(252)
 
-    # 3. Baseline 2: Equal-Weight Top NSE Equities (Yearly Rebalancing)
+    # 3. Baseline 2: Equal-Weight Nifty 50 (Strict PIT Dated Membership Rebalanced Yearly)
     years_list = sorted(list(set(d.year for d in dates)))
     ew_eq_list = []
     ew_cash = INITIAL_CAPITAL
@@ -293,16 +308,28 @@ def compute_baselines(bench_df: pd.DataFrame, precalc: Dict[str, Any], timeline:
             continue
         first_day = yr_dates[0]
 
-        eligible = [s for s, p_data in precalc.items() if first_day in p_data["date_to_idx"] and p_data["close"][p_data["date_to_idx"][first_day]] > 0]
-        eligible = eligible[:50]
+        # Query PIT manager for active constituents strictly on first_day
+        eligible = [
+            s for s, p_data in precalc.items()
+            if PIT_MANAGER.is_constituent(s, first_day) and first_day in p_data["date_to_idx"] and p_data["close"][p_data["date_to_idx"][first_day]] > 0
+        ]
         alloc_per_stock = ew_cash / len(eligible) if eligible else 0.0
         current_ew = {s: alloc_per_stock / precalc[s]["close"][precalc[s]["date_to_idx"][first_day]] for s in eligible}
         ew_cash = 0.0
 
         for d in yr_dates:
+            # Drop stock immediately on removal from index mid-year
+            active_today = PIT_MANAGER.get_active_constituents(d)
+            for s in list(current_ew.keys()):
+                if PointInTimeConstituentManager.normalize_symbol(s) not in active_today:
+                    shares = current_ew.pop(s)
+                    if d in precalc[s]["date_to_idx"]:
+                        p = precalc[s]["close"][precalc[s]["date_to_idx"][d]]
+                        ew_cash += shares * p
             val = sum(shares * precalc[s]["close"][precalc[s]["date_to_idx"][d]] for s, shares in current_ew.items() if d in precalc[s]["date_to_idx"])
-            ew_eq_list.append(val)
+            ew_eq_list.append(val + ew_cash)
         ew_cash = ew_eq_list[-1]
+        current_ew = {}
 
     ew_equity = pd.Series(ew_eq_list, index=dates[:len(ew_eq_list)])
     ew_final = ew_equity.iloc[-1]
@@ -315,7 +342,7 @@ def compute_baselines(bench_df: pd.DataFrame, precalc: Dict[str, Any], timeline:
 
     return {
         "baseline_1_tri": {
-            "label": "Baseline 1: Buy-and-Hold Nifty 50 TRI",
+            "label": "Baseline 1: Approx Nifty 50 TRI (Price + 1.35% Dividend Reinvestment)",
             "terminal_equity": round(b1_final, 2),
             "total_return_pct": round(b1_tot_ret, 2),
             "cagr_pct": round(b1_cagr, 2),
@@ -323,7 +350,7 @@ def compute_baselines(bench_df: pd.DataFrame, precalc: Dict[str, Any], timeline:
             "sharpe_ratio": round(b1_sharpe, 2)
         },
         "baseline_2_equal_weight": {
-            "label": "Baseline 2: Equal-Weight Nifty 50 (Yearly Rebalance)",
+            "label": "Baseline 2: Equal-Weight Nifty 50 (PIT Dated Membership)",
             "terminal_equity": round(ew_final, 2),
             "total_return_pct": round(ew_tot_ret, 2),
             "cagr_pct": round(ew_cagr, 2),
@@ -331,7 +358,7 @@ def compute_baselines(bench_df: pd.DataFrame, precalc: Dict[str, Any], timeline:
             "sharpe_ratio": round(ew_sharpe, 2)
         },
         "baseline_3_trend_cash": {
-            "label": "Baseline 3: Nifty 50 > 200-SMA, Else Cash (RBI Yield)",
+            "label": "Baseline 3: Nifty 50 > 200-SMA, Else Cash (Liquid ETF Net Yield)",
             "terminal_equity": round(b3_final, 2),
             "total_return_pct": round(b3_tot_ret, 2),
             "cagr_pct": round(b3_cagr, 2),
@@ -421,8 +448,8 @@ def run_simulation(
         # Step A: Daily Cash Compounding
         daily_interest = 0.0
         if cash_mode == "LIQUID_BEES":
-            # Realistic Liquid ETF yield (overnight repo rate ~4.5% - 0.25% TER)
-            daily_interest = cash * (0.0425 / 252.0)
+            # Realistic Liquid ETF yield (overnight repo rate minus ~65 bps TER and friction)
+            daily_interest = cash * (get_liquid_etf_yield(current_date) / 252.0)
         elif cash_mode == "T_BILLS":
             rf_rate = get_india_rf_rate(current_date)
             daily_interest = cash * (rf_rate / 252.0)
@@ -459,12 +486,18 @@ def run_simulation(
 
         # Step C: Holding Exits (Mandatory Long-Only Risk Gate)
         liquidations = []
+        active_today = PIT_MANAGER.get_active_constituents(current_date)
         if not is_bull:
             # Macro Bear Regime: 100% Cash Preservation Gate
             for sym in list(positions.keys()):
                 liquidations.append((sym, "MACRO_BEAR_CASH_GATE"))
         else:
             for sym, shares in list(positions.items()):
+                # Drop stock immediately on removal from Nifty 50 index
+                if strict_pit and PointInTimeConstituentManager.normalize_symbol(sym) not in active_today:
+                    liquidations.append((sym, "NIFTY50_CONSTITUENT_REMOVAL"))
+                    continue
+
                 if sym not in current_prices or sym not in precalc:
                     liquidations.append((sym, "DATA_HALT_LIQUIDATE"))
                     continue
@@ -474,19 +507,24 @@ def run_simulation(
                 plpc = (price - cost) / cost if cost > 0 else 0.0
                 p_sym = precalc[sym]
                 idx = p_sym["date_to_idx"][current_date]
+                peak = peak_prices.get(sym, price)
+                pullback = (price - peak) / peak if peak > 0 else 0.0
 
                 # Hard Stop-Loss (-8% Central CRO Invariant)
                 if plpc <= -0.08:
                     liquidations.append((sym, f"HARD_STOP (-8%) [Loss: {plpc*100:.1f}%]"))
                     continue
 
-                # Two-Tier Profit Protection
-                if plpc >= 0.25:
-                    sma150_val = p_sym["sma150"][idx]
-                    peak = peak_prices.get(sym, price)
-                    pullback = (price - peak) / peak if peak > 0 else 0.0
-                    if (not math.isnan(sma150_val) and price < sma150_val) or pullback <= -0.22:
-                        liquidations.append((sym, f"WINNER_TREND_EXIT [PnL: {plpc*100:+.1f}%]"))
+                # Tighter Institutional Trailing Ladder
+                if plpc >= 0.30:
+                    # Winner >= 30%: Trail stop to -12% from peak
+                    if pullback <= -0.12:
+                        liquidations.append((sym, f"WINNER_TRAIL_30_12 [PnL: {plpc*100:+.1f}%, Pullback: {pullback*100:.1f}%]"))
+                        continue
+                elif plpc >= 0.15:
+                    # Moderate Winner >= 15%: Trail stop to -8% from peak
+                    if pullback <= -0.08:
+                        liquidations.append((sym, f"WINNER_TRAIL_15_8 [PnL: {plpc*100:+.1f}%, Pullback: {pullback*100:.1f}%]"))
                         continue
                 else:
                     sma100_val = p_sym["sma100"][idx]
@@ -529,12 +567,8 @@ def run_simulation(
 
                 # Strict Point-in-Time Constituent Filters (Zero Survivorship/Lookahead)
                 if strict_pit:
-                    if sym in NON_NIFTY_MIDCAPS:
+                    if PointInTimeConstituentManager.normalize_symbol(sym) not in active_today:
                         continue
-                    if sym in NIFTY_ADDITION_DATES:
-                        pit_date = pd.to_datetime(NIFTY_ADDITION_DATES[sym])
-                        if current_date < pit_date:
-                            continue
 
                 if current_date not in p_sym["date_to_idx"]:
                     continue
@@ -641,7 +675,7 @@ def run_simulation(
 
     eq_series = pd.Series(equity_curve)
     final_eq = eq_series.iloc[-1]
-    years = len(timeline) / 252.0
+    years = (pd.to_datetime(timeline[-1]) - pd.to_datetime(timeline[0])).days / 365.25
     cagr = ((final_eq / INITIAL_CAPITAL) ** (1.0 / years) - 1.0) * 100.0
     tot_ret = (final_eq - INITIAL_CAPITAL) / INITIAL_CAPITAL * 100.0
 
@@ -747,7 +781,8 @@ def main():
     parser.add_argument("--unconstrained", action="store_true", help="Include non-Nifty midcaps and pre-inclusion history")
     parser.add_argument("--same-bar-close", action="store_true", help="Fill orders at Day t close instead of realistic Next-Day Open")
     parser.add_argument("--zero-cash", action="store_true", help="Set cash yield to 0.0% (diagnostic mode)")
-    parser.add_argument("--liquid-bees", action="store_true", help="Simulate cash parking in Liquid ETF (~4.25% net yield)")
+    parser.add_argument("--liquid-bees", action="store_true", help="Simulate cash parking in Liquid ETF net yield (Default)")
+    parser.add_argument("--t-bills", action="store_true", help="Simulate cash parking in gross RBI Repo / T-Bill rate")
     parser.add_argument("--vol-parity", action="store_true", help="Enable Clenow Inverse-ATR Volatility Parity sizing")
     parser.add_argument("--open-holdout", action="store_true", help="Open 12-month holdout through 2025-12-30 (Caution: Burns holdout)")
     args = parser.parse_args()
@@ -756,10 +791,10 @@ def main():
     execution_fill = "CLOSE" if args.same_bar_close else "NEXT_OPEN"
     if args.zero_cash:
         cash_mode = "ZERO"
-    elif args.liquid_bees:
-        cash_mode = "LIQUID_BEES"
+    elif getattr(args, "t_bills", False):
+        cash_mode = "T_BILLS"
     else:
-        cash_mode = "T_BILLS"  # Institutional default: RBI Repo / T-Bill rate
+        cash_mode = "LIQUID_BEES"  # Standard institutional default: Liquid ETF net yield
 
     end_date = HOLDOUT_END_DATE if args.open_holdout else DEFAULT_END_DATE
 

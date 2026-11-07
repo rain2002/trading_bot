@@ -83,6 +83,11 @@ def get_repo_rate(dt: pd.Timestamp) -> float:
     return rate
 
 
+def get_liquid_etf_yield(dt: pd.Timestamp) -> float:
+    """Realistic retail Liquid ETF yield net of ~65 bps total expense ratio and cash drag."""
+    return max(0.0, get_repo_rate(dt) - 0.0065)
+
+
 def normalize_index(df: pd.DataFrame) -> pd.DataFrame:
     df.index = [d.tz_localize(None) if hasattr(d, "tz") and d.tz is not None else d for d in df.index]
     return df.sort_index()
@@ -139,7 +144,7 @@ def main():
     # Nifty 50 TRI adds daily dividend yield (~1.35% / 252)
     tri_daily_ret = nsei_daily_ret + (0.0135 / 252.0)
     b1_equity = 1000.0 * (1.0 + tri_daily_ret).cumprod()
-    m_b1 = compute_metrics(b1_equity, "Baseline 1: Buy-and-Hold Nifty 50 TRI")
+    m_b1 = compute_metrics(b1_equity, "Baseline 1: Approx Nifty 50 TRI (Price + 1.35% Dividend Reinvestment)")
 
     # Pure Price Return (^NSEI)
     pr_equity = 1000.0 * (1.0 + nsei_daily_ret).cumprod()
@@ -157,7 +162,7 @@ def main():
     b3_days_in_cash = 0
 
     for dt, close_p, is_above in zip(dates, nsei_close, above_200):
-        daily_repo = get_repo_rate(dt) / 252.0
+        daily_yield = get_liquid_etf_yield(dt) / 252.0
         if is_above:
             # Invested in Nifty TRI
             if b3_shares == 0.0 and b3_cash > 0:
@@ -167,18 +172,18 @@ def main():
             b3_shares *= (1.0 + 0.0135 / 252.0)
             daily_eq = b3_shares * close_p
         else:
-            # Sells to cash earning RBI repo rate
+            # Sells to cash earning Liquid ETF net yield
             b3_days_in_cash += 1
             if b3_shares > 0:
                 b3_cash = b3_shares * close_p
                 b3_shares = 0.0
-            b3_cash *= (1.0 + daily_repo)
+            b3_cash *= (1.0 + daily_yield)
             daily_eq = b3_cash
 
         b3_equity_list.append(daily_eq)
 
     b3_equity = pd.Series(b3_equity_list, index=dates)
-    m_b3 = compute_metrics(b3_equity, "Baseline 3: Nifty 50 > 200-SMA, Else Cash (RBI Yield)")
+    m_b3 = compute_metrics(b3_equity, "Baseline 3: Nifty 50 > 200-SMA, Else Cash (Liquid ETF Net Yield)")
 
     # Also calculate Baseline 3 with 0% cash yield to show cash yield impact!
     b3_zero_cash = 1000.0
@@ -208,7 +213,7 @@ def main():
     stock_files = glob.glob(os.path.join(CACHE_DIR, "*-NS.parquet"))
     stock_dfs = {}
     for f in stock_files:
-        sym = os.path.basename(f).replace("-NS.parquet", "")
+        sym = os.path.basename(f).replace("-NS.parquet", ".NS")
         try:
             df = normalize_index(pd.read_parquet(f))
             if len(df) > 200:
@@ -218,7 +223,12 @@ def main():
 
     print(f"Loaded {len(stock_dfs)} stock series for Equal-Weight baseline evaluation.")
 
-    # Equal-weight yearly rebalancing simulation
+    from trading_system.app.data.constituent_manager import PointInTimeConstituentManager
+    nifty_changes_csv = os.path.join(PROJECT_ROOT, "trading_system", "data", "nifty50_historical_components_changes.csv")
+    nifty_start_end_csv = os.path.join(PROJECT_ROOT, "trading_system", "data", "nifty50_ticker_start_end.csv")
+    pit_mgr = PointInTimeConstituentManager(changes_csv_path=nifty_changes_csv, start_end_csv_path=nifty_start_end_csv)
+
+    # Equal-weight yearly rebalancing simulation with strict PIT dated constituents
     years_list = sorted(list(set(d.year for d in dates)))
     ew_equity_list = []
     current_portfolio = {}
@@ -230,25 +240,35 @@ def main():
             continue
         first_day = yr_dates[0]
 
-        # Select stocks that have valid price on first_day
-        eligible = [s for s, s_series in stock_dfs.items() if first_day in s_series.index and not math.isnan(s_series.loc[first_day]) and s_series.loc[first_day] > 0]
-        # Limit to top 50 by alphabetical/data presence as representative Nifty 50
-        eligible = eligible[:50]
+        # Select stocks that were actual Nifty 50 members on first_day
+        eligible = [
+            s for s, s_series in stock_dfs.items()
+            if pit_mgr.is_constituent(s, first_day) and first_day in s_series.index and not math.isnan(s_series.loc[first_day]) and s_series.loc[first_day] > 0
+        ]
 
-        # Rebalance: liquidate previous, buy equal dollar of each eligible
+        # Rebalance: buy equal dollar of each eligible
         alloc_per_stock = ew_cash / len(eligible) if eligible else 0.0
         current_portfolio = {s: alloc_per_stock / stock_dfs[s].loc[first_day] for s in eligible}
         ew_cash = 0.0
 
         for d in yr_dates:
+            # Liquidate stocks removed from index mid-year
+            active_today = pit_mgr.get_active_constituents(d)
+            for s in list(current_portfolio.keys()):
+                if PointInTimeConstituentManager.normalize_symbol(s) not in active_today:
+                    shares = current_portfolio.pop(s)
+                    if d in stock_dfs[s].index:
+                        ew_cash += shares * stock_dfs[s].loc[d]
+
             daily_val = sum(shares * stock_dfs[s].loc[d] for s, shares in current_portfolio.items() if d in stock_dfs[s].index and not math.isnan(stock_dfs[s].loc[d]))
-            ew_equity_list.append(daily_val)
+            ew_equity_list.append(daily_val + ew_cash)
 
         # End of year value becomes cash for next year
         ew_cash = ew_equity_list[-1]
+        current_portfolio = {}
 
     ew_equity = pd.Series(ew_equity_list, index=dates[:len(ew_equity_list)])
-    m_b2 = compute_metrics(ew_equity, "Baseline 2: Equal-Weight Top NSE Equities (Yearly Rebalance)")
+    m_b2 = compute_metrics(ew_equity, "Baseline 2: Equal-Weight Nifty 50 (PIT Dated Membership)")
 
     # -------------------------------------------------------------------------
     # Diagnostic on Momentum Strategy: Days in cash %, Exposure, Friction
@@ -278,8 +298,8 @@ def main():
         precalc=precalc,
         timeline=sub_timeline,
         slippage_bps=5.0,
-        cash_mode="T_BILLS",
-        label="Momentum Strategy (RBI Repo Cash Yield)"
+        cash_mode="LIQUID_BEES",
+        label="Momentum Strategy (Liquid ETF Net Yield)"
     )
 
     # Parse equity curve telemetry for strat_zero
@@ -296,7 +316,7 @@ def main():
     m_strat_zero = compute_metrics(zero_eq_series, "Current Momentum Strategy (0% Cash Yield)")
 
     rf_eq_series = strat_rf["equity_series"]
-    m_strat_rf = compute_metrics(rf_eq_series, "Current Momentum Strategy (RBI Repo Yield)")
+    m_strat_rf = compute_metrics(rf_eq_series, "Current Momentum Strategy (Liquid ETF Net Yield)")
 
     # -------------------------------------------------------------------------
     # PRINT AUDIT RESULTS & DIAGNOSTIC TABLE
@@ -321,7 +341,7 @@ def main():
     print(f"4. Total Trades Executed               : {trades_count} trades ({trades_per_year:.1f} trades/year)")
     print(f"5. Total Dividends Collected           : ${strat_zero['total_dividends']:.2f}")
     print(f"6. Total Interest (0% mode)            : ${strat_zero['total_interest']:.2f} (Idle cash earned ZERO)")
-    print(f"7. Total Interest (RBI Repo mode)      : ${strat_rf['total_interest']:.2f}")
+    print(f"7. Total Interest (Liquid ETF mode)     : ${strat_rf['total_interest']:.2f}")
     print(f"8. CAGR Impact of Cash Yield           : +{m_strat_rf['cagr_pct'] - m_strat_zero['cagr_pct']:.2f}% CAGR purely from fixing 0% cash yield")
     print("=" * 80 + "\n")
 

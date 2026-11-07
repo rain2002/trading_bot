@@ -19,3 +19,5 @@ date,commit_hash,script,universe,kelly_fraction,lookback_days,cagr_pct,max_drawd
 2026-11-06 02:13:18,2680849,backtest_multi_pod.py,US_SP500,0.4,90,11.91,-34.11,0.69,False,US S&P 500 Stressed Run (7.5 bps) verified from commit 2680849 | IN_SAMPLE
 2026-11-07 02:39:49,1044197,backtest_nse50.py,NSE_NIFTY50,0.4,90,15.34,-34.27,0.9,False,NSE Nifty 50 Normal Run (5.0 bps) | IN_SAMPLE
 2026-11-07 02:39:49,1044197,backtest_nse50.py,NSE_NIFTY50,0.4,90,15.16,-34.59,0.89,False,NSE Nifty 50 Stressed Run (7.5 bps) [Gate A] | IN_SAMPLE
+2026-11-07 03:14:21,137a087,backtest_nse50.py,NSE_NIFTY50,0.4,90,7.44,-25.26,0.58,False,NSE Nifty 50 Normal Run (5.0 bps) | IN_SAMPLE
+2026-11-07 03:14:21,137a087,backtest_nse50.py,NSE_NIFTY50,0.4,90,7.23,-25.58,0.57,False,NSE Nifty 50 Stressed Run (7.5 bps) [Gate A] | IN_SAMPLE
