@@ -23,6 +23,9 @@ import os
 import math
 import json
 import logging
+import hmac
+import hashlib
+import re
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Dict, Any, List, Optional, Tuple
@@ -31,6 +34,27 @@ from trading_system.app.common.logger import get_logger
 from trading_system.app.validation.trial_logger import get_trial_count
 
 logger = get_logger("GateEvaluator")
+
+GATE_A_CERTIFICATION_SALT = b"ANTIGRAVITY_FIDUCIARY_GATE_A_AUTHORITY_SALT_V2"
+
+
+def _canonical_payload(
+    variant_id: str,
+    protocol_hash: str,
+    cagr_pct: float,
+    max_drawdown_pct: float,
+    total_trades: int,
+    is_holdout_opened: bool,
+    timestamp: str
+) -> str:
+    """Builds deterministic string representation of certified Gate A metrics for HMAC signing."""
+    return f"{variant_id.strip()}|{protocol_hash.strip()}|{cagr_pct:.4f}|{max_drawdown_pct:.4f}|{int(total_trades)}|{bool(is_holdout_opened)}|{timestamp.strip()}"
+
+
+def _generate_signature(payload_str: str) -> str:
+    """Computes HMAC-SHA256 signature for canonical Gate A certification payload."""
+    return hmac.new(GATE_A_CERTIFICATION_SALT, payload_str.encode("utf-8"), hashlib.sha256).hexdigest().upper()
+
 
 
 @dataclass
@@ -216,42 +240,181 @@ class GateEvaluator:
         )
 
     @classmethod
+    def certify_gate_a_result(
+        cls,
+        variant_id: str,
+        protocol_hash: str,
+        cagr_pct: float,
+        max_drawdown_pct: float,
+        total_trades: int,
+        is_holdout_opened: bool,
+        cert_dir: Optional[str] = None,
+        parameter_stability: float = 1.0,
+        monte_carlo_p5_dd: float = -0.20,
+        deflated_sharpe: float = 1.0,
+        timestamp: Optional[str] = None
+    ) -> Optional[str]:
+        """
+        Signs and writes an authenticated Gate A certification record.
+        Refuses to sign if any Gate A hurdle is breached (CAGR < 15%, MaxDD < -25%, Trades < 100, or Holdout Opened).
+        """
+        if cagr_pct < (cls.GATE_A_MIN_CAGR * 100):
+            logger.warning(f"Cannot certify Gate A for {variant_id}: CAGR {cagr_pct:.2f}% < {cls.GATE_A_MIN_CAGR * 100}%")
+            return None
+        if max_drawdown_pct < (cls.GATE_A_MAX_DRAWDOWN * 100):
+            logger.warning(f"Cannot certify Gate A for {variant_id}: Max Drawdown {max_drawdown_pct:.2f}% < {cls.GATE_A_MAX_DRAWDOWN * 100}%")
+            return None
+        if total_trades < cls.GATE_A_MIN_TRADES:
+            logger.warning(f"Cannot certify Gate A for {variant_id}: Total Trades {total_trades} < {cls.GATE_A_MIN_TRADES}")
+            return None
+        if is_holdout_opened is True:
+            logger.warning(f"Cannot certify Gate A for {variant_id}: Holdout was unblinded/opened!")
+            return None
+
+        if not timestamp:
+            timestamp = datetime.now(timezone.utc).isoformat()
+
+        payload_str = _canonical_payload(
+            variant_id=variant_id,
+            protocol_hash=protocol_hash,
+            cagr_pct=cagr_pct,
+            max_drawdown_pct=max_drawdown_pct,
+            total_trades=total_trades,
+            is_holdout_opened=is_holdout_opened,
+            timestamp=timestamp
+        )
+        sig = _generate_signature(payload_str)
+
+        cert_data = {
+            "variant_id": variant_id,
+            "protocol_hash": protocol_hash,
+            "cagr_pct": round(float(cagr_pct), 4),
+            "max_drawdown_pct": round(float(max_drawdown_pct), 4),
+            "total_trades": int(total_trades),
+            "parameter_stability": round(float(parameter_stability), 4),
+            "monte_carlo_p5_dd": round(float(monte_carlo_p5_dd), 4),
+            "deflated_sharpe": round(float(deflated_sharpe), 4),
+            "is_holdout_opened": bool(is_holdout_opened),
+            "certified_timestamp": timestamp,
+            "hmac_signature": sig
+        }
+
+        if cert_dir is None:
+            cert_dir = os.path.join(
+                os.path.dirname(__file__), "..", "..", "data", "gate_a_certifications"
+            )
+        os.makedirs(cert_dir, exist_ok=True)
+        slug = re.sub(r"[^a-zA-Z0-9_-]", "_", variant_id.lower().strip())
+        out_path = os.path.join(cert_dir, f"{slug}_gate_a_certified.json")
+
+        with open(out_path, "w", encoding="utf-8") as f:
+            json.dump(cert_data, f, indent=2)
+
+        logger.info(f"Gate A signed certification created for {variant_id} at {out_path}")
+        return out_path
+
+    @classmethod
     def verify_gate_a_clearance_for_gate_b(
         cls,
         variant_id: str,
         protocol_hash: Optional[str] = None,
-        trial_log_path: Optional[str] = None
+        trial_log_path: Optional[str] = None,
+        cert_file_path: Optional[str] = None,
+        cert_dir: Optional[str] = None
     ) -> bool:
         """
         CODE GUARD: Fiduciary gate preventing Gate B incubation from starting
-        or being certified unless an audited Gate A PASS record exists in trial_log.csv
-        matching the specific variant_id and cryptographically locked protocol hash.
+        or being certified unless an authenticated, cryptographically signed Gate A
+        certification file exists on disk, written solely by GateEvaluator.certify_gate_a_result.
+
+        Refuses plain-text notes in trial_log.csv or forged strings.
+        Validates HMAC signature and verifies metrics:
+          - CAGR >= 15.0%
+          - Max DD >= -25.0% (<= 25% drawdown magnitude)
+          - Trades >= 100
+          - is_holdout_opened is False
         """
-        if trial_log_path is None:
-            trial_log_path = os.path.join(
-                os.path.dirname(__file__), "..", "..", "data", "trial_log.csv"
+        if cert_file_path is None:
+            if cert_dir is None:
+                cert_dir = os.path.join(
+                    os.path.dirname(__file__), "..", "..", "data", "gate_a_certifications"
+                )
+            slug = re.sub(r"[^a-zA-Z0-9_-]", "_", variant_id.lower().strip())
+            cert_file_path = os.path.join(cert_dir, f"{slug}_gate_a_certified.json")
+
+        if not os.path.exists(cert_file_path):
+            logger.warning(
+                f"Gate A clearance refused for '{variant_id}': No signed certification found at {cert_file_path}."
             )
-        if not os.path.exists(trial_log_path):
-            logger.warning(f"Trial log not found at {trial_log_path}; Gate A clearance denied.")
             return False
 
         try:
-            import pandas as pd
-            df = pd.read_csv(trial_log_path)
-            if "notes" not in df.columns:
+            with open(cert_file_path, "r", encoding="utf-8") as f:
+                cert = json.load(f)
+
+            # 1. Verify required cryptographic fields
+            required_fields = [
+                "variant_id", "protocol_hash", "cagr_pct", "max_drawdown_pct",
+                "total_trades", "is_holdout_opened", "certified_timestamp", "hmac_signature"
+            ]
+            for field in required_fields:
+                if field not in cert:
+                    logger.critical(f"Gate A cert corrupt: missing field '{field}'. Refusing Gate B.")
+                    return False
+
+            # 2. Verify HMAC signature integrity
+            expected_payload = _canonical_payload(
+                variant_id=cert["variant_id"],
+                protocol_hash=cert["protocol_hash"],
+                cagr_pct=cert["cagr_pct"],
+                max_drawdown_pct=cert["max_drawdown_pct"],
+                total_trades=cert["total_trades"],
+                is_holdout_opened=cert["is_holdout_opened"],
+                timestamp=cert["certified_timestamp"]
+            )
+            expected_sig = _generate_signature(expected_payload)
+            if not hmac.compare_digest(cert["hmac_signature"], expected_sig):
+                logger.critical(f"GATE A CERTIFICATE TAMPERING DETECTED for '{variant_id}'! Signature mismatch. Refusing Gate B.")
                 return False
 
-            # Check for explicit passed record matching variant
-            passed_rows = df[
-                df["notes"].str.contains(r"Gate A.*PASS", case=False, na=False) &
-                df["notes"].str.contains(variant_id, case=False, na=False)
-            ]
-            if protocol_hash:
-                passed_rows = passed_rows[passed_rows["notes"].str.contains(protocol_hash[:8], na=False)]
+            # 3. Match Variant ID
+            if cert["variant_id"].strip().lower() != variant_id.strip().lower():
+                logger.warning(f"Variant ID mismatch: expected '{variant_id}', cert has '{cert['variant_id']}'")
+                return False
 
-            return len(passed_rows) > 0
+            # 4. Match Protocol Hash (if provided)
+            if protocol_hash:
+                p_clean = protocol_hash.strip().upper()
+                cert_p = cert["protocol_hash"].strip().upper()
+                if not (cert_p.startswith(p_clean[:8]) or p_clean.startswith(cert_p[:8])):
+                    logger.warning(f"Protocol hash mismatch: expected prefix {p_clean[:8]}, cert has {cert_p[:8]}")
+                    return False
+
+            # 5. Invariant: Holdout must remain strictly unblinded
+            if cert["is_holdout_opened"] is True:
+                logger.critical(f"Fiduciary violation: Holdout for '{variant_id}' was unblinded. Disqualified from Gate B.")
+                return False
+
+            # 6. Invariant: Max drawdown cutoff
+            if cert["max_drawdown_pct"] < (cls.GATE_A_MAX_DRAWDOWN * 100):
+                logger.warning(f"Gate A max drawdown failure: {cert['max_drawdown_pct']}% < {cls.GATE_A_MAX_DRAWDOWN * 100}%. Refusing Gate B.")
+                return False
+
+            # 7. Invariant: Minimum CAGR
+            if cert["cagr_pct"] < (cls.GATE_A_MIN_CAGR * 100):
+                logger.warning(f"Gate A CAGR failure: {cert['cagr_pct']}% < {cls.GATE_A_MIN_CAGR * 100}%. Refusing Gate B.")
+                return False
+
+            # 8. Invariant: Minimum Trade Sample Size
+            if cert["total_trades"] < cls.GATE_A_MIN_TRADES:
+                logger.warning(f"Gate A sample size failure: {cert['total_trades']} < {cls.GATE_A_MIN_TRADES}. Refusing Gate B.")
+                return False
+
+            logger.info(f"AUTHENTICATED Gate A clearance confirmed for '{variant_id}'. Gate B authorized.")
+            return True
+
         except Exception as e:
-            logger.error(f"Error checking Gate A clearance for Gate B: {e}")
+            logger.error(f"Error validating Gate A certification for Gate B: {e}")
             return False
 
     @classmethod

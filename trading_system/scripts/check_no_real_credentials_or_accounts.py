@@ -111,8 +111,14 @@ def scan_file(file_path: str) -> List[Tuple[str, int, str]]:
 
 def run_check(target_paths: List[str] = None) -> int:
     """Scans files and exits with 1 if violations found, 0 otherwise."""
+    if target_paths:
+        target_paths = [p for p in target_paths if not p.startswith("--")]
     if not target_paths:
-        target_paths = [os.path.join(PROJECT_ROOT, "trading_system"), os.path.join(PROJECT_ROOT, ".github")]
+        target_paths = [
+            os.path.join(PROJECT_ROOT, "trading_system"),
+            os.path.join(PROJECT_ROOT, ".github"),
+            os.path.join(PROJECT_ROOT, "docs")
+        ]
 
     all_violations = []
     files_scanned = 0

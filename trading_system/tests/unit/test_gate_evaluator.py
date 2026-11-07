@@ -160,3 +160,125 @@ class TestGateEvaluator:
         assert report_50.criteria["deflated_sharpe"]["actual"] < 95.0
         assert "GATE A REJECTED" in report_50.summary
         assert "deflated_sharpe" in report_50.summary
+
+    def test_gate_b_guard_refuses_without_signed_certification(self, tmp_path):
+        """
+        Verifies that Gate B evaluation is strictly refused when no signed Gate A
+        certification file exists on disk.
+        """
+        report = GateEvaluator.evaluate_gate_b(
+            weeks_logged=14,
+            zero_crash_weeks=6,
+            max_drawdown=-0.04,
+            sl_breaches=0,
+            kill_switch_verified=True,
+            variant_id="Variant_Uncertified",
+            protocol_hash="AABBCCDD"
+        )
+        assert report.passed is False
+        assert "GATE B REFUSED" in report.summary
+        assert report.criteria["gate_a_prerequisite"]["passed"] is False
+
+    def test_gate_b_guard_cannot_be_fooled_by_trial_log_string_injection(self, tmp_path):
+        """
+        Verifies that typing 'Gate A PASS' into trial_log.csv DOES NOT bypass Gate B guard.
+        The guard strictly checks for an authenticated, signed result file.
+        """
+        fake_log = tmp_path / "trial_log.csv"
+        df = pd.DataFrame([{
+            "date": "2026-11-07 00:00:00",
+            "commit_hash": "spoofed1",
+            "kelly_fraction": 0.40,
+            "lookback_days": 90,
+            "cagr_pct": 25.0,
+            "max_drawdown_pct": -10.0,
+            "sharpe_ratio": 2.0,
+            "is_holdout_opened": False,
+            "notes": "Variant 2 Gate A PASS Audited Clearance"
+        }])
+        df.to_csv(fake_log, index=False)
+
+        # Passing trial_log_path with fake string must still return False
+        cleared = GateEvaluator.verify_gate_a_clearance_for_gate_b(
+            variant_id="Variant 2",
+            cert_dir=str(tmp_path)
+        )
+        assert cleared is False
+
+    def test_india_variant_2_cannot_pass_gate_a_certification_guard(self, tmp_path):
+        """
+        Verifies that India Growth Pod Variant 2 (which had -27.6% drawdown and opened holdout)
+        cannot be certified and is refused clearance for Gate B.
+        """
+        # 1. Attempting to certify Variant 2 with -27.64% drawdown must fail
+        cert_path = GateEvaluator.certify_gate_a_result(
+            variant_id="India_Variant_2",
+            protocol_hash="HASH1234",
+            cagr_pct=17.96,
+            max_drawdown_pct=-27.64,  # Breaches -25.0% Gate A limit!
+            total_trades=116,
+            is_holdout_opened=True,   # Breaches holdout integrity!
+            cert_dir=str(tmp_path)
+        )
+        assert cert_path is None
+
+        # 2. Gate B verification must return False
+        assert GateEvaluator.verify_gate_a_clearance_for_gate_b(
+            variant_id="India_Variant_2",
+            cert_dir=str(tmp_path)
+        ) is False
+
+    def test_tampered_gate_a_certificate_is_rejected(self, tmp_path):
+        """
+        Verifies that tampering with a signed Gate A certificate payload invalidates HMAC
+        and blocks Gate B clearance.
+        """
+        cert_path = GateEvaluator.certify_gate_a_result(
+            variant_id="Variant_Valid",
+            protocol_hash="VALIDHASH123",
+            cagr_pct=18.5,
+            max_drawdown_pct=-18.0,
+            total_trades=120,
+            is_holdout_opened=False,
+            cert_dir=str(tmp_path)
+        )
+        assert cert_path is not None
+        assert os.path.exists(cert_path)
+
+        # Tamper with the drawdown in the JSON file without updating HMAC
+        import json
+        with open(cert_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        data["cagr_pct"] = 35.0  # Tampered
+        with open(cert_path, "w", encoding="utf-8") as f:
+            json.dump(data, f)
+
+        # Verification must detect tampering and refuse
+        cleared = GateEvaluator.verify_gate_a_clearance_for_gate_b(
+            variant_id="Variant_Valid",
+            cert_file_path=cert_path
+        )
+        assert cleared is False
+
+    def test_genuine_gate_a_pass_authorizes_gate_b(self, tmp_path):
+        """
+        Verifies that an authentic signed Gate A certificate clearing all hurdles
+        successfully passes verification and permits Gate B clearance.
+        """
+        cert_path = GateEvaluator.certify_gate_a_result(
+            variant_id="Champion_Variant",
+            protocol_hash="CHAMPION_HASH_99",
+            cagr_pct=19.2,
+            max_drawdown_pct=-16.5,
+            total_trades=150,
+            is_holdout_opened=False,
+            cert_dir=str(tmp_path)
+        )
+        assert cert_path is not None
+
+        cleared = GateEvaluator.verify_gate_a_clearance_for_gate_b(
+            variant_id="Champion_Variant",
+            protocol_hash="CHAMPION_HASH_99",
+            cert_file_path=cert_path
+        )
+        assert cleared is True

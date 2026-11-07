@@ -27,7 +27,7 @@ class Settings(BaseSettings):
     INDIA_API_KEY: Optional[str] = Field(default="placeholder_groww_key", description="Groww / Dhan API Key")
     INDIA_API_SECRET: Optional[str] = Field(default="placeholder_groww_secret", description="Groww / Dhan API Secret")
     INDIA_TOTP_SECRET: Optional[str] = Field(default="placeholder_totp_secret", description="TOTP Secret for automated 2FA login")
-    INDIA_INITIAL_CAPITAL: float = Field(default=1000000.0, description="Initial INR Capital for Indian Portfolio (₹10 Lakhs)")
+    INDIA_INITIAL_CAPITAL: float = Field(default=80000.0, description="Initial INR Capital for Indian Portfolio (₹80,000 Gate A scale)")
     
     # Risk Limits (Global Baseline)
     MAX_PORTFOLIO_EXPOSURE: float = Field(default=1.0, description="Max gross exposure")

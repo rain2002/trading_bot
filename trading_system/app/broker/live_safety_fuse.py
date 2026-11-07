@@ -8,6 +8,14 @@ secondary confirmation key file exists on disk containing the exact authorized
 cryptographic passphrase.
 
 A single environment variable typo or leaked secret can NEVER trigger real live orders.
+
+Security Threat Model & Operational Scope:
+------------------------------------------
+Because `EXPECTED_FUSE_PHRASE` is defined in plain text within this source code file,
+this safety fuse is designed to prevent OPERATIONAL ACCIDENTS, unintended live deployments,
+CI/CD misconfigurations, and automated test runs from routing live capital. It does NOT
+prevent deliberate operator misuse or malicious actors with write access to the repository
+and filesystem.
 """
 
 import os

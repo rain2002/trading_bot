@@ -683,15 +683,15 @@ if is_india_mode:
     st.sidebar.markdown("""
     <div style='background:rgba(255, 153, 0, 0.09); border:1px solid rgba(255, 153, 0, 0.35); border-radius:8px; padding:10px 12px; margin-bottom:14px; font-family:"DM Mono",monospace;'>
         <div style='color:#FFB800; font-weight:700; font-size:0.75rem; letter-spacing:0.05em;'>🇮🇳 INDIA GROWTH POD // VARIANT 2</div>
-        <div style='color:#A1A1AA; font-size:0.68rem; margin-top:2px;'>116 Growth Leaders • 17.96% Post-Tax CAGR • 20.50x Wealth Multiple</div>
-        <div style='color:#00D09C; font-size:0.66rem; margin-top:3px;'>🛡️ Gate B 13-Week Forward Paper Active (₹10L)</div>
+        <div style='color:#A1A1AA; font-size:0.68rem; margin-top:2px;'>116 Growth Leaders • 17.96% Post-Tax CAGR • 17.3Y Horizon</div>
+        <div style='color:#F87171; font-size:0.66rem; margin-top:3px;'>⚠️ Exploratory Shadow Tracking (Failed Gate A on Drawdown: -27.6% vs -25.0% Limit | ₹80K Scale)</div>
     </div>
     """, unsafe_allow_html=True)
 
     india_key = settings.INDIA_API_KEY
     india_sec = settings.INDIA_API_SECRET
     india_totp = settings.INDIA_TOTP_SECRET
-    india_cap = getattr(settings, "INDIA_INITIAL_CAPITAL", 1000000.0)
+    india_cap = getattr(settings, "INDIA_INITIAL_CAPITAL", 80000.0)
 
     data_dir = os.path.join(os.path.dirname(__file__), "data")
     india_state_file = os.path.join(data_dir, "paper_state_india.json")

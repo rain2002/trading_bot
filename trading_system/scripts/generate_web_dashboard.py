@@ -51,8 +51,8 @@ def generate_dashboard_html() -> str:
     us_trades = load_csv(US_TRADES_CSV)
     eq_log = load_csv(EQUITY_LOG_CSV)
 
-    in_cash = in_state.get("cash", 1000000.0)
-    in_initial = in_state.get("initial_capital", 1000000.0)
+    in_cash = in_state.get("cash", 80000.0)
+    in_initial = in_state.get("initial_capital", 80000.0)
     in_pos = in_state.get("positions", {})
     in_pending_buys = in_state.get("pending_buys", [])
     in_pending_sells = in_state.get("pending_sells", [])
@@ -392,7 +392,7 @@ def generate_dashboard_html() -> str:
             <div class="logo-badge">AGY-QUANT</div>
             <div>
                 <h1>Autonomous Dual-Pod Trading Desk</h1>
-                <p style="font-size: 0.82rem; color: var(--text-muted);">Gate B Forward Paper Tracking • Pod 1: India Growth Equities (NSE 100) & Pod 2: US Multi-Sector (NASDAQ/NYSE 100)</p>
+                <p style="font-size: 0.82rem; color: var(--text-muted);">Telemetry Desk • Pod 1: India Growth Equities (Exploratory Shadow Tracking) & Pod 2: US Multi-Sector (Forward Paper)</p>
             </div>
         </div>
         <div class="telemetry">
@@ -406,22 +406,23 @@ def generate_dashboard_html() -> str:
             <div style="display: flex; align-items: center; gap: 12px;">
                 <span style="background: #2563EB; color: #FFF; font-weight: 700; font-size: 0.75rem; padding: 4px 10px; border-radius: 6px; letter-spacing: 0.5px; text-transform: uppercase;">🇮🇳 POD 1: INDIA GROWTH EQUITIES</span>
                 <span style="font-size: 0.90rem; color: #F3F4F6; font-weight: 600;">
-                    Variant 2: Asymmetric Multi-Bagger Momentum • Gate B 13-Week Forward Paper Trading Active
+                    Variant 2: Asymmetric Multi-Bagger Momentum • Exploratory Shadow Tracking (Failed Gate A on Drawdown: -27.6% vs -25.0% Limit)
                 </span>
             </div>
             <div style="display: flex; gap: 8px; align-items: center;">
-                <span class="badge badge-success">AUDITED GATE A PASS</span>
+                <span class="badge" style="background: rgba(239, 68, 68, 0.2); color: #F87171; border: 1px solid rgba(239, 68, 68, 0.4);">FAILED GATE A (MAX DD -27.6%)</span>
+                <span class="badge" style="background: rgba(245, 158, 11, 0.2); color: #FBBF24; border: 1px solid rgba(245, 158, 11, 0.4);">EXPLORATORY SHADOW</span>
                 <span class="badge badge-buy">17.96% POST-TAX CAGR</span>
                 <span class="badge badge-defense">BEAR DEFENSE SAFEGUARD</span>
             </div>
         </div>
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-top: 14px; padding-top: 12px; border-top: 1px solid rgba(255, 255, 255, 0.08); font-size: 0.80rem;">
-            <div><span style="color: var(--text-muted);">Audited Horizon:</span> <b style="color: #F3F4F6;">18.3 Years (2006–2024)</b></div>
+            <div><span style="color: var(--text-muted);">Horizon:</span> <b style="color: #F3F4F6;">17.3 Years (2007–2024) [Exploratory]</b></div>
             <div><span style="color: var(--text-muted);">Wealth Multiplier:</span> <b style="color: #34D399;">20.50x (vs Nifty 6.53x)</b></div>
-            <div><span style="color: var(--text-muted);">True Max Drawdown:</span> <b style="color: #60A5FA;">-27.64% (PASS &lt; -30%)</b></div>
+            <div><span style="color: var(--text-muted);">True Max Drawdown:</span> <b style="color: #F87171;">-27.64% (FAIL: Exceeds -25.0% Limit)</b></div>
             <div><span style="color: var(--text-muted);">Calmar Ratio:</span> <b style="color: #FBBF24;">0.65 (+261% vs Nifty 0.18)</b></div>
-            <div><span style="color: var(--text-muted);">Execution Realism:</span> <b style="color: #A1A1AA;">Next-Day 09:15 Open Fills</b></div>
-            <div><span style="color: var(--text-muted);">Statutory Friction:</span> <b style="color: #A1A1AA;">STCG/LTCG + ₹14.75 Dhan DP</b></div>
+            <div><span style="color: var(--text-muted);">Holdout Integrity:</span> <b style="color: #F87171;">2025 Unblinded (Burned)</b></div>
+            <div><span style="color: var(--text-muted);">Universe Source:</span> <b style="color: #FBBF24;">Hand-Picked Current Names (Exploratory)</b></div>
         </div>
     </div>
 

@@ -94,7 +94,18 @@
       "peak_price": 68.59
     }
   },
-  "pending_buys": [],
+  "pending_buys": [
+    {
+      "sym": "TEAM",
+      "target_alloc": 9778.029018066407,
+      "score": 8.48898832990098
+    },
+    {
+      "sym": "CRWD",
+      "target_alloc": 3399.8717819335925,
+      "score": 1.9895276422901031
+    }
+  ],
   "pending_sells": [
     {
       "sym": "BKNG",
@@ -159,6 +170,6 @@
   "in_tier4_defense": false,
   "cooling_off": 0,
   "recovery_streak": 0,
-  "last_updated": "2026-11-07T16:34:24.682484+00:00",
+  "last_updated": "2026-11-07T20:33:16.248408+00:00",
   "initial_capital": 97780.11
 }
