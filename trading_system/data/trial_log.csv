@@ -28,3 +28,9 @@ date,commit_hash,script,universe,kelly_fraction,lookback_days,cagr_pct,max_drawd
 2026-11-07 03:14:21,137a087,backtest_nse50.py,NSE_NIFTY50,0.4,90,7.23,-25.58,0.57,False,NSE Nifty 50 Stressed Run (7.5 bps) [Gate A] | IN_SAMPLE
 2026-11-07 03:39:29,9cc7f03,backtest_nse50.py,NSE_NIFTY50,0.4,90,7.26,-25.28,0.57,False,NSE Nifty 50 Normal Run (5.0 bps) | IN_SAMPLE
 2026-11-07 03:39:30,9cc7f03,backtest_nse50.py,NSE_NIFTY50,0.4,90,7.05,-25.59,0.56,False,NSE Nifty 50 Stressed Run (7.5 bps) [Gate A] | IN_SAMPLE
+2026-11-07 04:37:06,75b8583,backtest_nse50.py,NSE_NIFTY50,0.4,90,23.53,-21.42,0.88,False,Pre-Registered Variant 1 (Wide Stops) Normal | IN_SAMPLE
+2026-11-07 04:37:06,75b8583,backtest_nse50.py,NSE_NIFTY50,0.4,90,23.42,-21.55,0.87,False,Pre-Registered Variant 1 (Wide Stops) Stressed [Gate A] | IN_SAMPLE
+2026-11-07 04:37:16,75b8583,backtest_nse50.py,NSE_NIFTY50,0.4,90,15.23,-20.48,0.67,False,Pre-Registered Variant 2 (Medium Stops) Normal | IN_SAMPLE
+2026-11-07 04:37:16,75b8583,backtest_nse50.py,NSE_NIFTY50,0.4,90,15.06,-20.58,0.67,False,Pre-Registered Variant 2 (Medium Stops) Stressed [Gate A] | IN_SAMPLE
+2026-11-07 04:37:26,75b8583,backtest_nse50.py,NSE_NIFTY50,0.4,90,15.17,-19.4,0.83,False,Pre-Registered Variant 3 (Tight Stops) Normal | IN_SAMPLE
+2026-11-07 04:37:26,75b8583,backtest_nse50.py,NSE_NIFTY50,0.4,90,14.54,-19.11,0.81,False,Pre-Registered Variant 3 (Tight Stops) Stressed [Gate A] | IN_SAMPLE
