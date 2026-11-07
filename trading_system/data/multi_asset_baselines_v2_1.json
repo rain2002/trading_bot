@@ -1,0 +1,138 @@
+{
+  "baseline_1_static_equal_weight": {
+    "label": "Baseline 1: Static 1/N Equal-Weight",
+    "terminal_equity": 788899.7,
+    "cagr_pct": 14.17,
+    "max_drawdown_pct": -45.2,
+    "sharpe_ratio": 0.98,
+    "calmar_ratio": 0.31
+  },
+  "baseline_2_standalone_buy_and_hold": {
+    "NIFTY50": {
+      "label": "Buy & Hold: NIFTY50",
+      "cagr_pct": 8.92,
+      "max_drawdown_pct": -59.86,
+      "sharpe_ratio": 0.56,
+      "calmar_ratio": 0.15,
+      "terminal_equity": 350067.15
+    },
+    "NEXT50": {
+      "label": "Buy & Hold: NEXT50",
+      "cagr_pct": 11.38,
+      "max_drawdown_pct": -71.84,
+      "sharpe_ratio": 0.63,
+      "calmar_ratio": 0.16,
+      "terminal_equity": 514877.78
+    },
+    "MIDCAP150": {
+      "label": "Buy & Hold: MIDCAP150",
+      "cagr_pct": 16.51,
+      "max_drawdown_pct": -75.07,
+      "sharpe_ratio": 0.49,
+      "calmar_ratio": 0.22,
+      "terminal_equity": 1120536.16
+    },
+    "GOLDBEES": {
+      "label": "Buy & Hold: GOLDBEES",
+      "cagr_pct": 11.82,
+      "max_drawdown_pct": -29.35,
+      "sharpe_ratio": 0.75,
+      "calmar_ratio": 0.4,
+      "terminal_equity": 550997.48
+    },
+    "SILVERBEES": {
+      "label": "Buy & Hold: SILVERBEES",
+      "cagr_pct": 8.62,
+      "max_drawdown_pct": -59.65,
+      "sharpe_ratio": 0.45,
+      "calmar_ratio": 0.14,
+      "terminal_equity": 333717.04
+    },
+    "GILT10Y": {
+      "label": "Buy & Hold: GILT10Y",
+      "cagr_pct": 5.88,
+      "max_drawdown_pct": -11.69,
+      "sharpe_ratio": 1.44,
+      "calmar_ratio": 0.5,
+      "terminal_equity": 214751.14
+    },
+    "MON100": {
+      "label": "Buy & Hold: MON100",
+      "cagr_pct": 18.09,
+      "max_drawdown_pct": -40.36,
+      "sharpe_ratio": 0.95,
+      "calmar_ratio": 0.45,
+      "terminal_equity": 1412810.69
+    }
+  },
+  "baseline_3_standalone_200_sma_vs_cash": {
+    "NIFTY50": {
+      "label": "200-SMA vs Cash: NIFTY50",
+      "cagr_pct": 6.68,
+      "max_drawdown_pct": -20.99,
+      "sharpe_ratio": 0.57,
+      "calmar_ratio": 0.32,
+      "terminal_equity": 244447.02
+    },
+    "NEXT50": {
+      "label": "200-SMA vs Cash: NEXT50",
+      "cagr_pct": 14.09,
+      "max_drawdown_pct": -28.03,
+      "sharpe_ratio": 0.9,
+      "calmar_ratio": 0.5,
+      "terminal_equity": 779857.15
+    },
+    "MIDCAP150": {
+      "label": "200-SMA vs Cash: MIDCAP150",
+      "cagr_pct": 9.73,
+      "max_drawdown_pct": -34.73,
+      "sharpe_ratio": 0.64,
+      "calmar_ratio": 0.28,
+      "terminal_equity": 397480.4
+    },
+    "GOLDBEES": {
+      "label": "200-SMA vs Cash: GOLDBEES",
+      "cagr_pct": 7.64,
+      "max_drawdown_pct": -31.28,
+      "sharpe_ratio": 0.54,
+      "calmar_ratio": 0.24,
+      "terminal_equity": 285191.98
+    },
+    "SILVERBEES": {
+      "label": "200-SMA vs Cash: SILVERBEES",
+      "cagr_pct": 2.52,
+      "max_drawdown_pct": -54.57,
+      "sharpe_ratio": 0.23,
+      "calmar_ratio": 0.05,
+      "terminal_equity": 123036.52
+    },
+    "GILT10Y": {
+      "label": "200-SMA vs Cash: GILT10Y",
+      "cagr_pct": 6.93,
+      "max_drawdown_pct": -9.99,
+      "sharpe_ratio": 1.44,
+      "calmar_ratio": 0.69,
+      "terminal_equity": 254383.88
+    },
+    "MON100": {
+      "label": "200-SMA vs Cash: MON100",
+      "cagr_pct": 11.82,
+      "max_drawdown_pct": -33.21,
+      "sharpe_ratio": 0.71,
+      "calmar_ratio": 0.36,
+      "terminal_equity": 550480.73
+    }
+  },
+  "baseline_4_nifty_50_tri": {
+    "label": "Baseline 4: Nifty 50 TRI (Post-Tax)",
+    "terminal_equity": 424431.12,
+    "cagr_pct": 10.14,
+    "max_drawdown_pct": -59.48,
+    "sharpe_ratio": 0.58,
+    "calmar_ratio": 0.17
+  },
+  "horizon_years": 17.27,
+  "start_date": "2007-09-24",
+  "end_date": "2024-12-31",
+  "initial_capital": 80000.0
+}

@@ -63,9 +63,9 @@
         "calmar": 0.32
       },
       "NEXT50": {
-        "cagr_pct": NaN,
+        "cagr_pct": 14.09,
         "max_drawdown_pct": -28.03,
-        "calmar": NaN
+        "calmar": 0.5
       },
       "MIDCAP150": {
         "cagr_pct": 9.73,

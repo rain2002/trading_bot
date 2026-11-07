@@ -75,3 +75,9 @@ date,commit_hash,script,universe,kelly_fraction,lookback_days,cagr_pct,max_drawd
 2026-11-07 21:20:53,f8212de,backtest_multi_asset.py,MULTI_ASSET_7,1.0,189,5.26,-32.92,0.4,False,V2.1 Variant B (Quality-Blended Anti-Whipsaw) Stressed (Gate A) | IN_SAMPLE
 2026-11-07 21:21:02,f8212de,backtest_multi_asset.py,MULTI_ASSET_7,1.0,252,6.66,-20.61,0.75,False,V2.1 Variant C (Risk-Parity Vol-Inverse) Normal | IN_SAMPLE
 2026-11-07 21:21:02,f8212de,backtest_multi_asset.py,MULTI_ASSET_7,1.0,252,5.41,-21.89,0.61,False,V2.1 Variant C (Risk-Parity Vol-Inverse) Stressed (Gate A) | IN_SAMPLE
+2026-11-07 21:22:59,6615760,backtest_multi_asset.py,MULTI_ASSET_7,1.0,126,10.59,-25.55,0.74,False,V2.1 Variant A (Diversified Dual Momentum) Normal | IN_SAMPLE
+2026-11-07 21:22:59,6615760,backtest_multi_asset.py,MULTI_ASSET_7,1.0,126,9.82,-26.21,0.69,False,V2.1 Variant A (Diversified Dual Momentum) Stressed (Gate A) | IN_SAMPLE
+2026-11-07 21:23:08,6615760,backtest_multi_asset.py,MULTI_ASSET_7,1.0,189,6.68,-32.13,0.48,False,V2.1 Variant B (Quality-Blended Anti-Whipsaw) Normal | IN_SAMPLE
+2026-11-07 21:23:08,6615760,backtest_multi_asset.py,MULTI_ASSET_7,1.0,189,5.26,-32.92,0.4,False,V2.1 Variant B (Quality-Blended Anti-Whipsaw) Stressed (Gate A) | IN_SAMPLE
+2026-11-07 21:23:17,6615760,backtest_multi_asset.py,MULTI_ASSET_7,1.0,252,6.66,-20.61,0.75,False,V2.1 Variant C (Risk-Parity Vol-Inverse) Normal | IN_SAMPLE
+2026-11-07 21:23:17,6615760,backtest_multi_asset.py,MULTI_ASSET_7,1.0,252,5.41,-21.89,0.61,False,V2.1 Variant C (Risk-Parity Vol-Inverse) Stressed (Gate A) | IN_SAMPLE
