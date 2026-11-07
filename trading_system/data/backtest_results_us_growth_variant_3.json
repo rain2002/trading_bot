@@ -1,0 +1,20 @@
+{
+  "variant": 3,
+  "horizon_years": 18.964285714285715,
+  "terminal_equity": 36954.94431879037,
+  "cagr": 0.0713448915733712,
+  "cagr_normal": 0.07210129089170625,
+  "cagr_zero_cost": 0.07815995435892642,
+  "cagr_no_top5": 0.05175416493785123,
+  "max_true_drawdown": -0.21505481563997436,
+  "hard_breach": false,
+  "sharpe_ratio": 0.4196969267513967,
+  "sortino_ratio": 0.47247606912367535,
+  "calmar_ratio": 0.33175212264397963,
+  "profit_factor": 2.0006146158630145,
+  "win_rate": 0.45219123505976094,
+  "total_trades": 502,
+  "monte_carlo_p5_dd": -16.26298302252993,
+  "tax_paid": 13039.466044944149,
+  "interest_earned": 2623.7377469158278
+}

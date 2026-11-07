@@ -56,3 +56,9 @@ date,commit_hash,script,universe,kelly_fraction,lookback_days,cagr_pct,max_drawd
 2026-11-07 05:51:34,772cf17,backtest_growth_stock_momentum.py,NSE_GROWTH_EQUITIES,0.4,90,11.41,-23.14,0.94,False,Pre-Registered Variant 3 (Breakout Compounder) Stressed [Gate A] | IN_SAMPLE
 2026-11-07 06:01:41,f61cccb,backtest_growth_stock_momentum.py,NSE_GROWTH_EQUITIES,0.4,90,18.19,-27.63,1.24,True,Pre-Registered Variant 2 (Asymmetric Multi-Bagger) Normal | IN_SAMPLE
 2026-11-07 06:01:41,f61cccb,backtest_growth_stock_momentum.py,NSE_GROWTH_EQUITIES,0.4,90,17.96,-27.64,1.23,True,Pre-Registered Variant 2 (Asymmetric Multi-Bagger) Stressed [Gate A] | IN_SAMPLE
+2026-11-07 15:28:25,7a0af43,backtest_growth_stock_momentum.py,NSE_GROWTH_EQUITIES,0.4,90,17.14,-29.09,1.21,True,Pre-Registered Variant 1 (Wide-Trend Runner) Normal | IN_SAMPLE
+2026-11-07 15:28:25,7a0af43,backtest_growth_stock_momentum.py,NSE_GROWTH_EQUITIES,0.4,90,17.09,-29.11,1.2,True,Pre-Registered Variant 1 (Wide-Trend Runner) Stressed [Gate A] | IN_SAMPLE
+2026-11-07 15:28:28,7a0af43,backtest_growth_stock_momentum.py,NSE_GROWTH_EQUITIES,0.4,90,18.19,-27.63,1.24,True,Pre-Registered Variant 2 (Asymmetric Multi-Bagger) Normal | IN_SAMPLE
+2026-11-07 15:28:28,7a0af43,backtest_growth_stock_momentum.py,NSE_GROWTH_EQUITIES,0.4,90,17.96,-27.64,1.23,True,Pre-Registered Variant 2 (Asymmetric Multi-Bagger) Stressed [Gate A] | IN_SAMPLE
+2026-11-07 15:28:32,7a0af43,backtest_growth_stock_momentum.py,NSE_GROWTH_EQUITIES,0.4,90,10.67,-23.05,0.9,True,Pre-Registered Variant 3 (Breakout Compounder) Normal | IN_SAMPLE
+2026-11-07 15:28:32,7a0af43,backtest_growth_stock_momentum.py,NSE_GROWTH_EQUITIES,0.4,90,10.57,-23.14,0.89,True,Pre-Registered Variant 3 (Breakout Compounder) Stressed [Gate A] | IN_SAMPLE

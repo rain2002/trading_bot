@@ -1,0 +1,17 @@
+[Unit]
+Description=Autonomous Dual-Pod Hedge Fund Paper Trading Daemon (India & US)
+After=network.target
+
+[Service]
+Type=simple
+User=%USER%
+WorkingDirectory=%WORKING_DIR%
+EnvironmentFile=%WORKING_DIR%/.env
+ExecStart=%WORKING_DIR%/venv/bin/python %WORKING_DIR%/trading_system/scripts/cloud_daemon.py
+Restart=always
+RestartSec=10
+StandardOutput=append:%WORKING_DIR%/trading_system/data/cloud_daemon.log
+StandardError=append:%WORKING_DIR%/trading_system/data/cloud_daemon.log
+
+[Install]
+WantedBy=multi-user.target
