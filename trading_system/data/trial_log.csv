@@ -91,3 +91,9 @@ date,commit_hash,script,universe,kelly_fraction,lookback_days,cagr_pct,max_drawd
 2026-11-08 00:38:11,b60dabf,backtest_growth_stock_momentum.py,NSE_GROWTH_EQUITIES,0.4,90,10.73,-23.17,0.97,False,Pre-Registered Variant 3 (Breakout Compounder) Normal | IN_SAMPLE
 2026-11-08 00:38:11,b60dabf,backtest_growth_stock_momentum.py,NSE_GROWTH_EQUITIES,0.4,90,10.67,-22.52,0.96,False,Pre-Registered Variant 3 (Breakout Compounder) Stressed [Gate A] | IN_SAMPLE
 2026-11-08 00:47:26,b60dabf,ablation_nifty50_pit.py,NSE_NIFTY50_PIT,0.4,90,5.4,-16.29,0.63,False,Ablation: Nifty 50 PIT (Zero Survivorship Bias) with Volatility Radar Dual Defense | IN_SAMPLE
+2026-11-08 01:06:58,f780d44,backtest_nifty500.py,NIFTY_500_SURVIVOR_BIASED_TODAY_LIST,0.4,90,18.38,-33.15,1.21,False,Un-preregistered exploratory Wide-Trend Runner (20 Slots) Radar ON (Slots changed to 20)
+2026-11-08 01:06:59,f780d44,backtest_nifty500.py,NIFTY_500_SURVIVOR_BIASED_TODAY_LIST,0.4,90,18.27,-34.98,1.13,False,Un-preregistered exploratory Wide-Trend Runner (20 Slots) Radar OFF (Slots changed to 20)
+2026-11-08 01:06:59,f780d44,backtest_nifty500.py,NIFTY_500_SURVIVOR_BIASED_TODAY_LIST,0.4,90,17.7,-28.07,1.22,False,Un-preregistered exploratory Asymmetric Multi-Bagger (10 Slots) Radar ON (Slots changed to 10)
+2026-11-08 01:06:59,f780d44,backtest_nifty500.py,NIFTY_500_SURVIVOR_BIASED_TODAY_LIST,0.4,90,16.79,-32.52,1.11,False,Un-preregistered exploratory Asymmetric Multi-Bagger (10 Slots) Radar OFF (Slots changed to 10)
+2026-11-08 01:06:59,f780d44,backtest_nifty500.py,NIFTY_500_SURVIVOR_BIASED_TODAY_LIST,0.4,90,19.17,-31.06,1.32,False,Un-preregistered exploratory Breakout Compounder (15 Slots) Radar ON (Slots changed to 15)
+2026-11-08 01:07:00,f780d44,backtest_nifty500.py,NIFTY_500_SURVIVOR_BIASED_TODAY_LIST,0.4,90,19.65,-31.47,1.29,False,Un-preregistered exploratory Breakout Compounder (15 Slots) Radar OFF (Slots changed to 15)
