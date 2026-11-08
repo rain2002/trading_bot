@@ -1,0 +1,12 @@
+{
+  "model": "HYBRID_CORE_SATELLITE_UNBIASED",
+  "simulation_window": "2008-11-11 to 2024-07-05",
+  "starting_capital": 80000.0,
+  "terminal_equity": 1082951.65,
+  "post_tax_cagr_pct": 18.12,
+  "max_drawdown_pct": -28.53,
+  "sharpe_ratio": 1.04,
+  "total_tax_paid": 90594.99,
+  "splits_handled": 15,
+  "total_trades": 274
+}
