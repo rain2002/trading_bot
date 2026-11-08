@@ -28,6 +28,7 @@ if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
 from trading_system.app.validation.trial_logger import log_trial
+from trading_system.app.data.corporate_actions import is_etf_ticker
 
 BHAVCOPY_DIR = os.path.join(PROJECT_ROOT, "trading_system", "data", "bhavcopy_cache")
 NSEI_BENCHMARK = os.path.join(PROJECT_ROOT, "trading_system", "data", "historical_cache_nse", "INDEX_NSEI.parquet")
@@ -56,6 +57,12 @@ def assemble_causal_panel() -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, p
         close_pivot = pd.read_parquet(PANEL_CLOSE_FILE)
         open_pivot = pd.read_parquet(PANEL_OPEN_FILE)
         turnover_pivot = pd.read_parquet(PANEL_TURNOVER_FILE)
+
+        # Fix 4: Strictly filter out ETFs and Mutual Funds from loaded panel
+        valid_cols = [c for c in close_pivot.columns if not is_etf_ticker(c)]
+        close_pivot = close_pivot[valid_cols]
+        open_pivot = open_pivot[[c for c in valid_cols if c in open_pivot.columns]]
+        turnover_pivot = turnover_pivot[[c for c in valid_cols if c in turnover_pivot.columns]]
     else:
         print("[1/4] Loading cached Bhavcopies and building causal panel...", flush=True)
         t0 = time.time()
