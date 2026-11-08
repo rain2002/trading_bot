@@ -1,0 +1,14 @@
+{
+  "universe": "CAUSAL_NSE_BHAVCOPY_TOP500_LIQUID",
+  "simulation_window": "2008-03-18 to 2024-07-05",
+  "cagr_pct": 5.61,
+  "max_drawdown_pct": -30.38,
+  "calmar_ratio": 0.18,
+  "sharpe_ratio": 0.47,
+  "terminal_equity": 194600.79,
+  "benchmark_tri_cagr": 12.32,
+  "benchmark_tri_max_dd": -51.4,
+  "total_trades": 273,
+  "total_tax_paid": 42908.02,
+  "total_dp_fees": 4026.75
+}

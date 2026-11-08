@@ -97,3 +97,4 @@ date,commit_hash,script,universe,kelly_fraction,lookback_days,cagr_pct,max_drawd
 2026-11-08 01:06:59,f780d44,backtest_nifty500.py,NIFTY_500_SURVIVOR_BIASED_TODAY_LIST,0.4,90,16.79,-32.52,1.11,False,Un-preregistered exploratory Asymmetric Multi-Bagger (10 Slots) Radar OFF (Slots changed to 10)
 2026-11-08 01:06:59,f780d44,backtest_nifty500.py,NIFTY_500_SURVIVOR_BIASED_TODAY_LIST,0.4,90,19.17,-31.06,1.32,False,Un-preregistered exploratory Breakout Compounder (15 Slots) Radar ON (Slots changed to 15)
 2026-11-08 01:07:00,f780d44,backtest_nifty500.py,NIFTY_500_SURVIVOR_BIASED_TODAY_LIST,0.4,90,19.65,-31.47,1.29,False,Un-preregistered exploratory Breakout Compounder (15 Slots) Radar OFF (Slots changed to 15)
+2026-11-08 01:16:06,da4b66b,run_causal_bhavcopy_backtest.py,NSE_BHAVCOPY_CAUSAL_TOP500,0.4,90,5.61,-30.38,0.47,False,"Phase 1 Causal Bhavcopy Top 500 Liquid Universe (Survivor-Free, Radar ON, 10 Slots)"
