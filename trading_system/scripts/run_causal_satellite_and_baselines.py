@@ -449,6 +449,52 @@ def main():
         print(f"{m['strategy']:<40} | {m['cagr_pct']:>8.2f}% | {m['max_drawdown_pct']:>9.2f}% | {m['sharpe_ratio']:>7.2f} | {m['trades']:>7} | Rs {m['tax_paid']:>7,.0f}")
     print("=" * 95)
 
+    # Log each trial once stamped with commit hash
+    log_trial(
+        cagr_pct=m_base["cagr_pct"],
+        max_drawdown_pct=m_base["max_drawdown_pct"],
+        sharpe_ratio=m_base["sharpe_ratio"],
+        kelly_fraction=1.0,
+        lookback_days=126,
+        commit_hash="f78131e",
+        script="run_causal_satellite_and_baselines.py",
+        universe="NSE_CAUSAL_TOP50_EQUAL_WEIGHT",
+        notes="Equal-Weight Causal Baseline (Top 50, 2007 Start, 2008 Crash Included)"
+    )
+    log_trial(
+        cagr_pct=m_sat["cagr_pct"],
+        max_drawdown_pct=m_sat["max_drawdown_pct"],
+        sharpe_ratio=m_sat["sharpe_ratio"],
+        kelly_fraction=1.0,
+        lookback_days=252,
+        commit_hash="f78131e",
+        script="run_causal_satellite_and_baselines.py",
+        universe="NSE_CAUSAL_TOP300_PLAIN_MOMENTUM",
+        notes="Plain 12-1 Momentum (Satellite Only, 10 Slots, 2007 Start, 2008 Crash Included)"
+    )
+    log_trial(
+        cagr_pct=m_core["cagr_pct"],
+        max_drawdown_pct=m_core["max_drawdown_pct"],
+        sharpe_ratio=m_core["sharpe_ratio"],
+        kelly_fraction=1.0,
+        lookback_days=126,
+        commit_hash="f78131e",
+        script="run_causal_satellite_and_baselines.py",
+        universe="MULTI_ASSET_CORE_HONEST_PROXIES",
+        notes="Multi-Asset Core-Only (QQQ_INR, Midcap50, Gold_INR with TER, 2007 Start)"
+    )
+    log_trial(
+        cagr_pct=m_hybrid["cagr_pct"],
+        max_drawdown_pct=m_hybrid["max_drawdown_pct"],
+        sharpe_ratio=m_hybrid["sharpe_ratio"],
+        kelly_fraction=0.5,
+        lookback_days=252,
+        commit_hash="f78131e",
+        script="run_causal_satellite_and_baselines.py",
+        universe="HYBRID_50_CORE_50_SATELLITE",
+        notes="Hybrid 50/50 (Core + Plain Satellite Momentum, 2007 Start, 2008 Crash Included)"
+    )
+
     # Save Results
     results_path = os.path.join(PROJECT_ROOT, "trading_system", "data", "causal_satellite_and_baselines_results.json")
     with open(results_path, "w") as f:

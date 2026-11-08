@@ -103,3 +103,7 @@ date,commit_hash,script,universe,kelly_fraction,lookback_days,cagr_pct,max_drawd
 2026-11-08 02:01:45,2b03b59,run_causal_bhavcopy_backtest.py,NSE_BHAVCOPY_CAUSAL_TOP500,0.4,90,5.61,-30.38,0.47,False,"Phase 1 Causal Bhavcopy Top 500 Liquid Universe (Survivor-Free, Radar ON, 10 Slots)"
 2026-11-08 02:08:33,2b03b59,run_causal_bhavcopy_backtest.py,NSE_BHAVCOPY_CAUSAL_TOP300_12_1,0.4,252,7.91,-38.77,0.57,False,Fixed Causal Top 300 Liquid with 12-1 Momentum and Drawdown Recovery Floor
 2026-11-08 03:11:43,3e36592,run_unbiased_hybrid_simulation.py,NSE_BHAVCOPY_UNBIASED_PLUS_CORE_ETF,0.5,252,18.12,-28.53,1.04,False,"Audited 17-Year Unbiased Bhavcopy with Real Splits, Bankruptcies, and Core ETF"
+2026-11-08 17:46:16,f78131e,run_causal_satellite_and_baselines.py,NSE_CAUSAL_TOP50_EQUAL_WEIGHT,1.0,126,1.38,-75.63,-0.0,False,"Equal-Weight Causal Baseline (Top 50, 2007 Start, 2008 Crash Included)"
+2026-11-08 17:46:17,f78131e,run_causal_satellite_and_baselines.py,NSE_CAUSAL_TOP300_PLAIN_MOMENTUM,1.0,252,0.63,-77.16,-0.03,False,"Plain 12-1 Momentum (Satellite Only, 10 Slots, 2007 Start, 2008 Crash Included)"
+2026-11-08 17:46:17,f78131e,run_causal_satellite_and_baselines.py,MULTI_ASSET_CORE_HONEST_PROXIES,1.0,126,16.45,-45.34,0.56,False,"Multi-Asset Core-Only (QQQ_INR, Midcap50, Gold_INR with TER, 2007 Start)"
+2026-11-08 17:46:17,f78131e,run_causal_satellite_and_baselines.py,HYBRID_50_CORE_50_SATELLITE,0.5,252,12.29,-58.27,0.41,False,"Hybrid 50/50 (Core + Plain Satellite Momentum, 2007 Start, 2008 Crash Included)"
