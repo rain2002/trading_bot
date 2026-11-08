@@ -24,13 +24,14 @@ import math
 import json
 import argparse
 from datetime import datetime, timezone
-from typing import Dict, Any, List, Optional, Tuple
+from typing import Dict, Any, List, Optional, Tuple, Set
 
 import pandas as pd
 import numpy as np
 import yfinance as yf
 
 from trading_system.app.research.momentum_crash import evaluate_dual_pod_regime_and_volatility
+from trading_system.app.data.constituent_manager import PointInTimeConstituentManager
 
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 if PROJECT_ROOT not in sys.path:
@@ -82,6 +83,51 @@ def calc_vectorized_momentum(series: np.ndarray, window: int = 90) -> float:
     ann_slope = math.expm1(np.clip(slope * 252.0, -10.0, 10.0))
     return float(ann_slope * r2)
 
+
+
+def get_active_pit_universe(pod_name: str, as_of_date: Optional[pd.Timestamp] = None) -> List[str]:
+    """
+    Returns the exact set of active Point-in-Time (PIT) constituent tickers as of as_of_date
+    (defaults to current UTC/local date) to eliminate survivorship and lookahead bias.
+    """
+    if as_of_date is None:
+        as_of_date = pd.Timestamp.now()
+
+    if "INDIA" in pod_name:
+        changes_csv = os.path.join(DATA_DIR, "nifty50_historical_components_changes.csv")
+        se_csv = os.path.join(DATA_DIR, "nifty50_ticker_start_end.csv")
+        if os.path.exists(changes_csv):
+            mgr = PointInTimeConstituentManager(changes_csv_path=changes_csv, start_end_csv_path=se_csv)
+            raw_constituents = mgr.get_active_constituents(as_of_date)
+            if raw_constituents:
+                tickers = []
+                for s in raw_constituents:
+                    s_clean = s.replace("-NS", "").replace(".NS", "")
+                    tickers.append(f"{s_clean}.NS")
+                print(f"[{pod_name} PIT] Loaded {len(tickers)} active Point-in-Time constituents as of {as_of_date.strftime('%Y-%m-%d')}.")
+                return sorted(tickers)
+
+        print(f"[{pod_name} PIT WARNING] Falling back to static INDIA tickers file.")
+        if os.path.exists(INDIA_TICKERS_FILE):
+            with open(INDIA_TICKERS_FILE, "r") as f:
+                return [line.strip() for line in f if line.strip() and not line.startswith("#")]
+        return []
+    else:
+        changes_csv = os.path.join(DATA_DIR, "sp500_historical_components_changes.csv")
+        se_csv = os.path.join(DATA_DIR, "sp500_ticker_start_end.csv")
+        if os.path.exists(changes_csv):
+            mgr = PointInTimeConstituentManager(changes_csv_path=changes_csv, start_end_csv_path=se_csv)
+            raw_constituents = mgr.get_active_constituents(as_of_date)
+            if raw_constituents:
+                tickers = [s.replace(".", "-") for s in raw_constituents]
+                print(f"[{pod_name} PIT] Loaded {len(tickers)} active Point-in-Time constituents as of {as_of_date.strftime('%Y-%m-%d')}.")
+                return sorted(tickers)
+
+        print(f"[{pod_name} PIT WARNING] Falling back to static US tickers file.")
+        if os.path.exists(US_TICKERS_FILE):
+            with open(US_TICKERS_FILE, "r") as f:
+                return [line.strip() for line in f if line.strip() and not line.startswith("#")]
+        return []
 
 class PodPaperEngine:
     def __init__(self, pod_name: str, currency: str, initial_capital: float, state_file: str, trades_file: str, live_broker: bool = True):
@@ -323,7 +369,7 @@ class PodPaperEngine:
 
         self._save_state()
 
-    def scan_and_evaluate(self, universe_data: Dict[str, pd.DataFrame], benchmark_data: pd.DataFrame):
+    def scan_and_evaluate(self, universe_data: Dict[str, pd.DataFrame], benchmark_data: pd.DataFrame, active_pit_universe: Optional[Set[str]] = None):
         """Step E & F: Scan market closes, evaluate stops/trails/trims, and queue Next-Day Open orders."""
         now_str = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
 
@@ -382,6 +428,10 @@ class PodPaperEngine:
             trail_tiers = [(1.00, -0.25), (0.50, -0.20), (0.25, -0.15)]
 
             for sym, pos in list(self.state["positions"].items()):
+                # Mandatory Point-in-Time (PIT) Index Exclusion Liquidation
+                if active_pit_universe is not None and sym not in active_pit_universe:
+                    signals_to_exit.append({"sym": sym, "reason": "PIT_MEMBERSHIP_EXCLUSION_MANDATORY_LIQUIDATION"})
+                    continue
                 if sym not in current_prices:
                     continue
                 price = current_prices[sym]
@@ -449,6 +499,8 @@ class PodPaperEngine:
             min_price = 20.0 if self.pod_name == "INDIA" else 10.0
 
             for sym, df in universe_data.items():
+                if active_pit_universe is not None and sym not in active_pit_universe:
+                    continue
                 if sym in self.state["positions"] or any(p["sym"] == sym for p in signals_to_exit):
                     continue
                 if len(df) < 180:
@@ -630,32 +682,29 @@ def main():
     # PHASE: SCAN (Run at Market Close: 15:35 IST / 16:05 EST)
     if args.phase == "scan":
         if args.pod in ["all", "india"]:
-            print("\n>>> [POD 1: INDIA] SCANNING NSE UNIVERSE AT MARKET CLOSE (15:35 IST)...")
-            with open(INDIA_TICKERS_FILE, "r") as f:
-                india_tickers = [line.strip() for line in f if line.strip() and not line.startswith("#")]
+            print("\n>>> [POD 1: INDIA] SCANNING POINT-IN-TIME NSE UNIVERSE AT MARKET CLOSE (15:35 IST)...")
+            india_tickers = get_active_pit_universe("INDIA")
             combined_tickers = list(set(india_tickers) | set(india_engine.state["positions"].keys()))
             india_data = fetch_yfinance_history(combined_tickers, period="1y")
             bench_india = yf.download("^NSEI", period="1y", progress=False, auto_adjust=False)
             bench_india = normalize_df_columns(bench_india)
-            india_engine.scan_and_evaluate(india_data, bench_india)
+            india_engine.scan_and_evaluate(india_data, bench_india, active_pit_universe=set(india_tickers))
 
         if args.pod in ["all", "us"]:
-            print("\n>>> [POD 2: US] SCANNING US GROWTH UNIVERSE AT MARKET CLOSE (16:05 EST)...")
+            print("\n>>> [POD 2: US] SCANNING POINT-IN-TIME US UNIVERSE AT MARKET CLOSE (16:05 EST)...")
             us_engine.sync_alpaca_live()
-            with open(US_TICKERS_FILE, "r") as f:
-                us_tickers = [line.strip() for line in f if line.strip() and not line.startswith("#")]
+            us_tickers = get_active_pit_universe("US")
             combined_tickers = list(set(us_tickers) | set(us_engine.state["positions"].keys()))
             us_data = fetch_yfinance_history(combined_tickers, period="1y")
             bench_us = yf.download("SPY", period="1y", progress=False, auto_adjust=False)
             bench_us = normalize_df_columns(bench_us)
-            us_engine.scan_and_evaluate(us_data, bench_us)
+            us_engine.scan_and_evaluate(us_data, bench_us, active_pit_universe=set(us_tickers))
 
     # PHASE: EXECUTE (Run at Market Open: 09:14 IST / 09:29 EST)
     elif args.phase == "execute":
         if args.pod in ["all", "india"]:
             print("\n>>> [POD 1: INDIA] EXECUTING QUEUED ORDERS AT MARKET OPEN (09:15 IST)...")
-            with open(INDIA_TICKERS_FILE, "r") as f:
-                india_tickers = [line.strip() for line in f if line.strip() and not line.startswith("#")]
+            india_tickers = get_active_pit_universe("INDIA")
             needed_symbols = list(set(india_tickers) | set(india_engine.state["positions"].keys()) | {p["sym"] for p in india_engine.state["pending_buys"]} | {p["sym"] for p in india_engine.state["pending_sells"]})
             india_open_df = yf.download(needed_symbols, period="5d", progress=False, group_by="ticker", auto_adjust=False)
             current_opens = {}
@@ -678,8 +727,7 @@ def main():
 
         if args.pod in ["all", "us"]:
             print("\n>>> [POD 2: US] EXECUTING QUEUED ORDERS AT MARKET OPEN (09:30 EST)...")
-            with open(US_TICKERS_FILE, "r") as f:
-                us_tickers = [line.strip() for line in f if line.strip() and not line.startswith("#")]
+            us_tickers = get_active_pit_universe("US")
             needed_symbols = list(set(us_tickers) | set(us_engine.state["positions"].keys()) | {p["sym"] for p in us_engine.state["pending_buys"]} | {p["sym"] for p in us_engine.state["pending_sells"]})
             us_open_df = yf.download(needed_symbols, period="5d", progress=False, group_by="ticker", auto_adjust=False)
             current_opens = {}

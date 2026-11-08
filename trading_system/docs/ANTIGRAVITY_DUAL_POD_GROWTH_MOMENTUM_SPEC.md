@@ -23,22 +23,25 @@ To maintain complete audit integrity, this specification differentiates between 
 ```mermaid
 flowchart TD
     subgraph RepoImplementation ["Current Implementation (As Built)"]
-        IN_List["Static File: nse_tickers.txt<br/>(100 Fixed NSE Names)"]
-        US_List["Static File: us_growth_tickers.txt<br/>(105 Fixed US Names)"]
+        PIT_IN["Dynamic PIT Universe: Nifty 50<br/>(nifty50_historical_components_changes.csv)"]
+        PIT_US["Dynamic PIT Universe: S&P 500<br/>(sp500_historical_components_changes.csv)"]
+        PIT_Exit["Mandatory PIT Exclusion Liquidation<br/>(Auto-exit when dropped from index)"]
         BrokerIN["GrowwBrokerAdapter<br/>(Simulated Paper Ledger)"]
         BrokerUS["AlpacaBrokerAdapter<br/>(Paper API Only)"]
         CI["GitHub Actions Workflows<br/>(Ephemeral Dynamic Azure IPs)"]
     end
 
     subgraph ProductionRequirements ["Production Live Requirements (Unfulfilled)"]
-        PIT["PIT Dynamic Universe<br/>(Free of Survivorship Bias)"]
+        BroadPIT["Broad Market Dynamic Universe<br/>(Full Nifty 500 / Russell 1000 PIT)"]
         GateA["Gate A Clearance<br/>(Max DD < -25%, Holdout Untouched)"]
         StaticIP["SEBI-Compliant Static IP<br/>(Broker Algo Gateway Approval)"]
         LRS["RBI LRS / TCS Compliance<br/>(Foreign Asset Schedule FA)"]
     end
 
-    IN_List -.->|Needs Migration| PIT
-    US_List -.->|Needs Migration| PIT
+    PIT_IN -.->|Future Expansion| BroadPIT
+    PIT_US -.->|Future Expansion| BroadPIT
+    PIT_IN --> PIT_Exit
+    PIT_US --> PIT_Exit
     BrokerIN -.->|Requires Audit Pass| GateA
     BrokerUS -.->|Requires Audit Pass| GateA
     CI -.->|Blocks Live Compliance| StaticIP
@@ -46,8 +49,8 @@ flowchart TD
 
 | Component | What Is Actually Built in Repo | Production Requirement for Live Deployment | Status |
 |---|---|---|---|
-| **India Universe** | Fixed list of 100 tickers in [`nse_tickers.txt`](file:///d:/paper_trading_bot/trading_system/data/nse_tickers.txt) | Point-in-time dynamic Nifty 500 survivorship-bias-free constituent database | **Exploratory** (Biased) |
-| **US Universe** | Fixed list of 105 tickers in [`us_growth_tickers.txt`](file:///d:/paper_trading_bot/trading_system/data/us_growth_tickers.txt) | Point-in-time dynamic S&P 500 + Nasdaq 100 with delisted historical names | **Exploratory** (Biased) |
+| **India Universe** | Dynamic Point-in-Time (PIT) constituent database ([`nifty50_historical_components_changes.csv`](file:///d:/paper_trading_bot/trading_system/data/nifty50_historical_components_changes.csv)) loaded via `PointInTimeConstituentManager` (50 active members) with fallback to `nse_tickers.txt`. Mandatory liquidation queued if dropped from index. | Broad point-in-time dynamic Nifty 500 survivorship-bias-free constituent database | **Dynamic PIT (Nifty 50)** |
+| **US Universe** | Dynamic Point-in-Time (PIT) constituent database ([`sp500_historical_components_changes.csv`](file:///d:/paper_trading_bot/trading_system/data/sp500_historical_components_changes.csv)) loaded via `PointInTimeConstituentManager` (503 active members) with fallback to `us_growth_tickers.txt`. Mandatory liquidation queued if dropped from index. | Broad point-in-time dynamic S&P 500 + Nasdaq 100 with delisted historical names | **Dynamic PIT (S&P 500)** |
 | **Execution Routing** | Daily GitHub Action runner dispatching to local JSON state & Alpaca Paper | Broker-whitelisted static server IP with SEBI-registered algo certificate | **Blocked by Regulation** |
 | **Capital Base** | ₹80,000 INR (India) / $100,000 USD (US Paper) | Institutional risk allocation | **Paper Tracking** |
 | **Hedging / Neutrality** | 100% Long-Only + Dynamic Volatility Cash Defense | 100% Long-Only + Dynamic Volatility Cash Defense (Zero Shorting / Zero Leverage) | **Long-Only Cash Defense** |
@@ -178,7 +181,7 @@ Marketing claims of "0% cost" are disqualified. All engine simulations must use 
 
 ## 8. Known Limitations & Integrity Log
 
-1. **Survivorship Bias**: The historical universe of 116 growth stocks in Pod 1 was back-selected using modern surviving entities. A true survivor-free database must include companies that went bankrupt, merged, or were delisted between 2006 and 2024.
+1. **Survivorship Bias**: The forward dual-pod paper runner ([`run_dual_pod_paper.py`](file:///d:/paper_trading_bot/trading_system/scripts/run_dual_pod_paper.py)) now dynamically samples from Point-in-Time constituent databases ([`nifty50_historical_components_changes.csv`](file:///d:/paper_trading_bot/trading_system/data/nifty50_historical_components_changes.csv) and [`sp500_historical_components_changes.csv`](file:///d:/paper_trading_bot/trading_system/data/sp500_historical_components_changes.csv)) with automatic mandatory liquidation when a company drops out of the index, eliminating forward survivorship bias for Nifty 50 and S&P 500. However, historical exploratory growth stock backtests (e.g. Variant 2) used fixed survivorship-biased lists, contributing to Gate A disqualification.
 2. **Burned Out-of-Sample Holdout**: The 2025 calendar year holdout dataset was unsealed during earlier exploratory runs, invalidating it as an untouched forward test.
 3. **Execution Latency & Fill Quality**: Orders are simulated at Day T open. In live markets, opening volatility and auction uncrossing prices frequently experience execution slippage beyond simulated model assumptions.
 

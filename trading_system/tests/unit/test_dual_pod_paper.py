@@ -254,3 +254,48 @@ def test_volatility_targeting_and_regional_invariants(tmp_path, monkeypatch):
     assert engine_trim.state["cash"] > 20000.0
 
 
+def test_pit_universe_loader_and_exclusion_liquidation(tmp_path, monkeypatch):
+    """
+    Verifies that Point-in-Time (PIT) constituent loading is active for both India and US,
+    and that membership exclusions automatically trigger mandatory liquidation.
+    """
+    from trading_system.scripts.run_dual_pod_paper import get_active_pit_universe
+
+    # 1. Loader test
+    in_pit = get_active_pit_universe("INDIA")
+    assert len(in_pit) >= 50
+    assert any(".NS" in s for s in in_pit)
+
+    us_pit = get_active_pit_universe("US")
+    assert len(us_pit) >= 490
+
+    # 2. Mandatory exclusion liquidation test
+    state_file = str(tmp_path / "test_pit_state.json")
+    trades_file = str(tmp_path / "test_pit_trades.csv")
+    dummy_log = str(tmp_path / "dummy_log_pit.csv")
+    monkeypatch.setattr("trading_system.scripts.run_dual_pod_paper.EQUITY_LOG_CSV", dummy_log)
+
+    engine = PodPaperEngine(
+        pod_name="INDIA",
+        currency="INR",
+        initial_capital=80000.0,
+        state_file=state_file,
+        trades_file=trades_file
+    )
+    # Artificially insert a delisted / removed constituent
+    engine.state["positions"]["EXCLUDED_CORP.NS"] = {
+        "shares": 10.0,
+        "entry_price": 100.0,
+        "peak_price": 100.0
+    }
+    dates = pd.date_range("2024-01-01", periods=250, freq="B")
+    bull_bench_df = pd.DataFrame({"close": np.linspace(15000, 25000, 250)}, index=dates)
+
+    # Active PIT set that does NOT contain EXCLUDED_CORP.NS
+    active_pit = {"RELIANCE.NS", "TCS.NS", "INFY.NS"}
+    engine.scan_and_evaluate({}, bull_bench_df, active_pit_universe=active_pit)
+
+    assert len(engine.state["pending_sells"]) == 1
+    sell_order = engine.state["pending_sells"][0]
+    assert sell_order["sym"] == "EXCLUDED_CORP.NS"
+    assert "PIT_MEMBERSHIP_EXCLUSION_MANDATORY_LIQUIDATION" in sell_order["reason"]
