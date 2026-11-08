@@ -44,8 +44,9 @@ BUY_COST_BPS = 22.85
 SELL_COST_BPS = 21.35
 TAX_RATE_STCG = 0.15
 MIN_PRICE = 20.0
-LOOKBACK_DAYS = 90
-TRAILING_STOP_PCT = 0.30
+LOOKBACK_DAYS = 252
+TRAILING_STOP_PCT = 0.25
+UNIVERSE_SIZE = 300
 
 
 def assemble_causal_panel() -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
@@ -118,10 +119,10 @@ def run_causal_backtest():
     df_d["month"] = df_d["date"].dt.to_period("M")
     month_ends = set(df_d.groupby("month")["date"].max())
 
-    # Precompute rolling 90-day momentum & 100-day SMA
-    print("  Precomputing causal indicators...", flush=True)
-    mom90 = close_df.pct_change(LOOKBACK_DAYS)
-    sma100 = close_df.rolling(100, min_periods=30).mean()
+    # Precompute rolling 12-1 momentum (252d - 21d skip short reversal) & 200-day SMA
+    print("  Precomputing causal indicators (12-1 Momentum & 200-SMA)...", flush=True)
+    mom_metric = close_df.pct_change(252) - close_df.pct_change(21)
+    sma_filter = close_df.rolling(200, min_periods=50).mean()
 
     # Simulation State
     cash = INITIAL_CAPITAL
@@ -142,8 +143,8 @@ def run_causal_backtest():
 
     print("[4/4] Executing Causal Simulation...", flush=True)
 
-    # Start after warm-up period (need 126 trading days for 6-month liquidity & radar)
-    start_idx = 126
+    # Start after warm-up period (need 252 trading days for 12-1 momentum & 200-SMA)
+    start_idx = 252
     simulation_dates = dates[start_idx:]
 
     for i, current_date in enumerate(simulation_dates):
@@ -159,8 +160,8 @@ def run_causal_backtest():
             # Filter valid (price >= 20)
             valid_mask = latest_prices >= MIN_PRICE
             med_turnover = window_turnover.loc[:, valid_mask].median().dropna()
-            top_500 = set(med_turnover.sort_values(ascending=False).head(500).index)
-            active_universe = top_500
+            top_universe = set(med_turnover.sort_values(ascending=False).head(UNIVERSE_SIZE).index)
+            active_universe = top_universe
 
         # Step 2: Evaluate Volatility Radar
         b_vol = bench_vol20.iloc[hist_idx] if not math.isnan(bench_vol20.iloc[hist_idx]) else 0.15
@@ -173,7 +174,7 @@ def run_causal_backtest():
         is_panic = (b_ret6m < 0.0) and (b_vol >= 0.24)
         is_trend_broken = (b_close < b_sma200)
 
-        # Internal Drawdown Ladder
+        # Internal Drawdown Ladder with recovery floor (prevents 0% cash trap freeze)
         current_equity = cash + sum(
             positions[s] * (close_df.loc[current_date, s] if not math.isnan(close_df.loc[current_date, s]) else entry_prices[s])
             for s in positions
@@ -182,21 +183,21 @@ def run_causal_backtest():
 
         if port_dd >= -0.10:
             ladder_exposure = 1.00
-        elif port_dd >= -0.14:
-            ladder_exposure = 0.70
-        elif port_dd >= -0.18:
-            ladder_exposure = 0.40
+        elif port_dd >= -0.15:
+            ladder_exposure = 0.75
+        elif port_dd >= -0.20:
+            ladder_exposure = 0.50
         else:
-            ladder_exposure = 0.00
+            ladder_exposure = 0.35
 
         if is_panic or is_trend_broken:
             radar_exposure = 0.0
         elif raw_vol_scale < 0.75:
-            radar_exposure = round(raw_vol_scale, 2)
+            radar_exposure = min(ladder_exposure, round(raw_vol_scale, 2))
         else:
-            radar_exposure = 1.0
+            radar_exposure = ladder_exposure
 
-        allowed_exposure = min(radar_exposure, ladder_exposure)
+        allowed_exposure = radar_exposure
         allow_entries = (allowed_exposure > 0.0) and not is_panic and not is_trend_broken
 
         # Step 3: Check Sells / Liquidations on existing positions
@@ -214,21 +215,21 @@ def run_causal_backtest():
             if c_price > peak_prices.get(sym, 0.0):
                 peak_prices[sym] = c_price
 
-            # Check Trailing Stop (30% from peak)
+            # Check Trailing Stop from peak
             peak = peak_prices[sym]
             if (c_price - peak) / peak <= -TRAILING_STOP_PCT:
                 pending_sells.append((sym, f"TRAILING_STOP_BREACH (-{TRAILING_STOP_PCT*100:.0f}%)"))
                 continue
 
-            # Check Universe Drop: fell out of Top 500 liquid universe
+            # Check Universe Drop: fell out of liquid universe
             if sym not in active_universe:
-                pending_sells.append((sym, "DROPPED_FROM_CAUSAL_TOP500_UNIVERSE"))
+                pending_sells.append((sym, f"DROPPED_FROM_CAUSAL_TOP{UNIVERSE_SIZE}_UNIVERSE"))
                 continue
 
-            # Trend breakdown: Close < SMA100
-            sma_val = sma100.loc[current_date, sym] if sym in sma100.columns else np.nan
+            # Trend breakdown: Close < SMA200
+            sma_val = sma_filter.loc[current_date, sym] if sym in sma_filter.columns else np.nan
             if not math.isnan(sma_val) and c_price < sma_val:
-                pending_sells.append((sym, "TREND_BREAKDOWN (Close < SMA100)"))
+                pending_sells.append((sym, "TREND_BREAKDOWN (Close < SMA200)"))
                 continue
 
         # Execute Sells
@@ -268,9 +269,9 @@ def run_causal_backtest():
         # Step 4: Check Entries if Radar allows
         avail_slots = MAX_SLOTS - len(positions)
         if allow_entries and avail_slots > 0 and allowed_exposure > 0:
-            # Rank active universe by 90-day momentum
-            curr_mom = mom90.loc[current_date]
-            curr_sma = sma100.loc[current_date]
+            # Rank active universe by 12-1 momentum
+            curr_mom = mom_metric.loc[current_date]
+            curr_sma = sma_filter.loc[current_date]
             curr_close = close_df.loc[current_date]
 
             candidates = []
@@ -313,7 +314,7 @@ def run_causal_backtest():
                             "shares": shares,
                             "fill_price": buy_fill,
                             "cost": cost,
-                            "reason": f"MOM90_ENTRY (Score: {score:.2f})"
+                            "reason": f"MOM12_1_ENTRY (Score: {score:.2f})"
                         })
 
         # Step 5: Daily Cash Yield Compounding (~6.0% annualized)
@@ -383,7 +384,7 @@ def run_causal_backtest():
 
     # Save to JSON
     save_payload = {
-        "universe": "CAUSAL_NSE_BHAVCOPY_TOP500_LIQUID",
+        "universe": "CAUSAL_NSE_BHAVCOPY_TOP300_LIQUID_12_1_MOM",
         "simulation_window": f"{start_dt.date()} to {end_dt.date()}",
         "cagr_pct": round(cagr_pct, 2),
         "max_drawdown_pct": round(max_dd * 100, 2),
@@ -406,11 +407,11 @@ def run_causal_backtest():
         max_drawdown_pct=round(max_dd * 100, 2),
         sharpe_ratio=round(sharpe, 2),
         kelly_fraction=0.40,
-        lookback_days=90,
+        lookback_days=252,
         is_holdout_opened=False,
         script="run_causal_bhavcopy_backtest.py",
-        universe="NSE_BHAVCOPY_CAUSAL_TOP500",
-        notes="Phase 1 Causal Bhavcopy Top 500 Liquid Universe (Survivor-Free, Radar ON, 10 Slots)"
+        universe="NSE_BHAVCOPY_CAUSAL_TOP300_12_1",
+        notes="Fixed Causal Top 300 Liquid with 12-1 Momentum and Drawdown Recovery Floor"
     )
 
 

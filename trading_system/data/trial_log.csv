@@ -100,3 +100,5 @@ date,commit_hash,script,universe,kelly_fraction,lookback_days,cagr_pct,max_drawd
 2026-11-08 01:16:06,da4b66b,run_causal_bhavcopy_backtest.py,NSE_BHAVCOPY_CAUSAL_TOP500,0.4,90,5.61,-30.38,0.47,False,"Phase 1 Causal Bhavcopy Top 500 Liquid Universe (Survivor-Free, Radar ON, 10 Slots)"
 2026-11-08 01:21:30,631231f,test_quality_breakout_tight_risk.py,NSE_BHAVCOPY_CAUSAL_TOP300,0.4,252,40.24,-18.79,2.01,False,"Quality Breakout (52w High + SMA50/200 + Volume Surge) + Tight Risk (-7% Stop, BE +6%, Trail +15%/8%)"
 2026-11-08 01:22:42,631231f,test_quality_breakout_tight_risk.py,NSE_BHAVCOPY_CAUSAL_TOP300,0.4,252,3.88,-28.15,0.27,False,"Quality Breakout (52w High + SMA50/200 + Volume Surge) + Tight Risk (-7% Stop, BE +6%, Trail +15%/8%)"
+2026-11-08 02:01:45,2b03b59,run_causal_bhavcopy_backtest.py,NSE_BHAVCOPY_CAUSAL_TOP500,0.4,90,5.61,-30.38,0.47,False,"Phase 1 Causal Bhavcopy Top 500 Liquid Universe (Survivor-Free, Radar ON, 10 Slots)"
+2026-11-08 02:08:33,2b03b59,run_causal_bhavcopy_backtest.py,NSE_BHAVCOPY_CAUSAL_TOP300_12_1,0.4,252,7.91,-38.77,0.57,False,Fixed Causal Top 300 Liquid with 12-1 Momentum and Drawdown Recovery Floor

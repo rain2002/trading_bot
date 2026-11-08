@@ -1,14 +1,14 @@
 {
-  "universe": "CAUSAL_NSE_BHAVCOPY_TOP500_LIQUID",
-  "simulation_window": "2008-03-18 to 2024-07-05",
-  "cagr_pct": 5.61,
-  "max_drawdown_pct": -30.38,
-  "calmar_ratio": 0.18,
-  "sharpe_ratio": 0.47,
-  "terminal_equity": 194600.79,
-  "benchmark_tri_cagr": 12.32,
-  "benchmark_tri_max_dd": -51.4,
-  "total_trades": 273,
-  "total_tax_paid": 42908.02,
-  "total_dp_fees": 4026.75
+  "universe": "CAUSAL_NSE_BHAVCOPY_TOP300_LIQUID_12_1_MOM",
+  "simulation_window": "2008-09-22 to 2024-07-05",
+  "cagr_pct": 7.91,
+  "max_drawdown_pct": -38.77,
+  "calmar_ratio": 0.2,
+  "sharpe_ratio": 0.57,
+  "terminal_equity": 266161.64,
+  "benchmark_tri_cagr": 13.21,
+  "benchmark_tri_max_dd": -40.15,
+  "total_trades": 361,
+  "total_tax_paid": 57947.12,
+  "total_dp_fees": 5324.75
 }
