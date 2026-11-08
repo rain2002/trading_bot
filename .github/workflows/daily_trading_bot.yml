@@ -1,18 +1,22 @@
-name: V2 Daily Paper & Live Trading Engine
+name: "[ARCHIVED / MANUAL ONLY] Legacy Daily Paper & Live Trading Engine"
+
+# Note: Automated scheduled trading is canonical and exclusively handled by
+# .github/workflows/dual_pod_cloud_trader.yml (Dual-Pod Cloud Trader across 4 daily market cycles).
+# This workflow is preserved for manual debugging and historical regression only.
 
 concurrency:
   group: trading-state
   cancel-in-progress: false
 
 on:
-  schedule:
-    # 09:45 UTC = 3:15 PM IST (Mon-Fri) - Indian Market Rebalance (NSE/BSE)
-    - cron: '45 09 * * 1-5'
-    # 19:45 UTC = 3:45 PM EDT (Mon-Fri) - US Market Rebalance (S&P 500)
-    - cron: '45 19 * * 1-5'
-  
-  # Allow manual execution and market selection
+  # Scheduled cron triggers disabled to prevent runner collision and state race conditions with Dual-Pod Trader
+  # schedule:
+  #   - cron: '45 09 * * 1-5'
+  #   - cron: '45 19 * * 1-5'
+
+  # Allow manual execution only
   workflow_dispatch:
+
     inputs:
       market:
         description: 'Target Trading Market'

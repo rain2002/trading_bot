@@ -49,3 +49,30 @@ def test_github_workflow_daily_schedule_codification():
     # Verify target market selector step exists
     assert "TARGET_MARKET" in content
     assert "TRADING_MARKET" in content
+
+
+def test_dual_pod_cloud_trader_official_schedule_codification():
+    """
+    Asserts that .github/workflows/dual_pod_cloud_trader.yml contains the canonical
+    4-phase schedule for Dual-Pod autonomous trading across India and US markets.
+    """
+    root_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+    wf_path = os.path.join(root_dir, ".github", "workflows", "dual_pod_cloud_trader.yml")
+    assert os.path.isfile(wf_path), "dual_pod_cloud_trader.yml must exist"
+
+    with open(wf_path, "r", encoding="utf-8") as f:
+        content = f.read()
+
+    # 1. 03:46 UTC = 09:16 IST (Mon-Fri) - India Market Open Execution
+    assert "46 3 * * 1-5" in content, "Workflow must schedule India open execution at 03:46 UTC (09:16 IST)"
+    # 2. 10:05 UTC = 15:35 IST (Mon-Fri) - India Market Close Scan
+    assert "5 10 * * 1-5" in content, "Workflow must schedule India close scan at 10:05 UTC (15:35 IST)"
+    # 3. 14:31 UTC = 09:31 EST (Mon-Fri) - US Market Open Execution
+    assert "31 14 * * 1-5" in content, "Workflow must schedule US open execution at 14:31 UTC (09:31 EST)"
+    # 4. 21:05 UTC = 16:05 EST (Mon-Fri) - US Market Close Scan
+    assert "5 21 * * 1-5" in content, "Workflow must schedule US close scan at 21:05 UTC (16:05 EST)"
+
+    # Verify dedicated concurrency lock on state
+    assert "group: trading-state" in content, "Must participate in trading-state concurrency group"
+    assert "cancel-in-progress: false" in content, "Must not cancel in progress state updates"
+
