@@ -46,7 +46,7 @@ def execute_quant_live_cycle():
         api_key = settings.INDIA_API_KEY
         api_secret = settings.INDIA_API_SECRET
         totp_secret = settings.INDIA_TOTP_SECRET
-        initial_cap = getattr(settings, "INDIA_INITIAL_CAPITAL", 1000000.0)
+        initial_cap = getattr(settings, "INDIA_INITIAL_CAPITAL", 80000.0)
         broker = GrowwBrokerAdapter(
             api_key=api_key,
             api_secret=api_secret,
@@ -77,7 +77,7 @@ def execute_quant_live_cycle():
         return
 
     # Update institutional Unitized NAV accounting
-    nav_engine = UnitizedNAVEngine(initial_capital=total_equity if total_equity > 0 else (1000000.0 if market.market_code == "IN" else 100000.0))
+    nav_engine = UnitizedNAVEngine(initial_capital=total_equity if total_equity > 0 else (getattr(settings, "INDIA_INITIAL_CAPITAL", 80000.0) if market.market_code == "IN" else 100000.0))
     current_nav_per_unit = nav_engine.update_portfolio_valuation(total_equity)
     fund_metrics = nav_engine.get_fund_performance_metrics()
     print(f" -> Unitized NAV: {market.currency_symbol}{current_nav_per_unit:.2f}/unit | True Trading Return: {fund_metrics['true_trading_return_pct']:+.2f}% | Tactical Reserve: {market.currency_symbol}{fund_metrics['tactical_cash_reserve']:,.2f}")

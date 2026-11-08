@@ -36,7 +36,7 @@ def execute_india_live_cycle():
     api_key = settings.INDIA_API_KEY
     api_secret = settings.INDIA_API_SECRET
     totp_secret = settings.INDIA_TOTP_SECRET
-    initial_cap = getattr(settings, "INDIA_INITIAL_CAPITAL", 1000000.0)
+    initial_cap = getattr(settings, "INDIA_INITIAL_CAPITAL", 80000.0)
 
     broker = GrowwBrokerAdapter(
         api_key=api_key,
