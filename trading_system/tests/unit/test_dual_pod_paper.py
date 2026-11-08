@@ -299,3 +299,43 @@ def test_pit_universe_loader_and_exclusion_liquidation(tmp_path, monkeypatch):
     sell_order = engine.state["pending_sells"][0]
     assert sell_order["sym"] == "EXCLUDED_CORP.NS"
     assert "PIT_MEMBERSHIP_EXCLUSION_MANDATORY_LIQUIDATION" in sell_order["reason"]
+
+
+def test_runner_refuses_silent_universe_fallback(monkeypatch):
+    """
+    Regression Test: Ensures that the runner strictly refuses to start and raises
+    RuntimeError if the Point-in-Time constituent database is missing or empty.
+    Silent fallback to static files is prohibited by fiduciary audit governance.
+    """
+    from trading_system.scripts.run_dual_pod_paper import get_active_pit_universe
+    import pytest
+
+    # Patch DATA_DIR to an empty non-existent directory to simulate missing PIT file
+    monkeypatch.setattr("trading_system.scripts.run_dual_pod_paper.DATA_DIR", "/nonexistent_pit_dir")
+
+    with pytest.raises(RuntimeError) as exc_info:
+        get_active_pit_universe("INDIA")
+    assert "PIT FATAL" in str(exc_info.value)
+    assert "Silent fallback to static ticker files is strictly prohibited" in str(exc_info.value)
+
+    with pytest.raises(RuntimeError) as exc_info:
+        get_active_pit_universe("US")
+    assert "PIT FATAL" in str(exc_info.value)
+    assert "Silent fallback to static ticker files is strictly prohibited" in str(exc_info.value)
+
+
+def test_runner_universe_matches_pit_backtest_database():
+    """
+    Ensures that the constituent database files referenced by the paper runner
+    identically match the constituent databases used by the clean backtest engine.
+    """
+    from trading_system.scripts.run_dual_pod_paper import DATA_DIR
+    from trading_system.scripts.backtest_nse50 import NIFTY_CHANGES_CSV, NIFTY_START_END_CSV
+
+    runner_india_changes = os.path.join(DATA_DIR, "nifty50_historical_components_changes.csv")
+    runner_india_se = os.path.join(DATA_DIR, "nifty50_ticker_start_end.csv")
+
+    assert os.path.abspath(runner_india_changes) == os.path.abspath(NIFTY_CHANGES_CSV)
+    assert os.path.abspath(runner_india_se) == os.path.abspath(NIFTY_START_END_CSV)
+    assert os.path.exists(runner_india_changes)
+    assert os.path.exists(runner_india_se)

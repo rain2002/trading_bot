@@ -107,11 +107,10 @@ def get_active_pit_universe(pod_name: str, as_of_date: Optional[pd.Timestamp] = 
                 print(f"[{pod_name} PIT] Loaded {len(tickers)} active Point-in-Time constituents as of {as_of_date.strftime('%Y-%m-%d')}.")
                 return sorted(tickers)
 
-        print(f"[{pod_name} PIT WARNING] Falling back to static INDIA tickers file.")
-        if os.path.exists(INDIA_TICKERS_FILE):
-            with open(INDIA_TICKERS_FILE, "r") as f:
-                return [line.strip() for line in f if line.strip() and not line.startswith("#")]
-        return []
+        raise RuntimeError(
+            f"[{pod_name} PIT FATAL] Point-in-Time constituent database missing or returned empty set for {as_of_date}. "
+            f"Silent fallback to static ticker files is strictly prohibited to eliminate survivorship and lookahead bias."
+        )
     else:
         changes_csv = os.path.join(DATA_DIR, "sp500_historical_components_changes.csv")
         se_csv = os.path.join(DATA_DIR, "sp500_ticker_start_end.csv")
@@ -123,11 +122,10 @@ def get_active_pit_universe(pod_name: str, as_of_date: Optional[pd.Timestamp] = 
                 print(f"[{pod_name} PIT] Loaded {len(tickers)} active Point-in-Time constituents as of {as_of_date.strftime('%Y-%m-%d')}.")
                 return sorted(tickers)
 
-        print(f"[{pod_name} PIT WARNING] Falling back to static US tickers file.")
-        if os.path.exists(US_TICKERS_FILE):
-            with open(US_TICKERS_FILE, "r") as f:
-                return [line.strip() for line in f if line.strip() and not line.startswith("#")]
-        return []
+        raise RuntimeError(
+            f"[{pod_name} PIT FATAL] Point-in-Time constituent database missing or returned empty set for {as_of_date}. "
+            f"Silent fallback to static ticker files is strictly prohibited to eliminate survivorship and lookahead bias."
+        )
 
 class PodPaperEngine:
     def __init__(self, pod_name: str, currency: str, initial_capital: float, state_file: str, trades_file: str, live_broker: bool = True):

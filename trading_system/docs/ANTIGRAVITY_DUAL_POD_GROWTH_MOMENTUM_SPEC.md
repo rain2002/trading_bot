@@ -57,7 +57,7 @@ flowchart TD
 
 ---
 
-## 3. Audited Backtest Track Record (The Real Numbers)
+## 3. Audited Backtest Track Record & Volatility Radar Ablation
 
 Every audited strategy family in the repository has undergone point-in-time backtesting with statutory costs, realistic slippage, and post-tax accounting:
 
@@ -67,11 +67,9 @@ Every audited strategy family in the repository has undergone point-in-time back
 ========================================================================================================================
 Strategy Family / Pod            Audited Window   Post-Tax CAGR   Max Drawdown   Calmar   Gate A Hurdle Status
 ------------------------------------------------------------------------------------------------------------------------
-India Growth (Var 2 + Vol Radar) 2007–2024 (17Y)  18.42%          -19.25%        0.96     PASSED METRICS (DD < -25%, Stressed)
-India Growth (Var 1 + Vol Radar) 2007–2024 (17Y)  17.65%          -20.83%        0.85     PASSED METRICS (DD < -25%, Stressed)
-India Growth (Legacy Var 2)      2007–2024 (17Y)  18.79%          -27.64%        0.68     FAILED (Drawdown > -25.0%)
+Nifty 50 PIT (Vol Radar ON)      2007–2024 (17Y)  5.40%           -16.29%        0.33     FAILED (CAGR below Baselines 1 & 3)
+Nifty 50 PIT (Vol Radar OFF)     2007–2024 (17Y)  4.63%           -24.35%        0.19     FAILED (CAGR & Drawdown)
 US S&P 500 Wide-Trend Runner     1998–2024 (26Y)  11.91%          -34.11%        0.35     FAILED (Drawdown > -25.0%)
-Nifty 50 Core Momentum           2006–2024 (19Y)  5.60%           -38.20%        0.15     FAILED (CAGR & Drawdown)
 Multi-Asset Trend (Variant A)    2007–2024 (17Y)  9.82%           -26.21%        0.37     FAILED (Beat B1 14.17%, DD > -25%)
 Multi-Asset Trend (Variant B)    2007–2024 (17Y)  5.26%           -32.92%        0.16     FAILED (CAGR floor & Drawdown)
 Multi-Asset Trend (Variant C)    2007–2024 (17Y)  5.41%           -21.89%        0.25     FAILED (CAGR floor 8.5%, Calmar)
@@ -81,10 +79,17 @@ Passive Benchmark: Trend 200-SMA 2007–2024 (17Y)  6.88%           -25.13%     
 ========================================================================================================================
 ```
 
-*Note on Growth Pod (Variant 2 + Vol Radar)*: With the Quant Science Volatility Radar (Barroso & Santa-Clara 2015 volatility scaling + Daniel & Moskowitz 2016 panic filter + internal drawdown ladder), Variant 2 compresses its maximum drawdown from **-27.64%** down to **-19.25%**, clearing the -25.0% Gate A drawdown constraint with a 5.75% margin of safety and achieving 18.42% post-tax CAGR. However, live capital remains gated because:
-1. The historical backtest universe was an exploratory 116-ticker growth list (survivorship biased).
-2. Its 2025 out-of-sample holdout was prematurely opened and burned.
-3. Live production requires forward paper confirmation under the point-in-time constituent manager.
+### Empirical Volatility Radar Ablation Analysis
+
+1. **Ablation on Point-In-Time Universe (Nifty 50 Zero Survivorship Bias)**:
+   - **Radar OFF**: Post-tax CAGR **4.63%**, Max Drawdown **-24.35%** (Jan 2008 crash), Calmar **0.19**, Sharpe **0.50**.
+   - **Radar ON**: Post-tax CAGR **5.40%**, Max Drawdown **-16.29%**, Calmar **0.33**, Sharpe **0.63**.
+   - **Empirical Finding**: The radar operates as an effective risk dial, compressing maximum drawdown by **8.06%** (from -24.35% to -16.29%) and lifting Calmar from 0.19 to 0.33. However, the absolute post-tax return on large-caps remains at **5.40%**, failing to beat either passive buy-and-hold Nifty 50 TRI (10.80%) or simple 200-SMA trend cash (6.88%) due to heavy frictional drag (turnover, STT on buy and sell, DP fees, STCG tax) and low cross-sectional dispersion among mega-caps.
+
+2. **Ablation on Exploratory Growth Equities Universe (Biased 116-Ticker List)**:
+   - **Radar OFF**: Drawdown was **-27.64%**.
+   - **Radar ON**: Drawdown compressed to **-19.25%** ($\Delta -8.39\%$).
+   - **Fiduciary Invalidation**: The returns observed on the exploratory growth list are disqualified from live trading claims due to survivorship bias (hand-picked modern entities) and a burned 2025 out-of-sample holdout. The only valid takeaway is the comparative $\Delta$ in drawdown compression, confirming the radar's mechanical risk-damping properties. Neither variant is approved for live capital.
 
 ---
 
