@@ -26,18 +26,14 @@ if PROJECT_ROOT not in sys.path:
 
 from trading_system.scripts.run_causal_bhavcopy_backtest import assemble_causal_panel
 from trading_system.app.validation.trial_logger import log_trial
+from trading_system.app.data.corporate_actions import (
+    build_verified_split_adjustment_matrix,
+    load_audited_corporate_actions,
+    is_etf_ticker
+)
 
 OUTPUT_JSON = os.path.join(PROJECT_ROOT, "trading_system", "data", "unbiased_hybrid_backtest_results.json")
 INITIAL_CAPITAL = 80000.0
-
-
-def get_split_multiplier(r: float) -> float:
-    if math.isnan(r) or r < 1.25:
-        return 1.0
-    for target in [1.333, 1.5, 2.0, 2.5, 3.0, 4.0, 5.0, 10.0, 20.0]:
-        if abs(r - target) / target < 0.08:
-            return target
-    return 1.0
 
 
 def run_unbiased_hybrid_simulation():
@@ -65,11 +61,9 @@ def run_unbiased_hybrid_simulation():
     bench_close = bench_df.loc[common_idx, 'close']
     bench_sma200 = bench_close.rolling(200, min_periods=50).mean()
 
-    print("[2/5] Building causal corporate action & split adjustment matrix...", flush=True)
-    prev_close = close_df.shift(1)
-    overnight_ratio = prev_close / open_df
-    split_multipliers = overnight_ratio.map(get_split_multiplier)
-    split_adj_factors = split_multipliers.iloc[::-1].cumprod().iloc[::-1]
+    # P0 Fix 1: Build causal corporate actions adjustment matrix strictly from verified registry
+    print("[2/5] Building causal corporate action & split adjustment matrix from verified registry...", flush=True)
+    split_multipliers, split_adj_factors = build_verified_split_adjustment_matrix(close_df)
     adj_close_df = close_df * split_adj_factors
 
     print("[3/5] Precomputing causal momentum and moving averages...", flush=True)
@@ -175,7 +169,9 @@ def run_unbiased_hybrid_simulation():
             if is_bull:
                 window_turnover = turnover_df.iloc[max(0, hist_idx - 126):hist_idx]
                 latest_prices = close_df.iloc[hist_idx - 1]
-                med_turnover = window_turnover.loc[:, latest_prices >= 20.0].median().dropna()
+                # Fix 4: Strictly filter out ETF tickers and keep price >= 20
+                eligible_symbols = [s for s in latest_prices.index if latest_prices[s] >= 20.0 and not is_etf_ticker(s)]
+                med_turnover = window_turnover.loc[:, eligible_symbols].median().dropna()
                 top_150 = set(med_turnover.sort_values(ascending=False).head(150).index)
 
                 curr_m = mom12_1.loc[dt]

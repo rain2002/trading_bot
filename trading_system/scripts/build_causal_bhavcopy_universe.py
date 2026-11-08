@@ -35,19 +35,27 @@ HEADERS = {
 def download_single_bhavcopy(date: pd.Timestamp, cache_dir: str = BHAVCOPY_DIR) -> Optional[pd.DataFrame]:
     """
     Downloads and caches a single day's NSE Bhavcopy.
-    URL Format: https://archives.nseindia.com/content/historical/EQUITIES/<YEAR>/<MON>/cm<DD><MON><YEAR>bhav.csv.zip
+    Supports both:
+      - Legacy format (<= 2024-07-05): archives.nseindia.com/content/historical/EQUITIES/<YEAR>/<MON>/cm<DD><MON><YEAR>bhav.csv.zip
+      - Modern UDiS format (>= 2024-07-08): nsearchives.nseindia.com/content/cm/BhavCopy_NSE_CM_0_0_0_<YYYYMMDD>_F_0000.csv.zip
     """
     os.makedirs(cache_dir, exist_ok=True)
     date_str = date.strftime("%d%b%Y").upper()
-    year_str = date.strftime("%Y")
-    month_str = date.strftime("%b").upper()
     csv_fname = f"cm{date_str}bhav.csv"
     cached_path = os.path.join(cache_dir, f"{csv_fname}.parquet")
 
     if os.path.exists(cached_path):
         return pd.read_parquet(cached_path)
 
-    url = f"https://archives.nseindia.com/content/historical/EQUITIES/{year_str}/{month_str}/cm{date_str}bhav.csv.zip"
+    # Determine URL based on date boundary
+    cutoff_date = pd.Timestamp("2024-07-08")
+    if date >= cutoff_date:
+        url = f"https://nsearchives.nseindia.com/content/cm/BhavCopy_NSE_CM_0_0_0_{date.strftime('%Y%m%d')}_F_0000.csv.zip"
+    else:
+        year_str = date.strftime("%Y")
+        month_str = date.strftime("%b").upper()
+        url = f"https://archives.nseindia.com/content/historical/EQUITIES/{year_str}/{month_str}/cm{date_str}bhav.csv.zip"
+
     try:
         req = urllib.request.Request(url, headers=HEADERS)
         with urllib.request.urlopen(req, timeout=10) as resp:
@@ -56,17 +64,36 @@ def download_single_bhavcopy(date: pd.Timestamp, cache_dir: str = BHAVCOPY_DIR) 
             target_name = [n for n in z.namelist() if n.lower().endswith(".csv")][0]
             with z.open(target_name) as f:
                 df = pd.read_csv(f)
-        
-        # Standardize columns
-        df.columns = [c.strip().upper() for c in df.columns]
-        if "SERIES" in df.columns:
-            df = df[df["SERIES"] == "EQ"].copy()
-        
-        # Keep essential columns
-        cols = ["SYMBOL", "OPEN", "HIGH", "LOW", "CLOSE", "TOTTRDQTY", "TOTTRDVAL", "TIMESTAMP"]
+
+        # Standardize modern vs legacy columns
+        if date >= cutoff_date:
+            df = df[(df["Sgmt"] == "CM") & (df["SctySrs"] == "EQ")].copy()
+            col_map = {
+                "TckrSymb": "SYMBOL", "OpnPric": "OPEN", "HghPric": "HIGH",
+                "LwPric": "LOW", "ClsPric": "CLOSE", "PrvsClsgPric": "PREVCLOSE",
+                "ISIN": "ISIN", "TtlTradgVol": "TOTTRDQTY", "TtlTrfVal": "TOTTRDVAL",
+                "TradDt": "TIMESTAMP"
+            }
+            df = df.rename(columns=col_map)
+        else:
+            df.columns = [c.strip().upper() for c in df.columns]
+            if "SERIES" in df.columns:
+                df = df[df["SERIES"] == "EQ"].copy()
+
+        # Fix 4: Filter out ETFs and Mutual Funds (keep only true equities starting with 'INE')
+        if "ISIN" in df.columns:
+            has_isin = df["ISIN"].notna() & (df["ISIN"] != "")
+            df = df[~has_isin | df["ISIN"].astype(str).str.startswith("INE")].copy()
+
+        # Additional regex filter to purge ETF tickers in pre-2013 files
+        etf_regex = r"(?:BEES|ETF|IETF|GOLD|LIQUID|GILT|NIFTY\d+|SETF|NETF|NV20|JUNIOR|ALPHA)$"
+        df = df[~df["SYMBOL"].str.contains(etf_regex, regex=True)].copy()
+
+        # Keep essential columns including PREVCLOSE and ISIN
+        cols = ["SYMBOL", "OPEN", "HIGH", "LOW", "CLOSE", "PREVCLOSE", "ISIN", "TOTTRDQTY", "TOTTRDVAL", "TIMESTAMP"]
         cols = [c for c in cols if c in df.columns]
         df = df[cols].copy()
-        df["TIMESTAMP"] = pd.to_datetime(df["TIMESTAMP"], format="%d-%b-%Y", errors="coerce")
+        df["TIMESTAMP"] = pd.to_datetime(df["TIMESTAMP"], format="%d-%b-%Y" if date < cutoff_date else "%Y-%m-%d", errors="coerce")
         df.to_parquet(cached_path)
         return df
     except Exception:
@@ -111,9 +138,11 @@ def compute_monthly_causal_universe(
 
         window_df = full_df[full_df["DATE"].isin(window_dates)]
 
-        # Latest close price on or before reb_date for penny stock filter
+        # Latest close price on or before reb_date for penny stock filter and ETF purge
         latest_prices = window_df.sort_values("DATE").groupby("SYMBOL")["CLOSE"].last()
-        valid_symbols = latest_prices[latest_prices >= min_price].index
+        etf_regex = r"(?:BEES|ETF|IETF|GOLD|LIQUID|GILT|NIFTY\d+|SETF|NETF|NV20|JUNIOR|ALPHA)$"
+        non_etf_mask = ~latest_prices.index.str.contains(etf_regex, regex=True)
+        valid_symbols = latest_prices[(latest_prices >= min_price) & non_etf_mask].index
 
         # Median daily turnover (TOTTRDVAL)
         median_turnover = (
