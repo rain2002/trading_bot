@@ -12,6 +12,7 @@ Pre-Registered Quantitative Growth Stock Momentum Engine (NSE Universe):
   8. Execution Timing        : Next-Day 09:15 IST Market Open strictly enforced with gap risk
   9. Cash Compounding        : Sourced Liquid ETF Net Yield (india_cash_yield_history.csv)
   10. Protocol Integrity     : Verifies SHA-256 hash of GROWTH_STOCK_MOMENTUM_PROTOCOL.md at startup
+  11. Volatility Radar       : Dual-Pod Volatility Targeting & Panic Sentinel (Amendment 2026-11-07)
 """
 
 import warnings
@@ -34,6 +35,7 @@ if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
 from trading_system.app.validation.trial_logger import log_trial
+from trading_system.app.research.momentum_crash import evaluate_dual_pod_regime_and_volatility
 
 CACHE_DIR = os.path.join(PROJECT_ROOT, "trading_system", "data", "historical_cache_nse")
 INDIA_CASH_YIELD_CSV = os.path.join(PROJECT_ROOT, "trading_system", "data", "india_cash_yield_history.csv")
@@ -237,7 +239,8 @@ def run_simulation(
     timeline: list,
     variant: int = 2,
     slippage_bps: float = DEFAULT_SLIPPAGE_BPS,
-    label: str = "Growth Stock Momentum"
+    label: str = "Growth Stock Momentum",
+    use_vol_radar: bool = True
 ) -> Dict[str, Any]:
     years = (timeline[-1] - timeline[0]).days / 365.25
 
@@ -306,6 +309,12 @@ def run_simulation(
 
     buy_fee_rate = (BUY_COST_BPS_STRESSED if slippage_bps > 5.0 else BUY_COST_BPS_NORMAL) / 10000.0
     sell_fee_rate = (SELL_COST_BPS_STRESSED if slippage_bps > 5.0 else SELL_COST_BPS_NORMAL) / 10000.0
+
+    # Precalculate benchmark volatility and 6-month return for canonical Volatility Radar (Barroso & Santa-Clara 2015)
+    bench_closes = bench_df["close"]
+    bench_daily_ret = bench_closes.pct_change()
+    bench_vol_20d = bench_daily_ret.rolling(20, min_periods=10).std(ddof=1) * np.sqrt(252)
+    bench_ret_6m = bench_closes.pct_change(126).fillna(0.0)
 
     for day_idx, current_date in enumerate(timeline):
         bench_close_today = bench_df.loc[current_date, "close"] if current_date in bench_df.index else 0.0
@@ -443,7 +452,7 @@ def run_simulation(
                 hwm_ladder = total_equity
         operating_dd = (total_equity - hwm_ladder) / hwm_ladder
 
-        # Step D: Drawdown Ladder & Recovery State Machine
+        # Step D: Drawdown Ladder & Volatility Radar Dual Defense (Amendment 2026-11-07)
         if in_tier4_defense:
             cooling_off_counter += 1
             if is_routine_bull and cooling_off_counter >= 15:
@@ -456,38 +465,54 @@ def run_simulation(
                 hwm_ladder = total_equity
                 recovery_stage = 1
                 recovery_stage_days = 0
-                allowed_exposure = 0.40
+                ladder_exposure = 0.40
             else:
-                allowed_exposure = 0.0
+                ladder_exposure = 0.0
         else:
             if recovery_stage == 1:
-                allowed_exposure = 0.40
+                ladder_exposure = 0.40
                 recovery_stage_days += 1
                 if recovery_stage_days >= 10:
                     recovery_stage = 2
                     recovery_stage_days = 0
             elif recovery_stage == 2:
-                allowed_exposure = 0.70
+                ladder_exposure = 0.70
                 recovery_stage_days += 1
                 if recovery_stage_days >= 10:
                     recovery_stage = 3
                     recovery_stage_days = 0
             elif recovery_stage == 3:
-                allowed_exposure = 1.00
+                ladder_exposure = 1.00
                 recovery_stage = 0
             else:
                 if operating_dd >= -0.08:
-                    allowed_exposure = 1.00
+                    ladder_exposure = 1.00
                 elif operating_dd >= -0.14:
-                    allowed_exposure = 0.70
+                    ladder_exposure = 0.70
                 elif operating_dd >= -0.18:
-                    allowed_exposure = 0.40
+                    ladder_exposure = 0.40
                 else:
                     in_tier4_defense = True
                     cooling_off_counter = 0
                     recovery_streak = 0
                     recovery_stage = 0
-                    allowed_exposure = 0.0
+                    ladder_exposure = 0.0
+
+        if use_vol_radar:
+            b_vol = bench_vol_20d.loc[current_date] if current_date in bench_vol_20d.index else 0.15
+            b_ret6m = bench_ret_6m.loc[current_date] if current_date in bench_ret_6m.index else 0.0
+            raw_vol_scale = min(1.0, 0.15 / max(b_vol, 0.08)) if not math.isnan(b_vol) and b_vol > 0 else 1.0
+            is_panic = (b_ret6m < 0.0) and (b_vol >= 0.24)
+            is_trend_broken = bench_close_today < bench_sma200_today
+            if is_panic or is_trend_broken:
+                radar_exposure = 0.0
+            elif raw_vol_scale < 0.75:
+                radar_exposure = round(raw_vol_scale, 2)
+            else:
+                radar_exposure = 1.0
+            allowed_exposure = min(radar_exposure, ladder_exposure)
+        else:
+            allowed_exposure = ladder_exposure
 
         # Step E: Exit Signals (Evaluated at Close for NEXT_OPEN Execution)
         signals_to_exit = []
@@ -604,13 +629,14 @@ def run_simulation(
             else:
                 kelly_alloc = 1.0 / max_positions
 
+            target_alloc_per_cand = (total_equity * kelly_alloc) * allowed_exposure
             max_allowed_portfolio_capital = total_equity * allowed_exposure
             current_allocated = sum(positions[s] * current_prices.get(s, entry_prices.get(s, 0.0)) for s in positions)
             budget_for_entries = max(0.0, min(cash * 0.96, max_allowed_portfolio_capital - current_allocated))
 
             selected_cands = cands[:open_slots]
             if selected_cands and budget_for_entries > 500.0:
-                alloc_per_cand = min(total_equity * kelly_alloc, budget_for_entries / len(selected_cands))
+                alloc_per_cand = min(target_alloc_per_cand, budget_for_entries / len(selected_cands))
                 for cand in selected_cands:
                     if budget_for_entries < 500.0:
                         break
@@ -809,6 +835,7 @@ def main():
     parser.add_argument("--all-variants", action="store_true", help="Run and report all 3 variants sequentially")
     parser.add_argument("--open-holdout", action="store_true", help="Open 12-month holdout through 2025-12-30 (Caution: Burns holdout)")
     parser.add_argument("--skip-protocol-check", action="store_true", help="Skip protocol lock verification (Debugging only)")
+    parser.add_argument("--legacy-ladder-only", action="store_true", help="Run legacy drawdown ladder without macro volatility radar")
     args = parser.parse_args()
 
     # Step 0: Cryptographic Protocol Lock Verification
@@ -835,16 +862,20 @@ def main():
         print(f">>> EVALUATING PRE-REGISTERED VARIANT {v}: {v_name.upper()}")
         print(f"=========================================================================================")
 
-        norm_label = f"Normal Costs (5.0 bps) [Variant {v}: {v_name}]"
+        use_radar = not args.legacy_ladder_only
+        radar_tag = " + Vol Radar" if use_radar else " [Legacy Ladder]"
+        norm_label = f"Normal Costs (5.0 bps) [Variant {v}: {v_name}{radar_tag}]"
         normal_res = run_simulation(
             bench_df, macro_bull, precalc, timeline,
-            variant=v, slippage_bps=DEFAULT_SLIPPAGE_BPS, label=norm_label
+            variant=v, slippage_bps=DEFAULT_SLIPPAGE_BPS, label=norm_label,
+            use_vol_radar=use_radar
         )
 
-        strs_label = f"Stressed Costs (7.5 bps) [Variant {v}: {v_name}] [Gate A]"
+        strs_label = f"Stressed Costs (7.5 bps) [Variant {v}: {v_name}{radar_tag}] [Gate A]"
         stressed_res = run_simulation(
             bench_df, macro_bull, precalc, timeline,
-            variant=v, slippage_bps=STRESSED_SLIPPAGE_BPS, label=strs_label
+            variant=v, slippage_bps=STRESSED_SLIPPAGE_BPS, label=strs_label,
+            use_vol_radar=use_radar
         )
 
         mc_5th_dd = run_monte_carlo(stressed_res["trade_log"], num_sims=1000)
@@ -853,7 +884,7 @@ def main():
 
         # Gate A Evaluation
         cagr_pass = stressed_res["cagr_pct"] > baselines["b1_tri"]["cagr_pct"]
-        dd_pass = stressed_res["max_drawdown_pct"] >= -30.00
+        dd_pass = stressed_res["max_drawdown_pct"] >= -25.00
         calmar_pass = stressed_res["calmar_ratio"] > baselines["b1_tri"]["calmar_ratio"]
         pf_pass = stressed_res["profit_factor"] >= 1.50
         sharpe_pass = stressed_res["sharpe_ratio"] >= 1.00

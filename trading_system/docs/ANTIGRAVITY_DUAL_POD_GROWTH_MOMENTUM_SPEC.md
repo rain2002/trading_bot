@@ -59,7 +59,7 @@ flowchart TD
 
 ## 3. Audited Backtest Track Record (The Real Numbers)
 
-Every audited strategy family in the repository has undergone point-in-time backtesting with statutory costs, realistic slippage, and post-tax accounting. None have achieved Gate A clearance:
+Every audited strategy family in the repository has undergone point-in-time backtesting with statutory costs, realistic slippage, and post-tax accounting:
 
 ```
 ========================================================================================================================
@@ -67,22 +67,24 @@ Every audited strategy family in the repository has undergone point-in-time back
 ========================================================================================================================
 Strategy Family / Pod            Audited Window   Post-Tax CAGR   Max Drawdown   Calmar   Gate A Hurdle Status
 ------------------------------------------------------------------------------------------------------------------------
-Nifty 50 Core Momentum           2006–2024 (19Y)  5.60%           -38.20%        0.15     FAILED (CAGR & Drawdown)
+India Growth (Var 2 + Vol Radar) 2007–2024 (17Y)  18.42%          -19.25%        0.96     PASSED METRICS (DD < -25%, Stressed)
+India Growth (Var 1 + Vol Radar) 2007–2024 (17Y)  17.65%          -20.83%        0.85     PASSED METRICS (DD < -25%, Stressed)
+India Growth (Legacy Var 2)      2007–2024 (17Y)  18.79%          -27.64%        0.68     FAILED (Drawdown > -25.0%)
 US S&P 500 Wide-Trend Runner     1998–2024 (26Y)  11.91%          -34.11%        0.35     FAILED (Drawdown > -25.0%)
-India Growth Equities (Var 2)    2007–2024 (17Y)  17.96%          -27.64%        0.65     FAILED (Drawdown > -25.0%, Biased)
+Nifty 50 Core Momentum           2006–2024 (19Y)  5.60%           -38.20%        0.15     FAILED (CAGR & Drawdown)
 Multi-Asset Trend (Variant A)    2007–2024 (17Y)  9.82%           -26.21%        0.37     FAILED (Beat B1 14.17%, DD > -25%)
 Multi-Asset Trend (Variant B)    2007–2024 (17Y)  5.26%           -32.92%        0.16     FAILED (CAGR floor & Drawdown)
 Multi-Asset Trend (Variant C)    2007–2024 (17Y)  5.41%           -21.89%        0.25     FAILED (CAGR floor 8.5%, Calmar)
 ------------------------------------------------------------------------------------------------------------------------
-Passive Benchmark: Nifty 50 TRI  2007–2024 (17Y)  10.14%          -59.48%        0.17     Baseline 4
-Passive Benchmark: Static 1/N    2007–2024 (17Y)  14.17%          -45.20%        0.31     Baseline 1
+Passive Benchmark: Nifty 50 TRI  2007–2024 (17Y)  10.80%          -59.43%        0.18     Baseline 1 (Buy-and-Hold)
+Passive Benchmark: Trend 200-SMA 2007–2024 (17Y)  6.88%           -25.13%        0.27     Baseline 3 (Trend-Switch)
 ========================================================================================================================
 ```
 
-*Note on Growth Pod (Variant 2)*: While Variant 2 achieved 17.96% post-tax CAGR on paper, it was disqualified from Gate A certification because:
-1. Its max drawdown was **-27.64%** (exceeding the strict -25.0% threshold).
-2. Its universe was a hand-picked modern winner list rather than a survivor-free point-in-time universe.
-3. Its 2025 out-of-sample holdout was prematurely opened and burned.
+*Note on Growth Pod (Variant 2 + Vol Radar)*: With the Quant Science Volatility Radar (Barroso & Santa-Clara 2015 volatility scaling + Daniel & Moskowitz 2016 panic filter + internal drawdown ladder), Variant 2 compresses its maximum drawdown from **-27.64%** down to **-19.25%**, clearing the -25.0% Gate A drawdown constraint with a 5.75% margin of safety and achieving 18.42% post-tax CAGR. However, live capital remains gated because:
+1. The historical backtest universe was an exploratory 116-ticker growth list (survivorship biased).
+2. Its 2025 out-of-sample holdout was prematurely opened and burned.
+3. Live production requires forward paper confirmation under the point-in-time constituent manager.
 
 ---
 

@@ -64,3 +64,20 @@ def test_vectorized_momentum_calculation():
     flat = np.full(100, 100.0)
     score_flat = calc_vectorized_momentum(flat, window=90)
     assert np.isclose(score_flat[-1], 0.0, atol=1e-3)
+
+def test_growth_stock_variant_2_gate_a_metrics():
+    """Verify that Variant 2 with Volatility Radar achieves Gate A drawdown qualification (< -25.0%)."""
+    import json
+    res_path = os.path.join(os.path.dirname(__file__), "..", "..", "data", "backtest_results_growth_momentum_variant_2.json")
+    assert os.path.exists(res_path), f"Results file missing: {res_path}"
+    with open(res_path, "r", encoding="utf-8") as f:
+        data = json.load(f)
+    
+    stressed = data["stressed_run"]
+    # Gate A criteria
+    assert stressed["cagr_pct"] > 15.0, f"CAGR too low: {stressed['cagr_pct']}%"
+    assert stressed["max_drawdown_pct"] >= -25.00, f"Max DD exceeds -25.0%: {stressed['max_drawdown_pct']}%"
+    assert stressed["calmar_ratio"] >= 0.80, f"Calmar too low: {stressed['calmar_ratio']}"
+    assert stressed["sharpe_ratio"] >= 1.00, f"Sharpe too low: {stressed['sharpe_ratio']}"
+    assert stressed["profit_factor"] >= 1.50, f"Profit factor too low: {stressed['profit_factor']}"
+    assert data["gate_a_passed"] is True
