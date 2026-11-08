@@ -92,7 +92,7 @@ jobs:
           git fetch origin state 2>/dev/null || true
           if git show-ref --verify --quiet refs/remotes/origin/state; then
             echo "Restoring latest state files from origin/state branch..."
-            git checkout origin/state -- trading_system/data/paper_state_india.json trading_system/data/paper_state_us.json trading_system/data/paper_equity_log.csv trading_system/data/paper_trades_india.csv trading_system/data/paper_trades_us.csv 2>/dev/null || true
+            git checkout origin/state -- trading_system/data/paper_state_india.json trading_system/data/paper_state_us.json trading_system/data/paper_state_multi_asset.json trading_system/data/paper_equity_log.csv trading_system/data/paper_trades_india.csv trading_system/data/paper_trades_us.csv trading_system/data/paper_trades_multi_asset.csv 2>/dev/null || true
           else
             echo "No origin/state branch found; using local repository state defaults."
           fi
@@ -116,6 +116,10 @@ jobs:
           else
             echo ">>> Running Dual-Pod Routine: Phase=$PHASE, Pod=$POD"
             python trading_system/scripts/run_dual_pod_paper.py --phase "$PHASE" --pod "$POD"
+            if [ "$POD" = "india" ]; then
+              echo ">>> Running Pod C Multi-Asset Trend Routine alongside India Market..."
+              python trading_system/scripts/run_dual_pod_paper.py --phase "$PHASE" --pod pod_c
+            fi
           fi
 
       - name: Persist Telemetry & State Artifacts to Dedicated State Branch
