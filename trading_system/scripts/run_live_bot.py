@@ -34,13 +34,7 @@ from trading_system.app.config.market_config import MarketConfig
 MODEL_PATH = os.path.join(PROJECT_ROOT, "trading_system", "data", "models", "quant_rf_model.joblib")
 STOP_LOSS_CONFIG = os.path.join(PROJECT_ROOT, "trading_system", "app", "config", "stop_loss_config.json")
 
-# Default core fallback universe
-CORE_UNIVERSE = [
-    "AAPL", "MSFT", "NVDA", "AMZN", "GOOGL", "META", "TSLA", "AVGO", "JPM", "LLY",
-    "UNH", "V", "MA", "COST", "HD", "PG", "NFLX", "AMD", "CRM", "ADBE",
-    "QCOM", "TXN", "INTU", "AMAT", "NOW", "CAT", "GE", "ISRG", "UBER", "PANW",
-    "BKNG", "AXP", "GS", "MS", "SPGI", "BLK", "MCD", "DIS", "WMT", "XOM"
-]
+# Note: Silent fallback universe prohibited per institutional invariants (P2 Fix 10)
 
 MACRO_SYMBOLS = {
     "spy": "SPY",
@@ -232,7 +226,11 @@ def execute_live_cycle(dry_run: bool = False):
     # 4. Ingest Candidate Universe & Generate Causal Technical Signals
     scan_universe = market.get_universe()
     if not scan_universe:
-        scan_universe = CORE_UNIVERSE
+        raise RuntimeError(
+            f"FATAL [P2 Fix 10 Fail-Closed]: Live/paper trading universe for market '{market.name}' ({market.market_code}) "
+            f"is empty or missing. Silent fallback to static ticker lists is strictly prohibited. "
+            f"The runner refuses to start because the universe must strictly match the backtest."
+        )
 
     print(f"\n[4/6] Scanning {len(scan_universe)} Leaders in {market.name} for Breakouts & Dips...")
     universe_data = {}

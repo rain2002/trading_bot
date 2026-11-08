@@ -520,7 +520,7 @@ def generate_dashboard_html() -> str:
             </div>
         </div>
         <div class="kpi-card">
-            <div class="kpi-title">🌐 Pod C (Multi-Asset Trend)</div>
+            <div class="kpi-title">🌐 Pod C: Multi-Asset (Exploratory, Failed Gate A)</div>
             <div class="kpi-value" style="color: #F59E0B;">₹{c_equity:,.0f}</div>
             <div class="kpi-sub" style="color: {'#10B981' if c_pnl >= 0 else '#EF4444'};">
                 {c_pnl_pct:+.2f}% ({'₹' if c_pnl >= 0 else '-₹'}{abs(c_pnl):,.0f})
@@ -557,7 +557,7 @@ def generate_dashboard_html() -> str:
             <div class="tabs">
                 <button class="tab-btn active" onclick="switchTab('india')">🇮🇳 India Pod ({len(in_pos)})</button>
                 <button class="tab-btn" onclick="switchTab('us')">🇺🇸 US Pod ({len(us_pos)})</button>
-                <button class="tab-btn" onclick="switchTab('pod_c')">🌐 Pod C: Multi-Asset ({len(c_pos)})</button>
+                <button class="tab-btn" onclick="switchTab('pod_c')">🌐 Pod C: Multi-Asset [Exploratory, Failed Gate A] ({len(c_pos)})</button>
             </div>
         </div>
 
