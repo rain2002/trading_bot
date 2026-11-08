@@ -13,6 +13,8 @@ class Settings(BaseSettings):
     # Broker Configuration
     PAPER_API_KEY: Optional[str] = None
     PAPER_API_SECRET: Optional[str] = None
+    ALPACA_API_KEY: Optional[str] = None
+    ALPACA_SECRET_KEY: Optional[str] = None
     
     # LIVE TRADING SAFETY SWITCH
     LIVE_TRADING_ENABLED: bool = Field(

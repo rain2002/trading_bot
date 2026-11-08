@@ -101,8 +101,8 @@ class PodPaperEngine:
             from trading_system.app.config.settings import settings
             from trading_system.app.broker.alpaca import AlpacaBrokerAdapter
 
-            api_key = settings.PAPER_API_KEY
-            api_secret = settings.PAPER_API_SECRET
+            api_key = settings.PAPER_API_KEY or settings.ALPACA_API_KEY or os.environ.get("PAPER_API_KEY") or os.environ.get("ALPACA_API_KEY") or os.environ.get("ALPACA_PAPER_KEY")
+            api_secret = settings.PAPER_API_SECRET or settings.ALPACA_SECRET_KEY or os.environ.get("PAPER_API_SECRET") or os.environ.get("ALPACA_SECRET_KEY") or os.environ.get("ALPACA_PAPER_SECRET")
             if not api_key or not api_secret or api_key == "mock":
                 print(f"[{self.pod_name}] No live Alpaca credentials configured; continuing in simulated paper mode.")
                 return
@@ -210,8 +210,10 @@ class PodPaperEngine:
             try:
                 from trading_system.app.config.settings import settings
                 from trading_system.app.execution.alpaca_live import AlpacaExecutionAdapter
-                if settings.PAPER_API_KEY and settings.PAPER_API_SECRET and settings.PAPER_API_KEY != "mock":
-                    alpaca_adapter = AlpacaExecutionAdapter(api_key=settings.PAPER_API_KEY, api_secret=settings.PAPER_API_SECRET)
+                api_key = settings.PAPER_API_KEY or settings.ALPACA_API_KEY or os.environ.get("PAPER_API_KEY") or os.environ.get("ALPACA_API_KEY") or os.environ.get("ALPACA_PAPER_KEY")
+                api_secret = settings.PAPER_API_SECRET or settings.ALPACA_SECRET_KEY or os.environ.get("PAPER_API_SECRET") or os.environ.get("ALPACA_SECRET_KEY") or os.environ.get("ALPACA_PAPER_SECRET")
+                if api_key and api_secret and api_key != "mock":
+                    alpaca_adapter = AlpacaExecutionAdapter(api_key=api_key, api_secret=api_secret)
             except Exception as e:
                 print(f"[{self.pod_name}] Alpaca adapter init error: {e}")
 
