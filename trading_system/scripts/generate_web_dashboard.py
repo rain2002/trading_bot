@@ -19,6 +19,8 @@ OUTPUT_HTML = os.path.join(DOCS_DIR, "index.html")
 
 INDIA_STATE_FILE = os.path.join(DATA_DIR, "paper_state_india.json")
 US_STATE_FILE = os.path.join(DATA_DIR, "paper_state_us.json")
+MULTI_ASSET_STATE_FILE = os.path.join(DATA_DIR, "paper_state_multi_asset.json")
+MULTI_ASSET_TRADES_CSV = os.path.join(DATA_DIR, "paper_trades_multi_asset.csv")
 INDIA_TRADES_CSV = os.path.join(DATA_DIR, "paper_trades_india.csv")
 US_TRADES_CSV = os.path.join(DATA_DIR, "paper_trades_us.csv")
 EQUITY_LOG_CSV = os.path.join(DATA_DIR, "paper_equity_log.csv")
@@ -49,6 +51,8 @@ def generate_dashboard_html() -> str:
     us_state = load_json(US_STATE_FILE)
     in_trades = load_csv(INDIA_TRADES_CSV)
     us_trades = load_csv(US_TRADES_CSV)
+    pod_c_state = load_json(MULTI_ASSET_STATE_FILE)
+    pod_c_trades = load_csv(MULTI_ASSET_TRADES_CSV)
     eq_log = load_csv(EQUITY_LOG_CSV)
 
     v1_res = load_json(os.path.join(DATA_DIR, "backtest_results_multi_asset_v2_1_variant_1.json"))
@@ -90,6 +94,16 @@ def generate_dashboard_html() -> str:
     us_pnl = us_equity - us_initial
     us_pnl_pct = (us_pnl / us_initial * 100) if us_initial > 0 else 0.0
 
+    c_cash = pod_c_state.get("cash", 80000.0)
+    c_initial = pod_c_state.get("initial_capital", 80000.0)
+    c_pos = pod_c_state.get("positions", {})
+    c_trend = pod_c_state.get("trend_status", {})
+    c_hwm = pod_c_state.get("hwm_true", c_initial)
+    c_dd = pod_c_state.get("max_drawdown", 0.0)
+    c_equity = c_cash + sum(p.get("shares", 0) * p.get("peak_price", p.get("entry_price", 0)) for p in c_pos.values())
+    c_pnl = c_equity - c_initial
+    c_pnl_pct = (c_pnl / c_initial * 100) if c_initial > 0 else 0.0
+
     now_utc = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
 
     # Build chart data from equity log
@@ -101,8 +115,10 @@ def generate_dashboard_html() -> str:
         dates = [str(d) for d in piv.index]
         in_series = piv["INDIA"] if "INDIA" in piv.columns else pd.Series([in_equity]*len(dates), index=piv.index)
         us_series = piv["US"] if "US" in piv.columns else pd.Series([us_equity]*len(dates), index=piv.index)
+        c_series = piv["MULTI_ASSET"] if "MULTI_ASSET" in piv.columns else (piv["POD_C"] if "POD_C" in piv.columns else pd.Series([c_equity]*len(dates), index=piv.index))
         in_navs = [float(v) for v in in_series.fillna(in_equity)]
         us_navs = [float(v) for v in us_series.fillna(us_equity)]
+        c_navs = [float(v) for v in c_series.fillna(c_equity)]
     elif not eq_log.empty:
         for _, row in eq_log.iterrows():
             d = str(row.get("date", ""))
@@ -113,6 +129,7 @@ def generate_dashboard_html() -> str:
         dates = [datetime.now(timezone.utc).strftime("%Y-%m-%d")]
         in_navs = [in_equity]
         us_navs = [us_equity]
+        c_navs = [c_equity]
 
     # Generate India Holdings Table HTML
     in_holdings_rows = ""
@@ -136,6 +153,48 @@ def generate_dashboard_html() -> str:
         """
     if not in_holdings_rows:
         in_holdings_rows = """<tr><td colspan="7" style="text-align: center; color: #9CA3AF; padding: 24px;">No open positions (100% Capital Preserved in Liquid Cash)</td></tr>"""
+
+    # Generate Pod C Holdings Table HTML
+    pod_c_holdings_rows = ""
+    pod_c_alloc_targets = {"NIFTYBEES.NS": 0.40, "MON100.NS": 0.30, "GOLDBEES.NS": 0.20, "CASH": 0.10}
+    for sym, target_wt in pod_c_alloc_targets.items():
+        if sym == "CASH":
+            actual_cash_wt = (c_cash / c_equity * 100.0) if c_equity > 0 else 100.0
+            pod_c_holdings_rows += f"""
+            <tr>
+                <td style="font-weight: 600; color: #F59E0B;">SOVEREIGN LIQUID CASH</td>
+                <td>N/A</td>
+                <td>N/A</td>
+                <td>N/A</td>
+                <td>₹{c_cash:,.2f} ({actual_cash_wt:.1f}%)</td>
+                <td style="color: #10B981; font-weight: 600;">Yield: +6.0% p.a.</td>
+                <td><span class="badge badge-success">YIELD RESERVE</span></td>
+            </tr>
+            """
+            continue
+        p = c_pos.get(sym, {})
+        shs = p.get("shares", 0.0)
+        entry = p.get("entry_price", 0.0)
+        peak = p.get("peak_price", entry)
+        cur_val = shs * peak
+        pnl_pct = ((peak - entry) / entry * 100.0) if entry > 0 else 0.0
+        pnl_color = "#10B981" if pnl_pct >= 0 else "#EF4444"
+        st = c_trend.get(sym, {})
+        regime = st.get("regime", "PENDING_SCAN")
+        regime_badge = "badge-success" if regime == "BULL_TREND" else "badge-defense"
+        pod_c_holdings_rows += f"""
+        <tr>
+            <td style="font-weight: 600; color: #60A5FA;">{sym} (Target {target_wt*100:.0f}%)</td>
+            <td>{shs:,.2f}</td>
+            <td>₹{entry:,.2f}</td>
+            <td>₹{peak:,.2f}</td>
+            <td>₹{cur_val:,.2f}</td>
+            <td style="color: {pnl_color}; font-weight: 600;">{pnl_pct:+.2f}%</td>
+            <td><span class="badge {regime_badge}">{regime}</span></td>
+        </tr>
+        """
+    if not pod_c_holdings_rows:
+        pod_c_holdings_rows = '<tr><td colspan="7" style="text-align: center; color: #9CA3AF; padding: 24px;">No open positions (100% Capital Preserved in Sovereign Cash Yield)</td></tr>'
 
     # Generate US Holdings Table HTML
     us_holdings_rows = ""
@@ -179,6 +238,14 @@ def generate_dashboard_html() -> str:
             px = float(r.get("fill_price", r.get("price", 0.0)))
             pnl = float(r.get("realized_pnl", r.get("net_pnl", 0.0)))
             combined_trades.append(("🇺🇸 US", dt, sym, side, px, pnl, "$"))
+    if not pod_c_trades.empty:
+        for _, r in pod_c_trades.tail(10).iterrows():
+            dt = str(r.get("timestamp", r.get("date", "")))
+            sym = str(r.get("symbol", ""))
+            side = str(r.get("action", r.get("side", "")))
+            px = float(r.get("fill_price", r.get("price", 0.0)))
+            pnl = float(r.get("realized_pnl", r.get("net_pnl", 0.0)))
+            combined_trades.append(("🌐 POD C", dt, sym, side, px, pnl, "₹"))
 
     for pod, dt, sym, side, px, pnl, curr in combined_trades[-8:]:
         pnl_color = "#10B981" if pnl > 0 else ("#EF4444" if pnl < 0 else "#9CA3AF")
@@ -453,6 +520,13 @@ def generate_dashboard_html() -> str:
             </div>
         </div>
         <div class="kpi-card">
+            <div class="kpi-title">🌐 Pod C (Multi-Asset Trend)</div>
+            <div class="kpi-value" style="color: #F59E0B;">₹{c_equity:,.0f}</div>
+            <div class="kpi-sub" style="color: {'#10B981' if c_pnl >= 0 else '#EF4444'};">
+                {c_pnl_pct:+.2f}% ({'₹' if c_pnl >= 0 else '-₹'}{abs(c_pnl):,.0f})
+            </div>
+        </div>
+        <div class="kpi-card">
             <div class="kpi-title">🛡️ Risk Sentinel & Drawdown</div>
             <div class="kpi-value" style="color: {'#10B981' if in_dd > -0.10 else '#F59E0B'};">{in_dd*100:.1f}%</div>
             <div class="kpi-sub" style="color: var(--text-muted);">
@@ -483,6 +557,7 @@ def generate_dashboard_html() -> str:
             <div class="tabs">
                 <button class="tab-btn active" onclick="switchTab('india')">🇮🇳 India Pod ({len(in_pos)})</button>
                 <button class="tab-btn" onclick="switchTab('us')">🇺🇸 US Pod ({len(us_pos)})</button>
+                <button class="tab-btn" onclick="switchTab('pod_c')">🌐 Pod C: Multi-Asset ({len(c_pos)})</button>
             </div>
         </div>
 
@@ -520,6 +595,25 @@ def generate_dashboard_html() -> str:
                 </thead>
                 <tbody>
                     {us_holdings_rows}
+                </tbody>
+            </table>
+        </div>
+
+        <div id="tab-pod_c" class="tab-content">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Macro Asset / Instrument</th>
+                        <th>Shares</th>
+                        <th>Avg Entry</th>
+                        <th>Current / Peak</th>
+                        <th>Market Value</th>
+                        <th>P&L %</th>
+                        <th>Regime Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {pod_c_holdings_rows}
                 </tbody>
             </table>
         </div>
@@ -651,9 +745,12 @@ def generate_dashboard_html() -> str:
             if (pod === 'india') {{
                 document.querySelectorAll('.tab-btn')[0].classList.add('active');
                 document.getElementById('tab-india').classList.add('active');
-            }} else {{
+            }} else if (pod === 'us') {{
                 document.querySelectorAll('.tab-btn')[1].classList.add('active');
                 document.getElementById('tab-us').classList.add('active');
+            }} else {{
+                document.querySelectorAll('.tab-btn')[2].classList.add('active');
+                document.getElementById('tab-pod_c').classList.add('active');
             }}
         }}
 
@@ -682,6 +779,16 @@ def generate_dashboard_html() -> str:
                         yAxisID: 'yUS',
                         tension: 0.2,
                         fill: true
+                    }},
+                    {{
+                        label: 'Pod C Multi-Asset NAV (INR ₹)',
+                        data: {json.dumps(c_navs)},
+                        borderColor: '#F59E0B',
+                        backgroundColor: 'rgba(245, 158, 11, 0.05)',
+                        borderWidth: 2,
+                        yAxisID: 'yIndia',
+                        tension: 0.2,
+                        fill: false
                     }}
                 ]
             }},

@@ -98,3 +98,5 @@ date,commit_hash,script,universe,kelly_fraction,lookback_days,cagr_pct,max_drawd
 2026-11-08 01:06:59,f780d44,backtest_nifty500.py,NIFTY_500_SURVIVOR_BIASED_TODAY_LIST,0.4,90,19.17,-31.06,1.32,False,Un-preregistered exploratory Breakout Compounder (15 Slots) Radar ON (Slots changed to 15)
 2026-11-08 01:07:00,f780d44,backtest_nifty500.py,NIFTY_500_SURVIVOR_BIASED_TODAY_LIST,0.4,90,19.65,-31.47,1.29,False,Un-preregistered exploratory Breakout Compounder (15 Slots) Radar OFF (Slots changed to 15)
 2026-11-08 01:16:06,da4b66b,run_causal_bhavcopy_backtest.py,NSE_BHAVCOPY_CAUSAL_TOP500,0.4,90,5.61,-30.38,0.47,False,"Phase 1 Causal Bhavcopy Top 500 Liquid Universe (Survivor-Free, Radar ON, 10 Slots)"
+2026-11-08 01:21:30,631231f,test_quality_breakout_tight_risk.py,NSE_BHAVCOPY_CAUSAL_TOP300,0.4,252,40.24,-18.79,2.01,False,"Quality Breakout (52w High + SMA50/200 + Volume Surge) + Tight Risk (-7% Stop, BE +6%, Trail +15%/8%)"
+2026-11-08 01:22:42,631231f,test_quality_breakout_tight_risk.py,NSE_BHAVCOPY_CAUSAL_TOP300,0.4,252,3.88,-28.15,0.27,False,"Quality Breakout (52w High + SMA50/200 + Volume Surge) + Tight Risk (-7% Stop, BE +6%, Trail +15%/8%)"

@@ -210,7 +210,7 @@
         </div>
         <div class="telemetry">
             <div class="live-dot"></div>
-            <span>LAST SYNC: 2026-11-07 23:03:38 UTC</span>
+            <span>LAST SYNC: 2026-11-08 01:44:31 UTC</span>
         </div>
     </header>
 
@@ -255,6 +255,13 @@
             </div>
         </div>
         <div class="kpi-card">
+            <div class="kpi-title">🌐 Pod C (Multi-Asset Trend)</div>
+            <div class="kpi-value" style="color: #F59E0B;">₹79,960</div>
+            <div class="kpi-sub" style="color: #EF4444;">
+                -0.05% (-₹40)
+            </div>
+        </div>
+        <div class="kpi-card">
             <div class="kpi-title">🛡️ Risk Sentinel & Drawdown</div>
             <div class="kpi-value" style="color: #10B981;">0.0%</div>
             <div class="kpi-sub" style="color: var(--text-muted);">
@@ -285,6 +292,7 @@
             <div class="tabs">
                 <button class="tab-btn active" onclick="switchTab('india')">🇮🇳 India Pod (0)</button>
                 <button class="tab-btn" onclick="switchTab('us')">🇺🇸 US Pod (15)</button>
+                <button class="tab-btn" onclick="switchTab('pod_c')">🌐 Pod C: Multi-Asset (1)</button>
             </div>
         </div>
 
@@ -475,6 +483,65 @@
                 </tbody>
             </table>
         </div>
+
+        <div id="tab-pod_c" class="tab-content">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Macro Asset / Instrument</th>
+                        <th>Shares</th>
+                        <th>Avg Entry</th>
+                        <th>Current / Peak</th>
+                        <th>Market Value</th>
+                        <th>P&L %</th>
+                        <th>Regime Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    
+        <tr>
+            <td style="font-weight: 600; color: #60A5FA;">NIFTYBEES.NS (Target 40%)</td>
+            <td>114.92</td>
+            <td>₹278.21</td>
+            <td>₹278.00</td>
+            <td>₹31,947.76</td>
+            <td style="color: #EF4444; font-weight: 600;">-0.07%</td>
+            <td><span class="badge badge-success">BULL_TREND</span></td>
+        </tr>
+        
+        <tr>
+            <td style="font-weight: 600; color: #60A5FA;">MON100.NS (Target 30%)</td>
+            <td>0.00</td>
+            <td>₹0.00</td>
+            <td>₹0.00</td>
+            <td>₹0.00</td>
+            <td style="color: #10B981; font-weight: 600;">+0.00%</td>
+            <td><span class="badge badge-defense">DEFENSIVE_CASH</span></td>
+        </tr>
+        
+        <tr>
+            <td style="font-weight: 600; color: #60A5FA;">GOLDBEES.NS (Target 20%)</td>
+            <td>0.00</td>
+            <td>₹0.00</td>
+            <td>₹0.00</td>
+            <td>₹0.00</td>
+            <td style="color: #10B981; font-weight: 600;">+0.00%</td>
+            <td><span class="badge badge-defense">DEFENSIVE_CASH</span></td>
+        </tr>
+        
+            <tr>
+                <td style="font-weight: 600; color: #F59E0B;">SOVEREIGN LIQUID CASH</td>
+                <td>N/A</td>
+                <td>N/A</td>
+                <td>N/A</td>
+                <td>₹48,012.39 (60.0%)</td>
+                <td style="color: #10B981; font-weight: 600;">Yield: +6.0% p.a.</td>
+                <td><span class="badge badge-success">YIELD RESERVE</span></td>
+            </tr>
+            
+                </tbody>
+            </table>
+        </div>
     </div>
 
     <div class="card">
@@ -583,7 +650,16 @@
                 </tr>
             </thead>
             <tbody>
-                <tr><td colspan="6" style="text-align: center; color: #9CA3AF; padding: 18px;">No trades executed yet in forward forward testing horizon</td></tr>
+                
+        <tr>
+            <td>🌐 POD C</td>
+            <td>2026-11-08 01:44:31</td>
+            <td style="font-weight:600;">NIFTYBEES.NS</td>
+            <td><span class="badge badge-buy">BUY</span></td>
+            <td>₹278.21</td>
+            <td style="color:#9CA3AF; font-weight:600;">₹+0.00</td>
+        </tr>
+        
             </tbody>
         </table>
     </div>
@@ -603,9 +679,12 @@
             if (pod === 'india') {
                 document.querySelectorAll('.tab-btn')[0].classList.add('active');
                 document.getElementById('tab-india').classList.add('active');
-            } else {
+            } else if (pod === 'us') {
                 document.querySelectorAll('.tab-btn')[1].classList.add('active');
                 document.getElementById('tab-us').classList.add('active');
+            } else {
+                document.querySelectorAll('.tab-btn')[2].classList.add('active');
+                document.getElementById('tab-pod_c').classList.add('active');
             }
         }
 
@@ -613,11 +692,11 @@
         new Chart(ctx, {
             type: 'line',
             data: {
-                labels: ["2026-11-07"],
+                labels: ["2026-11-07", "2026-11-08"],
                 datasets: [
                     {
                         label: 'India Pod NAV (INR ₹)',
-                        data: [80000.0],
+                        data: [80000.0, 80000.0],
                         borderColor: '#60A5FA',
                         backgroundColor: 'rgba(96, 165, 250, 0.05)',
                         borderWidth: 2,
@@ -627,13 +706,23 @@
                     },
                     {
                         label: 'US Pod NAV (USD $)',
-                        data: [97780.29],
+                        data: [97780.29, 97780.29],
                         borderColor: '#34D399',
                         backgroundColor: 'rgba(52, 211, 153, 0.05)',
                         borderWidth: 2,
                         yAxisID: 'yUS',
                         tension: 0.2,
                         fill: true
+                    },
+                    {
+                        label: 'Pod C Multi-Asset NAV (INR ₹)',
+                        data: [79960.1517631619, 80019.05],
+                        borderColor: '#F59E0B',
+                        backgroundColor: 'rgba(245, 158, 11, 0.05)',
+                        borderWidth: 2,
+                        yAxisID: 'yIndia',
+                        tension: 0.2,
+                        fill: false
                     }
                 ]
             },

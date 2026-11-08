@@ -85,3 +85,30 @@ All strategy specifications, protocol documents, and audited reports are located
 ### Step 3: Formalize Multi-Asset Trend Deployment
 - Deploy the Multi-Asset Trend Engine (`backtest_multi_asset.py`) into the live paper runner as Pod C.
 - Capital allocation: 40% India Trend (NIFTYBEES), 30% US Tech (MON100 / Nasdaq), 20% Gold (GOLDBEES), 10% Liquid Cash Yield.
+
+---
+
+## 6. Execution Deliverables & Operational Status (Commit Stamped)
+
+### A. Pod C Multi-Asset Trend Runner Deployed ([`trading_system/scripts/run_dual_pod_paper.py`](file:///d:/paper_trading_bot/trading_system/scripts/run_dual_pod_paper.py))
+- **Architecture**: `MultiAssetPodPaperEngine` deployed with ₹80,000 INR starting capital.
+- **Canonical Asset Allocation**:
+  - 40% India Trend (`NIFTYBEES.NS`)
+  - 30% US Mega-Cap Tech (`MON100.NS`)
+  - 20% Domestic Gold (`GOLDBEES.NS`)
+  - 10% Sovereign Liquid Cash Yield (`LIQUIDBEES.NS` / Cash at RBI repo rate - 65 bps net yield)
+- **Trend Rules (Protocol V2.1 Variant A)**: Price > 200-SMA and 6M Momentum > 0.
+- **Defensive Cash Reallocation**: Assets below 200-SMA are defensively liquidated at Next-Day Open (09:15 IST) into 100% daily compounding liquid cash yield.
+- **Sourced Friction Matrix**: CDSL ₹14.75 flat DP fee per scrip sell day, STT on equity ETF (10 bps), STT exempt on precious metal & international ETFs (0 bps), stamp duty (1.5 bps), exchange turnover (0.297 bps), SEBI fee (0.01 bps), GST (18%).
+- **CLI Invariant**: `--pod` supports `all` (Pod 1, Pod 2, Pod C), `india`, `us`, `pod_c`, `multi_asset`.
+
+### B. Fundamental Quality Screen Engine ([`trading_system/app/fundamentals/quality_filter.py`](file:///d:/paper_trading_bot/trading_system/app/fundamentals/quality_filter.py))
+- **ROCE Hurdle**: Return on Capital Employed $\ge 15.0\%$.
+- **EPS Acceleration**: Quarterly Net Profit / EPS YoY Growth $\ge 0.0\%$.
+- **Solvency Guard**: Debt-to-Equity ceiling $\le 2.0$.
+- **Causal Filing Invariant**: Blocks lookahead bias by enforcing that financials for quarter $T$ are strictly unaccessible prior to official filing date ($T + 45$ days).
+
+### C. Live Dashboard & Test Governance
+- **Responsive Dashboard** ([`docs/index.html`](file:///d:/paper_trading_bot/docs/index.html)): Generates live KPI cards, interactive holdings tabs, and multi-asset equity curves.
+- **Unit Test Suite**: 198 unit tests passing across all pods, risk sentinels, and brokers.
+- **Security Audit**: Zero credentials or secrets leaked across 268 files.

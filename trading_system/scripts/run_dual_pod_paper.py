@@ -30,12 +30,12 @@ import pandas as pd
 import numpy as np
 import yfinance as yf
 
-from trading_system.app.research.momentum_crash import evaluate_dual_pod_regime_and_volatility
-from trading_system.app.data.constituent_manager import PointInTimeConstituentManager
-
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
+
+from trading_system.app.research.momentum_crash import evaluate_dual_pod_regime_and_volatility
+from trading_system.app.data.constituent_manager import PointInTimeConstituentManager
 
 DATA_DIR = os.path.join(PROJECT_ROOT, "trading_system", "data")
 INDIA_TICKERS_FILE = os.path.join(DATA_DIR, "nse_tickers.txt")
@@ -43,14 +43,45 @@ US_TICKERS_FILE = os.path.join(DATA_DIR, "us_growth_tickers.txt")
 
 INDIA_STATE_FILE = os.path.join(DATA_DIR, "paper_state_india.json")
 US_STATE_FILE = os.path.join(DATA_DIR, "paper_state_us.json")
+MULTI_ASSET_STATE_FILE = os.path.join(DATA_DIR, "paper_state_multi_asset.json")
 
 INDIA_TRADES_CSV = os.path.join(DATA_DIR, "paper_trades_india.csv")
 US_TRADES_CSV = os.path.join(DATA_DIR, "paper_trades_us.csv")
+MULTI_ASSET_TRADES_CSV = os.path.join(DATA_DIR, "paper_trades_multi_asset.csv")
 EQUITY_LOG_CSV = os.path.join(DATA_DIR, "paper_equity_log.csv")
 
 # Institutional Default Settings
 DEFAULT_INDIA_CAPITAL = 80000.0    # INR 80,000 (Mandatory Gate A scale)
 DEFAULT_US_CAPITAL = 100000.0      # USD $100,000 (Alpaca Paper Desk principal)
+DEFAULT_MULTI_ASSET_CAPITAL = 80000.0 # INR 80,000 (Pod C Gate A protocol capital)
+
+# Pod C Canonical Allocations (Multi-Asset Macro Trend Following)
+# Master Handover Specification: 40% India Trend, 30% US Tech, 20% Gold, 10% Liquid Cash Yield
+POD_C_CORE_ALLOCATIONS = {
+    "NIFTYBEES.NS": 0.40,  # 40% India Trend (Nifty 50 ETF)
+    "MON100.NS": 0.30,     # 30% US Mega-Cap Tech (Nasdaq 100 ETF)
+    "GOLDBEES.NS": 0.20,   # 20% Domestic Gold (Gold BeES ETF)
+    "CASH": 0.10           # 10% Sovereign Liquid Cash Yield (Base reserve + defensive reallocation)
+}
+
+# Instrument specific execution friction & statutory tax characteristics
+POD_C_ASSET_SPECS = {
+    "NIFTYBEES.NS": {
+        "class": "EQUITY", "norm_slip_bps": 5.0, "stress_slip_bps": 7.5,
+        "stt_sell_bps": 10.0, "stamp_buy_bps": 1.5, "exch_bps": 0.297, "sebi_bps": 0.01,
+        "name": "Nippon India ETF Nifty 50 BeES (India Large-Cap)"
+    },
+    "MON100.NS": {
+        "class": "INTL", "norm_slip_bps": 12.0, "stress_slip_bps": 20.0,
+        "stt_sell_bps": 0.0, "stamp_buy_bps": 1.5, "exch_bps": 0.297, "sebi_bps": 0.01,
+        "name": "Motilal Oswal Nasdaq 100 ETF (US Secular Tech)"
+    },
+    "GOLDBEES.NS": {
+        "class": "METAL", "norm_slip_bps": 7.5, "stress_slip_bps": 12.0,
+        "stt_sell_bps": 0.0, "stamp_buy_bps": 1.5, "exch_bps": 0.297, "sebi_bps": 0.01,
+        "name": "Nippon India ETF Gold BeES (Domestic Gold)"
+    }
+}
 
 INDIA_FLAT_DP_FEE = 14.75          # Flat Rs 14.75 per sale scrip
 INDIA_BUY_BPS = 25.35              # Stressed variable costs
@@ -600,6 +631,383 @@ class PodPaperEngine:
         print("=" * 95 + "\n")
 
 
+class MultiAssetPodPaperEngine:
+    """
+    Production Multi-Asset Tactical Trend Paper Engine (Pod C)
+    ===========================================================
+    Governs macro tactical trend following across:
+      - India Large-Cap Trend: 40% NIFTYBEES.NS
+      - US Secular Technology: 30% MON100.NS
+      - Domestic Precious Metal: 20% GOLDBEES.NS
+      - Sovereign Cash Yield: 10% base buffer + 100% of disqualified trend capital
+
+    Rules (Audited Protocol V2.1 Variant A):
+      - Trend Gate: Price > 200-SMA and 6-Month Momentum (126d) > 0.
+      - Whipsaw & Crash Defense: Any broken asset drops to 0% weight; capital
+        compounds daily in liquid cash yield (RBI repo rate less 65 bps TER).
+      - Execution: Signal at Close (15:35 IST); Filled at Next-Day Open (09:15 IST).
+      - Sourced Friction: CDSL DP fee Rs 14.75, STT (10 bps on equities, 0 bps on metals/intl),
+        exchange turnover charges, SEBI fee, GST.
+    """
+    def __init__(
+        self,
+        pod_name: str = "POD_C",
+        currency: str = "INR",
+        initial_capital: float = DEFAULT_MULTI_ASSET_CAPITAL,
+        state_file: str = MULTI_ASSET_STATE_FILE,
+        trades_file: str = MULTI_ASSET_TRADES_CSV,
+        stressed_friction: bool = True
+    ):
+        self.pod_name = pod_name
+        self.currency = currency
+        self.initial_capital = initial_capital
+        self.state_file = state_file
+        self.trades_file = trades_file
+        self.stressed_friction = stressed_friction
+        self.state = self._load_state()
+
+    def _load_state(self) -> Dict[str, Any]:
+        if os.path.exists(self.state_file):
+            try:
+                with open(self.state_file, "r") as f:
+                    return json.load(f)
+            except Exception:
+                pass
+        return {
+            "pod_name": self.pod_name,
+            "currency": self.currency,
+            "cash": self.initial_capital,
+            "initial_capital": self.initial_capital,
+            "positions": {},       # sym -> {shares, entry_price, entry_date, peak_price}
+            "pending_buys": [],    # [{sym, target_alloc, score, reason}]
+            "pending_sells": [],   # [{sym, reason, trim_shares}]
+            "hwm_true": self.initial_capital,
+            "max_drawdown": 0.0,
+            "trend_status": {},    # sym -> {price, sma200, mom6m, qualified, regime}
+            "total_interest_earned": 0.0,
+            "last_updated": None
+        }
+
+    def _save_state(self):
+        self.state["last_updated"] = datetime.now(timezone.utc).isoformat()
+        os.makedirs(os.path.dirname(self.state_file), exist_ok=True)
+        with open(self.state_file, "w") as f:
+            json.dump(self.state, f, indent=2)
+
+    def log_trade(self, trade_data: Dict[str, Any]):
+        os.makedirs(os.path.dirname(self.trades_file), exist_ok=True)
+        file_exists = os.path.exists(self.trades_file) and os.path.getsize(self.trades_file) > 0
+        df_row = pd.DataFrame([trade_data])
+        df_row.to_csv(self.trades_file, mode="a", index=False, header=not file_exists)
+
+    def execute_open_fills(self, current_open_prices: Dict[str, float]):
+        """Executes queued orders at 09:15 IST Market Open with statutory taxes and slippage."""
+        now_str = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
+
+        # 1. Execute Sells (Full exits or trims)
+        if self.state["pending_sells"]:
+            for item in self.state["pending_sells"]:
+                sym = item["sym"]
+                reason = item["reason"]
+                if sym not in self.state["positions"]:
+                    continue
+                pos = self.state["positions"][sym]
+                total_shs = pos["shares"]
+                trim_shs = item.get("trim_shares")
+                if trim_shs and 0 < trim_shs < total_shs:
+                    shares = float(trim_shs)
+                    is_full_exit = False
+                else:
+                    shares = float(total_shs)
+                    is_full_exit = True
+
+                spec = POD_C_ASSET_SPECS.get(sym, {"norm_slip_bps": 7.5, "stress_slip_bps": 10.0, "stt_sell_bps": 0.0})
+                slip_bps = spec["stress_slip_bps"] if self.stressed_friction else spec["norm_slip_bps"]
+                open_p = current_open_prices.get(sym, pos["entry_price"])
+                if open_p <= 0:
+                    open_p = pos["entry_price"]
+                fill_p = open_p * (1.0 - slip_bps / 10000.0)
+                gross_proceeds = shares * fill_p
+
+                # Sourced friction: STT + Brokerage + Exch + SEBI + GST + DP fee
+                stt = gross_proceeds * (spec.get("stt_sell_bps", 0.0) / 10000.0)
+                brok = min(20.0, gross_proceeds * 0.0005)
+                exch = gross_proceeds * 0.000297
+                sebi = gross_proceeds * 0.000001
+                gst = (brok + exch) * 0.18
+                flat_dp = INDIA_FLAT_DP_FEE if is_full_exit else 0.0
+                sell_friction = stt + brok + exch + sebi + gst + flat_dp
+
+                net_proceeds = gross_proceeds - sell_friction
+                cost = shares * pos["entry_price"]
+                gain = net_proceeds - cost
+
+                self.state["cash"] += net_proceeds
+                self.log_trade({
+                    "timestamp": now_str,
+                    "symbol": sym,
+                    "action": "TRIM" if not is_full_exit else "SELL",
+                    "shares": shares,
+                    "open_price": open_p,
+                    "fill_price": fill_p,
+                    "proceeds": net_proceeds,
+                    "realized_pnl": gain,
+                    "pnl_pct": (fill_p - pos["entry_price"]) / pos["entry_price"] if pos["entry_price"] > 0 else 0.0,
+                    "dp_fee": flat_dp,
+                    "friction": sell_friction,
+                    "reason": reason
+                })
+                print(f"  [{self.pod_name} EXECUTE {'TRIM' if not is_full_exit else 'SELL'}] {sym:<12} {shares:>8.2f} shs @ {self.currency} {fill_p:>9.2f} | PnL: {self.currency} {gain:>+9.2f} ({reason})")
+                if is_full_exit:
+                    del self.state["positions"][sym]
+                else:
+                    self.state["positions"][sym]["shares"] -= shares
+            self.state["pending_sells"] = []
+
+        # 2. Execute Buys
+        if self.state["pending_buys"]:
+            for item in self.state["pending_buys"]:
+                sym = item["sym"]
+                target_alloc = item["target_alloc"]
+                reason = item.get("reason", "TREND_BULL_ENTRY")
+                open_p = current_open_prices.get(sym, 0.0)
+                if open_p <= 0:
+                    continue
+
+                spec = POD_C_ASSET_SPECS.get(sym, {"norm_slip_bps": 7.5, "stress_slip_bps": 10.0, "stamp_buy_bps": 1.5})
+                slip_bps = spec["stress_slip_bps"] if self.stressed_friction else spec["norm_slip_bps"]
+                fill_p = open_p * (1.0 + slip_bps / 10000.0)
+
+                avail_cash = self.state["cash"] * 0.98
+                alloc = min(target_alloc, avail_cash)
+                if alloc < 500.0:
+                    continue
+
+                brok = min(20.0, alloc * 0.0005)
+                stamp = alloc * (spec.get("stamp_buy_bps", 1.5) / 10000.0)
+                exch = alloc * 0.000297
+                sebi = alloc * 0.000001
+                gst = (brok + exch) * 0.18
+                buy_friction = brok + stamp + exch + sebi + gst
+
+                investable = alloc - buy_friction
+                shares = round(investable / fill_p, 2)
+                cost = shares * fill_p + buy_friction
+
+                if cost <= self.state["cash"] and shares > 0:
+                    self.state["cash"] -= cost
+                    if sym in self.state["positions"]:
+                        prev_shs = self.state["positions"][sym]["shares"]
+                        prev_cost = prev_shs * self.state["positions"][sym]["entry_price"]
+                        tot_shs = prev_shs + shares
+                        avg_entry = (prev_cost + cost) / tot_shs
+                        self.state["positions"][sym]["shares"] = tot_shs
+                        self.state["positions"][sym]["entry_price"] = avg_entry
+                    else:
+                        self.state["positions"][sym] = {
+                            "shares": shares,
+                            "entry_price": fill_p,
+                            "entry_date": now_str,
+                            "peak_price": open_p
+                        }
+                    self.log_trade({
+                        "timestamp": now_str,
+                        "symbol": sym,
+                        "action": "BUY",
+                        "shares": shares,
+                        "open_price": open_p,
+                        "fill_price": fill_p,
+                        "cost": cost,
+                        "realized_pnl": 0.0,
+                        "pnl_pct": 0.0,
+                        "dp_fee": 0.0,
+                        "friction": buy_friction,
+                        "reason": reason
+                    })
+                    print(f"  [{self.pod_name} EXECUTE BUY ] {sym:<12} {shares:>8.2f} shs @ {self.currency} {fill_p:>9.2f} | Cost: {self.currency} {cost:>9.2f}")
+            self.state["pending_buys"] = []
+
+        self._save_state()
+
+    def scan_and_evaluate(self, universe_data: Dict[str, pd.DataFrame], benchmark_data: Optional[pd.DataFrame] = None):
+        """Step E & F: Scan market closes at 15:35 IST, evaluate 200-SMA trend & momentum, queue Next-Day Open orders."""
+        now_str = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
+
+        # 1. Daily Sovereign Liquid Cash Compounding Yield
+        # RBI Repo rate less 65 bps TER, net of slab tax ~ 6.0% net annualized
+        daily_yield = self.state["cash"] * (0.060 / 252.0)
+        self.state["cash"] += daily_yield
+        self.state["total_interest_earned"] = self.state.get("total_interest_earned", 0.0) + daily_yield
+
+        # 2. Mark to Market & True Peak High-Water Mark
+        port_val = 0.0
+        current_prices = {}
+        for sym, pos in list(self.state["positions"].items()):
+            if sym in universe_data and not universe_data[sym].empty:
+                p = float(universe_data[sym]["close"].iloc[-1])
+                current_prices[sym] = p
+                port_val += pos["shares"] * p
+                if p > pos.get("peak_price", p):
+                    pos["peak_price"] = p
+            else:
+                port_val += pos["shares"] * pos["entry_price"]
+                current_prices[sym] = pos["entry_price"]
+
+        total_equity = self.state["cash"] + port_val
+        if total_equity > self.state["hwm_true"]:
+            self.state["hwm_true"] = total_equity
+        current_dd = (total_equity - self.state["hwm_true"]) / self.state["hwm_true"]
+        if current_dd < self.state["max_drawdown"]:
+            self.state["max_drawdown"] = current_dd
+
+        print(f"\n[{self.pod_name} NAV] Total Equity: {self.currency} {total_equity:,.2f} | Cash: {self.currency} {self.state['cash']:,.2f} | Port: {self.currency} {port_val:,.2f} | MaxDD: {self.state['max_drawdown']*100:.2f}% | Interest Earned: {self.currency} {self.state['total_interest_earned']:,.2f}")
+
+        # 3. Macro Trend & Relative Momentum Qualification Scan
+        trend_status = {}
+        signals_to_exit = []
+        signals_to_buy = []
+
+        for sym, target_weight in POD_C_CORE_ALLOCATIONS.items():
+            if sym == "CASH":
+                continue
+            if sym not in universe_data or universe_data[sym].empty:
+                continue
+            df = universe_data[sym]
+            if len(df) < 50:
+                continue
+
+            cur_p = float(df["close"].iloc[-1])
+            sma200 = float(df["close"].rolling(200, min_periods=40).mean().iloc[-1])
+            lookback_mom = min(len(df) - 1, 126)
+            m6 = (cur_p - float(df["close"].iloc[-lookback_mom])) / float(df["close"].iloc[-lookback_mom]) if lookback_mom > 0 else 0.0
+
+            # Pre-Registered Protocol V2.1 Variant A Rule: Price > 200-SMA AND 6M Momentum > 0
+            is_qualified = (cur_p > sma200) and (m6 > 0.0)
+            trend_status[sym] = {
+                "price": cur_p,
+                "sma200": sma200,
+                "mom6m": m6,
+                "qualified": is_qualified,
+                "regime": "BULL_TREND" if is_qualified else "DEFENSIVE_CASH"
+            }
+
+            print(f"[{self.pod_name} RADAR] {sym:<12}: Close={cur_p:>8.2f} vs 200-SMA={sma200:>8.2f} | 6M Mom={m6*100:>+5.1f}% -> [{'BULL_TREND' if is_qualified else 'DEFENSIVE_CASH'}]")
+
+            # Evaluate Held Positions
+            if sym in self.state["positions"]:
+                if not is_qualified:
+                    signals_to_exit.append({
+                        "sym": sym,
+                        "reason": f"TREND_DEFENSE_EXIT (Close {cur_p:.2f} <= 200-SMA {sma200:.2f} or 6M Mom {m6*100:+.1f}% <= 0)"
+                    })
+                else:
+                    # Rebalance check (Trim if overweight by >25%; Top-up if underweight by >25%)
+                    cur_pos_val = self.state["positions"][sym]["shares"] * cur_p
+                    target_val = total_equity * target_weight
+                    if cur_pos_val > target_val * 1.25 and cur_p > 0:
+                        excess = cur_pos_val - target_val
+                        trim_shs = math.floor(excess / cur_p)
+                        if trim_shs > 0:
+                            signals_to_exit.append({
+                                "sym": sym,
+                                "reason": f"REBALANCE_TRIM (Overweight by {(cur_pos_val/target_val-1)*100:+.1f}%)",
+                                "trim_shares": float(trim_shs)
+                            })
+                    elif cur_pos_val < target_val * 0.75:
+                        deficit = target_val - cur_pos_val
+                        if deficit >= 1000.0:
+                            signals_to_buy.append({
+                                "sym": sym,
+                                "target_alloc": deficit,
+                                "score": m6,
+                                "reason": f"REBALANCE_TOPUP (Underweight by {(1-cur_pos_val/target_val)*100:.1f}%)"
+                            })
+            else:
+                # Candidate Entry
+                if is_qualified:
+                    target_val = total_equity * target_weight
+                    signals_to_buy.append({
+                        "sym": sym,
+                        "target_alloc": target_val,
+                        "score": m6,
+                        "reason": f"TREND_BULL_ENTRY (Close {cur_p:.2f} > 200-SMA {sma200:.2f}, 6M Mom: {m6*100:+.1f}%)"
+                    })
+
+        self.state["trend_status"] = trend_status
+        self.state["pending_sells"] = signals_to_exit
+        self.state["pending_buys"] = signals_to_buy
+
+        for s in signals_to_exit:
+            action_desc = f"TRIM {s.get('trim_shares')} shs" if s.get("trim_shares") else "FULL SELL"
+            print(f"  [SIGNAL QUEUED {action_desc:<12}] {s['sym']:<12} -> Reason: {s['reason']}")
+        for b in signals_to_buy:
+            print(f"  [SIGNAL QUEUED BUY         ] {b['sym']:<12} Target: {self.currency} {b['target_alloc']:>9.2f} | 6M Mom: {b['score']*100:+.1f}%")
+
+        self._save_state()
+
+        # 4. Append to Daily Equity Log
+        os.makedirs(os.path.dirname(EQUITY_LOG_CSV), exist_ok=True)
+        file_exists = os.path.exists(EQUITY_LOG_CSV) and os.path.getsize(EQUITY_LOG_CSV) > 0
+        eq_entry = {
+            "date": now_str[:10],
+            "pod": self.pod_name,
+            "currency": self.currency,
+            "total_equity": round(total_equity, 2),
+            "cash": round(self.state["cash"], 2),
+            "portfolio_equity": round(port_val, 2),
+            "hwm_true": round(self.state["hwm_true"], 2),
+            "drawdown_pct": round(current_dd * 100.0, 2),
+            "open_positions_count": len(self.state["positions"])
+        }
+        pd.DataFrame([eq_entry]).to_csv(EQUITY_LOG_CSV, mode="a", index=False, header=not file_exists)
+
+    def print_status_tear_sheet(self):
+        print("\n" + "=" * 95)
+        print(f"================== {self.pod_name} (MULTI-ASSET TREND) STATUS TEAR SHEET ==================")
+        print("=" * 95)
+        print(f"Base Currency               : {self.currency}")
+        print(f"Initial Starting Capital    : {self.currency} {self.initial_capital:>14,.2f}")
+        total_eq = self.state["cash"] + sum(p["shares"] * p.get("peak_price", p["entry_price"]) for p in self.state["positions"].values())
+        print(f"Current Total NAV Equity    : {self.currency} {total_eq:>14,.2f}")
+        print(f"Liquid Cash Balance         : {self.currency} {self.state['cash']:>14,.2f} (Base 10% + Defensive Cash Reserves)")
+        print(f"Cumulative Yield Earned     : {self.currency} {self.state.get('total_interest_earned', 0.0):>14,.2f}")
+        print(f"Lifetime True Peak HWM      : {self.currency} {self.state['hwm_true']:>14,.2f}")
+        print(f"Current Strategy Drawdown   : {self.state['max_drawdown']*100:>13.2f}%")
+        print(f"Active Macro Positions      : {len(self.state['positions'])} / 3 Core Assets")
+        print(f"Pending Orders Queued       : {len(self.state['pending_sells'])} Sells, {len(self.state['pending_buys'])} Buys")
+        print("-" * 95)
+        print(f"{'Asset Symbol':<12} | {'Target %':<8} | {'Status':<14} | {'Price':<10} | {'200-SMA':<10} | {'6M Mom %':<10} | {'Shares':<8} | {'Holding Value':<12}")
+        print("-" * 95)
+        for sym, target_wt in POD_C_CORE_ALLOCATIONS.items():
+            if sym == "CASH":
+                actual_cash_wt = (self.state["cash"] / total_eq * 100.0) if total_eq > 0 else 100.0
+                print(f"{'SOVEREIGN CASH':<12} | {'10.0%':<8} | {'YIELD RESERVE':<14} | {'N/A':<10} | {'N/A':<10} | {'N/A':<10} | {'N/A':<8} | {self.currency} {self.state['cash']:>10,.2f} ({actual_cash_wt:.1f}%)")
+                continue
+            st = self.state.get("trend_status", {}).get(sym, {})
+            regime = st.get("regime", "PENDING_SCAN")
+            price = st.get("price", 0.0)
+            sma200 = st.get("sma200", 0.0)
+            mom = st.get("mom6m", 0.0) * 100.0
+            pos = self.state["positions"].get(sym, {})
+            shs = pos.get("shares", 0.0)
+            val = shs * (price if price > 0 else pos.get("entry_price", 0.0))
+            print(f"{sym:<12} | {target_wt*100:>6.1f}% | {regime:<14} | {self.currency} {price:>8.2f} | {self.currency} {sma200:>8.2f} | {mom:>+8.1f}% | {shs:>8.1f} | {self.currency} {val:>10,.2f}")
+
+        if self.state["pending_sells"]:
+            print("-" * 95)
+            print("QUEUED SELL ORDERS (To Execute at Next Open):")
+            for s in self.state["pending_sells"]:
+                print(f"  -> SELL {s['sym']:<12} | Reason: {s['reason']}")
+
+        if self.state["pending_buys"]:
+            print("-" * 95)
+            print("QUEUED BUY ORDERS (To Execute at Next Open):")
+            for b in self.state["pending_buys"]:
+                print(f"  -> BUY  {b['sym']:<12} | Alloc: {self.currency} {b['target_alloc']:>10,.2f} | 6M Mom: {b['score']*100:+.1f}% | Reason: {b.get('reason','')}")
+
+        print("=" * 95 + "\n")
+
+
 def normalize_df_columns(df: pd.DataFrame) -> pd.DataFrame:
     if isinstance(df.columns, pd.MultiIndex):
         df.columns = [c[0].lower() if isinstance(c, tuple) else str(c).lower() for c in df.columns]
@@ -636,7 +1044,7 @@ def fetch_yfinance_history(tickers: List[str], period: str = "1y") -> Dict[str, 
 
 def main():
     parser = argparse.ArgumentParser(description="Dual-Pod Institutional Paper Trading Engine")
-    parser.add_argument("--pod", choices=["all", "india", "us"], default="all", help="Target pod")
+    parser.add_argument("--pod", choices=["all", "india", "us", "pod_c", "multi_asset"], default="all", help="Target pod")
     parser.add_argument("--phase", choices=["scan", "execute", "status"], default="status", help="Trading cycle phase")
     parser.add_argument("--mode", choices=["exploratory_shadow", "gate_b"], default="exploratory_shadow", help="Incubation classification")
     parser.add_argument("--protocol-hash", type=str, default="", help="Audited Gate A protocol hash")
@@ -670,11 +1078,21 @@ def main():
         trades_file=US_TRADES_CSV
     )
 
+    multi_asset_engine = MultiAssetPodPaperEngine(
+        pod_name="POD_C",
+        currency="INR",
+        initial_capital=DEFAULT_MULTI_ASSET_CAPITAL,
+        state_file=MULTI_ASSET_STATE_FILE,
+        trades_file=MULTI_ASSET_TRADES_CSV
+    )
+
     if args.phase == "status":
         if args.pod in ["all", "india"]:
             india_engine.print_status_tear_sheet()
         if args.pod in ["all", "us"]:
             us_engine.print_status_tear_sheet()
+        if args.pod in ["all", "pod_c", "multi_asset"]:
+            multi_asset_engine.print_status_tear_sheet()
         return
 
     # PHASE: SCAN (Run at Market Close: 15:35 IST / 16:05 EST)
@@ -697,6 +1115,15 @@ def main():
             bench_us = yf.download("SPY", period="1y", progress=False, auto_adjust=False)
             bench_us = normalize_df_columns(bench_us)
             us_engine.scan_and_evaluate(us_data, bench_us, active_pit_universe=set(us_tickers))
+
+        if args.pod in ["all", "pod_c", "multi_asset"]:
+            print("\n>>> [POD C: MULTI-ASSET] SCANNING MACRO TREND REGIMES AT MARKET CLOSE (15:35 IST)...")
+            pod_c_tickers = [t for t in POD_C_CORE_ALLOCATIONS.keys() if t != "CASH"]
+            combined_tickers = list(set(pod_c_tickers) | set(multi_asset_engine.state["positions"].keys()))
+            multi_data = fetch_yfinance_history(combined_tickers, period="1y")
+            bench_nifty = yf.download("^NSEI", period="1y", progress=False, auto_adjust=False)
+            bench_nifty = normalize_df_columns(bench_nifty)
+            multi_asset_engine.scan_and_evaluate(multi_data, bench_nifty)
 
     # PHASE: EXECUTE (Run at Market Open: 09:14 IST / 09:29 EST)
     elif args.phase == "execute":
@@ -745,11 +1172,39 @@ def main():
                 except Exception:
                     pass
             us_engine.execute_open_fills(current_opens)
+
+        if args.pod in ["all", "pod_c", "multi_asset"]:
+            print("\n>>> [POD C: MULTI-ASSET] EXECUTING QUEUED MACRO ORDERS AT MARKET OPEN (09:15 IST)...")
+            needed_symbols = list(
+                set(multi_asset_engine.state["positions"].keys()) |
+                {p["sym"] for p in multi_asset_engine.state["pending_buys"]} |
+                {p["sym"] for p in multi_asset_engine.state["pending_sells"]}
+            )
+            current_opens = {}
+            if needed_symbols:
+                open_df = yf.download(needed_symbols, period="5d", progress=False, group_by="ticker", auto_adjust=False)
+                for s in needed_symbols:
+                    try:
+                        if isinstance(open_df.columns, pd.MultiIndex):
+                            if s in open_df.columns.levels[-1]:
+                                df = open_df.xs(s, axis=1, level=-1).dropna(how="all")
+                            elif s in open_df.columns.levels[0]:
+                                df = open_df[s].dropna(how="all")
+                            else:
+                                continue
+                        else:
+                            df = open_df.dropna(how="all")
+                        df.columns = [str(c).lower() for c in df.columns]
+                        current_opens[s] = float(df["open"].dropna().iloc[-1])
+                    except Exception:
+                        pass
+            multi_asset_engine.execute_open_fills(current_opens)
+
     # Dispatches live mobile notifications and regenerates web dashboard
-    dispatch_notifications_and_dashboard(india_engine, us_engine, args.phase, args.pod)
+    dispatch_notifications_and_dashboard(india_engine, us_engine, multi_asset_engine, args.phase, args.pod)
 
 
-def dispatch_notifications_and_dashboard(india_engine, us_engine, phase: str, pod: str):
+def dispatch_notifications_and_dashboard(india_engine, us_engine, multi_asset_engine=None, phase: str = "status", pod: str = "all"):
     try:
         from trading_system.scripts.generate_web_dashboard import generate_dashboard_html
         generate_dashboard_html()
@@ -796,6 +1251,24 @@ def dispatch_notifications_and_dashboard(india_engine, us_engine, phase: str, po
             msg_lines.append(f"• Active Positions: {len(us_pos)} | Max DD: {us_dd*100:.1f}%")
             if us_engine.state.get("pending_sells"):
                 sells_str = ", ".join([s["sym"] for s in us_engine.state["pending_sells"]])
+                msg_lines.append(f"• Queued Sells for Open: {sells_str}")
+
+        if pod in ["all", "pod_c", "multi_asset"] and multi_asset_engine is not None:
+            c_cash = multi_asset_engine.state.get("cash", 0)
+            c_pos = multi_asset_engine.state.get("positions", {})
+            c_eq = c_cash + sum(p.get("shares", 0) * p.get("peak_price", p.get("entry_price", 0)) for p in c_pos.values())
+            c_dd = multi_asset_engine.state.get("max_drawdown", 0)
+            c_pnl = c_eq - multi_asset_engine.initial_capital
+            c_pnl_pct = (c_pnl / multi_asset_engine.initial_capital * 100) if multi_asset_engine.initial_capital > 0 else 0
+            msg_lines.append("")
+            msg_lines.append("🌐 **Pod C: Multi-Asset Trend (NIFTYBEES, MON100, GOLDBEES, Cash)**:")
+            msg_lines.append(f"• Equity: ₹{c_eq:,.0f} ({c_pnl_pct:+.2f}%) | Cash: ₹{c_cash:,.0f}")
+            msg_lines.append(f"• Active Positions: {len(c_pos)} / 3 Core Assets | Max DD: {c_dd*100:.1f}%")
+            if multi_asset_engine.state.get("pending_buys"):
+                buys_str = ", ".join([b["sym"] for b in multi_asset_engine.state["pending_buys"]])
+                msg_lines.append(f"• Queued Buys for Open: {buys_str}")
+            if multi_asset_engine.state.get("pending_sells"):
+                sells_str = ", ".join([s["sym"] for s in multi_asset_engine.state["pending_sells"]])
                 msg_lines.append(f"• Queued Sells for Open: {sells_str}")
 
         msg = "\n".join(msg_lines)

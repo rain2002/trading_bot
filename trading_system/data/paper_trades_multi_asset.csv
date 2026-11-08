@@ -1,0 +1,2 @@
+timestamp,symbol,action,shares,open_price,fill_price,cost,realized_pnl,pnl_pct,dp_fee,friction,reason
+2026-11-08 01:44:31,NIFTYBEES.NS,BUY,114.92,278.0,278.2085,32006.655855885718,0.0,0.0,0.0,34.935035885714285,"TREND_BULL_ENTRY (Close 284.22 > 200-SMA 272.62, 6M Mom: +3.8%)"
