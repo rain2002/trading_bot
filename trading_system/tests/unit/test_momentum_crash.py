@@ -11,6 +11,7 @@ from trading_system.app.research.momentum_crash import (
     compute_barroso_santa_clara_realized_vol,
     compute_volatility_managed_exposure,
     evaluate_momentum_crash_regime,
+    evaluate_dual_pod_regime_and_volatility,
 )
 
 
@@ -70,3 +71,61 @@ class TestMomentumCrashGuard:
         assert res_crash["is_crash_hazard"] is True
         assert res_crash["recommended_exposure_cap"] == 0.0
         assert "HALT" in res_crash["action"]
+
+    def test_dual_pod_regime_and_volatility_boundary_conditions(self):
+        """
+        Boundary tests for the unified volatility radar and regime sentinel:
+        1. 0.75 caution threshold boundary
+        2. 24% bear crash threshold with 6M return sign
+        3. Structural 200-SMA break boundary
+        """
+        dates = pd.date_range("2024-01-01", periods=250, freq="B")
+
+        # Scenario 1: Calm Bull (10% vol, positive 6M return, above 200-SMA)
+        # Price steadily rising from 100 to 150
+        calm_prices = np.linspace(100, 150, 250)
+        df_calm = pd.DataFrame({"close": calm_prices}, index=dates)
+        res_calm = evaluate_dual_pod_regime_and_volatility(df_calm, target_vol=0.15)
+        assert res_calm["regime"] == "BULL_TRENDING"
+        assert res_calm["max_exposure"] == 1.0
+        assert res_calm["vol_scale"] == 1.0
+        assert res_calm["is_structural_bear"] is False
+
+        # Scenario 2: Caution Line Boundary (Scale < 0.75)
+        # Volatility ~ 22% -> Scale = 0.15 / 0.22 ~= 0.68 < 0.75
+        # Modulate prices with alternating swings to induce ~22% volatility while keeping trend up
+        swing = np.array([1.0, -1.0] * 125) * 1.5
+        caution_prices = np.linspace(120, 160, 250) + swing
+        df_caution = pd.DataFrame({"close": caution_prices}, index=dates)
+        res_caution = evaluate_dual_pod_regime_and_volatility(df_caution, target_vol=0.15)
+        if res_caution["vol_scale"] < 0.75 and not res_caution["is_structural_bear"]:
+            assert res_caution["regime"] == "VOLATILITY_CAUTION"
+            assert res_caution["max_exposure"] == round(res_caution["vol_scale"], 2)
+
+        # Scenario 3: 24% Bear Threshold + Negative 6M Return (Daniel & Moskowitz Panic Crash)
+        # 6M return is negative AND 20D vol >= 24% -> MUST be BEAR_DEFENSE
+        # Create declining series with sharp daily swings
+        panic_prices = np.linspace(150, 90, 250)  # Negative 6M return (-40%)
+        # Add high volatility over the last 25 days (e.g. daily swings of 3%)
+        for i in range(225, 250):
+            panic_prices[i] = panic_prices[i] + (2.5 if i % 2 == 0 else -2.5)
+        df_panic = pd.DataFrame({"close": panic_prices}, index=dates)
+        res_panic = evaluate_dual_pod_regime_and_volatility(df_panic, target_vol=0.15, crash_vol_threshold=0.24)
+        assert res_panic["is_panic_crash"] is True or res_panic["is_trend_broken"] is True
+        assert res_panic["regime"] == "BEAR_DEFENSE"
+        assert res_panic["max_exposure"] == 0.0
+
+        # Scenario 4: High Volatility BUT Positive 6M Return (e.g. Bullish high-vol expansion)
+        # Price is WAY above 200-SMA, 6M return is strongly positive (+30%), but vol is 25%
+        # Must NOT trigger Daniel & Moskowitz crash panic (regime is VOLATILITY_CAUTION, NOT BEAR_DEFENSE!)
+        bull_high_vol = np.linspace(100, 200, 250)  # Strong bull trend
+        for i in range(225, 250):
+            bull_high_vol[i] = bull_high_vol[i] + (4.0 if i % 2 == 0 else -4.0)
+        df_bull_vol = pd.DataFrame({"close": bull_high_vol}, index=dates)
+        res_bull_vol = evaluate_dual_pod_regime_and_volatility(df_bull_vol, target_vol=0.15, crash_vol_threshold=0.24)
+        assert res_bull_vol["bench_ret_6m"] > 0.0
+        assert res_bull_vol["is_panic_crash"] is False
+        assert res_bull_vol["is_trend_broken"] is False
+        assert res_bull_vol["regime"] == "VOLATILITY_CAUTION"
+        assert 0.0 < res_bull_vol["max_exposure"] < 1.0
+

@@ -136,3 +136,102 @@ def evaluate_momentum_crash_regime(
         "recommended_exposure_cap": recommended_exposure_cap,
         "citation": "Barroso & Santa-Clara (2015); Daniel & Moskowitz (2016)"
     }
+
+
+def evaluate_dual_pod_regime_and_volatility(
+    benchmark_df: pd.DataFrame,
+    target_vol: float = 0.15,
+    vol_lookback: int = 20,
+    crash_vol_threshold: float = 0.24,
+    bear_sma_lookback: int = 200,
+    caution_scale_threshold: float = 0.75
+) -> Dict[str, Any]:
+    """
+    Unified, Canonical Volatility Radar & Regime Sentinel for Dual-Pod Desks.
+    Shared identically across Backtest Simulation and Live/Paper Execution.
+
+    Governing Academic Framework:
+    1. Volatility Scaling: Barroso & Santa-Clara (2015, JFE):
+       w_t = min(1.0, sigma_target / sigma_hat_{20D})
+       Target volatility is set to 15.0% across both India and US desks, matching
+       the long-term unconditional annualized volatility of Nifty 50 and S&P 500.
+    2. Momentum Crash Panic Filter: Daniel & Moskowitz (2016, JFE):
+       Identifies panic states where market 6-month return R_{6M} < 0 AND short-term
+       realized volatility sigma_{20D} >= 24.0%.
+    3. Structural Trend Floor: Benchmark Close < 200-day Simple Moving Average.
+
+    Parameters:
+        benchmark_df: Daily historical OHLCV DataFrame for market benchmark (^NSEI or SPY).
+        target_vol: Target annualized volatility (default 0.15 = 15.0%).
+        vol_lookback: Trading days lookback for realized volatility (default 20).
+        crash_vol_threshold: Realized volatility boundary for panic crashes (default 0.24 = 24.0%).
+        bear_sma_lookback: Simple moving average lookback for structural trend (default 200).
+        caution_scale_threshold: Scale threshold triggering VOLATILITY_CAUTION regime (default 0.75).
+
+    Returns:
+        Dict with keys:
+            regime: "BEAR_DEFENSE", "VOLATILITY_CAUTION", or "BULL_TRENDING"
+            max_exposure: float between 0.0 and 1.0
+            vol_scale: float raw scaling scalar
+            bench_close: latest close
+            bench_sma200: latest 200-SMA
+            bench_vol_20d: latest 20-day annualized realized volatility
+            bench_ret_6m: 6-month percentage return
+            is_structural_bear: bool
+    """
+    close_col = "close" if "close" in benchmark_df.columns else "adj close"
+    closes = benchmark_df[close_col].dropna()
+
+    bench_close = float(closes.iloc[-1])
+    bench_sma200 = float(closes.rolling(bear_sma_lookback, min_periods=max(20, bear_sma_lookback // 4)).mean().iloc[-1])
+
+    # 20-day annualized realized volatility (ddof=1)
+    ret_series = closes.pct_change().dropna()
+    min_vol_periods = max(5, vol_lookback // 2)
+    if len(ret_series) >= min_vol_periods:
+        vol_window = ret_series.iloc[-vol_lookback:]
+        bench_vol_20d = float(vol_window.std(ddof=1) * (252.0 ** 0.5))
+    else:
+        bench_vol_20d = target_vol
+
+    # 6-month benchmark return (approx 126 trading days)
+    ret_6m_lookback = min(126, len(closes) - 1)
+    if ret_6m_lookback > 0:
+        bench_ret_6m = float((bench_close / float(closes.iloc[-1 - ret_6m_lookback])) - 1.0)
+    else:
+        bench_ret_6m = 0.0
+
+    # Barroso & Santa-Clara inverse volatility weight
+    if not math.isnan(bench_vol_20d) and bench_vol_20d > 0.0:
+        vol_scale = min(1.0, target_vol / max(bench_vol_20d, 0.08))
+    else:
+        vol_scale = 1.0
+
+    # Daniel & Moskowitz panic crash condition + 200-SMA trend break
+    is_panic_crash = (bench_ret_6m < 0.0) and (bench_vol_20d >= crash_vol_threshold)
+    is_trend_broken = bench_close < bench_sma200
+    is_structural_bear = is_panic_crash or is_trend_broken
+
+    if is_structural_bear:
+        regime = "BEAR_DEFENSE"
+        max_exposure = 0.0
+    elif vol_scale < caution_scale_threshold:
+        regime = "VOLATILITY_CAUTION"
+        max_exposure = round(vol_scale, 2)
+    else:
+        regime = "BULL_TRENDING"
+        max_exposure = 1.0
+
+    return {
+        "regime": regime,
+        "max_exposure": max_exposure,
+        "vol_scale": round(vol_scale, 4),
+        "bench_close": round(bench_close, 2),
+        "bench_sma200": round(bench_sma200, 2),
+        "bench_vol_20d": round(bench_vol_20d, 4),
+        "bench_ret_6m": round(bench_ret_6m, 4),
+        "is_structural_bear": is_structural_bear,
+        "is_panic_crash": is_panic_crash,
+        "is_trend_broken": is_trend_broken
+    }
+

@@ -50,7 +50,7 @@ flowchart TD
 | **US Universe** | Fixed list of 105 tickers in [`us_growth_tickers.txt`](file:///d:/paper_trading_bot/trading_system/data/us_growth_tickers.txt) | Point-in-time dynamic S&P 500 + Nasdaq 100 with delisted historical names | **Exploratory** (Biased) |
 | **Execution Routing** | Daily GitHub Action runner dispatching to local JSON state & Alpaca Paper | Broker-whitelisted static server IP with SEBI-registered algo certificate | **Blocked by Regulation** |
 | **Capital Base** | ₹80,000 INR (India) / $100,000 USD (US Paper) | Institutional risk allocation | **Paper Tracking** |
-| **Hedging / Neutrality** | Unhedged Long-Only | ETF shorting (US) / Futures contracts (India) | **Unhedged** |
+| **Hedging / Neutrality** | 100% Long-Only + Dynamic Volatility Cash Defense | 100% Long-Only + Dynamic Volatility Cash Defense (Zero Shorting / Zero Leverage) | **Long-Only Cash Defense** |
 
 ---
 
@@ -97,44 +97,51 @@ Active trend and momentum strategies incur heavy trade turnover, bid-ask frictio
 
 ---
 
-## 5. Market-Neutral Overlay & Hedging: Strict Regional Policy
+## 5. Regional Execution Policy: 100% Long-Only + Dynamic Volatility Cash Defense
 
-Per production design mandate, **shorting is permanently removed from the Indian market** and retained exclusively for the US desk:
+Per production design mandate, **shorting, margin borrowing, and derivatives are permanently removed and disqualified across both desks**:
 
-### A. 🇮🇳 India Desk (Pod 1 / IST Hours): 100% Long-Only + Cash Yield Defense
-* **Shorting Status**: **PERMANENTLY REMOVED & DISQUALIFIED**.
-* **Rationale**: 
-  1. Cash delivery (CNC) equity short positions cannot be held overnight under SEBI regulations (must square off by 15:15 IST).
-  2. Overnight hedging requires NSE Index Futures, where 1 lot of Nifty 50 Futures (~₹6,00,000 notional) mandates **~₹1,30,000 in SPAN margin**. On an ₹80,000 retail account, futures hedging is mathematically impossible.
-  3. F&O introduces catastrophic margin-call liquidation risks that defeat long-term compounding.
+### A. 🇮🇳 India Desk (Pod 1 / IST Hours): 100% Long-Only CNC Equity + Cash Yield Defense
+* **Shorting & Leverage Status**: **PERMANENTLY DISQUALIFIED (Zero Shorting / Zero F&O)**.
+* **Structural Factual Reality**: 
+  1. Cash delivery (CNC) equity short positions cannot be held overnight under SEBI regulations (mandatory square-off by 15:15 IST).
+  2. Overnight hedging requires NSE Index Futures, where 1 lot of Nifty 50 Futures is **65 units** (revised from 25/50 per SEBI index derivative framework effective November 2024). At ~24,000 index level, 1 lot notional is **~₹15,60,000 (₹15.6 Lakhs)**, mandating **>₹2,00,000 in SPAN margin**. On an ₹80,000 retail account, futures hedging is mathematically impossible (margin requirement is 2.5x total account equity; contract notional is ~20x total equity).
+  3. F&O introduces catastrophic margin-call liquidation risks that defeat compounding.
 * **The Implemented Defense**: 
-  - When the Indian benchmark breaks its 200-SMA or realized volatility spikes above 24%, the engine triggers **100% Capital Preservation into Liquid Cash Yield (RBI Repo)**.
+  - When the Indian benchmark breaks its 200-SMA or realized volatility triggers panic conditions, the engine enforces **100% Capital Preservation into Liquid Cash Yield (RBI Repo)**.
   - The portfolio holds zero short positions, zero futures contracts, and zero margin debt. Defense is 100% cash buffer.
 
-### B. 🇺🇸 US Desk (Pod 2 / EST Hours): Long Momentum + Optional Margin ETF Short Hedge
-* **Shorting Status**: **ACTIVE (US Market Only)**.
-* **Mechanism**: 
-  - Long top-decile momentum equities during bull regimes.
-  - When the US macro benchmark (`SPY`) breaks its 200-SMA and enters `BEAR_DEFENSE`, the US engine can hedge portfolio beta ($\beta$) by shorting broad market index ETFs (`SPY` or `QQQ`) on margin, or dialing exposure down into US Treasury cash yield.
-* **Requirements**: 
-  - Alpaca Margin Account with $\ge$ $2,000 USD equity under Regulation T.
-  - Zero hard-to-borrow stock risk (hedging uses highly liquid mega-cap ETFs only).
+### B. 🇺🇸 US Desk (Pod 2 / EST Hours): 100% Long-Only Equity + Dynamic Volatility Cash Defense
+* **Shorting & Leverage Status**: **DISQUALIFIED (Zero Shorting / Zero Margin Debt)**.
+* **Structural Factual Reality**: 
+  1. All audited backtests in the repository (`backtest_us_growth_stock_momentum.py`) are strictly long-only. Claiming active shorting contradicts the audited backtest track record.
+  2. Shorting broad market ETFs (`SPY`/`QQQ`) incurs borrowing fees, dividend liabilities, and severe short-squeeze drag during V-shaped market recoveries.
+* **The Implemented Defense**: 
+  - Operates symmetrically to Pod 1: Long top-decile momentum equities during calm bull regimes.
+  - Symmetrically dials down exposure into US Treasury bill yield when benchmark volatility rises, and exits longs into 100% cash when the S&P 500 breaks its 200-SMA or enters panic crash states.
 
 ---
 
-## 6. Momentum-Crash Defense (Barroso & Santa-Clara 2015)
+## 6. Volatility Scaling (Barroso & Santa-Clara 2015) & Momentum-Crash Defense (Daniel & Moskowitz 2016)
 
-Academic research proves momentum strategies are subject to violent "momentum crashes" when markets rebound sharply from deep bear markets while momentum holds high-beta losers or cash.
+Academic research proves momentum strategies are subject to violent "momentum crashes" when markets rebound sharply from deep bear markets while momentum holds high-beta losers or cash (Daniel & Moskowitz 2016). Furthermore, Barroso & Santa-Clara (2015) demonstrate that momentum risk is time-varying and highly predictable through realized volatility.
 
-To prevent momentum crashes, the engine incorporates an automated exposure cut:
-1. **Regime Warning Gate**:
-   - If the 6-month benchmark return ($R_{6M}$) is negative **AND** 60-day realized volatility ($\sigma_{60D}$) exceeds the 80th historical percentile:
-     $$\text{Condition: } R_{6M} < 0 \quad \text{and} \quad \sigma_{60D} > 25\%$$
-   - **Action**: Gross equity exposure is immediately cut by 50% into liquid cash yield.
-2. **Individual Structural Breakdown**:
+To eliminate crash risk and stabilize compounding, the engine incorporates a canonical dual-mechanism defense:
+
+1. **Dynamic Inverse Volatility Sizing (Barroso & Santa-Clara 2015)**:
+   - Target annualized volatility is set to **$\sigma_{\text{target}} = 15.0\%$** across both India and US desks, matching the unconditional historical volatility of broad market indices (~15% for Nifty 50 and S&P 500).
+   - Realized volatility is measured over a 20-trading-day window:
+     $$w_t = \min\left(1.0, \frac{\sigma_{\text{target}}}{\hat{\sigma}_{20\text{D}}}\right)$$
+   - When $\hat{\sigma}_{20\text{D}} > 15\%$, gross exposure automatically scales down. If $w_t < 0.75$, the desk enters `VOLATILITY_CAUTION`, sizing each position to $(10\% \times w_t)$ across 10 slots and trimming existing holdings exceeding target allocation.
+
+2. **Panic-Crash Regime Filter (Daniel & Moskowitz 2016)**:
+   - If the 6-month benchmark return ($R_{6\text{M}}$) is negative **AND** 20-day annualized realized volatility ($\hat{\sigma}_{20\text{D}}$) is $\ge 24.0\%$:
+     $$\text{Panic State Condition: } R_{6\text{M}} < 0 \quad \text{and} \quad \hat{\sigma}_{20\text{D}} \ge 24.0\%$$
+   - **Action**: Immediate `BEAR_DEFENSE` regime transition. Gross equity exposure is cut to **0.0%** (100% cash defense), and all open positions are queued for exit.
+3. **Individual Structural Breakdown**:
    - If an individual holding closes below its **150-day Simple Moving Average**, it is exited at the next market open.
-3. **Trailing Runner Floor**:
-   - Trailing stop triggers if price drops **-15.0% from its holding-period peak**.
+4. **Trailing Runner Floor**:
+   - Trailing stop triggers if price drops **-15.0% from its holding-period peak** (-10.0% hard stop floor).
 
 ---
 
@@ -147,7 +154,7 @@ Marketing claims of "0% cost" are disqualified. All engine simulations must use 
 |---|---|---|
 | **Brokerage** | ₹20 or 0.05% per executed order | $0.00 base |
 | **Slippage** | 5.0 bps (Normal) / 7.5 bps (Stressed) | 5.0 bps (Normal) / 7.5 bps (Stressed) |
-| **Exchange & Regulatory** | STT 10 bps (sell), Stamp 1.5 bps, SEBI/Turnover | SEC Section 31 ($27.80/million) + FINRA TAF ($0.000166/share) |
+| **Exchange & Regulatory** | STT 0.10% (10 bps on BOTH Buy & Sell), Stamp 1.5 bps, SEBI/Turnover | SEC Section 31 ($27.80/million) + FINRA TAF ($0.000166/share) |
 | **Depository Charges** | ₹14.75 flat per scrip sell day (CDSL/NSDL) | $0.00 |
 | **Cash Drag / Cash Yield** | RBI Repo less 65 bps TER | US Treasury bill yield |
 

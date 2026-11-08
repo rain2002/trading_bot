@@ -30,6 +30,8 @@ import pandas as pd
 import numpy as np
 import yfinance as yf
 
+from trading_system.app.research.momentum_crash import evaluate_dual_pod_regime_and_volatility
+
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
@@ -221,12 +223,20 @@ class PodPaperEngine:
                 if sym not in self.state["positions"]:
                     continue
                 pos = self.state["positions"][sym]
-                shares = pos["shares"]
+                total_pos_shares = pos["shares"]
+                trim_shares = item.get("trim_shares")
+                if trim_shares and 0 < trim_shares < total_pos_shares:
+                    shares = float(trim_shares)
+                    is_full_exit = False
+                else:
+                    shares = float(total_pos_shares)
+                    is_full_exit = True
+
                 open_p = current_open_prices.get(sym, pos["entry_price"])
                 fill_p = open_p * (1.0 - sell_fee)
                 proceeds = shares * fill_p
                 cost = pos["entry_price"]
-                gain = proceeds - (shares * cost) - flat_dp
+                gain = proceeds - (shares * cost) - (flat_dp if is_full_exit else 0.0)
 
                 # Route real order to Alpaca Paper if active
                 if alpaca_adapter:
@@ -240,22 +250,25 @@ class PodPaperEngine:
                         })
                         print(f"  [ALPACA ROUTED SELL] {sym:<12} {qty_to_sell} shs -> Status: {res.get('status')} (Order ID: {res.get('order_id')})")
 
-                self.state["cash"] += (proceeds - flat_dp)
+                self.state["cash"] += (proceeds - (flat_dp if is_full_exit else 0.0))
                 self.log_trade({
                     "timestamp": now_str,
                     "symbol": sym,
-                    "action": "SELL",
+                    "action": "TRIM" if not is_full_exit else "SELL",
                     "shares": shares,
                     "open_price": open_p,
                     "fill_price": fill_p,
                     "proceeds": proceeds,
                     "realized_pnl": gain,
                     "pnl_pct": (fill_p - cost) / cost if cost > 0 else 0.0,
-                    "dp_fee": flat_dp,
+                    "dp_fee": flat_dp if is_full_exit else 0.0,
                     "reason": reason
                 })
-                print(f"  [EXECUTE SELL] {sym:<12} {shares:>8.2f} shs @ {self.currency} {fill_p:>9.2f} | PnL: {self.currency} {gain:>+9.2f} ({reason})")
-                del self.state["positions"][sym]
+                print(f"  [EXECUTE {'TRIM' if not is_full_exit else 'SELL'}] {sym:<12} {shares:>8.2f} shs @ {self.currency} {fill_p:>9.2f} | PnL: {self.currency} {gain:>+9.2f} ({reason})")
+                if is_full_exit:
+                    del self.state["positions"][sym]
+                else:
+                    self.state["positions"][sym]["shares"] -= shares
             self.state["pending_sells"] = []
 
         # 2. Execute Buys
@@ -309,37 +322,28 @@ class PodPaperEngine:
         self._save_state()
 
     def scan_and_evaluate(self, universe_data: Dict[str, pd.DataFrame], benchmark_data: pd.DataFrame):
-        """Step E & F: Scan market closes, evaluate stops/trails, and queue Next-Day Open orders."""
+        """Step E & F: Scan market closes, evaluate stops/trails/trims, and queue Next-Day Open orders."""
         now_str = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
 
-        # 1. Benchmark Macro Filter & Volatility Radar (Quant Science Model)
-        bench_close = float(benchmark_data["close"].iloc[-1])
-        bench_sma200 = float(benchmark_data["close"].rolling(200, min_periods=50).mean().iloc[-1])
-        bench_sma50 = float(benchmark_data["close"].rolling(50, min_periods=20).mean().iloc[-1])
-        bench_sma50_prev = float(benchmark_data["close"].rolling(50, min_periods=20).mean().iloc[-6])
-        sma50_up = bench_sma50 > bench_sma50_prev
-
-        # Volatility Radar & Momentum Crash Sentinel
-        bench_ret_series = benchmark_data["close"].pct_change()
-        bench_vol_20d = float(bench_ret_series.rolling(20).std().iloc[-1] * (252 ** 0.5)) if len(bench_ret_series) >= 20 else 0.15
-        bench_ret_6m = float(benchmark_data["close"].pct_change(min(126, len(benchmark_data)-1)).iloc[-1]) if len(benchmark_data) > 20 else 0.0
-
-        target_vol = 0.16 if self.pod_name == "INDIA" else 0.14
-        vol_scale = min(1.0, target_vol / max(bench_vol_20d, 0.08)) if not np.isnan(bench_vol_20d) and bench_vol_20d > 0 else 1.0
-
-        is_structural_bear = (bench_close < bench_sma200) or (bench_ret_6m < 0.0 and bench_vol_20d > 0.24)
-        if is_structural_bear:
-            macro_regime = "BEAR_DEFENSE"
-            max_exposure = 0.0
-        elif vol_scale < 0.75:
-            macro_regime = "VOLATILITY_CAUTION"
-            max_exposure = round(vol_scale, 2)
-        else:
-            macro_regime = "BULL_TRENDING"
-            max_exposure = 1.0
-
+        # 1. Benchmark Macro Filter & Volatility Radar (Quant Science Model via Canonical Module)
+        radar = evaluate_dual_pod_regime_and_volatility(
+            benchmark_df=benchmark_data,
+            target_vol=0.15,
+            vol_lookback=20,
+            crash_vol_threshold=0.24,
+            bear_sma_lookback=200,
+            caution_scale_threshold=0.75
+        )
+        macro_regime = radar["regime"]
+        max_exposure = radar["max_exposure"]
+        vol_scale = radar["vol_scale"]
+        bench_close = radar["bench_close"]
+        bench_sma200 = radar["bench_sma200"]
+        bench_vol_20d = radar["bench_vol_20d"]
+        bench_ret_6m = radar["bench_ret_6m"]
         is_macro_bull = macro_regime != "BEAR_DEFENSE"
-        print(f"\n[{self.pod_name} RADAR] Benchmark: Close={bench_close:.2f} vs 200-SMA={bench_sma200:.2f} | 20D Vol={bench_vol_20d*100:.1f}% (Scale={vol_scale:.2f}) -> Regime: [{macro_regime}] Max Exposure: {max_exposure*100:.0f}%")
+
+        print(f"\n[{self.pod_name} RADAR] Benchmark: Close={bench_close:.2f} vs 200-SMA={bench_sma200:.2f} | 20D Vol={bench_vol_20d*100:.1f}% | 6M Ret={bench_ret_6m*100:+.1f}% (Scale={vol_scale:.2f}) -> Regime: [{macro_regime}] Max Exposure: {max_exposure*100:.0f}%")
 
         # 2. Mark to Market & Peak Update
         port_equity = 0.0
@@ -364,59 +368,81 @@ class PodPaperEngine:
 
         print(f"[{self.pod_name} NAV] Total Equity: {self.currency} {total_equity:,.2f} | Cash: {self.currency} {self.state['cash']:,.2f} | Port: {self.currency} {port_equity:,.2f} | MaxDD: {self.state['max_drawdown']*100:.2f}%")
 
-        # 3. Evaluate Exits
-        hard_stop = INDIA_HARD_STOP if self.pod_name == "INDIA" else US_HARD_STOP
-        trail_tiers = [(1.00, -0.25), (0.50, -0.20), (0.25, -0.15)]
+        # 3. Evaluate Exits & Dynamic Trimming
         signals_to_exit = []
 
-        for sym, pos in list(self.state["positions"].items()):
-            if sym not in current_prices:
-                continue
-            price = current_prices[sym]
-            cost = pos["entry_price"]
-            plpc = (price - cost) / cost if cost > 0 else 0.0
-            peak = pos.get("peak_price", price)
-            pullback = (price - peak) / peak if peak > 0 else 0.0
+        if not is_macro_bull:
+            # Full Bear Defense Liquidation: Protect 100% of capital into liquid cash yield
+            for sym in list(self.state["positions"].keys()):
+                signals_to_exit.append({"sym": sym, "reason": f"BEAR_DEFENSE_MACRO_EXIT [{macro_regime}]"})
+        else:
+            hard_stop = INDIA_HARD_STOP if self.pod_name == "INDIA" else US_HARD_STOP
+            trail_tiers = [(1.00, -0.25), (0.50, -0.20), (0.25, -0.15)]
 
-            # Check Hard Stop
-            if plpc <= hard_stop:
-                signals_to_exit.append({"sym": sym, "reason": f"HARD_STOP ({hard_stop*100:.1f}%) [PnL: {plpc*100:+.1f}%]"})
-                continue
+            for sym, pos in list(self.state["positions"].items()):
+                if sym not in current_prices:
+                    continue
+                price = current_prices[sym]
+                cost = pos["entry_price"]
+                plpc = (price - cost) / cost if cost > 0 else 0.0
+                peak = pos.get("peak_price", price)
+                pullback = (price - peak) / peak if peak > 0 else 0.0
 
-            # Macro Bear Trail Override
-            if not is_macro_bull and pullback <= -0.12 and plpc > 0.05:
-                signals_to_exit.append({"sym": sym, "reason": f"MACRO_BEAR_TRAIL [PnL: {plpc*100:+.1f}%, Pullback: {pullback*100:.1f}%]"})
-                continue
+                # Check Hard Stop
+                if plpc <= hard_stop:
+                    signals_to_exit.append({"sym": sym, "reason": f"HARD_STOP ({hard_stop*100:.1f}%) [PnL: {plpc*100:+.1f}%]"})
+                    continue
 
-            # Multi-Tier Trailing Profit Lock
-            trailed = False
-            for min_gain, trail_pct in trail_tiers:
-                if plpc >= min_gain:
-                    if pullback <= trail_pct:
-                        signals_to_exit.append({"sym": sym, "reason": f"TRAIL_TIER (+{min_gain*100:.0f}% / {trail_pct*100:.0f}%) [PnL: {plpc*100:+.1f}%]"})
-                        trailed = True
-                    break
-            if trailed:
-                continue
+                # Multi-Tier Trailing Profit Lock
+                trailed = False
+                for min_gain, trail_pct in trail_tiers:
+                    if plpc >= min_gain:
+                        if pullback <= trail_pct:
+                            signals_to_exit.append({"sym": sym, "reason": f"TRAIL_TIER (+{min_gain*100:.0f}% / {trail_pct*100:.0f}%) [PnL: {plpc*100:+.1f}%]"})
+                            trailed = True
+                        break
+                if trailed:
+                    continue
 
-            # Developing Trend Exit (150-SMA break)
-            if sym in universe_data and len(universe_data[sym]) >= 150:
-                sma150 = universe_data[sym]["close"].rolling(150, min_periods=50).mean().iloc[-1]
-                if price < sma150:
-                    signals_to_exit.append({"sym": sym, "reason": f"TREND_SMA150_BREAK [PnL: {plpc*100:+.1f}%]"})
+                # Developing Trend Exit (150-SMA break)
+                if sym in universe_data and len(universe_data[sym]) >= 150:
+                    sma150 = universe_data[sym]["close"].rolling(150, min_periods=50).mean().iloc[-1]
+                    if price < sma150:
+                        signals_to_exit.append({"sym": sym, "reason": f"TREND_SMA150_BREAK [PnL: {plpc*100:+.1f}%]"})
+                        continue
+
+            # Dynamic Volatility Trimming on Remaining Positions
+            # If market volatility is elevated (max_exposure < 1.0), trim positions exceeding target weight
+            target_pos_val = (total_equity / MAX_CORE_POSITIONS) * max_exposure
+            for sym, pos in list(self.state["positions"].items()):
+                if any(s["sym"] == sym for s in signals_to_exit):
+                    continue
+                price = current_prices.get(sym, pos["entry_price"])
+                cur_val = pos["shares"] * price
+                # Trim if position exceeds target allocation by >15% buffer
+                if cur_val > target_pos_val * 1.15 and price > 0:
+                    excess_val = cur_val - target_pos_val
+                    shares_to_trim = math.floor(excess_val / price)
+                    if shares_to_trim > 0:
+                        signals_to_exit.append({
+                            "sym": sym,
+                            "reason": f"VOL_TARGET_TRIM (Scale={max_exposure:.2f})",
+                            "trim_shares": float(shares_to_trim)
+                        })
 
         self.state["pending_sells"] = signals_to_exit
         for s in signals_to_exit:
-            print(f"  [SIGNAL QUEUED SELL] {s['sym']:<12} -> Reason: {s['reason']}")
+            action_desc = f"TRIM {s.get('trim_shares')} shs" if s.get("trim_shares") else "FULL SELL"
+            print(f"  [SIGNAL QUEUED {action_desc:<12}] {s['sym']:<12} -> Reason: {s['reason']}")
 
         # 4. Candidate Screening & Dynamic Allocation (Quant Science Volatility-Targeted Sizing)
-        # Policy: INDIA is STRICTLY LONG-ONLY with 100% Cash Defense (Zero Shorting / Zero Futures).
-        # USA operates Long Momentum + Regime Volatility Cash Scaling (Optional ETF Short Hedge on margin).
-        active_and_pending_count = len(self.state["positions"]) - len(self.state["pending_sells"])
-        max_allowed_slots = int(math.floor(MAX_CORE_POSITIONS * max_exposure))
+        # Policy: 100% Long-Only CNC Equity + Dynamic Volatility Cash Defense across both India & US.
+        # Fixed slots = MAX_CORE_POSITIONS (10). Position sizing shrinks with max_exposure (no double-scaling).
+        full_exits_count = len([s for s in signals_to_exit if not s.get("trim_shares")])
+        active_positions_count = len(self.state["positions"]) - full_exits_count
+        open_slots = max(0, MAX_CORE_POSITIONS - active_positions_count)
 
-        if is_macro_bull and active_and_pending_count < max_allowed_slots and self.state["cash"] > 100.0:
-            open_slots = max_allowed_slots - active_and_pending_count
+        if is_macro_bull and open_slots > 0 and self.state["cash"] > 100.0:
             cands = []
             min_price = 20.0 if self.pod_name == "INDIA" else 10.0
 
@@ -443,7 +469,7 @@ class PodPaperEngine:
             cands.sort(key=lambda x: x["score"], reverse=True)
             selected = cands[:open_slots]
 
-            alloc_per_cand = (total_equity * 0.10) * max_exposure
+            alloc_per_cand = (total_equity / MAX_CORE_POSITIONS) * max_exposure
             pending_buys = []
             avail_cash = self.state["cash"] * 0.96
             for c in selected:
@@ -457,10 +483,7 @@ class PodPaperEngine:
             self.state["pending_buys"] = pending_buys
         elif not is_macro_bull:
             self.state["pending_buys"] = []
-            if self.pod_name == "INDIA":
-                print(f"  [INDIA CASH DEFENSE] Regime is {macro_regime} -> 100% Capital Preserved in Safe Liquid Cash (Strictly Long-Only, Zero Shorting).")
-            else:
-                print(f"  [US CASH/HEDGE DEFENSE] Regime is {macro_regime} -> Exposure dialed down into Cash (Optional SPY margin short hedge).")
+            print(f"  [{self.pod_name} CASH DEFENSE] Regime is {macro_regime} -> 100% Capital Preserved in Safe Liquid Cash (100% Long-Only CNC Delivery).")
 
         self._save_state()
 
