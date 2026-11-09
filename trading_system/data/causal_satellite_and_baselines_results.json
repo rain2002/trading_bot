@@ -1,5 +1,47 @@
 {
-  "equal_weight_baseline": {
+  "nifty50_pit_golden_baseline": {
+    "start_date": "2007-09-24",
+    "end_date": "2024-07-05",
+    "years": 16.78,
+    "initial_capital": 80000.0,
+    "terminal_equity": 274295.79,
+    "cagr_pct": 7.62,
+    "max_drawdown_pct": -62.03,
+    "annual_volatility_pct": 24.21,
+    "sharpe_ratio": 0.2,
+    "strategy": "Nifty 50 PIT Golden Baseline (Market-Cap Large Caps)",
+    "trades": 124,
+    "tax_paid": 415.83
+  },
+  "nifty100_pit_golden_baseline": {
+    "start_date": "2007-09-24",
+    "end_date": "2024-07-05",
+    "years": 16.78,
+    "initial_capital": 80000.0,
+    "terminal_equity": 233690.93,
+    "cagr_pct": 6.6,
+    "max_drawdown_pct": -64.5,
+    "annual_volatility_pct": 22.55,
+    "sharpe_ratio": 0.15,
+    "strategy": "Nifty 100 PIT Golden Baseline (Equal-Weight Top 100)",
+    "trades": 380,
+    "tax_paid": 2114.11
+  },
+  "nifty100_pit_plain_momentum": {
+    "start_date": "2007-09-24",
+    "end_date": "2024-07-05",
+    "years": 16.78,
+    "initial_capital": 80000.0,
+    "terminal_equity": 498945.16,
+    "cagr_pct": 11.53,
+    "max_drawdown_pct": -41.88,
+    "annual_volatility_pct": 21.75,
+    "sharpe_ratio": 0.37,
+    "strategy": "Plain 12-1 Momentum (Nifty 100 PIT Universe, 10 Slots)",
+    "trades": 1065,
+    "tax_paid": 118297.51
+  },
+  "equal_weight_turnover_baseline": {
     "start_date": "2007-09-24",
     "end_date": "2024-07-05",
     "years": 16.78,
@@ -13,7 +55,7 @@
     "trades": 409,
     "tax_paid": 1236.35
   },
-  "plain_momentum_satellite": {
+  "plain_momentum_satellite_turnover": {
     "start_date": "2007-09-24",
     "end_date": "2024-07-05",
     "years": 16.78,
@@ -41,18 +83,18 @@
     "trades": 85,
     "tax_paid": 135539.53
   },
-  "hybrid_50_50": {
+  "hybrid_50_50_n100": {
     "start_date": "2007-09-24",
     "end_date": "2024-07-05",
     "years": 16.78,
     "initial_capital": 80000.0,
-    "terminal_equity": 368863.87,
-    "cagr_pct": 9.54,
-    "max_drawdown_pct": -58.81,
-    "annual_volatility_pct": 21.41,
-    "sharpe_ratio": 0.28,
-    "strategy": "Hybrid 50/50 (Core + Satellite Momentum)",
-    "trades": 1738,
-    "tax_paid": 193911.19
+    "terminal_equity": 573864.62,
+    "cagr_pct": 12.46,
+    "max_drawdown_pct": -30.38,
+    "annual_volatility_pct": 18.53,
+    "sharpe_ratio": 0.45,
+    "strategy": "Hybrid 50/50 (Core + N100 PIT Momentum)",
+    "trades": 1150,
+    "tax_paid": 253837.04
   }
 }
