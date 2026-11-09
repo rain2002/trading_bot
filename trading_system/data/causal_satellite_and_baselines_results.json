@@ -9,7 +9,7 @@
     "max_drawdown_pct": -75.63,
     "annual_volatility_pct": 29.81,
     "sharpe_ratio": -0.0,
-    "strategy": "Equal-Weight Causal Baseline (Top 50)",
+    "strategy": "Equal-Weight Turnover Baseline (Top 50 Speculative)",
     "trades": 409,
     "tax_paid": 1236.35
   },
@@ -32,27 +32,27 @@
     "end_date": "2024-07-05",
     "years": 16.78,
     "initial_capital": 80000.0,
-    "terminal_equity": 1030631.24,
-    "cagr_pct": 16.45,
-    "max_drawdown_pct": -45.34,
-    "annual_volatility_pct": 22.88,
-    "sharpe_ratio": 0.56,
-    "strategy": "Multi-Asset Core-Only (Honest Proxies & TER)",
+    "terminal_equity": 648784.08,
+    "cagr_pct": 13.28,
+    "max_drawdown_pct": -46.37,
+    "annual_volatility_pct": 23.09,
+    "sharpe_ratio": 0.43,
+    "strategy": "Multi-Asset Core-Only (Identical Taxes & TER)",
     "trades": 85,
-    "tax_paid": 0.0
+    "tax_paid": 135539.53
   },
   "hybrid_50_50": {
     "start_date": "2007-09-24",
     "end_date": "2024-07-05",
     "years": 16.78,
     "initial_capital": 80000.0,
-    "terminal_equity": 559787.45,
-    "cagr_pct": 12.29,
-    "max_drawdown_pct": -58.27,
+    "terminal_equity": 368863.87,
+    "cagr_pct": 9.54,
+    "max_drawdown_pct": -58.81,
     "annual_volatility_pct": 21.41,
-    "sharpe_ratio": 0.41,
+    "sharpe_ratio": 0.28,
     "strategy": "Hybrid 50/50 (Core + Satellite Momentum)",
     "trades": 1738,
-    "tax_paid": 58371.66
+    "tax_paid": 193911.19
   }
 }
