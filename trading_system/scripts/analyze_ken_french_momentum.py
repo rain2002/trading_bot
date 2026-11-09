@@ -73,7 +73,8 @@ def download_and_parse_ken_french_data() -> Tuple[pd.DataFrame, pd.DataFrame, pd
 
     blocks_dec = text_dec.split("\r\n\r\n")
     # Block 3 is Value Weight Returns -- Monthly
-    df_vw = pd.read_csv(io.StringIO(blocks_dec[3]), skiprows=1)
+    lines_vw = [l for l in blocks_dec[3].splitlines() if l.strip()]
+    df_vw = pd.read_csv(io.StringIO("\n".join(lines_vw[1:])))
     df_vw.columns = [c.strip() for c in df_vw.columns]
     df_vw.rename(columns={df_vw.columns[0]: "date"}, inplace=True)
     df_vw["date"] = pd.to_datetime(df_vw["date"].astype(str), format="%Y%m", errors="coerce")
@@ -83,7 +84,8 @@ def download_and_parse_ken_french_data() -> Tuple[pd.DataFrame, pd.DataFrame, pd
         df_vw[c] = pd.to_numeric(df_vw[c], errors="coerce") / 100.0
 
     # Block 4 is Average Equal Weighted Returns -- Monthly
-    df_ew = pd.read_csv(io.StringIO(blocks_dec[4]), skiprows=1)
+    lines_ew = [l for l in blocks_dec[4].splitlines() if l.strip()]
+    df_ew = pd.read_csv(io.StringIO("\n".join(lines_ew[1:])))
     df_ew.columns = [c.strip() for c in df_ew.columns]
     df_ew.rename(columns={df_ew.columns[0]: "date"}, inplace=True)
     df_ew["date"] = pd.to_datetime(df_ew["date"].astype(str), format="%Y%m", errors="coerce")
