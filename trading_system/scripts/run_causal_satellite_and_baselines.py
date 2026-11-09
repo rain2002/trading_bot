@@ -36,6 +36,7 @@ from trading_system.app.data.corporate_actions import (
     is_etf_ticker
 )
 from trading_system.app.validation.trial_logger import log_trial
+from trading_system.app.data.constituent_manager import PointInTimeConstituentManager
 
 INITIAL_CAPITAL = 80000.0
 BUY_BPS = 0.002285      # 22.85 bps
@@ -167,7 +168,100 @@ def run_equal_weight_baseline(
         equity_curve.append(port_val)
 
     metrics = calculate_metrics(equity_curve, dates)
-    metrics["strategy"] = "Equal-Weight Causal Baseline (Top 50)"
+    metrics["strategy"] = "Equal-Weight Turnover Baseline (Top 50 Speculative)"
+    metrics["trades"] = trade_count
+    metrics["tax_paid"] = round(total_tax, 2)
+    return equity_curve, metrics
+
+
+def run_nifty50_pit_baseline(
+    dates: pd.DatetimeIndex,
+    close_df: pd.DataFrame,
+    split_multipliers: pd.DataFrame,
+    month_ends: Set[pd.Timestamp],
+    pit_mgr: PointInTimeConstituentManager
+) -> Tuple[List[float], Dict[str, Any]]:
+    """
+    Golden Test: Market-Cap Large Cap Baseline (Nifty 50 PIT Membership).
+    At each monthly rebalance, equal-weights the official active constituents of Nifty 50.
+    Proves whether the price pipeline reproduces normal market CAGR (~8-11%).
+    """
+    cash = INITIAL_CAPITAL
+    positions: Dict[str, float] = {}
+    entry_prices: Dict[str, float] = {}
+    entry_dates: Dict[str, pd.Timestamp] = {}
+    equity_curve: List[float] = []
+    trade_count = 0
+    total_tax = 0.0
+
+    for i, dt in enumerate(dates):
+        # 1. Apply verified corporate actions on active positions
+        for sym in list(positions.keys()):
+            mult = split_multipliers.loc[dt, sym] if sym in split_multipliers.columns else 1.0
+            if mult > 1.0:
+                positions[sym] *= mult
+                entry_prices[sym] /= mult
+
+        # 2. Check for month-end rebalance
+        if dt in month_ends or i == 0:
+            active = pit_mgr.get_active_constituents(dt)
+            clean_active = [s.replace('.NS', '').replace('-NS', '') for s in active]
+            valid_targets = [
+                s for s in clean_active 
+                if s in close_df.columns and not math.isnan(close_df.loc[dt, s]) and close_df.loc[dt, s] >= MIN_PRICE
+            ]
+
+            if valid_targets:
+                # Sell dropped names
+                for sym in list(positions.keys()):
+                    if sym not in valid_targets:
+                        sh = positions.pop(sym)
+                        ep = entry_prices.pop(sym)
+                        ed = entry_dates.pop(sym, dt)
+                        cp = close_df.loc[dt, sym] if not math.isnan(close_df.loc[dt, sym]) else ep
+                        proceeds = sh * cp * (1.0 - SELL_BPS) - DP_FEE
+                        gain = proceeds - (sh * ep)
+                        if gain > 0:
+                            h_days = (dt - ed).days
+                            tax = gain * (0.125 if h_days >= 365 else 0.15)
+                            proceeds -= tax
+                            total_tax += tax
+                        cash += proceeds
+                        trade_count += 1
+
+                # Rebalance targets
+                current_port_val = cash + sum(
+                    positions[s] * (close_df.loc[dt, s] if not math.isnan(close_df.loc[dt, s]) else entry_prices[s])
+                    for s in positions
+                )
+                target_per_slot = current_port_val / len(valid_targets)
+
+                for sym in valid_targets:
+                    cp = close_df.loc[dt, sym]
+                    cur_val = positions.get(sym, 0.0) * cp
+                    if cur_val < target_per_slot * 0.80 and cash > 200:
+                        add_val = min(target_per_slot - cur_val, cash * 0.95)
+                        sh = add_val / (cp * (1.0 + BUY_BPS))
+                        if sym in positions:
+                            positions[sym] += sh
+                            entry_prices[sym] = (positions[sym] * entry_prices[sym] + sh * cp) / positions[sym]
+                        else:
+                            positions[sym] = sh
+                            entry_prices[sym] = cp
+                            entry_dates[sym] = dt
+                        cash -= add_val
+                        trade_count += 1
+
+        # Liquid yield
+        cash += cash * (CASH_YIELD_ANNUAL / 252.0)
+        port_val = cash + sum(
+            positions[s] * (close_df.loc[dt, s] if not math.isnan(close_df.loc[dt, s]) else entry_prices[s])
+            for s in positions
+        )
+        equity_curve.append(port_val)
+
+    metrics = calculate_metrics(equity_curve, dates)
+    metrics["strategy"] = "Nifty 50 PIT Golden Baseline (Market-Cap Large Caps)"
     metrics["trades"] = trade_count
     metrics["tax_paid"] = round(total_tax, 2)
     return equity_curve, metrics
@@ -326,12 +420,13 @@ def run_core_only_multi_asset(
     month_ends: Set[pd.Timestamp]
 ) -> Tuple[List[float], Dict[str, Any]]:
     """
-    Core-Only: 100% Multi-Asset Momentum Rotation (Honest Proxies & TER deducted).
+    Core-Only: 100% Multi-Asset Momentum Rotation (Honest Proxies, TER & Identical Taxes).
     Assets:
       - MON100 Proxy: QQQ_USD * USDINR (TER: 0.50% + 0.20% cash drag = 0.70%)
       - MID150 Proxy: NIFTY MIDCAP 50 (TER: 0.30%)
       - GOLD Proxy: COMEX Gold * USDINR (TER: 0.80%)
     Rotates to 6-month momentum leader when above 200-SMA, else Gold / Cash.
+    Accounting: Deducts identical 15% STCG / 12.5% LTCG tax on realized gains, plus trading friction.
     """
     # Deduct daily TER from raw asset prices
     ter_rates = {'MON100': 0.0070 / 252.0, 'MIDCAP': 0.0030 / 252.0, 'GOLD': 0.0080 / 252.0}
@@ -346,8 +441,11 @@ def run_core_only_multi_asset(
 
     cash = INITIAL_CAPITAL
     holdings = {'MON100': 0.0, 'MIDCAP': 0.0, 'GOLD': 0.0}
+    entry_prices = {'MON100': 0.0, 'MIDCAP': 0.0, 'GOLD': 0.0}
+    entry_dates: Dict[str, pd.Timestamp] = {}
     equity_curve: List[float] = []
     trade_count = 0
+    total_tax = 0.0
 
     for i, dt in enumerate(dates):
         etf_p = net_etf.loc[dt]
@@ -358,16 +456,30 @@ def run_core_only_multi_asset(
             best_equity = 'MON100' if moms['MON100'] > moms['MIDCAP'] else 'MIDCAP'
             target = best_equity if (etf_p[best_equity] > etf_sma200.loc[dt, best_equity] and moms[best_equity] > 0) else ('GOLD' if etf_p['GOLD'] > etf_sma200.loc[dt, 'GOLD'] else None)
 
-            # Reallocate
+            # Reallocate and deduct identical capital gains taxes
             for c in list(holdings.keys()):
                 if c != target and holdings[c] > 0:
-                    cash += holdings[c] * etf_p[c] * (1.0 - SELL_BPS)
+                    sh = holdings[c]
+                    ep = entry_prices[c]
+                    ed = entry_dates.get(c, dt)
+                    cp = etf_p[c]
+                    proceeds = sh * cp * (1.0 - SELL_BPS)
+                    gain = proceeds - (sh * ep)
+                    if gain > 0:
+                        h_days = (dt - ed).days
+                        tax = gain * (0.125 if h_days >= 365 else 0.15)
+                        proceeds -= tax
+                        total_tax += tax
+                    cash += proceeds
                     holdings[c] = 0.0
                     trade_count += 1
 
             if target and holdings[target] == 0.0 and cash > 1000:
                 buy_val = cash * 0.99
-                holdings[target] = buy_val / (etf_p[target] * (1.0 + BUY_BPS))
+                sh = buy_val / (etf_p[target] * (1.0 + BUY_BPS))
+                holdings[target] = sh
+                entry_prices[target] = etf_p[target]
+                entry_dates[target] = dt
                 cash -= buy_val
                 trade_count += 1
 
@@ -377,9 +489,9 @@ def run_core_only_multi_asset(
         equity_curve.append(tot_val)
 
     metrics = calculate_metrics(equity_curve, dates)
-    metrics["strategy"] = "Multi-Asset Core-Only (Honest Proxies & TER)"
+    metrics["strategy"] = "Multi-Asset Core-Only (Identical Taxes & TER)"
     metrics["trades"] = trade_count
-    metrics["tax_paid"] = 0.0
+    metrics["tax_paid"] = round(total_tax, 2)
     return equity_curve, metrics
 
 
@@ -423,43 +535,64 @@ def main():
     df_d['month'] = df_d['date'].dt.to_period('M')
     month_ends = set(df_d.groupby('month')['date'].max())
 
-    print("\n[3/5] Running Strategy 1: Equal-Weight Causal Baseline (Top 50)...", flush=True)
+    # Point-in-Time Manager for Golden Test
+    pit_mgr = PointInTimeConstituentManager(
+        changes_csv_path=os.path.join(PROJECT_ROOT, "trading_system", "data", "nifty50_historical_components_changes.csv"),
+        start_end_csv_path=os.path.join(PROJECT_ROOT, "trading_system", "data", "nifty50_ticker_start_end.csv")
+    )
+
+    print("\n[3/6] Running Strategy 1A: Golden Test - Nifty 50 PIT Baseline (Market-Cap Large Caps)...", flush=True)
+    eq_curve_n50, m_n50 = run_nifty50_pit_baseline(dates, close_df, split_multipliers, month_ends, pit_mgr)
+
+    print("[4/6] Running Strategy 1B: Equal-Weight Turnover Baseline (Top 50 Speculative)...", flush=True)
     eq_curve_base, m_base = run_equal_weight_baseline(dates, close_df, open_df, turnover_df, split_multipliers, month_ends)
 
-    print("[4/5] Running Strategy 2: Plain 12-1 Momentum (Satellite Only, 10 Slots)...", flush=True)
+    print("[5/6] Running Strategy 2: Plain 12-1 Momentum (Satellite Only, 10 Slots)...", flush=True)
     eq_curve_sat, m_sat = run_plain_momentum_satellite(dates, close_df, open_df, turnover_df, adj_close_df, split_multipliers, month_ends)
 
-    print("[5/5] Running Strategy 3: Multi-Asset Core-Only (Honest Proxies & TER)...", flush=True)
+    print("[6/6] Running Strategy 3: Multi-Asset Core-Only (Honest Proxies, TER & Identical Taxes)...", flush=True)
     eq_curve_core, m_core = run_core_only_multi_asset(dates, etf_assets, month_ends)
 
-    # Hybrid 50/50 combination
+    # Hybrid 50/50 combination (Core + Satellite)
     hybrid_curve = [0.5 * s + 0.5 * c for s, c in zip(eq_curve_sat, eq_curve_core)]
     m_hybrid = calculate_metrics(hybrid_curve, dates)
     m_hybrid["strategy"] = "Hybrid 50/50 (Core + Satellite Momentum)"
     m_hybrid["trades"] = m_sat["trades"] + m_core["trades"]
-    m_hybrid["tax_paid"] = m_sat["tax_paid"]
+    m_hybrid["tax_paid"] = round(m_sat["tax_paid"] + m_core["tax_paid"], 2)
 
     # Print Summary Table
-    print("\n" + "=" * 95)
+    print("\n" + "=" * 105)
     print("INSTITUTIONAL PERFORMANCE COMPARISON (2007-09-24 to 2024-07-05: INCLUDES 2008 CRASH)")
-    print("=" * 95)
-    print(f"{'Strategy':<40} | {'CAGR (%)':>9} | {'Max DD (%)':>10} | {'Sharpe':>7} | {'Trades':>7} | {'STCG Tax':>9}")
-    print("-" * 95)
-    for m in [m_base, m_sat, m_core, m_hybrid]:
-        print(f"{m['strategy']:<40} | {m['cagr_pct']:>8.2f}% | {m['max_drawdown_pct']:>9.2f}% | {m['sharpe_ratio']:>7.2f} | {m['trades']:>7} | Rs {m['tax_paid']:>7,.0f}")
-    print("=" * 95)
+    print("=" * 105)
+    print(f"{'Strategy':<52} | {'CAGR (%)':>9} | {'Max DD (%)':>10} | {'Sharpe':>7} | {'Trades':>7} | {'STCG Tax':>10}")
+    print("-" * 105)
+    for m in [m_n50, m_base, m_sat, m_core, m_hybrid]:
+        print(f"{m['strategy']:<52} | {m['cagr_pct']:>8.2f}% | {m['max_drawdown_pct']:>9.2f}% | {m['sharpe_ratio']:>7.2f} | {m['trades']:>7} | Rs {m['tax_paid']:>8,.0f}")
+    print("=" * 105)
+
+    # Dynamic commit hash capture
+    current_hash = "auto"
 
     # Log each trial once stamped with commit hash
+    log_trial(
+        cagr_pct=m_n50["cagr_pct"],
+        max_drawdown_pct=m_n50["max_drawdown_pct"],
+        sharpe_ratio=m_n50["sharpe_ratio"],
+        kelly_fraction=1.0,
+        lookback_days=126,
+        script="run_causal_satellite_and_baselines.py",
+        universe="NSE_NIFTY50_PIT_GOLDEN_BASELINE",
+        notes="Golden Test: Nifty 50 PIT Equal-Weight (Market-Cap Large Caps, 2007 Start, 2008 Crash Included)"
+    )
     log_trial(
         cagr_pct=m_base["cagr_pct"],
         max_drawdown_pct=m_base["max_drawdown_pct"],
         sharpe_ratio=m_base["sharpe_ratio"],
         kelly_fraction=1.0,
         lookback_days=126,
-        commit_hash="f78131e",
         script="run_causal_satellite_and_baselines.py",
         universe="NSE_CAUSAL_TOP50_EQUAL_WEIGHT",
-        notes="Equal-Weight Causal Baseline (Top 50, 2007 Start, 2008 Crash Included)"
+        notes="Equal-Weight Turnover Baseline (Top 50 Speculative, 2007 Start, 2008 Crash Included)"
     )
     log_trial(
         cagr_pct=m_sat["cagr_pct"],
@@ -467,7 +600,6 @@ def main():
         sharpe_ratio=m_sat["sharpe_ratio"],
         kelly_fraction=1.0,
         lookback_days=252,
-        commit_hash="f78131e",
         script="run_causal_satellite_and_baselines.py",
         universe="NSE_CAUSAL_TOP300_PLAIN_MOMENTUM",
         notes="Plain 12-1 Momentum (Satellite Only, 10 Slots, 2007 Start, 2008 Crash Included)"
@@ -478,10 +610,9 @@ def main():
         sharpe_ratio=m_core["sharpe_ratio"],
         kelly_fraction=1.0,
         lookback_days=126,
-        commit_hash="f78131e",
         script="run_causal_satellite_and_baselines.py",
         universe="MULTI_ASSET_CORE_HONEST_PROXIES",
-        notes="Multi-Asset Core-Only (QQQ_INR, Midcap50, Gold_INR with TER, 2007 Start)"
+        notes="Multi-Asset Core-Only (QQQ_INR, Midcap50, Gold_INR with TER & Identical Taxes, 2007 Start)"
     )
     log_trial(
         cagr_pct=m_hybrid["cagr_pct"],
@@ -489,14 +620,22 @@ def main():
         sharpe_ratio=m_hybrid["sharpe_ratio"],
         kelly_fraction=0.5,
         lookback_days=252,
-        commit_hash="f78131e",
         script="run_causal_satellite_and_baselines.py",
         universe="HYBRID_50_CORE_50_SATELLITE",
-        notes="Hybrid 50/50 (Core + Plain Satellite Momentum, 2007 Start, 2008 Crash Included)"
+        notes="Hybrid 50/50 (Core + Plain Satellite Momentum with Identical Taxes, 2007 Start, 2008 Crash Included)"
     )
 
     # Save Results
     results_path = os.path.join(PROJECT_ROOT, "trading_system", "data", "causal_satellite_and_baselines_results.json")
+    with open(results_path, "w") as f:
+        json.dump({
+            "nifty50_pit_golden_baseline": m_n50,
+            "equal_weight_turnover_baseline": m_base,
+            "plain_momentum_satellite": m_sat,
+            "core_only": m_core,
+            "hybrid_50_50": m_hybrid
+        }, f, indent=2)
+    print(f"\nSaved institutional results to: {results_path}")
     with open(results_path, "w") as f:
         json.dump({
             "equal_weight_baseline": m_base,
