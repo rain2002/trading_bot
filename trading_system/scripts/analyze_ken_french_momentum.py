@@ -260,7 +260,7 @@ def run_ken_french_momentum_analysis():
             "ew_spread": m_ew_spread,
             "vw_deciles": vw_deciles,
             "ew_deciles": ew_deciles,
-            "gate_passed": gate_passed
+            "gate_passed": bool(gate_passed)
         }, f, indent=2)
 
     # Log trial stamped with commit hash
