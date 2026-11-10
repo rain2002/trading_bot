@@ -1,7 +1,7 @@
 {
   "pod_name": "US",
   "currency": "USD",
-  "cash": 80560.48838854002,
+  "cash": 48517.66,
   "positions": {
     "DXCM": {
       "shares": 70.0,
@@ -10,16 +10,100 @@
       "peak_price": 80.51
     },
     "TEAM": {
-      "shares": 64.1072,
-      "entry_price": 152.5262219467163,
+      "shares": 64.0,
+      "entry_price": 148.55,
       "entry_date": "2026-11-10 20:58:35",
       "peak_price": 152.4499969482422
     },
     "CRWD": {
-      "shares": 15.103,
-      "entry_price": 225.11249999999998,
+      "shares": 15.0,
+      "entry_price": 225.936,
       "entry_date": "2026-11-10 20:58:35",
-      "peak_price": 225.0
+      "peak_price": 226.404
+    },
+    "BKNG": {
+      "shares": 37.0,
+      "entry_price": 149.626216,
+      "entry_date": "2026-11-10 22:37:30",
+      "peak_price": 159.26
+    },
+    "CBRE": {
+      "shares": 45.0,
+      "entry_price": 124.415333,
+      "entry_date": "2026-11-10 22:37:30",
+      "peak_price": 134.79
+    },
+    "DASH": {
+      "shares": 33.0,
+      "entry_price": 171.751515,
+      "entry_date": "2026-11-10 22:37:30",
+      "peak_price": 178.25
+    },
+    "FFIV": {
+      "shares": -27.0,
+      "entry_price": 317.37,
+      "entry_date": "2026-11-10 22:37:30",
+      "peak_price": 317.37
+    },
+    "FTNT": {
+      "shares": -64.0,
+      "entry_price": 123.54,
+      "entry_date": "2026-11-10 22:37:30",
+      "peak_price": 123.7
+    },
+    "HOOD": {
+      "shares": -93.0,
+      "entry_price": 81.33,
+      "entry_date": "2026-11-10 22:37:30",
+      "peak_price": 81.33
+    },
+    "HUBB": {
+      "shares": 6.0,
+      "entry_price": 432.49,
+      "entry_date": "2026-11-10 22:37:30",
+      "peak_price": 437.79
+    },
+    "META": {
+      "shares": 9.0,
+      "entry_price": 622.386667,
+      "entry_date": "2026-11-10 22:37:30",
+      "peak_price": 642.438
+    },
+    "ODFL": {
+      "shares": 16.0,
+      "entry_price": 173.53,
+      "entry_date": "2026-11-10 22:37:30",
+      "peak_price": 173.53
+    },
+    "PCAR": {
+      "shares": 94.0,
+      "entry_price": 102.890106,
+      "entry_date": "2026-11-10 22:37:30",
+      "peak_price": 105.73
+    },
+    "SNA": {
+      "shares": 15.0,
+      "entry_price": 361.31,
+      "entry_date": "2026-11-10 22:37:30",
+      "peak_price": 373.28
+    },
+    "TT": {
+      "shares": 6.0,
+      "entry_price": 423.238333,
+      "entry_date": "2026-11-10 22:37:30",
+      "peak_price": 423.238333
+    },
+    "TTWO": {
+      "shares": 16.0,
+      "entry_price": 190.17,
+      "entry_date": "2026-11-10 22:37:30",
+      "peak_price": 224.5
+    },
+    "UBER": {
+      "shares": 78.0,
+      "entry_price": 65.657949,
+      "entry_date": "2026-11-10 22:37:30",
+      "peak_price": 69.8615
     }
   },
   "pending_buys": [],
@@ -30,7 +114,7 @@
   "in_tier4_defense": false,
   "cooling_off": 0,
   "recovery_streak": 0,
-  "last_updated": "2026-11-10T20:58:36.413062+00:00",
+  "last_updated": "2026-11-10T22:37:31.200431+00:00",
   "initial_capital": 100000.0,
-  "equity": 100057.51
+  "equity": 99042.71
 }
