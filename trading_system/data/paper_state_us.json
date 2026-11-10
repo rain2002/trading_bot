@@ -1,176 +1,36 @@
 {
   "pod_name": "US",
   "currency": "USD",
-  "cash": 13726.98,
+  "cash": 80560.48838854002,
   "positions": {
-    "BKNG": {
-      "shares": 37.0,
-      "entry_price": 149.626216,
-      "entry_date": "2026-11-07 16:34:21",
-      "peak_price": 163.55
-    },
-    "CBRE": {
-      "shares": 45.0,
-      "entry_price": 124.415333,
-      "entry_date": "2026-11-07 16:34:21",
-      "peak_price": 138.17
-    },
-    "DASH": {
-      "shares": 33.0,
-      "entry_price": 171.751515,
-      "entry_date": "2026-11-07 16:34:21",
-      "peak_price": 180.83
-    },
     "DXCM": {
       "shares": 70.0,
       "entry_price": 78.468,
       "entry_date": "2026-11-07 16:34:21",
       "peak_price": 80.51
     },
-    "FFIV": {
-      "shares": 27.0,
-      "entry_price": 339.283333,
-      "entry_date": "2026-11-07 16:34:21",
-      "peak_price": 339.283333
+    "TEAM": {
+      "shares": 64.1072,
+      "entry_price": 152.5262219467163,
+      "entry_date": "2026-11-10 20:58:35",
+      "peak_price": 152.4499969482422
     },
-    "FTNT": {
-      "shares": 64.0,
-      "entry_price": 134.694844,
-      "entry_date": "2026-11-07 16:34:21",
-      "peak_price": 134.694844
-    },
-    "HOOD": {
-      "shares": 93.0,
-      "entry_price": 85.874194,
-      "entry_date": "2026-11-07 16:34:21",
-      "peak_price": 85.874194
-    },
-    "HUBB": {
-      "shares": 6.0,
-      "entry_price": 432.49,
-      "entry_date": "2026-11-07 16:34:21",
-      "peak_price": 441.57
-    },
-    "META": {
-      "shares": 9.0,
-      "entry_price": 622.386667,
-      "entry_date": "2026-11-07 16:34:21",
-      "peak_price": 643.3
-    },
-    "ODFL": {
-      "shares": 16.0,
-      "entry_price": 173.53,
-      "entry_date": "2026-11-07 16:34:21",
-      "peak_price": 173.53
-    },
-    "PCAR": {
-      "shares": 94.0,
-      "entry_price": 102.890106,
-      "entry_date": "2026-11-07 16:34:21",
-      "peak_price": 106.0
-    },
-    "SNA": {
-      "shares": 15.0,
-      "entry_price": 361.31,
-      "entry_date": "2026-11-07 16:34:21",
-      "peak_price": 373.82
-    },
-    "TT": {
-      "shares": 6.0,
-      "entry_price": 423.238333,
-      "entry_date": "2026-11-07 16:34:21",
-      "peak_price": 423.238333
-    },
-    "TTWO": {
-      "shares": 16.0,
-      "entry_price": 190.17,
-      "entry_date": "2026-11-07 16:34:21",
-      "peak_price": 216.0
-    },
-    "UBER": {
-      "shares": 78.0,
-      "entry_price": 65.657949,
-      "entry_date": "2026-11-07 16:34:21",
-      "peak_price": 71.06
+    "CRWD": {
+      "shares": 15.103,
+      "entry_price": 225.11249999999998,
+      "entry_date": "2026-11-10 20:58:35",
+      "peak_price": 225.0
     }
   },
-  "pending_buys": [
-    {
-      "sym": "TEAM",
-      "target_alloc": 9778.029018066407,
-      "score": 8.48898832990098
-    },
-    {
-      "sym": "CRWD",
-      "target_alloc": 3399.8717819335925,
-      "score": 1.9895276422901031
-    }
-  ],
-  "pending_sells": [
-    {
-      "sym": "BKNG",
-      "reason": "TREND_SMA150_BREAK [PnL: +7.4%]"
-    },
-    {
-      "sym": "CBRE",
-      "reason": "TREND_SMA150_BREAK [PnL: +8.9%]"
-    },
-    {
-      "sym": "DASH",
-      "reason": "TREND_SMA150_BREAK [PnL: +4.6%]"
-    },
-    {
-      "sym": "FFIV",
-      "reason": "TREND_SMA150_BREAK [PnL: -8.4%]"
-    },
-    {
-      "sym": "FTNT",
-      "reason": "HARD_STOP (-10.0%) [PnL: -11.8%]"
-    },
-    {
-      "sym": "HOOD",
-      "reason": "TREND_SMA150_BREAK [PnL: -5.8%]"
-    },
-    {
-      "sym": "HUBB",
-      "reason": "TREND_SMA150_BREAK [PnL: -0.7%]"
-    },
-    {
-      "sym": "META",
-      "reason": "TREND_SMA150_BREAK [PnL: -2.0%]"
-    },
-    {
-      "sym": "ODFL",
-      "reason": "TREND_SMA150_BREAK [PnL: -5.0%]"
-    },
-    {
-      "sym": "PCAR",
-      "reason": "TREND_SMA150_BREAK [PnL: -0.9%]"
-    },
-    {
-      "sym": "SNA",
-      "reason": "TREND_SMA150_BREAK [PnL: +1.6%]"
-    },
-    {
-      "sym": "TT",
-      "reason": "TREND_SMA150_BREAK [PnL: -5.1%]"
-    },
-    {
-      "sym": "TTWO",
-      "reason": "TREND_SMA150_BREAK [PnL: +13.0%]"
-    },
-    {
-      "sym": "UBER",
-      "reason": "TREND_SMA150_BREAK [PnL: +4.5%]"
-    }
-  ],
+  "pending_buys": [],
+  "pending_sells": [],
   "hwm_true": 100057.51,
   "hwm_ladder": 10000.0,
   "max_drawdown": 0.0,
   "in_tier4_defense": false,
   "cooling_off": 0,
   "recovery_streak": 0,
-  "last_updated": "2026-11-10T02:45:55.373206+00:00",
+  "last_updated": "2026-11-10T20:58:36.413062+00:00",
   "initial_capital": 100000.0,
   "equity": 100057.51
 }
