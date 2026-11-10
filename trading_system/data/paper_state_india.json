@@ -4,7 +4,18 @@
   "initial_capital": 80000.0,
   "cash": 80000.0,
   "positions": {},
-  "pending_buys": [],
+  "pending_buys": [
+    {
+      "sym": "KOTAKBANK.NS",
+      "target_alloc": 8000.0,
+      "score": 0.41495898917112395
+    },
+    {
+      "sym": "TECHM.NS",
+      "target_alloc": 8000.0,
+      "score": 0.1888975688997862
+    }
+  ],
   "pending_sells": [],
   "hwm_true": 80000.0,
   "hwm_ladder": 80000.0,
@@ -12,5 +23,5 @@
   "in_tier4_defense": false,
   "cooling_off": 0,
   "recovery_streak": 0,
-  "last_updated": "2026-11-07T20:30:00+00:00"
+  "last_updated": "2026-11-10T17:39:27.231527+00:00"
 }
