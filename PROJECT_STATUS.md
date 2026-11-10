@@ -67,3 +67,40 @@ The baseline execution architecture (V1 Phases 1-14) is complete. The following 
 - [x] Time-aware ML validation (Purging/Embargo)
 - [x] Versioning for features, labels, and hyperparameters
 - [x] Champion vs Challenger model infrastructure
+
+
+---
+
+# PRODUCTION CHAMPION DESIGNATION (v1.0.0-champion)
+**Tag**: `v1.0.0-champion` | **Canonical Commit**: `10ed8d3` | **Date**: 2026-11-10  
+**Status**: **ACTIVE IN PRODUCTION (GATE B FORWARD INCUBATION)**
+
+### 1. Active Champion Architecture
+The official production trading champion is the **Dual-Pod Autonomous Cloud Trader with Macro Multi-Asset Trend**:
+- **Pod C (Macro Trend Allocation - Core Anchor)**:
+  - 40% India Trend (`NIFTYBEES.NS`)
+  - 30% US Secular Tech (`MON100.NS`)
+  - 20% Domestic Gold (`GOLDBEES.NS`)
+  - 10% Sovereign Cash Yield (`LIQUIDBEES.NS`)
+  - Regime Protection: Individual 200-SMA filters (assets below 200-SMA switch 100% to liquid cash yield).
+- **Pod 1 (India Growth Momentum - Satellite)**:
+  - Point-in-Time NSE 100 universe, 10 slots (10% allocation).
+  - Volatility Radar dynamic exposure scaling + -12% hard stop + 150-SMA trailing exit.
+- **Pod 2 (US Growth Momentum - Satellite)**:
+  - Point-in-Time NASDAQ/NYSE universe, 10 slots.
+  - Live Alpaca Paper API routing + -10% hard stop + 150-SMA trailing exit.
+
+### 2. Operational Automation (GitHub Actions)
+- Automated execution across 6 daily sessions:
+  - India Open (`03:46 UTC / 09:16 IST`)
+  - India Mid-Session (`06:30 UTC / 12:00 IST`)
+  - India Close Scan (`10:05 UTC / 15:35 IST`)
+  - US Open (`14:31 UTC / 09:31 EST`)
+  - US Mid-Session (`18:00 UTC / 13:00 EST`)
+  - US Close Scan (`21:05 UTC / 16:05 EST`)
+- Automated state isolation: All live fills, NAV changes, and HTML dashboards persist directly to the dedicated `origin/state` branch without dirtying code.
+
+### 3. Challenger Governance Rules
+- Hyperparameters are permanently frozen for `v1.0.0-champion`.
+- Any candidate strategy (Challenger) must be tested on causal survivor-free data with pre-registered protocols.
+- To replace the Champion, a Challenger must achieve a Deflated Sharpe Ratio (DSR) $\ge 0.95$ over an audited out-of-sample incubation period.
