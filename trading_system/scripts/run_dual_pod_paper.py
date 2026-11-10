@@ -1090,9 +1090,11 @@ def main():
         if args.pod in ["all", "india"]:
             india_engine.print_status_tear_sheet()
         if args.pod in ["all", "us"]:
+            us_engine.sync_alpaca_live()
             us_engine.print_status_tear_sheet()
         if args.pod in ["all", "pod_c", "multi_asset"]:
             multi_asset_engine.print_status_tear_sheet()
+        dispatch_notifications_and_dashboard(india_engine, us_engine, multi_asset_engine, args.phase, args.pod)
         return
 
     # PHASE: SCAN (Run at Market Close: 15:35 IST / 16:05 EST)

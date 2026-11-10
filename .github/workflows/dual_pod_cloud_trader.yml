@@ -4,10 +4,14 @@ on:
   schedule:
     # 03:46 UTC = 09:16 IST (Mon-Fri) - India Market Open Execution
     - cron: '46 3 * * 1-5'
+    # 06:30 UTC = 12:00 IST (Mon-Fri) - India Mid-Session Status & Health Check
+    - cron: '30 6 * * 1-5'
     # 10:05 UTC = 15:35 IST (Mon-Fri) - India Market Close Scan
     - cron: '5 10 * * 1-5'
     # 14:31 UTC = 09:31 EST / 10:31 EDT (Mon-Fri) - US Market Open Execution
     - cron: '31 14 * * 1-5'
+    # 18:00 UTC = 13:00 EST / 14:00 EDT (Mon-Fri) - US Mid-Session Status & Health Check
+    - cron: '0 18 * * 1-5'
     # 21:05 UTC = 16:05 EST / 17:05 EDT (Mon-Fri) - US Market Close Scan
     - cron: '5 21 * * 1-5'
 
@@ -21,8 +25,10 @@ on:
         options:
           - AUTO
           - INDIA_EXECUTE
+          - INDIA_MIDDAY
           - INDIA_SCAN
           - US_EXECUTE
+          - US_MIDDAY
           - US_SCAN
           - REGENERATE_DASHBOARD
 
@@ -69,11 +75,17 @@ jobs:
           if [ "$TARGET" = "INDIA_EXECUTE" ] || [ "$CRON" = "46 3 * * 1-5" ]; then
             echo "PHASE=execute" >> $GITHUB_ENV
             echo "POD=india" >> $GITHUB_ENV
+          elif [ "$TARGET" = "INDIA_MIDDAY" ] || [ "$CRON" = "30 6 * * 1-5" ]; then
+            echo "PHASE=status" >> $GITHUB_ENV
+            echo "POD=india" >> $GITHUB_ENV
           elif [ "$TARGET" = "INDIA_SCAN" ] || [ "$CRON" = "5 10 * * 1-5" ]; then
             echo "PHASE=scan" >> $GITHUB_ENV
             echo "POD=india" >> $GITHUB_ENV
           elif [ "$TARGET" = "US_EXECUTE" ] || [ "$CRON" = "31 14 * * 1-5" ]; then
             echo "PHASE=execute" >> $GITHUB_ENV
+            echo "POD=us" >> $GITHUB_ENV
+          elif [ "$TARGET" = "US_MIDDAY" ] || [ "$CRON" = "0 18 * * 1-5" ]; then
+            echo "PHASE=status" >> $GITHUB_ENV
             echo "POD=us" >> $GITHUB_ENV
           elif [ "$TARGET" = "US_SCAN" ] || [ "$CRON" = "5 21 * * 1-5" ]; then
             echo "PHASE=scan" >> $GITHUB_ENV
@@ -82,14 +94,23 @@ jobs:
             echo "PHASE=dashboard_only" >> $GITHUB_ENV
             echo "POD=none" >> $GITHUB_ENV
           else
-            # Default to India scan if triggered manually with AUTO
-            echo "PHASE=scan" >> $GITHUB_ENV
-            echo "POD=india" >> $GITHUB_ENV
+            # AUTO dispatch: detect which market is active by UTC hour
+            HOUR=$(date -u +%H)
+            if [ "$HOUR" -ge 3 ] && [ "$HOUR" -lt 11 ]; then
+              echo "PHASE=scan" >> $GITHUB_ENV
+              echo "POD=india" >> $GITHUB_ENV
+            elif [ "$HOUR" -ge 14 ] && [ "$HOUR" -lt 22 ]; then
+              echo "PHASE=scan" >> $GITHUB_ENV
+              echo "POD=us" >> $GITHUB_ENV
+            else
+              echo "PHASE=status" >> $GITHUB_ENV
+              echo "POD=all" >> $GITHUB_ENV
+            fi
           fi
 
       - name: Restore Fiduciary State Artifacts from State Branch
         run: |
-          git fetch origin state 2>/dev/null || true
+          git fetch origin +refs/heads/state:refs/remotes/origin/state 2>/dev/null || true
           if git show-ref --verify --quiet refs/remotes/origin/state; then
             echo "Restoring latest state files from origin/state branch..."
             git checkout origin/state -- trading_system/data/paper_state_india.json trading_system/data/paper_state_us.json trading_system/data/paper_state_multi_asset.json trading_system/data/paper_equity_log.csv trading_system/data/paper_trades_india.csv trading_system/data/paper_trades_us.csv trading_system/data/paper_trades_multi_asset.csv 2>/dev/null || true
@@ -128,27 +149,35 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
-          # Stage current state files into a temporary directory
-          mkdir -p /tmp/state_artifacts
-          cp trading_system/data/paper_* /tmp/state_artifacts/ 2>/dev/null || true
-          cp docs/index.html /tmp/state_artifacts/ 2>/dev/null || true
-
-          # Fetch remote state branch or create orphan if not yet initialized
-          git fetch origin state 2>/dev/null || true
-          if git show-ref --verify --quiet refs/remotes/origin/state; then
-            git checkout -B state origin/state
+          # Clone state branch into an isolated temporary workspace
+          mkdir -p /tmp/state_repo
+          if git clone --depth 1 --branch state https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git /tmp/state_repo 2>/dev/null; then
+            echo "Successfully cloned existing state branch."
           else
-            git checkout --orphan state
-            git rm -rf . --quiet 2>/dev/null || true
+            echo "Initializing fresh state branch workspace..."
+            cd /tmp/state_repo
+            git init
+            git checkout -b state
+            git remote add origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
+            cd -
           fi
 
-          # Re-populate state files in state branch workspace
-          mkdir -p trading_system/data docs
-          cp /tmp/state_artifacts/paper_* trading_system/data/ 2>/dev/null || true
-          cp /tmp/state_artifacts/index.html docs/ 2>/dev/null || true
+          # Copy telemetry and state artifacts into the state workspace
+          mkdir -p /tmp/state_repo/trading_system/data /tmp/state_repo/docs
+          cp trading_system/data/paper_* /tmp/state_repo/trading_system/data/ 2>/dev/null || true
+          cp docs/index.html /tmp/state_repo/docs/ 2>/dev/null || true
 
+          # Commit and push from the clean state workspace
+          cd /tmp/state_repo
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
           git add trading_system/data/paper_* docs/index.html 2>/dev/null || true
 
-          # Pull with rebase before pushing to guarantee conflict-free state push
-          git pull --rebase origin state 2>/dev/null || true
-          git diff --staged --quiet || (git commit -m "chore(telemetry): update live paper trading state & dashboard [skip ci]" && git push origin state)
+          if ! git diff --staged --quiet; then
+            git commit -m "chore(telemetry): update live paper trading state & dashboard [skip ci]"
+            # Rebase to absorb concurrent commits conflict-free
+            git pull --rebase origin state 2>/dev/null || true
+            git push origin state
+          else
+            echo "No changes in paper trading state or dashboard; state is up to date."
+          fi
