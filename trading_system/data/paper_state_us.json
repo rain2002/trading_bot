@@ -19,13 +19,13 @@
       "shares": 33.0,
       "entry_price": 171.751515,
       "entry_date": "2026-11-07 16:34:21",
-      "peak_price": 180.9600067138672
+      "peak_price": 180.83
     },
     "DXCM": {
       "shares": 70.0,
       "entry_price": 78.468,
       "entry_date": "2026-11-07 16:34:21",
-      "peak_price": 81.06999969482422
+      "peak_price": 80.51
     },
     "FFIV": {
       "shares": 27.0,
@@ -49,7 +49,7 @@
       "shares": 6.0,
       "entry_price": 432.49,
       "entry_date": "2026-11-07 16:34:21",
-      "peak_price": 441.57000732421875
+      "peak_price": 441.57
     },
     "META": {
       "shares": 9.0,
@@ -73,7 +73,7 @@
       "shares": 15.0,
       "entry_price": 361.31,
       "entry_date": "2026-11-07 16:34:21",
-      "peak_price": 373.82000732421875
+      "peak_price": 373.82
     },
     "TT": {
       "shares": 6.0,
@@ -85,88 +85,92 @@
       "shares": 16.0,
       "entry_price": 190.17,
       "entry_date": "2026-11-07 16:34:21",
-      "peak_price": 216.01
+      "peak_price": 216.0
     },
     "UBER": {
       "shares": 78.0,
       "entry_price": 65.657949,
       "entry_date": "2026-11-07 16:34:21",
-      "peak_price": 71.16999816894531
+      "peak_price": 71.06
     }
   },
   "pending_buys": [
     {
-      "sym": "MRNA",
-      "target_alloc": 6793.292516129151,
-      "score": 66.77075036203425
+      "sym": "TEAM",
+      "target_alloc": 9778.029018066407,
+      "score": 8.48898832990098
     },
     {
-      "sym": "VEEV",
-      "target_alloc": 6384.608283870848,
-      "score": 2.65594479031396
+      "sym": "CRWD",
+      "target_alloc": 3399.8717819335925,
+      "score": 1.9895276422901031
     }
   ],
   "pending_sells": [
     {
       "sym": "BKNG",
-      "reason": "TREND_SMA150_BREAK [PnL: +9.3%]"
+      "reason": "TREND_SMA150_BREAK [PnL: +7.4%]"
     },
     {
       "sym": "CBRE",
-      "reason": "TREND_SMA150_BREAK [PnL: +11.1%]"
+      "reason": "TREND_SMA150_BREAK [PnL: +8.9%]"
     },
     {
       "sym": "DASH",
-      "reason": "TREND_SMA150_BREAK [PnL: +5.4%]"
+      "reason": "TREND_SMA150_BREAK [PnL: +4.6%]"
     },
     {
       "sym": "FFIV",
-      "reason": "TREND_SMA150_BREAK [PnL: -6.3%]"
+      "reason": "TREND_SMA150_BREAK [PnL: -8.4%]"
     },
     {
       "sym": "FTNT",
-      "reason": "TREND_SMA150_BREAK [PnL: -9.1%]"
+      "reason": "HARD_STOP (-10.0%) [PnL: -11.8%]"
     },
     {
       "sym": "HOOD",
-      "reason": "TREND_SMA150_BREAK [PnL: -3.0%]"
+      "reason": "TREND_SMA150_BREAK [PnL: -5.8%]"
     },
     {
       "sym": "HUBB",
-      "reason": "TREND_SMA150_BREAK [PnL: +2.1%]"
+      "reason": "TREND_SMA150_BREAK [PnL: -0.7%]"
+    },
+    {
+      "sym": "META",
+      "reason": "TREND_SMA150_BREAK [PnL: -2.0%]"
     },
     {
       "sym": "ODFL",
-      "reason": "TREND_SMA150_BREAK [PnL: -1.5%]"
+      "reason": "TREND_SMA150_BREAK [PnL: -5.0%]"
     },
     {
       "sym": "PCAR",
-      "reason": "TREND_SMA150_BREAK [PnL: +2.8%]"
+      "reason": "TREND_SMA150_BREAK [PnL: -0.9%]"
     },
     {
       "sym": "SNA",
-      "reason": "TREND_SMA150_BREAK [PnL: +3.5%]"
+      "reason": "TREND_SMA150_BREAK [PnL: +1.6%]"
     },
     {
       "sym": "TT",
-      "reason": "TREND_SMA150_BREAK [PnL: -0.6%]"
+      "reason": "TREND_SMA150_BREAK [PnL: -5.1%]"
     },
     {
       "sym": "TTWO",
-      "reason": "TREND_SMA150_BREAK [PnL: +9.1%]"
+      "reason": "TREND_SMA150_BREAK [PnL: +13.0%]"
     },
     {
       "sym": "UBER",
-      "reason": "TREND_SMA150_BREAK [PnL: +8.4%]"
+      "reason": "TREND_SMA150_BREAK [PnL: +4.5%]"
     }
   ],
-  "hwm_true": 100060.01,
+  "hwm_true": 100057.51,
   "hwm_ladder": 10000.0,
-  "max_drawdown": -0.0015855432024138682,
+  "max_drawdown": 0.0,
   "in_tier4_defense": false,
   "cooling_off": 0,
   "recovery_streak": 0,
-  "last_updated": "2026-11-10T03:29:27.970112+00:00",
+  "last_updated": "2026-11-10T02:45:55.373206+00:00",
   "initial_capital": 100000.0,
-  "equity": 100060.01
+  "equity": 100057.51
 }
