@@ -1,0 +1,172 @@
+{
+  "pod_name": "US",
+  "currency": "USD",
+  "cash": 13726.98,
+  "positions": {
+    "BKNG": {
+      "shares": 37.0,
+      "entry_price": 149.626216,
+      "entry_date": "2026-11-07 16:34:21",
+      "peak_price": 163.55
+    },
+    "CBRE": {
+      "shares": 45.0,
+      "entry_price": 124.415333,
+      "entry_date": "2026-11-07 16:34:21",
+      "peak_price": 138.17
+    },
+    "DASH": {
+      "shares": 33.0,
+      "entry_price": 171.751515,
+      "entry_date": "2026-11-07 16:34:21",
+      "peak_price": 180.9600067138672
+    },
+    "DXCM": {
+      "shares": 70.0,
+      "entry_price": 78.468,
+      "entry_date": "2026-11-07 16:34:21",
+      "peak_price": 81.06999969482422
+    },
+    "FFIV": {
+      "shares": 27.0,
+      "entry_price": 339.283333,
+      "entry_date": "2026-11-07 16:34:21",
+      "peak_price": 339.283333
+    },
+    "FTNT": {
+      "shares": 64.0,
+      "entry_price": 134.694844,
+      "entry_date": "2026-11-07 16:34:21",
+      "peak_price": 134.694844
+    },
+    "HOOD": {
+      "shares": 93.0,
+      "entry_price": 85.874194,
+      "entry_date": "2026-11-07 16:34:21",
+      "peak_price": 85.874194
+    },
+    "HUBB": {
+      "shares": 6.0,
+      "entry_price": 432.49,
+      "entry_date": "2026-11-07 16:34:21",
+      "peak_price": 441.57000732421875
+    },
+    "META": {
+      "shares": 9.0,
+      "entry_price": 622.386667,
+      "entry_date": "2026-11-07 16:34:21",
+      "peak_price": 643.3
+    },
+    "ODFL": {
+      "shares": 16.0,
+      "entry_price": 173.53,
+      "entry_date": "2026-11-07 16:34:21",
+      "peak_price": 173.53
+    },
+    "PCAR": {
+      "shares": 94.0,
+      "entry_price": 102.890106,
+      "entry_date": "2026-11-07 16:34:21",
+      "peak_price": 106.0
+    },
+    "SNA": {
+      "shares": 15.0,
+      "entry_price": 361.31,
+      "entry_date": "2026-11-07 16:34:21",
+      "peak_price": 373.82000732421875
+    },
+    "TT": {
+      "shares": 6.0,
+      "entry_price": 423.238333,
+      "entry_date": "2026-11-07 16:34:21",
+      "peak_price": 423.238333
+    },
+    "TTWO": {
+      "shares": 16.0,
+      "entry_price": 190.17,
+      "entry_date": "2026-11-07 16:34:21",
+      "peak_price": 216.01
+    },
+    "UBER": {
+      "shares": 78.0,
+      "entry_price": 65.657949,
+      "entry_date": "2026-11-07 16:34:21",
+      "peak_price": 71.16999816894531
+    }
+  },
+  "pending_buys": [
+    {
+      "sym": "MRNA",
+      "target_alloc": 6793.292516129151,
+      "score": 66.77075036203425
+    },
+    {
+      "sym": "VEEV",
+      "target_alloc": 6384.608283870848,
+      "score": 2.65594479031396
+    }
+  ],
+  "pending_sells": [
+    {
+      "sym": "BKNG",
+      "reason": "TREND_SMA150_BREAK [PnL: +9.3%]"
+    },
+    {
+      "sym": "CBRE",
+      "reason": "TREND_SMA150_BREAK [PnL: +11.1%]"
+    },
+    {
+      "sym": "DASH",
+      "reason": "TREND_SMA150_BREAK [PnL: +5.4%]"
+    },
+    {
+      "sym": "FFIV",
+      "reason": "TREND_SMA150_BREAK [PnL: -6.3%]"
+    },
+    {
+      "sym": "FTNT",
+      "reason": "TREND_SMA150_BREAK [PnL: -9.1%]"
+    },
+    {
+      "sym": "HOOD",
+      "reason": "TREND_SMA150_BREAK [PnL: -3.0%]"
+    },
+    {
+      "sym": "HUBB",
+      "reason": "TREND_SMA150_BREAK [PnL: +2.1%]"
+    },
+    {
+      "sym": "ODFL",
+      "reason": "TREND_SMA150_BREAK [PnL: -1.5%]"
+    },
+    {
+      "sym": "PCAR",
+      "reason": "TREND_SMA150_BREAK [PnL: +2.8%]"
+    },
+    {
+      "sym": "SNA",
+      "reason": "TREND_SMA150_BREAK [PnL: +3.5%]"
+    },
+    {
+      "sym": "TT",
+      "reason": "TREND_SMA150_BREAK [PnL: -0.6%]"
+    },
+    {
+      "sym": "TTWO",
+      "reason": "TREND_SMA150_BREAK [PnL: +9.1%]"
+    },
+    {
+      "sym": "UBER",
+      "reason": "TREND_SMA150_BREAK [PnL: +8.4%]"
+    }
+  ],
+  "hwm_true": 100060.01,
+  "hwm_ladder": 10000.0,
+  "max_drawdown": -0.0015855432024138682,
+  "in_tier4_defense": false,
+  "cooling_off": 0,
+  "recovery_streak": 0,
+  "last_updated": "2026-11-10T03:29:27.970112+00:00",
+  "initial_capital": 100000.0,
+  "equity": 100060.01
+}

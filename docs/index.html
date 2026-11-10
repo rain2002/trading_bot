@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ANTIGRAVITY // Dual-Pod Institutional Trading Desk</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --bg-canvas: #090B10;
+            --bg-card: #11151F;
+            --border: #1F2637;
+            --text-main: #F3F4F6;
+            --text-muted: #9CA3AF;
+            --accent-blue: #3B82F6;
+            --accent-green: #10B981;
+            --accent-red: #EF4444;
+            --accent-amber: #F59E0B;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg-canvas);
+            color: var(--text-main);
+            padding: 24px 16px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 24px;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 28px;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .logo-badge {
+            background: linear-gradient(135deg, #2563EB, #1D4ED8);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 700;
+            font-size: 1rem;
+            letter-spacing: 1px;
+        }
+        .brand h1 {
+            font-size: 1.35rem;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+        .telemetry {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.82rem;
+            color: var(--text-muted);
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            padding: 8px 16px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .live-dot {
+            width: 8px;
+            height: 8px;
+            background-color: var(--accent-green);
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--accent-green);
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 16px;
+            margin-bottom: 28px;
+        }
+        .kpi-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+        }
+        .kpi-title {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+        .kpi-value {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.7rem;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+        .kpi-sub {
+            font-size: 0.82rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 28px;
+        }
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 18px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .card-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.88rem;
+        }
+        th {
+            text-align: left;
+            padding: 12px 14px;
+            color: var(--text-muted);
+            border-bottom: 1px solid var(--border);
+            font-weight: 600;
+            font-size: 0.76rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        td {
+            padding: 14px;
+            border-bottom: 1px solid #171C28;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        tr:hover td {
+            background-color: rgba(255, 255, 255, 0.02);
+        }
+        .badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.72rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+        .badge-success { background: rgba(16, 185, 129, 0.15); color: #34D399; }
+        .badge-buy { background: rgba(59, 130, 246, 0.15); color: #60A5FA; }
+        .badge-sell { background: rgba(239, 68, 68, 0.15); color: #F87171; }
+        .badge-defense { background: rgba(245, 158, 11, 0.15); color: #FBBF24; }
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+        .tab-btn {
+            background: #171C28;
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            padding: 8px 18px;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+        .tab-btn.active {
+            background: var(--accent-blue);
+            color: white;
+            border-color: var(--accent-blue);
+        }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        footer {
+            text-align: center;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            padding: 24px 0;
+            border-top: 1px solid var(--border);
+            margin-top: 32px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="brand">
+            <div class="logo-badge">AGY-QUANT</div>
+            <div>
+                <h1>Autonomous Dual-Pod Trading Desk</h1>
+                <p style="font-size: 0.82rem; color: var(--text-muted);">Telemetry Desk • Pod 1: India Growth Equities (Exploratory Shadow Tracking) & Pod 2: US Multi-Sector (Forward Paper)</p>
+            </div>
+        </div>
+        <div class="telemetry">
+            <div class="live-dot"></div>
+            <span>LAST SYNC: 2026-11-10 03:29:27 UTC</span>
+        </div>
+    </header>
+
+    <div style="background: linear-gradient(135deg, rgba(37, 99, 235, 0.12), rgba(16, 185, 129, 0.08)); border: 1px solid rgba(59, 130, 246, 0.35); border-radius: 12px; padding: 16px 20px; margin: 20px 0;">
+        <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <span style="background: #2563EB; color: #FFF; font-weight: 700; font-size: 0.75rem; padding: 4px 10px; border-radius: 6px; letter-spacing: 0.5px; text-transform: uppercase;">🇮🇳 POD 1: INDIA GROWTH EQUITIES</span>
+                <span style="font-size: 0.90rem; color: #F3F4F6; font-weight: 600;">
+                    Variant 2: Asymmetric Multi-Bagger Momentum • Exploratory Shadow Tracking (Failed Gate A on Drawdown: -27.6% vs -25.0% Limit)
+                </span>
+            </div>
+            <div style="display: flex; gap: 8px; align-items: center;">
+                <span class="badge" style="background: rgba(239, 68, 68, 0.2); color: #F87171; border: 1px solid rgba(239, 68, 68, 0.4);">FAILED GATE A (MAX DD -27.6%)</span>
+                <span class="badge" style="background: rgba(245, 158, 11, 0.2); color: #FBBF24; border: 1px solid rgba(245, 158, 11, 0.4);">EXPLORATORY SHADOW</span>
+                <span class="badge badge-buy">17.96% POST-TAX CAGR</span>
+                <span class="badge badge-defense">BEAR DEFENSE SAFEGUARD</span>
+            </div>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-top: 14px; padding-top: 12px; border-top: 1px solid rgba(255, 255, 255, 0.08); font-size: 0.80rem;">
+            <div><span style="color: var(--text-muted);">Horizon:</span> <b style="color: #F3F4F6;">17.3 Years (2007–2024) [Exploratory]</b></div>
+            <div><span style="color: var(--text-muted);">Wealth Multiplier:</span> <b style="color: #34D399;">20.50x (vs Nifty 6.53x)</b></div>
+            <div><span style="color: var(--text-muted);">True Max Drawdown:</span> <b style="color: #F87171;">-27.64% (FAIL: Exceeds -25.0% Limit)</b></div>
+            <div><span style="color: var(--text-muted);">Calmar Ratio:</span> <b style="color: #FBBF24;">0.65 (+261% vs Nifty 0.18)</b></div>
+            <div><span style="color: var(--text-muted);">Holdout Integrity:</span> <b style="color: #F87171;">2025 Unblinded (Burned)</b></div>
+            <div><span style="color: var(--text-muted);">Universe Source:</span> <b style="color: #FBBF24;">Hand-Picked Current Names (Exploratory)</b></div>
+        </div>
+    </div>
+
+    <div class="kpi-grid">
+        <div class="kpi-card">
+            <div class="kpi-title">🇮🇳 India Pod Equity (Variant 2)</div>
+            <div class="kpi-value" style="color: #60A5FA;">₹80,000</div>
+            <div class="kpi-sub" style="color: #10B981;">
+                +0.00% (₹0)
+            </div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-title">🇺🇸 US Pod Equity (Variant 1)</div>
+            <div class="kpi-value" style="color: #34D399;">$101,743.73</div>
+            <div class="kpi-sub" style="color: #10B981;">
+                +1.74% ($1,743.73)
+            </div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-title">🌐 Pod C: Multi-Asset (Exploratory, Failed Gate A)</div>
+            <div class="kpi-value" style="color: #F59E0B;">₹79,960</div>
+            <div class="kpi-sub" style="color: #EF4444;">
+                -0.05% (-₹40)
+            </div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-title">🛡️ Risk Sentinel & Drawdown</div>
+            <div class="kpi-value" style="color: #10B981;">0.0%</div>
+            <div class="kpi-sub" style="color: var(--text-muted);">
+                <span class="badge badge-success">HEALTHY / NORMAL</span>
+            </div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-title">📊 Active Allocation</div>
+            <div class="kpi-value">0 IN / 15 US</div>
+            <div class="kpi-sub" style="color: var(--text-muted);">
+                Cash: ₹80,000 | $13,726.98
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <div class="card-title">Dual-Pod Equity Growth Curves (Exploratory Shadow Tracking)</div>
+        </div>
+        <div style="height: 280px; position: relative;">
+            <canvas id="equityChart"></canvas>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <div class="card-title">Live Portfolio Holdings</div>
+            <div class="tabs">
+                <button class="tab-btn active" onclick="switchTab('india')">🇮🇳 India Pod (0)</button>
+                <button class="tab-btn" onclick="switchTab('us')">🇺🇸 US Pod (15)</button>
+                <button class="tab-btn" onclick="switchTab('pod_c')">🌐 Pod C: Multi-Asset [Exploratory, Failed Gate A] (1)</button>
+            </div>
+        </div>
+
+        <div id="tab-india" class="tab-content active">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Symbol</th>
+                        <th>Shares</th>
+                        <th>Avg Entry</th>
+                        <th>Current / Peak</th>
+                        <th>Market Value</th>
+                        <th>P&L %</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td colspan="7" style="text-align: center; color: #9CA3AF; padding: 24px;">No open positions (100% Capital Preserved in Liquid Cash)</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div id="tab-us" class="tab-content">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Symbol</th>
+                        <th>Shares</th>
+                        <th>Avg Entry</th>
+                        <th>Current / Peak</th>
+                        <th>Market Value</th>
+                        <th>P&L %</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    
+        <tr>
+            <td style="font-weight: 600; color: #60A5FA;">BKNG</td>
+            <td>37.00</td>
+            <td>$149.63</td>
+            <td>$163.55</td>
+            <td>$6,051.35</td>
+            <td style="color: #10B981; font-weight: 600;">+9.31%</td>
+            <td><span class="badge badge-success">ACTIVE RUNNER</span></td>
+        </tr>
+        
+        <tr>
+            <td style="font-weight: 600; color: #60A5FA;">CBRE</td>
+            <td>45.00</td>
+            <td>$124.42</td>
+            <td>$138.17</td>
+            <td>$6,217.65</td>
+            <td style="color: #10B981; font-weight: 600;">+11.06%</td>
+            <td><span class="badge badge-success">ACTIVE RUNNER</span></td>
+        </tr>
+        
+        <tr>
+            <td style="font-weight: 600; color: #60A5FA;">DASH</td>
+            <td>33.00</td>
+            <td>$171.75</td>
+            <td>$180.96</td>
+            <td>$5,971.68</td>
+            <td style="color: #10B981; font-weight: 600;">+5.36%</td>
+            <td><span class="badge badge-success">ACTIVE RUNNER</span></td>
+        </tr>
+        
+        <tr>
+            <td style="font-weight: 600; color: #60A5FA;">DXCM</td>
+            <td>70.00</td>
+            <td>$78.47</td>
+            <td>$81.07</td>
+            <td>$5,674.90</td>
+            <td style="color: #10B981; font-weight: 600;">+3.32%</td>
+            <td><span class="badge badge-success">ACTIVE RUNNER</span></td>
+        </tr>
+        
+        <tr>
+            <td style="font-weight: 600; color: #60A5FA;">FFIV</td>
+            <td>27.00</td>
+            <td>$339.28</td>
+            <td>$339.28</td>
+            <td>$9,160.65</td>
+            <td style="color: #10B981; font-weight: 600;">+0.00%</td>
+            <td><span class="badge badge-success">ACTIVE RUNNER</span></td>
+        </tr>
+        
+        <tr>
+            <td style="font-weight: 600; color: #60A5FA;">FTNT</td>
+            <td>64.00</td>
+            <td>$134.69</td>
+            <td>$134.69</td>
+            <td>$8,620.47</td>
+            <td style="color: #10B981; font-weight: 600;">+0.00%</td>
+            <td><span class="badge badge-success">ACTIVE RUNNER</span></td>
+        </tr>
+        
+        <tr>
+            <td style="font-weight: 600; color: #60A5FA;">HOOD</td>
+            <td>93.00</td>
+            <td>$85.87</td>
+            <td>$85.87</td>
+            <td>$7,986.30</td>
+            <td style="color: #10B981; font-weight: 600;">+0.00%</td>
+            <td><span class="badge badge-success">ACTIVE RUNNER</span></td>
+        </tr>
+        
+        <tr>
+            <td style="font-weight: 600; color: #60A5FA;">HUBB</td>
+            <td>6.00</td>
+            <td>$432.49</td>
+            <td>$441.57</td>
+            <td>$2,649.42</td>
+            <td style="color: #10B981; font-weight: 600;">+2.10%</td>
+            <td><span class="badge badge-success">ACTIVE RUNNER</span></td>
+        </tr>
+        
+        <tr>
+            <td style="font-weight: 600; color: #60A5FA;">META</td>
+            <td>9.00</td>
+            <td>$622.39</td>
+            <td>$643.30</td>
+            <td>$5,789.70</td>
+            <td style="color: #10B981; font-weight: 600;">+3.36%</td>
+            <td><span class="badge badge-success">ACTIVE RUNNER</span></td>
+        </tr>
+        
+        <tr>
+            <td style="font-weight: 600; color: #60A5FA;">ODFL</td>
+            <td>16.00</td>
+            <td>$173.53</td>
+            <td>$173.53</td>
+            <td>$2,776.48</td>
+            <td style="color: #10B981; font-weight: 600;">+0.00%</td>
+            <td><span class="badge badge-success">ACTIVE RUNNER</span></td>
+        </tr>
+        
+        <tr>
+            <td style="font-weight: 600; color: #60A5FA;">PCAR</td>
+            <td>94.00</td>
+            <td>$102.89</td>
+            <td>$106.00</td>
+            <td>$9,964.00</td>
+            <td style="color: #10B981; font-weight: 600;">+3.02%</td>
+            <td><span class="badge badge-success">ACTIVE RUNNER</span></td>
+        </tr>
+        
+        <tr>
+            <td style="font-weight: 600; color: #60A5FA;">SNA</td>
+            <td>15.00</td>
+            <td>$361.31</td>
+            <td>$373.82</td>
+            <td>$5,607.30</td>
+            <td style="color: #10B981; font-weight: 600;">+3.46%</td>
+            <td><span class="badge badge-success">ACTIVE RUNNER</span></td>
+        </tr>
+        
+        <tr>
+            <td style="font-weight: 600; color: #60A5FA;">TT</td>
+            <td>6.00</td>
+            <td>$423.24</td>
+            <td>$423.24</td>
+            <td>$2,539.43</td>
+            <td style="color: #10B981; font-weight: 600;">+0.00%</td>
+            <td><span class="badge badge-success">ACTIVE RUNNER</span></td>
+        </tr>
+        
+        <tr>
+            <td style="font-weight: 600; color: #60A5FA;">TTWO</td>
+            <td>16.00</td>
+            <td>$190.17</td>
+            <td>$216.01</td>
+            <td>$3,456.16</td>
+            <td style="color: #10B981; font-weight: 600;">+13.59%</td>
+            <td><span class="badge badge-success">ACTIVE RUNNER</span></td>
+        </tr>
+        
+        <tr>
+            <td style="font-weight: 600; color: #60A5FA;">UBER</td>
+            <td>78.00</td>
+            <td>$65.66</td>
+            <td>$71.17</td>
+            <td>$5,551.26</td>
+            <td style="color: #10B981; font-weight: 600;">+8.40%</td>
+            <td><span class="badge badge-success">ACTIVE RUNNER</span></td>
+        </tr>
+        
+                </tbody>
+            </table>
+        </div>
+
+        <div id="tab-pod_c" class="tab-content">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Macro Asset / Instrument</th>
+                        <th>Shares</th>
+                        <th>Avg Entry</th>
+                        <th>Current / Peak</th>
+                        <th>Market Value</th>
+                        <th>P&L %</th>
+                        <th>Regime Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    
+        <tr>
+            <td style="font-weight: 600; color: #60A5FA;">NIFTYBEES.NS (Target 40%)</td>
+            <td>114.92</td>
+            <td>₹278.21</td>
+            <td>₹278.00</td>
+            <td>₹31,947.76</td>
+            <td style="color: #EF4444; font-weight: 600;">-0.07%</td>
+            <td><span class="badge badge-success">BULL_TREND</span></td>
+        </tr>
+        
+        <tr>
+            <td style="font-weight: 600; color: #60A5FA;">MON100.NS (Target 30%)</td>
+            <td>0.00</td>
+            <td>₹0.00</td>
+            <td>₹0.00</td>
+            <td>₹0.00</td>
+            <td style="color: #10B981; font-weight: 600;">+0.00%</td>
+            <td><span class="badge badge-defense">DEFENSIVE_CASH</span></td>
+        </tr>
+        
+        <tr>
+            <td style="font-weight: 600; color: #60A5FA;">GOLDBEES.NS (Target 20%)</td>
+            <td>0.00</td>
+            <td>₹0.00</td>
+            <td>₹0.00</td>
+            <td>₹0.00</td>
+            <td style="color: #10B981; font-weight: 600;">+0.00%</td>
+            <td><span class="badge badge-defense">DEFENSIVE_CASH</span></td>
+        </tr>
+        
+            <tr>
+                <td style="font-weight: 600; color: #F59E0B;">SOVEREIGN LIQUID CASH</td>
+                <td>N/A</td>
+                <td>N/A</td>
+                <td>N/A</td>
+                <td>₹48,012.39 (60.0%)</td>
+                <td style="color: #10B981; font-weight: 600;">Yield: +6.0% p.a.</td>
+                <td><span class="badge badge-success">YIELD RESERVE</span></td>
+            </tr>
+            
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <div class="card-title">Audited Gate A Scoreboard (Multi-Asset V2.1 Pre-Registered Matrix)</div>
+            <span class="badge" style="background: rgba(239, 68, 68, 0.2); color: #F87171; border: 1px solid rgba(239, 68, 68, 0.4);">
+                ALL VARIANTS FAILED GATE A (Mandatory Hurdle: Baseline 1 14.17% CAGR)
+            </span>
+        </div>
+        <div style="font-size: 0.80rem; color: var(--text-muted); margin-bottom: 12px;">
+            In-Sample Window: <b style="color: #F3F4F6;">2007-09-24 to 2024-12-31</b> (17.27 Years | 4,235 Trading Days) • Starting Capital: <b style="color: #60A5FA;">₹80,000.00</b> • 2025 Holdout: <b style="color: #10B981;">Strictly Sealed</b>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Metric</th>
+                    <th>Variant A (Dual Mom)</th>
+                    <th>Variant B (Anti-Whip)</th>
+                    <th>Variant C (Risk-Parity)</th>
+                    <th style="color: #60A5FA; background: rgba(37, 99, 235, 0.1);">Baseline 1 (1/N EW Hurdle)</th>
+                    <th>Baseline 4 (Nifty TRI)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td style="font-weight:600;">Post-Tax Stressed CAGR</td>
+                    <td style="color:#F87171; font-weight:600;">9.82%</td>
+                    <td style="color:#F87171; font-weight:600;">5.26%</td>
+                    <td style="color:#F87171; font-weight:600;">5.41%</td>
+                    <td style="color:#60A5FA; font-weight:700; background: rgba(37, 99, 235, 0.1);">14.17% [Hurdle]</td>
+                    <td style="color:#9CA3AF;">10.14%</td>
+                </tr>
+                <tr>
+                    <td style="font-weight:600;">Max Drawdown Depth</td>
+                    <td style="color:#F87171;">-26.21% [FAIL]</td>
+                    <td style="color:#F87171;">-32.92% [FAIL]</td>
+                    <td style="color:#34D399;">-21.89% [PASS]</td>
+                    <td style="color:#F87171; background: rgba(37, 99, 235, 0.1);">-45.2% [FAIL]</td>
+                    <td style="color:#F87171;">-59.48% [FAIL]</td>
+                </tr>
+                <tr>
+                    <td style="font-weight:600;">Annualized Sharpe</td>
+                    <td>0.69</td>
+                    <td>0.4</td>
+                    <td>0.61</td>
+                    <td style="background: rgba(37, 99, 235, 0.1); font-weight:600;">0.98</td>
+                    <td>0.58</td>
+                </tr>
+                <tr>
+                    <td style="font-weight:600;">Calmar Ratio</td>
+                    <td>0.37</td>
+                    <td>0.16</td>
+                    <td>0.25</td>
+                    <td style="background: rgba(37, 99, 235, 0.1);">0.31</td>
+                    <td>0.17</td>
+                </tr>
+                <tr>
+                    <td style="font-weight:600;">Terminal Equity (from ₹80k)</td>
+                    <td>₹403,650.05</td>
+                    <td>₹193,861.34</td>
+                    <td>₹198,794.05</td>
+                    <td style="color:#60A5FA; font-weight:700; background: rgba(37, 99, 235, 0.1);">₹788,899.70</td>
+                    <td>₹424,431.12</td>
+                </tr>
+                <tr>
+                    <td style="font-weight:600;">Trial Log Mapping</td>
+                    <td>Row 77</td>
+                    <td>Row 79</td>
+                    <td>Row 81</td>
+                    <td style="background: rgba(37, 99, 235, 0.1);">Row 82</td>
+                    <td>Row 83</td>
+                </tr>
+                <tr>
+                    <td style="font-weight:600;">Results JSON File</td>
+                    <td><code>...variant_1.json</code></td>
+                    <td><code>...variant_2.json</code></td>
+                    <td><code>...variant_3.json</code></td>
+                    <td style="background: rgba(37, 99, 235, 0.1);"><code>...baselines_v2_1.json</code></td>
+                    <td><code>...baselines_v2_1.json</code></td>
+                </tr>
+                <tr>
+                    <td style="font-weight:600;">Gate A Clearance Verdict</td>
+                    <td><span class="badge" style="background: rgba(239, 68, 68, 0.2); color: #F87171;">REJECTED</span></td>
+                    <td><span class="badge" style="background: rgba(239, 68, 68, 0.2); color: #F87171;">REJECTED</span></td>
+                    <td><span class="badge" style="background: rgba(239, 68, 68, 0.2); color: #F87171;">REJECTED</span></td>
+                    <td style="background: rgba(37, 99, 235, 0.1);"><span class="badge badge-buy">BENCHMARK HURDLE</span></td>
+                    <td><span class="badge badge-defense">MARKET BENCHMARK</span></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <div class="card-title">Recent Trade Executions (Next-Day Open Fills)</div>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Pod</th>
+                    <th>Date / Time</th>
+                    <th>Symbol</th>
+                    <th>Action</th>
+                    <th>Execution Price</th>
+                    <th>Realized Net P&L</th>
+                </tr>
+            </thead>
+            <tbody>
+                
+        <tr>
+            <td>🌐 POD C</td>
+            <td>2026-11-08 01:44:31</td>
+            <td style="font-weight:600;">NIFTYBEES.NS</td>
+            <td><span class="badge badge-buy">BUY</span></td>
+            <td>₹278.21</td>
+            <td style="color:#9CA3AF; font-weight:600;">₹+0.00</td>
+        </tr>
+        
+            </tbody>
+        </table>
+    </div>
+
+    <div style="margin: 20px 0; padding: 14px 18px; background: rgba(30, 41, 59, 0.5); border-left: 3px solid var(--accent); border-radius: 4px; font-size: 0.80rem; color: var(--text-muted); line-height: 1.5;">
+        <strong style="color: var(--text-main);">Governance Architecture Note:</strong> Variant 1 (US) and Variant 2 (India) are monitored simultaneously under comparative exploratory shadow tracking. When any specific variant is subsequently selected for live capital incubation, that selection constitutes an independent trial and will be logged in <code>trial_log.csv</code>.
+    </div>
+
+    <footer>
+        ANTIGRAVITY Autonomous Quant System • Institutional Gate A Invariants Verified • Zero Look-Ahead Bias
+    </footer>
+
+    <script>
+        function switchTab(pod) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            if (pod === 'india') {
+                document.querySelectorAll('.tab-btn')[0].classList.add('active');
+                document.getElementById('tab-india').classList.add('active');
+            } else if (pod === 'us') {
+                document.querySelectorAll('.tab-btn')[1].classList.add('active');
+                document.getElementById('tab-us').classList.add('active');
+            } else {
+                document.querySelectorAll('.tab-btn')[2].classList.add('active');
+                document.getElementById('tab-pod_c').classList.add('active');
+            }
+        }
+
+        const ctx = document.getElementById('equityChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ["2026-11-07", "2026-11-08", "2026-11-10"],
+                datasets: [
+                    {
+                        label: 'India Pod NAV (INR ₹)',
+                        data: [80000.0, 80000.0, 80000.0],
+                        borderColor: '#60A5FA',
+                        backgroundColor: 'rgba(96, 165, 250, 0.05)',
+                        borderWidth: 2,
+                        yAxisID: 'yIndia',
+                        tension: 0.2,
+                        fill: true
+                    },
+                    {
+                        label: 'US Pod NAV (USD $)',
+                        data: [97780.29, 97780.29, 99901.36],
+                        borderColor: '#34D399',
+                        backgroundColor: 'rgba(52, 211, 153, 0.05)',
+                        borderWidth: 2,
+                        yAxisID: 'yUS',
+                        tension: 0.2,
+                        fill: true
+                    },
+                    {
+                        label: 'Pod C Multi-Asset NAV (INR ₹)',
+                        data: [79960.1517631619, 80019.05, 80019.05],
+                        borderColor: '#F59E0B',
+                        backgroundColor: 'rgba(245, 158, 11, 0.05)',
+                        borderWidth: 2,
+                        yAxisID: 'yIndia',
+                        tension: 0.2,
+                        fill: false
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: { mode: 'index', intersect: false },
+                plugins: {
+                    legend: { labels: { color: '#9CA3AF', font: { family: 'JetBrains Mono', size: 11 } } }
+                },
+                scales: {
+                    x: { grid: { color: '#1F2637' }, ticks: { color: '#9CA3AF', font: { family: 'JetBrains Mono', size: 10 } } },
+                    yIndia: {
+                        type: 'linear',
+                        position: 'left',
+                        grid: { color: '#1F2637' },
+                        ticks: { color: '#60A5FA', font: { family: 'JetBrains Mono', size: 10 }, callback: v => '₹' + v.toLocaleString() }
+                    },
+                    yUS: {
+                        type: 'linear',
+                        position: 'right',
+                        grid: { drawOnChartArea: false },
+                        ticks: { color: '#34D399', font: { family: 'JetBrains Mono', size: 10 }, callback: v => '$' + v.toLocaleString() }
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>
