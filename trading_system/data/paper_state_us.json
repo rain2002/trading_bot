@@ -19,13 +19,13 @@
       "shares": 15.0,
       "entry_price": 225.936,
       "entry_date": "2026-11-10 20:58:35",
-      "peak_price": 226.404
+      "peak_price": 227.23
     },
     "BKNG": {
       "shares": 37.0,
       "entry_price": 149.626216,
       "entry_date": "2026-11-10 22:37:30",
-      "peak_price": 159.26
+      "peak_price": 159.5
     },
     "CBRE": {
       "shares": 45.0,
@@ -37,7 +37,7 @@
       "shares": 33.0,
       "entry_price": 171.751515,
       "entry_date": "2026-11-10 22:37:30",
-      "peak_price": 178.25
+      "peak_price": 178.6
     },
     "FFIV": {
       "shares": -27.0,
@@ -49,13 +49,13 @@
       "shares": -64.0,
       "entry_price": 123.54,
       "entry_date": "2026-11-10 22:37:30",
-      "peak_price": 123.7
+      "peak_price": 123.8
     },
     "HOOD": {
       "shares": -93.0,
       "entry_price": 81.33,
       "entry_date": "2026-11-10 22:37:30",
-      "peak_price": 81.33
+      "peak_price": 81.34
     },
     "HUBB": {
       "shares": 6.0,
@@ -67,7 +67,7 @@
       "shares": 9.0,
       "entry_price": 622.386667,
       "entry_date": "2026-11-10 22:37:30",
-      "peak_price": 642.438
+      "peak_price": 644.3
     },
     "ODFL": {
       "shares": 16.0,
@@ -97,24 +97,29 @@
       "shares": 16.0,
       "entry_price": 190.17,
       "entry_date": "2026-11-10 22:37:30",
-      "peak_price": 224.5
+      "peak_price": 225.2
     },
     "UBER": {
       "shares": 78.0,
       "entry_price": 65.657949,
       "entry_date": "2026-11-10 22:37:30",
-      "peak_price": 69.8615
+      "peak_price": 70.0877
     }
   },
   "pending_buys": [],
-  "pending_sells": [],
+  "pending_sells": [
+    {
+      "sym": "TEAM",
+      "reason": "PIT_MEMBERSHIP_EXCLUSION_MANDATORY_LIQUIDATION"
+    }
+  ],
   "hwm_true": 100057.51,
   "hwm_ladder": 10000.0,
   "max_drawdown": 0.0,
   "in_tier4_defense": false,
   "cooling_off": 0,
   "recovery_streak": 0,
-  "last_updated": "2026-11-10T22:37:31.200431+00:00",
+  "last_updated": "2026-11-11T01:13:47.973031+00:00",
   "initial_capital": 100000.0,
-  "equity": 99042.71
+  "equity": 99083.75
 }
