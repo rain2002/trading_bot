@@ -1,43 +1,43 @@
 {
   "pod_name": "POD_C",
   "currency": "INR",
-  "cash": 48012.3917631619,
+  "cash": 48023.82328501027,
   "initial_capital": 80000.0,
   "positions": {
     "NIFTYBEES.NS": {
       "shares": 114.92,
       "entry_price": 278.2085,
       "entry_date": "2026-11-08 01:44:31",
-      "peak_price": 278.0
+      "peak_price": 286.5400085449219
     }
   },
   "pending_buys": [],
   "pending_sells": [],
-  "hwm_true": 80019.04761904762,
+  "hwm_true": 80953.0010669927,
   "max_drawdown": 0.0,
   "trend_status": {
     "NIFTYBEES.NS": {
-      "price": 284.2200012207031,
-      "sma200": 272.62464942932127,
-      "mom6m": 0.037526460858872526,
+      "price": 286.5400085449219,
+      "sma200": 272.57389945983886,
+      "mom6m": 0.08107912371887765,
       "qualified": true,
       "regime": "BULL_TREND"
     },
     "MON100.NS": {
-      "price": 293.7699890136719,
-      "sma200": 294.6003993988037,
-      "mom6m": -0.07260788836598821,
+      "price": 303.489990234375,
+      "sma200": 295.26194938659665,
+      "mom6m": -0.06147758042798033,
       "qualified": false,
       "regime": "DEFENSIVE_CASH"
     },
     "GOLDBEES.NS": {
-      "price": 116.19999694824219,
-      "sma200": 123.8589003753662,
-      "mom6m": -0.06524013168392911,
+      "price": 115.30999755859375,
+      "sma200": 123.8408003616333,
+      "mom6m": -0.07463287863097279,
       "qualified": false,
       "regime": "DEFENSIVE_CASH"
     }
   },
-  "total_interest_earned": 19.047619047619047,
-  "last_updated": "2026-11-11T11:28:19.170048+00:00"
+  "total_interest_earned": 30.479140895990927,
+  "last_updated": "2026-11-11T17:50:55.846860+00:00"
 }
