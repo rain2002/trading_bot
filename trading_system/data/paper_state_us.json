@@ -1,7 +1,7 @@
 {
   "pod_name": "US",
   "currency": "USD",
-  "cash": 58206.07815874024,
+  "cash": 48516.66,
   "positions": {
     "DXCM": {
       "shares": 70.0,
@@ -13,7 +13,7 @@
       "shares": 15.0,
       "entry_price": 225.936,
       "entry_date": "2026-11-10 20:58:35",
-      "peak_price": 227.23
+      "peak_price": 227.26
     },
     "BKNG": {
       "shares": 37.0,
@@ -37,25 +37,25 @@
       "shares": -27.0,
       "entry_price": 317.37,
       "entry_date": "2026-11-10 22:37:30",
-      "peak_price": 317.37
+      "peak_price": 318.11
     },
     "FTNT": {
       "shares": -64.0,
       "entry_price": 123.54,
       "entry_date": "2026-11-10 22:37:30",
-      "peak_price": 123.8
+      "peak_price": 127.8
     },
     "HOOD": {
       "shares": -93.0,
       "entry_price": 81.33,
       "entry_date": "2026-11-10 22:37:30",
-      "peak_price": 81.34
+      "peak_price": 83.1
     },
     "HUBB": {
       "shares": 6.0,
       "entry_price": 432.49,
       "entry_date": "2026-11-10 22:37:30",
-      "peak_price": 437.79
+      "peak_price": 443.48
     },
     "META": {
       "shares": 9.0,
@@ -73,31 +73,37 @@
       "shares": 94.0,
       "entry_price": 102.890106,
       "entry_date": "2026-11-10 22:37:30",
-      "peak_price": 105.73
+      "peak_price": 107.65
     },
     "SNA": {
       "shares": 15.0,
       "entry_price": 361.31,
       "entry_date": "2026-11-10 22:37:30",
-      "peak_price": 373.28
+      "peak_price": 374.75
     },
     "TT": {
       "shares": 6.0,
       "entry_price": 423.238333,
       "entry_date": "2026-11-10 22:37:30",
-      "peak_price": 423.238333
+      "peak_price": 424.84
     },
     "TTWO": {
       "shares": 16.0,
       "entry_price": 190.17,
       "entry_date": "2026-11-10 22:37:30",
-      "peak_price": 225.2
+      "peak_price": 230.93
     },
     "UBER": {
       "shares": 78.0,
       "entry_price": 65.657949,
       "entry_date": "2026-11-10 22:37:30",
       "peak_price": 70.0877
+    },
+    "TEAM": {
+      "shares": 64.0,
+      "entry_price": 148.55,
+      "entry_date": "2026-11-11 23:47:12",
+      "peak_price": 149.7534
     }
   },
   "pending_buys": [],
@@ -108,7 +114,7 @@
   "in_tier4_defense": false,
   "cooling_off": 0,
   "recovery_streak": 0,
-  "last_updated": "2026-11-11T21:31:06.343969+00:00",
+  "last_updated": "2026-11-11T23:47:12.483099+00:00",
   "initial_capital": 100000.0,
-  "equity": 99083.75
+  "equity": 98741.86
 }
