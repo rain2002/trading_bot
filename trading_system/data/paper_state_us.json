@@ -1,19 +1,13 @@
 {
   "pod_name": "US",
   "currency": "USD",
-  "cash": 48517.66,
+  "cash": 58206.07815874024,
   "positions": {
     "DXCM": {
       "shares": 70.0,
       "entry_price": 78.468,
       "entry_date": "2026-11-07 16:34:21",
       "peak_price": 80.51
-    },
-    "TEAM": {
-      "shares": 64.0,
-      "entry_price": 148.55,
-      "entry_date": "2026-11-10 20:58:35",
-      "peak_price": 152.4499969482422
     },
     "CRWD": {
       "shares": 15.0,
@@ -107,19 +101,14 @@
     }
   },
   "pending_buys": [],
-  "pending_sells": [
-    {
-      "sym": "TEAM",
-      "reason": "PIT_MEMBERSHIP_EXCLUSION_MANDATORY_LIQUIDATION"
-    }
-  ],
+  "pending_sells": [],
   "hwm_true": 100057.51,
   "hwm_ladder": 10000.0,
   "max_drawdown": 0.0,
   "in_tier4_defense": false,
   "cooling_off": 0,
   "recovery_streak": 0,
-  "last_updated": "2026-11-11T01:13:47.973031+00:00",
+  "last_updated": "2026-11-11T21:31:06.343969+00:00",
   "initial_capital": 100000.0,
   "equity": 99083.75
 }
