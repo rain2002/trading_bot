@@ -45,6 +45,12 @@ class QuantNotifier:
             or getattr(settings, "TELEGRAM_CHAT_ID", None)
         )
 
+        # Global notification deactivation guard
+        if os.getenv("ENABLE_NOTIFICATIONS", "0") != "1" and not (discord_webhook_url or telegram_bot_token):
+            self.discord_url = None
+            self.tg_token = None
+            self.tg_chat_id = None
+
     def send_discord_message(self, content: str) -> bool:
         if not self.discord_url:
             return False

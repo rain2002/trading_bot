@@ -1213,6 +1213,10 @@ def dispatch_notifications_and_dashboard(india_engine, us_engine, multi_asset_en
     except Exception as e:
         print(f"[Dashboard Warning] Could not regenerate web dashboard: {e}")
 
+    # Automated notifications DEACTIVATED by user directive
+    if os.environ.get("ENABLE_NOTIFICATIONS", "0") != "1":
+        return
+
     try:
         from trading_system.app.notifications.notifier import QuantNotifier
         notifier = QuantNotifier()

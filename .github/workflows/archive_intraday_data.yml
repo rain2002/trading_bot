@@ -1,9 +1,10 @@
 name: Archive Intraday NSE Data (Read-Only)
 
 on:
-  schedule:
-    # 10:30 UTC = 16:00 IST (Mon-Fri after Indian market close)
-    - cron: '30 10 * * 1-5'
+  # Automated schedule DEACTIVATED by user directive.
+  # schedule:
+  #   # 10:30 UTC = 16:00 IST (Mon-Fri after Indian market close)
+  #   - cron: '30 10 * * 1-5'
   
   # Allow manual execution
   workflow_dispatch:

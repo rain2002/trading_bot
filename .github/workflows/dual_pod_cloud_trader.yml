@@ -1,19 +1,15 @@
 name: Dual-Pod Autonomous Cloud Trader (India & US)
 
 on:
-  schedule:
-    # 03:46 UTC = 09:16 IST (Mon-Fri) - India Market Open Execution
-    - cron: '46 3 * * 1-5'
-    # 06:30 UTC = 12:00 IST (Mon-Fri) - India Mid-Session Status & Health Check
-    - cron: '30 6 * * 1-5'
-    # 10:05 UTC = 15:35 IST (Mon-Fri) - India Market Close Scan
-    - cron: '5 10 * * 1-5'
-    # 14:31 UTC = 09:31 EST / 10:31 EDT (Mon-Fri) - US Market Open Execution
-    - cron: '31 14 * * 1-5'
-    # 18:00 UTC = 13:00 EST / 14:00 EDT (Mon-Fri) - US Mid-Session Status & Health Check
-    - cron: '0 18 * * 1-5'
-    # 21:05 UTC = 16:05 EST / 17:05 EDT (Mon-Fri) - US Market Close Scan
-    - cron: '5 21 * * 1-5'
+  # All automated schedules DEACTIVATED by user directive.
+  # Manual dispatch remains available for ad-hoc testing only.
+  # schedule:
+  #   - cron: '46 3 * * 1-5'
+  #   - cron: '30 6 * * 1-5'
+  #   - cron: '5 10 * * 1-5'
+  #   - cron: '31 14 * * 1-5'
+  #   - cron: '0 18 * * 1-5'
+  #   - cron: '5 21 * * 1-5'
 
   workflow_dispatch:
     inputs:
@@ -125,9 +121,10 @@ jobs:
           PAPER_API_SECRET: ${{ secrets.PAPER_API_SECRET || secrets.ALPACA_SECRET_KEY || secrets.ALPACA_PAPER_SECRET }}
           ALPACA_API_KEY: ${{ secrets.ALPACA_API_KEY || secrets.PAPER_API_KEY || secrets.ALPACA_PAPER_KEY }}
           ALPACA_SECRET_KEY: ${{ secrets.ALPACA_SECRET_KEY || secrets.PAPER_API_SECRET || secrets.ALPACA_PAPER_SECRET }}
-          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          # Bot notifications deactivated by user directive
+          DISCORD_WEBHOOK_URL: ""
+          TELEGRAM_BOT_TOKEN: ""
+          TELEGRAM_CHAT_ID: ""
           ALPACA_LIVE: "0"
           GROWW_FALLBACK_ACTIVE: "1"
         run: |

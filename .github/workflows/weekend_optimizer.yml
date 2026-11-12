@@ -1,9 +1,10 @@
 name: V2 Weekend Quant Optimizer
 
 on:
-  schedule:
-    # Runs at 12:00 UTC every Saturday
-    - cron: '0 12 * * 6'
+  # Automated schedule DEACTIVATED by user directive.
+  # schedule:
+  #   # Runs at 12:00 UTC every Saturday
+  #   - cron: '0 12 * * 6'
   
   # Allow manual triggering
   workflow_dispatch:
