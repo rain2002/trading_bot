@@ -1,0 +1,3 @@
+timestamp,nav,cash,holdings_val,hwm,current_drawdown_pct,max_drawdown_pct,days_incubated,weeks_incubated,incubation_complete
+2026-11-14 05:05:53,79945.55,461.82,79483.73,80000.0,-0.07,-0.07,0,0.0,False
+2026-11-14 05:06:15,79945.55,461.82,79483.73,80000.0,-0.07,-0.07,0,0.0,False
