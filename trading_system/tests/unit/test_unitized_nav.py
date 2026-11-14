@@ -112,3 +112,50 @@ def test_30_day_tactical_drip_feeder(nav_engine):
     assert drip_35 == 2500.0
     assert nav_engine.state["tactical_cash_reserve"] == 7500.0
     assert nav_engine.state["last_dip_date"] == "2026-11-05"
+
+
+def test_t2_accounting_random_lump_sums_and_sips(tmp_path: Path):
+    """
+    Phase 2 Protocol Test T2 (Accounting Verification):
+    Random lump sums and SIP top-ups through unitized NAV, checked against an
+    independent money-weighted calculation.
+    Pass condition: Unit value matches within 0.01% on every date.
+    """
+    import numpy as np
+    ledger_file = str(tmp_path / "t2_ledger.json")
+    initial_cap = 80000.0
+    engine = UnitizedNAVEngine(ledger_path=ledger_file, initial_capital=initial_cap)
+
+    np.random.seed(42)
+    n_days = 252
+    daily_returns = np.random.normal(loc=0.0006, scale=0.012, size=n_days)
+
+    current_val = initial_cap
+    independent_unit_val = 100.0  # Base NAV per unit
+
+    for day in range(n_days):
+        ret = daily_returns[day]
+        current_val *= (1.0 + ret)
+        independent_unit_val *= (1.0 + ret)
+
+        # Update engine valuation
+        engine_nav = engine.update_portfolio_valuation(current_val)
+
+        # Invariant check: unit value matches within 0.01% on every date
+        pct_diff = abs(engine_nav - independent_unit_val) / independent_unit_val
+        assert pct_diff < 0.0001, f"Day {day}: NAV mismatch! Engine: {engine_nav}, Independent: {independent_unit_val}, Diff: {pct_diff:.6f}"
+
+        # Periodic SIP every 20 days (approx monthly)
+        if (day + 1) % 20 == 0:
+            sip_amount = float(np.random.uniform(5000.0, 15000.0))
+            engine.process_deposit(deposit_amount=sip_amount, portfolio_value_before_deposit=current_val)
+            current_val += sip_amount
+            assert abs(engine.state["nav_per_unit"] - independent_unit_val) / independent_unit_val < 0.0001
+
+        # Random lump sum deposits
+        if np.random.random() < 0.02:
+            lump_sum = float(np.random.uniform(20000.0, 50000.0))
+            engine.process_deposit(deposit_amount=lump_sum, portfolio_value_before_deposit=current_val)
+            current_val += lump_sum
+            assert abs(engine.state["nav_per_unit"] - independent_unit_val) / independent_unit_val < 0.0001
+
