@@ -1,30 +1,49 @@
 {
-  "protocol_sha256": "2434e15bd3b9dcbeaee010ef29a1080f82e0117334b603d6e375dec5b3cc8d75",
-  "date_executed": "2026-11-13 22:58:48",
-  "baseline_static": {
-    "cagr_pct": 15.47,
-    "max_drawdown_pct": -21.25,
-    "terminal_equity": 958982.0,
-    "sharpe_ratio": 0.87,
-    "calmar_ratio": 0.73,
-    "ann_volatility_pct": 12.77,
+  "amendment_sha256": "d49b3b442db5140f514868272bf3dc5e4fc231cc656c88131cd955bb39e3c19c",
+  "date_executed": "2026-11-13 23:23:02",
+  "data_source_in_sample": "Index and FX proxies (NIFTY50, MIDCAP50, QQQ*USDINR, GOLD*USDINR, GILT10Y)",
+  "data_source_holdout": "Actual live NSE ETFs (GOLDBEES.NS, MON100.NS, NIFTYBEES.NS, MIDCAPETF.NS, LTGILTBEES.NS)",
+  "in_sample_champion": {
+    "cagr_pct": 15.15,
+    "max_drawdown_pct": -25.59,
+    "terminal_equity": 914474.69,
+    "sharpe_ratio": 0.75,
+    "calmar_ratio": 0.59,
+    "ann_volatility_pct": 12.62,
     "years": 17.27,
-    "strategy": "Baseline 1: Static Equal-Weight Benchmark",
-    "trades": 67
+    "strategy": "Champion: Static 5-Asset Mix with Gilts",
+    "trades": 70,
+    "trades_per_year": 4.1,
+    "tax_paid": 22458.26
   },
-  "candidate_dynamic": {
-    "cagr_pct": 9.84,
-    "max_drawdown_pct": -17.01,
-    "terminal_equity": 404781.24,
+  "in_sample_candidate": {
+    "cagr_pct": 10.67,
+    "max_drawdown_pct": -17.12,
+    "terminal_equity": 460702.55,
     "sharpe_ratio": 0.59,
-    "calmar_ratio": 0.58,
-    "ann_volatility_pct": 9.31,
+    "calmar_ratio": 0.62,
+    "ann_volatility_pct": 8.75,
     "years": 17.27,
     "strategy": "Candidate 1: Trend Rotation + Drawdown Throttle",
-    "trades": 562,
-    "tax_paid": 12013.73
+    "trades": 595,
+    "trades_per_year": 34.5,
+    "tax_paid": 12828.06
   },
-  "dsr_candidate": 4.996003610813204e-16,
-  "dsr_static": 0.9999999999894673,
-  "gate_a_cleared": false
+  "out_of_sample_holdout_champion": {
+    "cagr_pct": 16.49,
+    "max_drawdown_pct": -11.9,
+    "terminal_equity": 106342.74,
+    "sharpe_ratio": 0.88,
+    "calmar_ratio": 1.39,
+    "ann_volatility_pct": 12.99,
+    "years": 1.86,
+    "strategy": "Champion: Static 5-Asset Mix with Gilts",
+    "trades": 10,
+    "trades_per_year": 5.4,
+    "tax_paid": 576.07
+  },
+  "dsr_champion_in_sample": 0.0005494187062906053,
+  "dsr_candidate_in_sample": 0.0,
+  "dsr_champion_holdout": 0.010395912073540958,
+  "trials_count_at_eval": 124
 }
