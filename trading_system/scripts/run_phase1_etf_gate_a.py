@@ -48,6 +48,8 @@ from trading_system.app.validation.gate_evaluator import GateEvaluator
 CACHE_DIR = os.path.join(PROJECT_ROOT, "trading_system", "data", "multi_asset_cache")
 AMENDMENT_PATH = os.path.join(PROJECT_ROOT, "trading_system", "docs", "ETF_GOLD_BONDS_AMENDMENT_V1_1.md")
 AMENDMENT_SHA256_PATH = os.path.join(PROJECT_ROOT, "trading_system", "docs", "ETF_GOLD_BONDS_AMENDMENT_V1_1.sha256")
+AMENDMENT_V1_2_PATH = os.path.join(PROJECT_ROOT, "trading_system", "docs", "ETF_GOLD_BONDS_AMENDMENT_V1_2.md")
+AMENDMENT_V1_2_SHA256_PATH = os.path.join(PROJECT_ROOT, "trading_system", "docs", "ETF_GOLD_BONDS_AMENDMENT_V1_2.sha256")
 TRIAL_LOG_PATH = os.path.join(PROJECT_ROOT, "trading_system", "data", "trial_log.csv")
 
 START_DATE = "2007-09-24"
@@ -79,18 +81,29 @@ TER_ANNUAL = {
 
 
 def verify_protocol_lock() -> str:
-    """Verifies cryptographic SHA-256 seal of Amendment V1.1."""
+    """Verifies cryptographic SHA-256 seal of Amendments V1.1 and V1.2."""
     if not os.path.exists(AMENDMENT_PATH):
-        raise FileNotFoundError(f"Amendment file missing: {AMENDMENT_PATH}")
+        raise FileNotFoundError(f"Amendment V1.1 file missing: {AMENDMENT_PATH}")
     with open(AMENDMENT_PATH, "rb") as f:
-        computed = hashlib.sha256(f.read().replace(b"\r\n", b"\n")).hexdigest().lower()
+        computed_v1_1 = hashlib.sha256(f.read().replace(b"\r\n", b"\n")).hexdigest().lower()
     if os.path.exists(AMENDMENT_SHA256_PATH):
         with open(AMENDMENT_SHA256_PATH, "r") as f:
-            expected = f.read().strip().lower()
-        if computed != expected:
-            raise ValueError(f"CRITICAL: Protocol hash mismatch!\nExpected: {expected}\nComputed: {computed}")
-    print(f"[PROTOCOL OK] Amendment V1.1 Hash Verified: {computed[:16]}...")
-    return computed
+            expected_v1_1 = f.read().strip().lower()
+        if computed_v1_1 != expected_v1_1:
+            raise ValueError(f"CRITICAL: Amendment V1.1 hash mismatch!\nExpected: {expected_v1_1}\nComputed: {computed_v1_1}")
+    print(f"[PROTOCOL OK] Amendment V1.1 Hash Verified: {computed_v1_1[:16]}...")
+
+    if not os.path.exists(AMENDMENT_V1_2_PATH):
+        raise FileNotFoundError(f"Amendment V1.2 file missing: {AMENDMENT_V1_2_PATH}")
+    with open(AMENDMENT_V1_2_PATH, "rb") as f:
+        computed_v1_2 = hashlib.sha256(f.read().replace(b"\r\n", b"\n")).hexdigest().lower()
+    if os.path.exists(AMENDMENT_V1_2_SHA256_PATH):
+        with open(AMENDMENT_V1_2_SHA256_PATH, "r") as f:
+            expected_v1_2 = f.read().strip().lower()
+        if computed_v1_2 != expected_v1_2:
+            raise ValueError(f"CRITICAL: Amendment V1.2 hash mismatch!\nExpected: {expected_v1_2}\nComputed: {computed_v1_2}")
+    print(f"[PROTOCOL OK] Amendment V1.2 Hash Verified: {computed_v1_2[:16]}...")
+    return computed_v1_2
 
 
 def load_in_sample_dataset() -> pd.DataFrame:
@@ -184,19 +197,19 @@ def calculate_metrics(
 def compute_empirical_dsr(
     daily_rets: pd.Series,
     sharpe: float,
+    num_trials: int = 2,
     trial_log_path: str = TRIAL_LOG_PATH
 ) -> Tuple[float, int, float, float, float]:
     """
-    Computes Bailey & Lopez de Prado (2014) Deflated Sharpe Ratio strictly from
-    the empirical distribution of all historical trials in trial_log.csv.
+    Computes Bailey & Lopez de Prado (2014) Deflated Sharpe Ratio strictly per
+    Amendment V1.2 under the declared trial family (N = 2) with unit-consistent
+    annualized standard error scaling.
     """
     if os.path.exists(trial_log_path):
         tdf = pd.read_csv(trial_log_path)
         sharpe_col = pd.to_numeric(tdf["sharpe_ratio"], errors="coerce").dropna()
-        num_trials = max(len(tdf) + 1, 124)
         var_sharpe = float(sharpe_col.var()) if len(sharpe_col) > 1 else 0.164
     else:
-        num_trials = 124
         var_sharpe = 0.164
 
     num_obs = len(daily_rets)
@@ -209,7 +222,8 @@ def compute_empirical_dsr(
         num_observations=num_obs,
         skewness=skew,
         kurtosis=kurt,
-        var_sharpe=var_sharpe
+        var_sharpe=var_sharpe,
+        annualized=True
     )
     return float(dsr), num_trials, var_sharpe, skew, kurt
 

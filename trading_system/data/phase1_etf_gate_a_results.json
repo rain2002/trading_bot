@@ -1,6 +1,6 @@
 {
-  "amendment_sha256": "d49b3b442db5140f514868272bf3dc5e4fc231cc656c88131cd955bb39e3c19c",
-  "date_executed": "2026-11-13 23:23:02",
+  "amendment_sha256": "72037eaf319e9ee99b1a4352c04eed120e4fb6eebc58777362c7494f6a9e140f",
+  "date_executed": "2026-11-14 00:47:11",
   "data_source_in_sample": "Index and FX proxies (NIFTY50, MIDCAP50, QQQ*USDINR, GOLD*USDINR, GILT10Y)",
   "data_source_holdout": "Actual live NSE ETFs (GOLDBEES.NS, MON100.NS, NIFTYBEES.NS, MIDCAPETF.NS, LTGILTBEES.NS)",
   "in_sample_champion": {
@@ -42,8 +42,8 @@
     "trades_per_year": 5.4,
     "tax_paid": 576.07
   },
-  "dsr_champion_in_sample": 0.0005494187062906053,
-  "dsr_candidate_in_sample": 0.0,
-  "dsr_champion_holdout": 0.010395912073540958,
-  "trials_count_at_eval": 124
+  "dsr_champion_in_sample": 0.99574706719514,
+  "dsr_candidate_in_sample": 0.946236044895638,
+  "dsr_champion_holdout": 0.8149804360343142,
+  "trials_count_at_eval": 2
 }
