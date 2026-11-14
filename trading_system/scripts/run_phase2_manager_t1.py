@@ -185,15 +185,15 @@ def main():
     # Hurdle 1: Relative Max Drawdown reduction >= 20.0%
     abs_dd_fixed = abs(m_fixed["max_drawdown_pct"])
     abs_dd_th = abs(m_throttled["max_drawdown_pct"])
-    rel_dd_reduction = ((abs_dd_fixed - abs_dd_th) / abs_dd_fixed) * 100.0
-    passed_dd_cut = rel_dd_reduction >= 20.0
+    rel_dd_reduction = float(((abs_dd_fixed - abs_dd_th) / abs_dd_fixed) * 100.0)
+    passed_dd_cut = bool(rel_dd_reduction >= 20.0)
 
     # Hurdle 2: Costs at most 1.0 point of CAGR
-    cagr_cost = m_fixed["cagr_pct"] - m_throttled["cagr_pct"]
-    passed_cagr_cost = cagr_cost <= 1.00
+    cagr_cost = float(m_fixed["cagr_pct"] - m_throttled["cagr_pct"])
+    passed_cagr_cost = bool(cagr_cost <= 1.00)
 
     # Hurdle 3: Does not lower Sharpe Ratio
-    passed_sharpe = m_throttled["sharpe_ratio"] >= m_fixed["sharpe_ratio"]
+    passed_sharpe = bool(m_throttled["sharpe_ratio"] >= m_fixed["sharpe_ratio"])
 
     overall_t1_pass = bool(passed_dd_cut and passed_cagr_cost and passed_sharpe)
 
@@ -212,6 +212,15 @@ def main():
     print(f"TEST T1 VERDICT   : {verdict}")
     print(f"PRODUCTION POLICY : {production_policy}")
     print("=" * 80)
+
+    def _json_serial(obj):
+        if isinstance(obj, (np.bool_, bool)):
+            return bool(obj)
+        if isinstance(obj, (np.integer, int)):
+            return int(obj)
+        if isinstance(obj, (np.floating, float)):
+            return float(obj)
+        return str(obj)
 
     # 6. Save results JSON
     results_path = os.path.join(PROJECT_ROOT, "trading_system", "data", "phase2_manager_t1_results.json")
@@ -232,7 +241,7 @@ def main():
                 "t1_passed": overall_t1_pass,
                 "production_policy": production_policy
             }
-        }, f, indent=2)
+        }, f, indent=2, default=_json_serial)
 
     # 7. Stamp Trial Log (N = 2 trials)
     try:
