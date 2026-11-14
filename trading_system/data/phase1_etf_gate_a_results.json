@@ -1,0 +1,30 @@
+{
+  "protocol_sha256": "2434e15bd3b9dcbeaee010ef29a1080f82e0117334b603d6e375dec5b3cc8d75",
+  "date_executed": "2026-11-13 22:58:48",
+  "baseline_static": {
+    "cagr_pct": 15.47,
+    "max_drawdown_pct": -21.25,
+    "terminal_equity": 958982.0,
+    "sharpe_ratio": 0.87,
+    "calmar_ratio": 0.73,
+    "ann_volatility_pct": 12.77,
+    "years": 17.27,
+    "strategy": "Baseline 1: Static Equal-Weight Benchmark",
+    "trades": 67
+  },
+  "candidate_dynamic": {
+    "cagr_pct": 9.84,
+    "max_drawdown_pct": -17.01,
+    "terminal_equity": 404781.24,
+    "sharpe_ratio": 0.59,
+    "calmar_ratio": 0.58,
+    "ann_volatility_pct": 9.31,
+    "years": 17.27,
+    "strategy": "Candidate 1: Trend Rotation + Drawdown Throttle",
+    "trades": 562,
+    "tax_paid": 12013.73
+  },
+  "dsr_candidate": 4.996003610813204e-16,
+  "dsr_static": 0.9999999999894673,
+  "gate_a_cleared": false
+}

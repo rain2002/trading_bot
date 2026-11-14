@@ -364,7 +364,7 @@ def main():
 
     # Stamp trial log row 123
     try:
-        commit_hash = subprocess.check_output(["git", "rev-parse", "--short", "HEAD"], text=True).strip()
+        commit_hash = subprocess.check_output(["git", "rev-parse", "--short", "HEAD"], shell=True, text=True).strip()
     except Exception:
         commit_hash = "local"
 
