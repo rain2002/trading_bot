@@ -59,12 +59,14 @@ class PortfolioManagerEngine(ManagerInterface):
         target_shares: Optional[Dict[str, float]] = None,
         initial_capital: float = 80000.0,
         state_file: Optional[str] = None,
-        policy: str = "FIXED_SHARES_PLUS_KILL_SWITCH"
+        policy: str = "FIXED_SHARES_PLUS_KILL_SWITCH",
+        mode: str = "PAPER"
     ):
         data_dir = os.path.join(PROJECT_ROOT, "trading_system", "data")
         self.state_file = state_file or os.path.join(data_dir, "manager_state.json")
         self.initial_capital = float(initial_capital)
         self.policy = policy
+        self.mode = mode.upper()
         # Default: ETF Bot gets 100% of deployable capital
         self.target_shares = target_shares or {"ETF_AND_GOLD": 1.0}
         self.state = self._load_state()
@@ -76,6 +78,8 @@ class PortfolioManagerEngine(ManagerInterface):
                     data = json.load(f)
                     if "policy" not in data:
                         data["policy"] = self.policy
+                    if "mode" not in data:
+                        data["mode"] = self.mode
                     return data
             except Exception as e:
                 logger.error(f"Error reading manager state: {e}. Reinitializing.")
@@ -85,6 +89,7 @@ class PortfolioManagerEngine(ManagerInterface):
             "manager_name": "CENTRAL_PORTFOLIO_MANAGER",
             "phase": "PHASE_2",
             "policy": self.policy,
+            "mode": self.mode,
             "unitized_nav": 100.0,
             "hwm_unit_nav": 100.0,
             "current_drawdown": 0.0,
@@ -224,6 +229,11 @@ class PortfolioManagerEngine(ManagerInterface):
             risk_scale = KILL_SWITCH_RISK_SCALE  # 0.0
 
         # 6. Allocate Shares Across Bots & Cash Sleeve
+        # In LIVE mode, ONLY bots with LIVE_APPROVED are eligible for real capital allocation.
+        # In PAPER mode, bots with GATE_B_PAPER (or GATE_B_INCUBATION) or LIVE_APPROVED receive paper capital.
+        is_live = (self.mode == "LIVE")
+        allowed_gates = ["LIVE_APPROVED"] if is_live else ["GATE_B_PAPER", "GATE_B_INCUBATION", "LIVE_APPROVED"]
+
         shares: Dict[str, float] = {}
         total_risk_allocated = 0.0
 
@@ -235,12 +245,16 @@ class PortfolioManagerEngine(ManagerInterface):
                 shares[bot_id] = 0.0
                 continue
 
-            # In Phase 2: Bot must have at least GATE_B_PAPER cleared for paper allocation
-            if report.gate_status in ["GATE_B_PAPER", "LIVE_APPROVED"]:
+            if report.gate_status in allowed_gates:
                 eff_share = round(target_share * risk_scale, 4)
                 shares[bot_id] = eff_share
                 total_risk_allocated += eff_share
             else:
+                if is_live:
+                    logger.warning(
+                        f"Bot {bot_id} gate status '{report.gate_status}' not cleared for LIVE trading "
+                        f"(requires LIVE_APPROVED). Allocation set to 0.0."
+                    )
                 shares[bot_id] = 0.0
 
         # Unallocated capital defaults to Cash Sleeve (LIQUIDBEES.NS)

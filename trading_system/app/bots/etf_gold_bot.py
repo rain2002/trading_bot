@@ -127,7 +127,7 @@ class ETFGoldsPaperRunner:
         return {
             "bot_name": "ETF_AND_GOLD_BOT",
             "phase": "PHASE_1",
-            "gate": "GATE_B_INCUBATION",
+            "gate": "GATE_B_PAPER",
             "incubation_start_date": now_iso,
             "incubation_target_weeks": INCUBATION_TARGET_WEEKS,
             "days_incubated": 0,
