@@ -57,3 +57,6 @@ trading_system/data/daemon_state.json
 trading_system/data/etf_gold_state.json
 trading_system/data/etf_gold_trades.csv
 trading_system/data/etf_gold_equity_log.csv
+trading_system/data/manager_state.json
+trading_system/data/manager_equity_log.csv
+trading_system/data/unitized_nav_ledger.json
