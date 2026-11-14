@@ -46,13 +46,13 @@ class QuantNotifier:
         )
 
         # Global notification deactivation guard
-        if os.getenv("ENABLE_NOTIFICATIONS", "0") != "1" and not (discord_webhook_url or telegram_bot_token):
-            self.discord_url = None
-            self.tg_token = None
-            self.tg_chat_id = None
+        self.enabled = (
+            os.getenv("ENABLE_NOTIFICATIONS", "0") == "1"
+            or bool(discord_webhook_url or telegram_bot_token)
+        )
 
     def send_discord_message(self, content: str) -> bool:
-        if not self.discord_url:
+        if not self.enabled or not self.discord_url:
             return False
         try:
             payload = {"content": content}
@@ -67,7 +67,7 @@ class QuantNotifier:
         Dispatches a rich embed alert (e.g., stop-loss trigger, broker fail-closed event)
         to the configured Discord webhook.
         """
-        if not self.discord_url:
+        if not self.enabled or not self.discord_url:
             return False
         try:
             payload = {
@@ -86,7 +86,7 @@ class QuantNotifier:
             return False
 
     def send_telegram_message(self, content: str) -> bool:
-        if not self.tg_token or not self.tg_chat_id:
+        if not self.enabled or not self.tg_token or not self.tg_chat_id:
             return False
         try:
             url = f"https://api.telegram.org/bot{self.tg_token}/sendMessage"
