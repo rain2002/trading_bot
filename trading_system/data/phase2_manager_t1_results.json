@@ -1,0 +1,37 @@
+{
+  "protocol_sha256": "0ad8f84be6a260e9b735bdb4a5aca630b5e6233ab9303c38c8083775a7580268",
+  "test": "T1_THROTTLE_VALUE",
+  "trial_family_n": 2,
+  "date_executed": "2026-11-13 23:39:10",
+  "variant_1_fixed_shares": {
+    "cagr_pct": 15.29,
+    "max_drawdown_pct": -25.59,
+    "terminal_equity": 1521.91,
+    "sharpe_ratio": 0.76,
+    "calmar_ratio": 0.6,
+    "ann_volatility_pct": 12.65,
+    "years": 19.14,
+    "strategy": "Variant 1: Fixed Shares + Kill Switch (-40%)",
+    "killed": false
+  },
+  "variant_2_throttled": {
+    "cagr_pct": 14.35,
+    "max_drawdown_pct": -20.57,
+    "terminal_equity": 1301.88,
+    "sharpe_ratio": 0.72,
+    "calmar_ratio": 0.7,
+    "ann_volatility_pct": 12.11,
+    "years": 19.14,
+    "strategy": "Variant 2: Throttle (-15%, -30%) + Kill Switch (-40%)",
+    "final_level": 0
+  },
+  "evaluation": {
+    "rel_max_dd_reduction_pct": 19.62,
+    "passed_dd_cut": false,
+    "cagr_cost_pts": 0.94,
+    "passed_cagr_cost": true,
+    "passed_sharpe": false,
+    "t1_passed": false,
+    "production_policy": "FIXED_SHARES_PLUS_KILL_SWITCH"
+  }
+}
