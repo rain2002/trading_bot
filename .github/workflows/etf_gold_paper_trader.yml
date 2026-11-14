@@ -1,0 +1,89 @@
+name: "Bot 1: ETF & Gold Gate B Paper Trader"
+
+# Dedicated Phase 1 Execution Workflow
+# Runs strictly on NSE trading days after market close (15:45 IST / 10:15 UTC)
+# State is strictly persisted to and restored from the 'state' branch.
+
+concurrency:
+  group: trading-state
+  cancel-in-progress: false
+
+on:
+  schedule:
+    # 15:45 IST (10:15 UTC) Monday through Friday
+    - cron: '15 10 * * 1-5'
+  workflow_dispatch:
+
+jobs:
+  run-etf-gold-bot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout Repository (main branch)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install yfinance pandas numpy scipy requests python-dotenv
+
+      - name: Restore Paper State Artifacts from State Branch
+        run: |
+          git fetch origin state 2>/dev/null || true
+          if git show-ref --verify --quiet refs/remotes/origin/state; then
+            echo "Restoring Bot 1 state files from origin/state branch..."
+            git checkout origin/state -- \
+              trading_system/data/etf_gold_state.json \
+              trading_system/data/etf_gold_trades.csv \
+              trading_system/data/etf_gold_equity_log.csv 2>/dev/null || true
+          else
+            echo "No origin/state branch found; initializing default state."
+          fi
+
+      - name: Execute Bot 1 Paper Trading Cycle
+        env:
+          PYTHONPATH: .
+          ENABLE_NOTIFICATIONS: "0"
+        run: |
+          python trading_system/scripts/run_etf_gold_bot.py
+
+      - name: Persist Paper State Artifacts to State Branch
+        if: always()
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Stage current state files into a temporary directory
+          mkdir -p /tmp/etf_gold_state
+          cp trading_system/data/etf_gold_state.json /tmp/etf_gold_state/ 2>/dev/null || true
+          cp trading_system/data/etf_gold_trades.csv /tmp/etf_gold_state/ 2>/dev/null || true
+          cp trading_system/data/etf_gold_equity_log.csv /tmp/etf_gold_state/ 2>/dev/null || true
+
+          # Checkout state branch
+          git fetch origin state 2>/dev/null || true
+          if git show-ref --verify --quiet refs/remotes/origin/state; then
+            git checkout -B state origin/state
+          else
+            git checkout --orphan state
+            git rm -rf . --quiet 2>/dev/null || true
+          fi
+
+          mkdir -p trading_system/data
+          cp /tmp/etf_gold_state/* trading_system/data/ 2>/dev/null || true
+
+          git add \
+            trading_system/data/etf_gold_state.json \
+            trading_system/data/etf_gold_trades.csv \
+            trading_system/data/etf_gold_equity_log.csv 2>/dev/null || true
+
+          git pull --rebase origin state 2>/dev/null || true
+          git diff --staged --quiet || (git commit -m "chore(state): persist Bot 1 ETF & Gold paper state [skip ci]" && git push origin state)
