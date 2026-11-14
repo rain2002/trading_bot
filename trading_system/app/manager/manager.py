@@ -58,11 +58,13 @@ class PortfolioManagerEngine(ManagerInterface):
         self,
         target_shares: Optional[Dict[str, float]] = None,
         initial_capital: float = 80000.0,
-        state_file: Optional[str] = None
+        state_file: Optional[str] = None,
+        policy: str = "FIXED_SHARES_PLUS_KILL_SWITCH"
     ):
         data_dir = os.path.join(PROJECT_ROOT, "trading_system", "data")
         self.state_file = state_file or os.path.join(data_dir, "manager_state.json")
         self.initial_capital = float(initial_capital)
+        self.policy = policy
         # Default: ETF Bot gets 100% of deployable capital
         self.target_shares = target_shares or {"ETF_AND_GOLD": 1.0}
         self.state = self._load_state()
@@ -71,7 +73,10 @@ class PortfolioManagerEngine(ManagerInterface):
         if os.path.exists(self.state_file):
             try:
                 with open(self.state_file, "r") as f:
-                    return json.load(f)
+                    data = json.load(f)
+                    if "policy" not in data:
+                        data["policy"] = self.policy
+                    return data
             except Exception as e:
                 logger.error(f"Error reading manager state: {e}. Reinitializing.")
 
@@ -79,6 +84,7 @@ class PortfolioManagerEngine(ManagerInterface):
         return {
             "manager_name": "CENTRAL_PORTFOLIO_MANAGER",
             "phase": "PHASE_2",
+            "policy": self.policy,
             "unitized_nav": 100.0,
             "hwm_unit_nav": 100.0,
             "current_drawdown": 0.0,
@@ -166,42 +172,43 @@ class PortfolioManagerEngine(ManagerInterface):
             logger.critical(f"MANAGER HALTED: {self.state['halt_reason']}. 100% capital routed to LIQUIDBEES.NS.")
             return {"CASH_SLEEVE": 1.0}
 
-        # 4. Drawdown Throttle Transitions
+        # 4. Drawdown Throttle Transitions (Only active under THROTTLE_AND_KILL_SWITCH policy)
         current_level = int(self.state.get("throttle_level", 0))
         recovery_days = int(self.state.get("consecutive_recovery_days", 0))
 
-        # Downward Risk-Off Transitions (Immediate)
-        if dd <= THROTTLE_L2_TRIGGER:
-            if current_level < 2:
-                logger.warning(f"THROTTLE LEVEL 2 ACTIVATED: Drawdown {dd*100:.2f}% breached -30.0%. Cutting risk to 25%.")
-            current_level = 2
-            recovery_days = 0
-        elif dd <= THROTTLE_L1_TRIGGER:
-            if current_level < 1:
-                logger.warning(f"THROTTLE LEVEL 1 ACTIVATED: Drawdown {dd*100:.2f}% breached -15.0%. Cutting risk to 50%.")
-            if current_level == 0:
-                current_level = 1
+        if self.policy == "THROTTLE_AND_KILL_SWITCH":
+            # Downward Risk-Off Transitions (Immediate)
+            if dd <= THROTTLE_L2_TRIGGER:
+                if current_level < 2:
+                    logger.warning(f"THROTTLE LEVEL 2 ACTIVATED: Drawdown {dd*100:.2f}% breached -30.0%. Cutting risk to 25%.")
+                current_level = 2
                 recovery_days = 0
-
-        # Upward Re-risking Transitions (Requires 21 days +5 pts better, never skips a level)
-        if current_level == 2:
-            if dd >= THROTTLE_L2_RECOVERY:  # >= -25%
-                recovery_days += 1
-                if recovery_days >= RE_RISK_CONSECUTIVE_DAYS:
+            elif dd <= THROTTLE_L1_TRIGGER:
+                if current_level < 1:
+                    logger.warning(f"THROTTLE LEVEL 1 ACTIVATED: Drawdown {dd*100:.2f}% breached -15.0%. Cutting risk to 50%.")
+                if current_level == 0:
                     current_level = 1
                     recovery_days = 0
-                    logger.info(f"RE-RISKING: Level 2 -> Level 1 after {RE_RISK_CONSECUTIVE_DAYS} days above -25%.")
-            else:
-                recovery_days = 0
-        elif current_level == 1:
-            if dd >= THROTTLE_L1_RECOVERY:  # >= -10%
-                recovery_days += 1
-                if recovery_days >= RE_RISK_CONSECUTIVE_DAYS:
-                    current_level = 0
+
+            # Upward Re-risking Transitions (Requires 21 days +5 pts better, never skips a level)
+            if current_level == 2:
+                if dd >= THROTTLE_L2_RECOVERY:  # >= -25%
+                    recovery_days += 1
+                    if recovery_days >= RE_RISK_CONSECUTIVE_DAYS:
+                        current_level = 1
+                        recovery_days = 0
+                        logger.info(f"RE-RISKING: Level 2 -> Level 1 after {RE_RISK_CONSECUTIVE_DAYS} days above -25%.")
+                else:
                     recovery_days = 0
-                    logger.info(f"RE-RISKING: Level 1 -> Level 0 after {RE_RISK_CONSECUTIVE_DAYS} days above -10%.")
-            else:
-                recovery_days = 0
+            elif current_level == 1:
+                if dd >= THROTTLE_L1_RECOVERY:  # >= -10%
+                    recovery_days += 1
+                    if recovery_days >= RE_RISK_CONSECUTIVE_DAYS:
+                        current_level = 0
+                        recovery_days = 0
+                        logger.info(f"RE-RISKING: Level 1 -> Level 0 after {RE_RISK_CONSECUTIVE_DAYS} days above -10%.")
+                else:
+                    recovery_days = 0
 
         self.state["throttle_level"] = current_level
         self.state["consecutive_recovery_days"] = recovery_days

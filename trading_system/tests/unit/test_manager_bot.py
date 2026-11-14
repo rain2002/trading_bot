@@ -34,7 +34,8 @@ def test_t3_kill_switch_inject_41_pct_drawdown(tmp_path: Path):
     mgr = PortfolioManagerEngine(
         target_shares={"ETF_AND_GOLD": 1.0},
         initial_capital=100000.0,
-        state_file=state_file
+        state_file=state_file,
+        policy="THROTTLE_AND_KILL_SWITCH"
     )
 
     now = pd.Timestamp.now(timezone.utc)
@@ -113,7 +114,8 @@ def test_t5_re_risking_and_throttle_ladder(tmp_path: Path):
     mgr = PortfolioManagerEngine(
         target_shares={"ETF_AND_GOLD": 1.0},
         initial_capital=100000.0,
-        state_file=state_file
+        state_file=state_file,
+        policy="THROTTLE_AND_KILL_SWITCH"
     )
 
     now = pd.Timestamp.now(timezone.utc)
@@ -168,3 +170,46 @@ def test_t5_re_risking_and_throttle_ladder(tmp_path: Path):
     assert mgr.state["throttle_level"] == 0
     assert s_rec42["ETF_AND_GOLD"] == 1.0
     assert s_rec42["CASH_SLEEVE"] == 0.0
+
+
+def test_fixed_shares_plus_kill_switch_policy(tmp_path: Path):
+    """
+    Verifies that under FIXED_SHARES_PLUS_KILL_SWITCH (shipped production policy):
+    - Drawdown of -18% or -32% does NOT throttle risk (ETF Bot retains 100% allocation).
+    - Hard kill switch at -40% breaches and routes 100% to CASH_SLEEVE.
+    """
+    state_file = str(tmp_path / "test_fixed_mgr_state.json")
+    mgr = PortfolioManagerEngine(
+        target_shares={"ETF_AND_GOLD": 1.0},
+        initial_capital=100000.0,
+        state_file=state_file,
+        policy="FIXED_SHARES_PLUS_KILL_SWITCH"
+    )
+
+    now = pd.Timestamp.now(timezone.utc)
+
+    # 1. Normal state: 100% ETF Bot
+    s0 = mgr.evaluate_shares(now, {"ETF_AND_GOLD": make_bot_report(nav=100000.0)}, {"nav_per_unit": 100.0, "total_portfolio_value": 100000.0})
+    assert s0["ETF_AND_GOLD"] == 1.0
+    assert s0["CASH_SLEEVE"] == 0.0
+    assert mgr.state["throttle_level"] == 0
+
+    # 2. Drawdown at -18%: No throttle!
+    s1 = mgr.evaluate_shares(now, {"ETF_AND_GOLD": make_bot_report(nav=82000.0)}, {"nav_per_unit": 82.0, "total_portfolio_value": 82000.0})
+    assert s1["ETF_AND_GOLD"] == 1.0
+    assert s1["CASH_SLEEVE"] == 0.0
+    assert mgr.state["throttle_level"] == 0
+
+    # 3. Drawdown at -32%: Still no throttle!
+    s2 = mgr.evaluate_shares(now, {"ETF_AND_GOLD": make_bot_report(nav=68000.0)}, {"nav_per_unit": 68.0, "total_portfolio_value": 68000.0})
+    assert s2["ETF_AND_GOLD"] == 1.0
+    assert s2["CASH_SLEEVE"] == 0.0
+    assert mgr.state["throttle_level"] == 0
+
+    # 4. Drawdown at -41%: Hard kill switch triggers!
+    s3 = mgr.evaluate_shares(now, {"ETF_AND_GOLD": make_bot_report(nav=59000.0)}, {"nav_per_unit": 59.0, "total_portfolio_value": 59000.0})
+    assert s3.get("ETF_AND_GOLD", 0.0) == 0.0
+    assert s3["CASH_SLEEVE"] == 1.0
+    assert mgr.state["is_halted"] is True
+    assert mgr.state["throttle_level"] == 3
+
