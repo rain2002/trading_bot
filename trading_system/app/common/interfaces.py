@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from dataclasses import dataclass
 from typing import Any, Dict, List, Optional
 import pandas as pd
 from datetime import datetime
@@ -55,6 +56,39 @@ class StrategyInterface(ABC):
         """
         Returns strategy-specific risk metrics (current drawdown, trend states, defensive flags).
         """
+        pass
+
+
+@dataclass
+class BotReport:
+    nav: float            # bot NAV in INR, from its own state
+    risk_status: Dict[str, Any]
+    gate_status: str      # NONE, GATE_A, GATE_B_PAPER, LIVE_APPROVED
+    last_update: pd.Timestamp
+    stale: bool           # True if older than one NSE trading day
+
+
+class ManagerInterface(ABC):
+    """
+    Standardized Manager Interface for the Multi-Bot Trading System.
+    Governs capital allocation across bots, portfolio-level drawdown throttling,
+    and kill-switch enforcement.
+    """
+    @abstractmethod
+    def evaluate_shares(
+        self,
+        as_of: pd.Timestamp,
+        reports: Dict[str, BotReport],
+        nav_state: Dict[str, Any]
+    ) -> Dict[str, float]:
+        """Target capital share per bot plus the cash sleeve, summing to 1.0.
+        A bot whose gate_status is below LIVE_APPROVED gets 0.0 real share.
+        A stale report freezes that bot's share and raises an alert."""
+        pass
+
+    @abstractmethod
+    def get_status(self) -> Dict[str, Any]:
+        """Throttle level, drawdown, halted flag, last reconciliation gap."""
         pass
 
 class Portfolio(ABC):
