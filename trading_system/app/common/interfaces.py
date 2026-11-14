@@ -32,6 +32,31 @@ class Strategy(ABC):
         """Single-asset compatibility hook."""
         return self.generate_signals(point_in_time_data)
 
+class StrategyInterface(ABC):
+    """
+    Standardized Strategy Interface for the Multi-Bot Trading System.
+    Each specialist bot (ETF Bot, S&P 500 Bot, NSE Bot) implements this contract.
+    """
+    @abstractmethod
+    def evaluate_allocations(
+        self,
+        current_date: pd.Timestamp,
+        market_data: Dict[str, pd.DataFrame],
+        portfolio_state: Dict[str, Any]
+    ) -> Dict[str, float]:
+        """
+        Evaluate market data as of current_date and output target asset weights (0.0 to 1.0).
+        Sum of weights must be <= 1.0. Unallocated weight defaults to cash/bonds sleeve.
+        """
+        pass
+
+    @abstractmethod
+    def get_risk_status(self) -> Dict[str, Any]:
+        """
+        Returns strategy-specific risk metrics (current drawdown, trend states, defensive flags).
+        """
+        pass
+
 class Portfolio(ABC):
     @abstractmethod
     def update_position(self, symbol: str, quantity: float, price: float) -> None:
