@@ -320,15 +320,24 @@ def main():
     passed_sharpe = m_cand["sharpe_ratio"] >= 0.60
     
     # Deflated Sharpe Ratio Check (N = 122 historical trials)
-    dsr_stat = GateEvaluator.compute_deflated_sharpe_ratio(
-        observed_sharpe=m_cand["sharpe_ratio"],
+    dsr_stat = GateEvaluator.compute_deflated_sharpe(
+        sharpe=m_cand["sharpe_ratio"],
         num_trials=122,
-        variance_of_sharpes=0.08,
-        sample_length=len(df),
+        num_observations=len(df),
         skewness=-0.20,
-        kurtosis=3.50
+        kurtosis=3.50,
+        var_sharpe=0.08
     )
     passed_dsr = dsr_stat >= 0.95
+
+    dsr_static = GateEvaluator.compute_deflated_sharpe(
+        sharpe=m_static["sharpe_ratio"],
+        num_trials=122,
+        num_observations=len(df),
+        skewness=-0.20,
+        kurtosis=3.50,
+        var_sharpe=0.08
+    )
 
     gate_a_verdict = bool(passed_hurdle and passed_dd and passed_sharpe and passed_dsr)
 
@@ -336,7 +345,7 @@ def main():
     print(f"1. Benchmark Superiority Check : {'PASSED' if passed_hurdle else 'FAILED'} (Candidate CAGR={m_cand['cagr_pct']}% vs Static={m_static['cagr_pct']}%)")
     print(f"2. Maximum Drawdown Check (<= -35%) : {'PASSED' if passed_dd else 'FAILED'} (MaxDD={m_cand['max_drawdown_pct']}%)")
     print(f"3. Annualized Sharpe Ratio (>= 0.60): {'PASSED' if passed_sharpe else 'FAILED'} (Sharpe={m_cand['sharpe_ratio']})")
-    print(f"4. Deflated Sharpe Ratio (DSR >= 0.95): {'PASSED' if passed_dsr else 'FAILED'} (DSR={dsr_stat:.4f} at N=122)")
+    print(f"4. Deflated Sharpe Ratio (DSR >= 0.95): {'PASSED' if passed_dsr else 'FAILED'} (Candidate DSR={dsr_stat:.4f}, Static DSR={dsr_static:.4f} at N=122)")
     print(f"OVERALL GATE A VERDICT : {'PASSED (Clear to Proceed to Gate B Paper Incubation)' if gate_a_verdict else 'FAILED (Retain Static Equal-Weight Benchmark)'}")
     print("-" * 80)
 
@@ -348,7 +357,8 @@ def main():
             "date_executed": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             "baseline_static": m_static,
             "candidate_dynamic": m_cand,
-            "dsr_stat": dsr_stat,
+            "dsr_candidate": dsr_stat,
+            "dsr_static": dsr_static,
             "gate_a_cleared": gate_a_verdict
         }, f, indent=2)
 
