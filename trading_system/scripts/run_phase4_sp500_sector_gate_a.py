@@ -35,6 +35,7 @@ Holdout (2023-01-01 to Present):
 import os
 import sys
 import math
+import time
 import json
 import hashlib
 import subprocess
@@ -114,15 +115,14 @@ def load_dataset() -> Tuple[pd.DataFrame, pd.DataFrame]:
 
 def compute_individual_rolling_betas(close_df: pd.DataFrame, lookback: int = 126) -> pd.DataFrame:
     """Precompute 126-day rolling OLS beta to SPY for each sector ETF."""
-    betas = {}
     spy_ret = close_df["SPY"].pct_change()
     spy_var = spy_ret.rolling(lookback).var()
+    betas = {}
 
     for s in SECTOR_TICKERS:
         s_ret = close_df[s].pct_change()
         cov = s_ret.rolling(lookback).cov(spy_ret)
         b = cov / spy_var
-        # Fill any missing with 1.0, clamp to [0.50, 1.50]
         betas[s] = b.fillna(1.0).clip(0.50, 1.50)
 
     beta_df = pd.DataFrame(betas, index=close_df.index)
@@ -139,23 +139,17 @@ def simulate_strategy(
     n_sectors: int = 3,
     start_date: str = IN_SAMPLE_START,
     end_date: str = IN_SAMPLE_END,
-    random_seed: Optional[int] = None
 ) -> Tuple[pd.DataFrame, Dict[str, Any]]:
     """
     Simulates monthly rebalanced market-neutral sector strategy with next-open fills,
     beta hedging, 2 bps slippage each way, and 0.5% p.a. borrow cost on short leg.
     """
-    rng = np.random.RandomState(random_seed) if random_seed is not None else None
-
-    # Identify month-ends
     month_ends = [d for d in close_df.groupby([close_df.index.year, close_df.index.month]).tail(1).index]
     trading_days = [d for d in close_df.index if d >= pd.to_datetime(start_date) and d <= pd.to_datetime(end_date)]
 
-    rebal_map = {}
-    for me in month_ends:
-        next_days = [d for d in close_df.index if d > me]
-        if next_days:
-            rebal_map[me] = next_days[0]
+    # Fast mapping of month ends to next trading session open
+    me_idx = close_df.index.get_indexer(month_ends)
+    rebal_map = {month_ends[i]: close_df.index[me_idx[i] + 1] for i in range(len(month_ends)) if me_idx[i] + 1 < len(close_df.index)}
 
     decisions = {}
     for me in month_ends:
@@ -172,11 +166,7 @@ def simulate_strategy(
             if s_close.empty or s_close.index[0] > me:
                 continue
 
-            if random_seed is not None:
-                # Null test: ETF must have launched
-                if me in s_close.index:
-                    eligible.append(s)
-            elif strategy_id in ["M1", "L1"]:
+            if strategy_id in ["M1", "L1"]:
                 if idx_me < lookback_months:
                     continue
                 t_skip = month_ends[idx_me - skip_months]
@@ -198,11 +188,7 @@ def simulate_strategy(
         if len(eligible) < n_sectors:
             continue
 
-        if random_seed is not None:
-            # Pick random sectors
-            long_picks = list(rng.choice(eligible, size=n_sectors, replace=False))
-            short_picks = ["SPY"]
-        elif strategy_id in ["M1", "L1"]:
+        if strategy_id in ["M1", "L1"]:
             sorted_sectors = sorted(eligible, key=lambda s: scores[s], reverse=True)
             long_picks = sorted_sectors[:n_sectors]
             short_picks = sorted_sectors[-n_sectors:] if strategy_id == "L1" else ["SPY"]
@@ -215,7 +201,7 @@ def simulate_strategy(
         beta_long = float(np.clip(beta_df.loc[me, long_picks].mean(), 0.50, 1.50))
         w_long_total = 0.50
 
-        if strategy_id in ["M1", "R1"] or random_seed is not None:
+        if strategy_id in ["M1", "R1"]:
             w_spy = - w_long_total * beta_long
             gross = w_long_total + abs(w_spy)
             scale = 1.0 if gross <= 1.0 else 1.0 / gross
@@ -233,7 +219,7 @@ def simulate_strategy(
 
         decisions[exec_day] = weights
 
-    # Fast daily simulation
+    # Daily simulation
     cash = INITIAL_EQUITY
     current_shares = {}
     total_trades = 0
@@ -242,14 +228,13 @@ def simulate_strategy(
     for day in trading_days:
         if day in decisions:
             new_target_weights = decisions[day]
-            # Valuation at open
-            equity_at_open = cash + sum(sh * open_df.loc[day, s] for s, sh in current_shares.items())
+            equity_at_open = cash + sum(sh * open_df.at[day, s] for s, sh in current_shares.items())
             target_dollars = {s: w * equity_at_open for s, w in new_target_weights.items()}
 
             turnover = 0.0
             new_shares = {}
             for s, target_val in target_dollars.items():
-                p_open = open_df.loc[day, s]
+                p_open = open_df.at[day, s]
                 sh = target_val / p_open
                 old_sh = current_shares.get(s, 0.0)
                 diff = abs(sh - old_sh)
@@ -260,22 +245,22 @@ def simulate_strategy(
 
             for s, old_sh in current_shares.items():
                 if s not in new_target_weights:
-                    p_open = open_df.loc[day, s]
+                    p_open = open_df.at[day, s]
                     diff = abs(old_sh)
                     turnover += diff * p_open
                     if diff * p_open > 10.0:
                         total_trades += 1
 
             slippage = turnover * (SLIPPAGE_BPS / 10000.0)
-            cash = equity_at_open - slippage - sum(new_shares[s] * open_df.loc[day, s] for s in new_shares)
+            cash = equity_at_open - slippage - sum(new_shares[s] * open_df.at[day, s] for s in new_shares)
             current_shares = new_shares
 
         # Daily borrow fee on short positions
-        short_val = sum(abs(sh * close_df.loc[day, s]) for s, sh in current_shares.items() if sh < 0)
+        short_val = sum(abs(sh * close_df.at[day, s]) for s, sh in current_shares.items() if sh < 0)
         daily_borrow = short_val * (BORROW_FEE_PA / 252.0)
         cash -= daily_borrow
 
-        pos_val = sum(sh * close_df.loc[day, s] for s, sh in current_shares.items())
+        pos_val = sum(sh * close_df.at[day, s] for s, sh in current_shares.items())
         total_equity = cash + pos_val
         history.append({"date": day, "equity": total_equity})
 
@@ -326,29 +311,82 @@ def simulate_strategy(
     return res_df, metrics
 
 
-def run_random_null_test(
+def run_random_null_test_vectorized(
     close_df: pd.DataFrame,
-    open_df: pd.DataFrame,
     beta_df: pd.DataFrame,
     n_runs: int = 1000
 ) -> Tuple[float, List[float]]:
-    """Runs 1,000 Monte Carlo runs with random sector selection under identical hedge and costs."""
-    print(f"\nExecuting Random-Selection Null Test ({n_runs} runs)...")
+    """
+    Runs 1,000 Monte Carlo runs selecting 3 random sectors each month with identical
+    beta hedge, 2 bps slippage, and 0.5% borrow cost using vectorized daily return math.
+    """
+    print(f"\nExecuting Vectorized Random-Selection Null Test ({n_runs} runs)...", flush=True)
+    t0 = time.time()
+    month_ends = [d for d in close_df.groupby([close_df.index.year, close_df.index.month]).tail(1).index]
+    me_idx = close_df.index.get_indexer(month_ends)
+    rebal_map = {month_ends[i]: close_df.index[me_idx[i] + 1] for i in range(len(month_ends)) if me_idx[i] + 1 < len(close_df.index)}
+
+    in_sample_days = [d for d in close_df.index if d >= pd.to_datetime(IN_SAMPLE_START) and d <= pd.to_datetime(IN_SAMPLE_END)]
+    in_sample_me = [me for me in month_ends if me in rebal_map and rebal_map[me] in in_sample_days]
+    eligible_at_me = {me: [s for s in SECTOR_TICKERS if close_df[s].first_valid_index() <= me] for me in month_ends}
+
+    # Precompute in-sample daily returns matrix
+    in_sample_rets = close_df.loc[in_sample_days].pct_change().fillna(0.0)
+    day_to_month_idx = {}
+    for i, me in enumerate(in_sample_me):
+        exec_day = rebal_map[me]
+        next_exec = rebal_map[in_sample_me[i + 1]] if i + 1 < len(in_sample_me) else in_sample_days[-1]
+        for d in in_sample_days:
+            if exec_day <= d <= next_exec:
+                day_to_month_idx[d] = me
+
     null_sharpes = []
+    daily_borrow_rate = BORROW_FEE_PA / 252.0
+
     for seed in range(n_runs):
-        _, m = simulate_strategy(
-            close_df, open_df, beta_df,
-            strategy_id="NULL",
-            n_sectors=3,
-            start_date=IN_SAMPLE_START,
-            end_date=IN_SAMPLE_END,
-            random_seed=seed + 1000
-        )
-        null_sharpes.append(m["sharpe_ratio"])
+        rng = np.random.RandomState(seed + 1000)
+        # Compute monthly weights
+        weights_by_me = {}
+        for me in in_sample_me:
+            el = eligible_at_me[me]
+            picks = list(rng.choice(el, size=3, replace=False))
+            b_long = float(np.clip(beta_df.loc[me, picks].mean(), 0.50, 1.50))
+            w_spy = - 0.50 * b_long
+            gross = 0.50 + abs(w_spy)
+            scale = 1.0 if gross <= 1.0 else 1.0 / gross
+            w_dict = {s: (0.50 / 3.0) * scale for s in picks}
+            w_dict["SPY"] = w_spy * scale
+            weights_by_me[me] = (w_dict, w_spy * scale)
+
+        # Build daily portfolio return series
+        daily_rets = []
+        prev_w = {}
+        for d in in_sample_days:
+            me = day_to_month_idx.get(d)
+            if not me:
+                daily_rets.append(0.0)
+                continue
+            w_dict, w_spy = weights_by_me[me]
+            ret_d = sum(w * in_sample_rets.at[d, s] for s, w in w_dict.items())
+            # Deduct short borrow fee
+            ret_d -= abs(w_spy) * daily_borrow_rate
+            # Rebalance day slippage
+            if d in rebal_map.values():
+                all_s = set(w_dict) | set(prev_w)
+                turnover = sum(abs(w_dict.get(s, 0.0) - prev_w.get(s, 0.0)) for s in all_s)
+                ret_d -= turnover * (SLIPPAGE_BPS / 10000.0)
+                prev_w = w_dict
+            daily_rets.append(ret_d)
+
+        r_arr = np.array(daily_rets)
+        sh = float((np.mean(r_arr) / np.std(r_arr)) * np.sqrt(252)) if np.std(r_arr) > 0 else 0.0
+        null_sharpes.append(round(sh, 4))
+
         if (seed + 1) % 250 == 0:
-            print(f"  Completed {seed + 1} / {n_runs} null iterations...")
+            print(f"  Completed {seed + 1} / {n_runs} null iterations...", flush=True)
 
     p95 = float(np.percentile(null_sharpes, 95))
+    print(f"Vectorized Null Test completed in {time.time() - t0:.2f}s. p95: {p95:.4f}, Mean: {np.mean(null_sharpes):.4f}", flush=True)
     return p95, null_sharpes
 
 
@@ -375,7 +413,7 @@ def evaluate_gate_a():
     """Main Gate A evaluation orchestration."""
     print("=" * 75)
     print("PHASE 4 GATE A EVALUATION: S&P 500 SECTOR MARKET-NEUTRAL BOT")
-    print("=" * 75)
+    print("=" * 75, flush=True)
 
     verify_protocol_hash()
     close_df, open_df = load_dataset()
@@ -386,17 +424,17 @@ def evaluate_gate_a():
     candidate_dfs = {}
 
     for cid in candidates:
-        print(f"\nRunning In-Sample Simulation for Candidate {cid} (2000–2022)...")
+        print(f"\nRunning In-Sample Simulation for Candidate {cid} (2000–2022)...", flush=True)
         df_sim, m = simulate_strategy(close_df, open_df, beta_df, strategy_id=cid)
         dsr = compute_dsr(df_sim["ret"], m["sharpe_ratio"], n_trials=3)
         m["deflated_sharpe_ratio"] = round(dsr, 4)
         results[cid] = m
         candidate_dfs[cid] = df_sim
-        print(f"  -> {cid}: CAGR={m['cagr_pct']}%, MaxDD={m['max_drawdown_pct']}%, Sharpe={m['sharpe_ratio']}, DSR={dsr:.4f}")
+        print(f"  -> {cid}: CAGR={m['cagr_pct']}%, MaxDD={m['max_drawdown_pct']}%, Sharpe={m['sharpe_ratio']}, DSR={dsr:.4f}", flush=True)
 
-    # Random null test
-    p95_null, null_sharpes = run_random_null_test(close_df, open_df, beta_df, n_runs=1000)
-    print(f"\nRandom-Selection Null 95th Percentile Sharpe: {p95_null:.4f}")
+    # Random null test (vectorized for rapid execution)
+    p95_null, null_sharpes = run_random_null_test_vectorized(close_df, beta_df, n_runs=1000)
+    print(f"\nRandom-Selection Null 95th Percentile Sharpe: {p95_null:.4f}", flush=True)
 
     # Evaluate Hurdles for each candidate
     hurdles_check = {}
@@ -404,7 +442,7 @@ def evaluate_gate_a():
 
     print("\n" + "=" * 75)
     print("GATE A HURDLE VERIFICATION MATRIX (In-Sample 2000–2022)")
-    print("=" * 75)
+    print("=" * 75, flush=True)
 
     for cid in candidates:
         m = results[cid]
@@ -432,7 +470,7 @@ def evaluate_gate_a():
             "ALL_PASS": all_pass
         }
 
-        print(f"\nCandidate {cid}: {'CLEARED GATE A' if all_pass else 'FAILED GATE A'}")
+        print(f"\nCandidate {cid}: {'CLEARED GATE A' if all_pass else 'FAILED GATE A'}", flush=True)
         print(f"  1. Sharpe Ratio >= 0.50             : {'PASS' if h1 else 'FAIL'} (Val: {m['sharpe_ratio']})")
         print(f"  2. CAGR >= 4.00%                    : {'PASS' if h2 else 'FAIL'} (Val: {m['cagr_pct']}%)")
         print(f"  3. Max Drawdown >= -20.00%          : {'PASS' if h3 else 'FAIL'} (Val: {m['max_drawdown_pct']}%)")
@@ -441,7 +479,7 @@ def evaluate_gate_a():
         print(f"  6. Rolling 3Y Positive >= 70.0%     : {'PASS' if h6 else 'FAIL'} (Val: {m['rolling_3y_pos_pct']}%)")
         print(f"  7. Trades / Year <= 60              : {'PASS' if h7 else 'FAIL'} (Val: {m['trades_per_year']})")
         print(f"  8. Deflated Sharpe >= 0.95 (N=3)    : {'PASS' if h8 else 'FAIL'} (Val: {m['deflated_sharpe_ratio']})")
-        print(f"  9. Random Null Test (Sharpe > p95)  : {'PASS' if h9 else 'FAIL'} (Val: {m['sharpe_ratio']} vs p95: {p95_null:.4f})")
+        print(f"  9. Random Null Test (Sharpe > p95)  : {'PASS' if h9 else 'FAIL'} (Val: {m['sharpe_ratio']} vs p95: {p95_null:.4f})", flush=True)
 
         if all_pass:
             passed_candidates.append(cid)
@@ -450,16 +488,15 @@ def evaluate_gate_a():
     winner_cid = None
     if passed_candidates:
         winner_cid = max(passed_candidates, key=lambda c: results[c]["sharpe_ratio"])
-        print(f"\n>>> CHAMPION CANDIDATE: {winner_cid} (Sharpe={results[winner_cid]['sharpe_ratio']})")
+        print(f"\n>>> CHAMPION CANDIDATE: {winner_cid} (Sharpe={results[winner_cid]['sharpe_ratio']})", flush=True)
     else:
-        # None passed. Top performer by Sharpe designated for audit diagnostics
         winner_cid = max(candidates, key=lambda c: results[c]["sharpe_ratio"])
-        print(f"\n>>> NO CANDIDATE CLEARED ALL 9 HURDLES. Best performer: {winner_cid} (Sharpe={results[winner_cid]['sharpe_ratio']})")
+        print(f"\n>>> NO CANDIDATE CLEARED ALL 9 HURDLES. Best performer: {winner_cid} (Sharpe={results[winner_cid]['sharpe_ratio']})", flush=True)
 
     # Diagnostics for top candidate (Reported, not part of N)
     print("\n" + "=" * 75)
     print(f"PARAMETER SENSITIVITY DIAGNOSTICS FOR {winner_cid} (Hurdle: Sharpe >= 0.30)")
-    print("=" * 75)
+    print("=" * 75, flush=True)
     diagnostics = {}
     diag_configs = [
         {"name": "2_sectors", "n_sec": 2, "lb": 12, "skip": 1},
@@ -477,12 +514,12 @@ def evaluate_gate_a():
         )
         d_pass = m_diag["sharpe_ratio"] >= 0.30
         diagnostics[cfg["name"]] = {"metrics": m_diag, "pass": d_pass}
-        print(f"  - {cfg['name']} (N={cfg['n_sec']}, LB={cfg['lb']}m): Sharpe={m_diag['sharpe_ratio']:.4f}, CAGR={m_diag['cagr_pct']}%, MaxDD={m_diag['max_drawdown_pct']}% -> {'PASS' if d_pass else 'FAIL'}")
+        print(f"  - {cfg['name']} (N={cfg['n_sec']}, LB={cfg['lb']}m): Sharpe={m_diag['sharpe_ratio']:.4f}, CAGR={m_diag['cagr_pct']}%, MaxDD={m_diag['max_drawdown_pct']}% -> {'PASS' if d_pass else 'FAIL'}", flush=True)
 
     # Holdout Window Evaluation for Winner (opened once)
     print("\n" + "=" * 75)
     print(f"OUT-OF-SAMPLE HOLDOUT EVALUATION FOR {winner_cid} (2023-01-03 to Present)")
-    print("=" * 75)
+    print("=" * 75, flush=True)
     df_ho, m_ho = simulate_strategy(
         close_df, open_df, beta_df,
         strategy_id=winner_cid,
@@ -497,10 +534,10 @@ def evaluate_gate_a():
     print(f"  Sharpe Ratio     : {m_ho['sharpe_ratio']} (Hurdle: > 0.0 -> {'PASS' if m_ho['sharpe_ratio'] > 0 else 'FAIL'})")
     print(f"  Max Drawdown     : {m_ho['max_drawdown_pct']}% (Hurdle: >= -20.00% -> {'PASS' if m_ho['max_drawdown_pct'] >= -20 else 'FAIL'})")
     print(f"  Beta to SPY      : {m_ho['beta_to_spy']}")
-    print(f"  Holdout Verdict  : {'PASS' if ho_pass else 'FAIL'}")
+    print(f"  Holdout Verdict  : {'PASS' if ho_pass else 'FAIL'}", flush=True)
 
     # Stamp trials into canonical trial_log.csv
-    print("\nStamping N = 3 trials into canonical trial_log.csv...")
+    print("\nStamping N = 3 trials into canonical trial_log.csv...", flush=True)
     current_commit = "unknown"
     try:
         res = subprocess.run(["git", "rev-parse", "--short", "HEAD"], cwd=PROJECT_ROOT, capture_output=True, text=True, timeout=5)
@@ -543,7 +580,7 @@ def evaluate_gate_a():
 
     with open(RESULTS_JSON_PATH, "w", encoding="utf-8") as f:
         json.dump(payload, f, indent=2)
-    print(f"Results successfully saved to {RESULTS_JSON_PATH}")
+    print(f"Results successfully saved to {RESULTS_JSON_PATH}", flush=True)
 
     return payload
 
