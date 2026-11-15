@@ -57,8 +57,8 @@ jobs:
         run: |
           git fetch origin state 2>/dev/null || true
           if git show-ref --verify --quiet refs/remotes/origin/state; then
-            echo "Restoring state files from origin/state branch..."
-            git checkout origin/state -- \
+            echo "Restoring state files individually from origin/state branch..."
+            for f in \
               trading_system/data/etf_gold_state.json \
               trading_system/data/etf_gold_trades.csv \
               trading_system/data/etf_gold_equity_log.csv \
@@ -67,8 +67,10 @@ jobs:
               trading_system/data/bond_cash_equity_log.csv \
               trading_system/data/manager_state.json \
               trading_system/data/manager_equity_log.csv \
-              trading_system/data/unitized_nav_ledger.json 2>/dev/null || true
-            echo "State restoration complete."
+              trading_system/data/unitized_nav_ledger.json; do
+              git checkout origin/state -- "$f" 2>/dev/null && echo "  Restored $f" || echo "  $f not on state branch yet (first-time initialization)"
+            done
+            echo "State restoration step complete."
           else
             echo "No origin/state branch found; initializing fresh incubation state."
           fi
@@ -148,6 +150,11 @@ jobs:
             trading_system/data/manager_equity_log.csv \
             trading_system/data/unitized_nav_ledger.json 2>/dev/null || true
 
-          git pull --rebase origin state 2>/dev/null || true
-          git diff --staged --quiet || (git commit -m "chore(state): persist daily multi-bot pipeline state [skip ci]" && git push origin state)
-          echo "Pipeline state persistence complete."
+          if ! git diff --staged --quiet; then
+            git commit -m "chore(state): persist daily multi-bot pipeline state [skip ci]"
+            git pull --rebase origin state 2>/dev/null || true
+            git push origin state
+            echo "Pipeline state persistence complete."
+          else
+            echo "No state changes to commit."
+          fi
