@@ -1,53 +1,60 @@
-# S&P 500 Sector Market-Neutral Bot: Data Coverage & Integrity Report
+# US Sector & Factor ETFs Data Coverage & Integrity Report
 
-**Audit Timestamp**: 2026-11-14 23:53:58 UTC  
-**Universe**: 11 US Sector SPDR ETFs + SPY Broad Market Hedge  
+**Audit Timestamp**: 2026-11-15 10:25:25 UTC  
+**Target Universe**: 21 US ETFs (11 Sectors + 5 Factor Candidates + 4 Size/Style Controls + SPY Benchmark)  
 **Price Basis**: Total Return (Split & Dividend Adjusted via `auto_adjust=True`)  
 **Local Parquet Cache**: `trading_system/data/sp500_sectors_cache/`  
 
 ---
 
-## 1. Summary Coverage Matrix
+## 1. Full Universe Coverage Matrix
 
 | Ticker | Group | Name | Expected Inception | Observed Inception | Latest Date | Total Bars | Missing vs SPY | NaN Open/Close |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| XLB | Core Nine | Materials Select Sector SPDR | 1998-12-22 | 1998-12-22 | 2026-11-13 | 7017 | 0 | 0 |
-| XLE | Core Nine | Energy Select Sector SPDR | 1998-12-22 | 1998-12-22 | 2026-11-13 | 7017 | 0 | 0 |
-| XLF | Core Nine | Financial Select Sector SPDR | 1998-12-22 | 1998-12-22 | 2026-11-13 | 7017 | 0 | 0 |
-| XLI | Core Nine | Industrial Select Sector SPDR | 1998-12-22 | 1998-12-22 | 2026-11-13 | 7017 | 0 | 0 |
-| XLK | Core Nine | Technology Select Sector SPDR | 1998-12-22 | 1998-12-22 | 2026-11-13 | 7017 | 0 | 0 |
-| XLP | Core Nine | Consumer Staples Select Sector SPDR | 1998-12-22 | 1998-12-22 | 2026-11-13 | 7017 | 0 | 0 |
-| XLU | Core Nine | Utilities Select Sector SPDR | 1998-12-22 | 1998-12-22 | 2026-11-13 | 7017 | 0 | 0 |
-| XLV | Core Nine | Health Care Select Sector SPDR | 1998-12-22 | 1998-12-22 | 2026-11-13 | 7017 | 0 | 0 |
-| XLY | Core Nine | Consumer Discretionary Select Sector SPDR | 1998-12-22 | 1998-12-22 | 2026-11-13 | 7017 | 0 | 0 |
-| XLRE | Real Estate | Real Estate Select Sector SPDR | 2015-10-08 | 2015-10-08 | 2026-11-13 | 2792 | 0 | 0 |
-| XLC | Communication Services | Communication Services Select Sector SPDR | 2018-06-19 | 2018-06-19 | 2026-11-13 | 2114 | 0 | 0 |
-| SPY | Hedge Instrument | SPDR S&P 500 ETF Trust | 1993-01-29 | 1998-12-01 | 2026-11-13 | 7032 | 0 | 0 |
+| SPY | Hedge Benchmark | SPDR S&P 500 ETF Trust | 1993-01-29 | 1998-12-01 | 2026-11-13 | 7032 | 0 | 0 |
+| SPLV | Factor Candidate (F1) | Invesco S&P 500 Low Volatility ETF | 2011-05-05 | 2011-05-05 | 2026-11-13 | 3906 | 0 | 0 |
+| USMV | Factor Candidate (F2) | iShares MSCI USA Min Vol Factor ETF | 2011-10-20 | 2011-10-20 | 2026-11-13 | 3789 | 0 | 0 |
+| QUAL | Factor Candidate (F3) | iShares MSCI USA Quality Factor ETF | 2013-07-18 | 2013-07-18 | 2026-11-13 | 3353 | 0 | 0 |
+| VLUE | Factor Candidate (F4) | iShares MSCI USA Value Factor ETF | 2013-04-18 | 2013-04-18 | 2026-11-13 | 3416 | 0 | 0 |
+| MTUM | Factor Candidate (F5) | iShares MSCI USA Momentum Factor ETF | 2013-04-18 | 2013-04-18 | 2026-11-13 | 3416 | 0 | 0 |
+| XLB | Sector & Control | Materials Select Sector SPDR | 1998-12-22 | 1998-12-22 | 2026-11-13 | 7017 | 0 | 0 |
+| XLE | Sector & Control | Energy Select Sector SPDR | 1998-12-22 | 1998-12-22 | 2026-11-13 | 7017 | 0 | 0 |
+| XLF | Sector & Control | Financial Select Sector SPDR | 1998-12-22 | 1998-12-22 | 2026-11-13 | 7017 | 0 | 0 |
+| XLI | Sector & Control | Industrial Select Sector SPDR | 1998-12-22 | 1998-12-22 | 2026-11-13 | 7017 | 0 | 0 |
+| XLK | Sector & Control | Technology Select Sector SPDR | 1998-12-22 | 1998-12-22 | 2026-11-13 | 7017 | 0 | 0 |
+| XLP | Sector & Control | Consumer Staples Select Sector SPDR | 1998-12-22 | 1998-12-22 | 2026-11-13 | 7017 | 0 | 0 |
+| XLU | Sector & Control | Utilities Select Sector SPDR | 1998-12-22 | 1998-12-22 | 2026-11-13 | 7017 | 0 | 0 |
+| XLV | Sector & Control | Health Care Select Sector SPDR | 1998-12-22 | 1998-12-22 | 2026-11-13 | 7017 | 0 | 0 |
+| XLY | Sector & Control | Consumer Discretionary Select Sector SPDR | 1998-12-22 | 1998-12-22 | 2026-11-13 | 7017 | 0 | 0 |
+| XLRE | Sector & Control | Real Estate Select Sector SPDR | 2015-10-08 | 2015-10-08 | 2026-11-13 | 2792 | 0 | 0 |
+| XLC | Sector & Control | Communication Services Select Sector SPDR | 2018-06-19 | 2018-06-19 | 2026-11-13 | 2114 | 0 | 0 |
+| MDY | Size/Style Control | SPDR S&P MidCap 400 ETF Trust | 1995-05-04 | 1995-05-04 | 2026-11-13 | 7936 | 0 | 0 |
+| IWM | Size/Style Control | iShares Russell 2000 ETF | 2000-05-26 | 2000-05-26 | 2026-11-13 | 6657 | 0 | 0 |
+| QQQ | Size/Style Control | Invesco QQQ Trust (Nasdaq 100) | 1999-03-10 | 1999-03-10 | 2026-11-13 | 6965 | 0 | 0 |
+| DIA | Size/Style Control | SPDR Dow Jones Industrial Average ETF | 1998-01-20 | 1998-01-20 | 2026-11-13 | 7251 | 0 | 0 |
 
 ---
 
-## 2. Inception Dates & Cross-Sectional Ranking Dynamics
+## 2. Inception Dates & Real Trading Windows
 
-To prevent lookahead bias and survivorship distortion, ETFs enter the ranking pool strictly at their documented inception:
+Each ETF enters simulation strictly on its verified inception date with zero synthetic backfill:
 
-1. **Core Nine Era (1998-12-22 to 2015-10-07)**:  
-   - Universe size: **9 sectors** (`XLB, XLE, XLF, XLI, XLK, XLP, XLU, XLV, XLY`).
-   - Top 3 long leg constitutes a selection of 3 / 9 = 33.3% of available sectors.
+### Factor ETF Family ($N = 5$)
+- **SPLV** (Invesco S&P 500 Low Volatility): **2011-05-05** (~11.6 years in-sample through 2022-12-31).
+- **USMV** (iShares MSCI USA Min Vol): **2011-10-20** (~11.2 years in-sample).
+- **VLUE** (iShares MSCI USA Value): **2013-04-18** (~9.7 years in-sample).
+- **MTUM** (iShares MSCI USA Momentum): **2013-04-18** (~9.7 years in-sample).
+- **QUAL** (iShares MSCI USA Quality): **2013-07-18** (~9.4 years in-sample).
 
-2. **Real Estate Carve-Out (2015-10-08 to 2018-06-18)**:  
-   - `XLRE` launched on 2015-10-08 (carved out of Financials).
-   - For momentum ranking (requiring 12 months lookback), `XLRE` enters the candidate ranking pool on **2016-10-31**.
-   - Universe expands to **10 sectors**.
-
-3. **Communication Services Carve-Out (2018-06-19 to Present)**:  
-   - `XLC` launched on 2018-06-19 (carved out of Technology and Discretionary).
-   - For momentum ranking, `XLC` enters the candidate ranking pool on **2019-06-30**.
-   - Universe expands to **11 sectors**.
+### Control Universe (15 ETFs)
+- **Core Sector SPDRs (9)**: `XLB, XLE, XLF, XLI, XLK, XLP, XLU, XLV, XLY` (1998-12-22).
+- **Sector Carve-Outs (2)**: `XLRE` (2015-10-08), `XLC` (2018-06-19).
+- **Size & Style Controls (4)**: `MDY` (1995-05-04), `DIA` (1998-01-20), `QQQ` (1999-03-10), `IWM` (2000-05-26).
 
 ---
 
-## 3. Data Integrity & Usability Verdict
+## 3. Data Integrity Verdict
 
-- **Zero Missing Days**: All sector ETFs have exactly 0 missing trading sessions relative to SPY during their active lifespans.
-- **Zero NaN Values**: All open and close fields are complete and non-zero.
-- **Execution Consistency**: `auto_adjust=True` adjusts both `open` and `close` identically for corporate actions, providing clean next-open fill execution modeling.
+- **Missing Bars**: Exactly 0 missing sessions relative to SPY across all 21 ETFs during their active trading lifetimes.
+- **NaN Open/Close**: Exactly 0 NaN values.
+- **Total-Return Conformity**: Continuous dividend-adjusted series ensure total-return equity accounting across both legs.
