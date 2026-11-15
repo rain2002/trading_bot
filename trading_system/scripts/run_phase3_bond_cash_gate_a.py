@@ -509,10 +509,13 @@ def main():
 
     # 3. Simulate All Candidates (N = 3)
     print("\n[3/5] Simulating Pre-Registered Candidate Family (N = 3)...")
+    print("  [CASH PROXY NOTICE]: Overnight cash is modeled using a constant 6.0% sovereign repo yield")
+    print("  minus 0.16% TER drag (5.64% net in-sample / 5.74% holdout). Actual historical RBI repo")
+    print("  rates fluctuated between ~3.3% and 9.0%. B0 numbers serve as a standardized benchmark proxy.")
     
     # B0: Benchmark & Default
     b0_eq, b0_metrics = simulate_b0_cash(eval_dates, INITIAL_CAPITAL)
-    print(f"  [B0 100% Cash]    CAGR: {b0_metrics['cagr_pct']:.2f}% | MaxDD: {b0_metrics['max_drawdown_pct']:.2f}% | WorstMonth: {b0_metrics['worst_month_pct']:.2f}% | Trades/Yr: {b0_metrics['trades_per_year']}")
+    print(f"  [B0 Cash Proxy]   CAGR: {b0_metrics['cagr_pct']:.2f}% | MaxDD: {b0_metrics['max_drawdown_pct']:.2f}% | WorstMonth: {b0_metrics['worst_month_pct']:.2f}% | Trades/Yr: {b0_metrics['trades_per_year']}")
 
     # B1: Static 70/30 Sleeve
     b1_eq, b1_metrics = simulate_b1_static_sleeve(gilt_net, eval_dates, INITIAL_CAPITAL)
@@ -530,8 +533,8 @@ def main():
     print("\n" + "=" * 80)
     print("GATE A HURDLE AUDIT TABLE (PROTOCOL-BOND-AND-CASH-BOT-V1-20261114)")
     print("=" * 80)
-    print(f"{'Hurdle Metric':<28} | {'Hurdle Rule':<20} | {'B0 (Cash)':<10} | {'B1 (Static)':<14} | {'B2 (Trend-Gated)'}")
-    print("-" * 95)
+    print(f"{'Hurdle Metric':<28} | {'Hurdle Rule':<20} | {'B0 (Cash Proxy)':<15} | {'B1 (Static)':<14} | {'B2 (Trend-Gated)'}")
+    print("-" * 100)
     b0_max_dd_str = f"{b0_metrics['max_drawdown_pct']:.2f}%"
     b1_max_dd_str = f"{b1_metrics['max_drawdown_pct']:.2f}%"
     b2_max_dd_str = f"{b2_metrics['max_drawdown_pct']:.2f}%"
@@ -544,12 +547,12 @@ def main():
     b1_tp_str = f"{b1_metrics['trades_per_year']:.1f}"
     b2_tp_str = f"{b2_metrics['trades_per_year']:.1f}"
 
-    print(f"{'Excess CAGR over B0':<28} | {'>= +0.50 pts':<20} | {'0.00 pts':<10} | {f'{b1_excess_cagr:+.2f} pts':<14} | {f'{b2_excess_cagr:+.2f} pts'}")
-    print(f"{'Bootstrap 5th Percentile':<28} | {'> 0.00%':<20} | {'N/A':<10} | {f'{b1_p5_bs:+.2f}%':<14} | {f'{b2_p5_bs:+.2f}%'}")
-    print(f"{'Maximum Drawdown':<28} | {'>= -4.00%':<20} | {b0_max_dd_str:<10} | {b1_max_dd_str:<14} | {b2_max_dd_str}")
-    print(f"{'Worst Single Month':<28} | {'>= -2.00%':<20} | {b0_wm_str:<10} | {b1_wm_str:<14} | {b2_wm_str}")
-    print(f"{'Trades per Year':<28} | {'<= 12 trades/yr':<20} | {b0_tp_str:<10} | {b1_tp_str:<14} | {b2_tp_str}")
-    print("-" * 95)
+    print(f"{'Excess CAGR over B0':<28} | {'>= +0.50 pts':<20} | {'0.00 pts':<15} | {f'{b1_excess_cagr:+.2f} pts':<14} | {f'{b2_excess_cagr:+.2f} pts'}")
+    print(f"{'Bootstrap 5th Percentile':<28} | {'> 0.00%':<20} | {'N/A':<15} | {f'{b1_p5_bs:+.2f}%':<14} | {f'{b2_p5_bs:+.2f}%'}")
+    print(f"{'Maximum Drawdown':<28} | {'>= -4.00%':<20} | {b0_max_dd_str:<15} | {b1_max_dd_str:<14} | {b2_max_dd_str}")
+    print(f"{'Worst Single Month':<28} | {'>= -2.00%':<20} | {b0_wm_str:<15} | {b1_wm_str:<14} | {b2_wm_str}")
+    print(f"{'Trades per Year':<28} | {'<= 12 trades/yr':<20} | {b0_tp_str:<15} | {b1_tp_str:<14} | {b2_tp_str}")
+    print("-" * 100)
 
     # Check Pass Conditions
     b1_passes = (
@@ -601,21 +604,25 @@ def main():
     print(f"  Trades/Year  : {holdout_metrics['trades_per_year']}")
 
     # 6. Log Trials into Canonical trial_log.csv (Strictly N = 3)
-    print(f"\nStamping trial family (N = 3) into {TRIAL_LOG_PATH}...")
+    # Stamped with the exact commit hash where the runner arrived: b2e4674
+    RUNNER_COMMIT = "b2e4674"
+    print(f"\nStamping trial family (N = 3) into {TRIAL_LOG_PATH} with runner commit {RUNNER_COMMIT}...")
     log_trial(
         cagr_pct=b0_metrics["cagr_pct"],
         max_drawdown_pct=b0_metrics["max_drawdown_pct"],
         sharpe_ratio=b0_metrics["sharpe_ratio"],
         is_holdout_opened=(winner == "B0"),
+        commit_hash=RUNNER_COMMIT,
         script="run_phase3_bond_cash_gate_a.py",
         universe="NSE_DEBT_CASH_B0",
-        notes=f"Phase 3 Candidate B0: 100% Overnight Cash Default Benchmark (In-Sample 2008-2024; Elected Champion: {winner == 'B0'}; Holdout opened: {winner == 'B0'})"
+        notes=f"Phase 3 Candidate B0: 100% Overnight Cash Benchmark Proxy (Constant 6.0% Repo Yield Model; In-Sample 2008-2024; Elected Champion: {winner == 'B0'}; Holdout opened: {winner == 'B0'})"
     )
     log_trial(
         cagr_pct=b1_metrics["cagr_pct"],
         max_drawdown_pct=b1_metrics["max_drawdown_pct"],
         sharpe_ratio=b1_metrics["sharpe_ratio"],
         is_holdout_opened=(winner == "B1"),
+        commit_hash=RUNNER_COMMIT,
         script="run_phase3_bond_cash_gate_a.py",
         universe="NSE_DEBT_CASH_B1",
         notes=f"Phase 3 Candidate B1: Static 70/30 Sleeve (Excess: {b1_excess_cagr:+.2f}%, p5: {b1_p5_bs:+.2f}%, FAILED excess return hurdle)"
@@ -625,6 +632,7 @@ def main():
         max_drawdown_pct=b2_metrics["max_drawdown_pct"],
         sharpe_ratio=b2_metrics["sharpe_ratio"],
         is_holdout_opened=(winner == "B2"),
+        commit_hash=RUNNER_COMMIT,
         script="run_phase3_bond_cash_gate_a.py",
         universe="NSE_DEBT_CASH_B2",
         notes=f"Phase 3 Candidate B2: Trend-Gated 30% Gilt Sleeve (Excess: {b2_excess_cagr:+.2f}%, WorstMonth: {b2_metrics['worst_month_pct']:.2f}%, p5: {b2_p5_bs:+.2f}%, FAILED worst month and bootstrap hurdles)"
@@ -659,11 +667,20 @@ def main():
         "timestamp": datetime.now(timezone.utc).isoformat(),
         "protocol": "PROTOCOL-BOND-AND-CASH-BOT-V1-20261114",
         "protocol_hash": EXPECTED_PROTOCOL_HASH,
+        "runner_commit": RUNNER_COMMIT,
         "trial_family_size": 3,
         "champion_elected": winner,
         "champion_name": winner_name,
         "champion_reason": reason,
         "champion_holdout_metrics": holdout_metrics,
+        "cash_model": {
+            "type": "CONSTANT_REPO_PROXY",
+            "annual_yield": CASH_YIELD_ANNUAL,
+            "ter_drag": LIQUIDBEES_TER,
+            "net_cagr_in_sample": b0_metrics["cagr_pct"],
+            "net_cagr_holdout": holdout_metrics["cagr_pct"],
+            "note": "Assumed constant 6.0% repo yield minus 0.16% TER drag. Historical RBI repo rates ranged between ~3.3% and 9.0%. B0 figures serve as standardized benchmark proxies."
+        },
         "in_sample_period": {"start": START_DATE, "end": END_DATE, "sessions": len(eval_dates)},
         "holdout_period": {"start": "2025-01-01", "end": str(holdout_df.index[-1].date()), "sessions": len(holdout_df)},
         "candidates": {
@@ -671,7 +688,7 @@ def main():
                 "metrics": b0_metrics,
                 "excess_cagr": 0.0,
                 "hurdles_passed": True,
-                "role": "DEFAULT_BENCHMARK",
+                "role": "DEFAULT_BENCHMARK_PROXY",
                 "is_champion": (winner == "B0")
             },
             "B1_STATIC_70_30": {

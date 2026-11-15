@@ -1,0 +1,151 @@
+name: "Daily Multi-Bot Paper Trading Pipeline"
+
+# ==============================================================================
+# Unified Daily Execution Pipeline: ETF & Gold Bot -> Bond & Cash Bot -> Manager
+# Runs strictly on NSE trading days after market close (15:45 IST / 10:15 UTC).
+#
+# Sequential Architecture:
+# 1. Restores all bot and manager state files from origin/state branch.
+# 2. Runs Bot 1 (ETF & Gold Bot - Phase 1 Champion).
+# 3. Runs Bot 2 (Bond & Cash Bot - Phase 3 Champion B0).
+#    * Retreat Lag Note: Bot 2 ingests the Manager's max_duration_scale from
+#      the previous session's state (1-day EOD lag), standard for EOD paper trading.
+# 4. Runs Central Portfolio Manager (Phase 2).
+#    * Independently reconciles Bot 1 and Bot 2 NAVs against raw cash + positions.
+#    * Updates unitized NAV ledger and lifetime high-water mark.
+#    * Publishes updated max_duration_scale for next cycle.
+# 5. Persists all state files atomically to the origin/state branch in a single commit.
+#
+# Concurrency is pinned to 'trading-state' to prevent any concurrent state writes.
+# ==============================================================================
+
+concurrency:
+  group: trading-state
+  cancel-in-progress: false
+
+on:
+  schedule:
+    # 15:45 IST (10:15 UTC) Monday through Friday
+    - cron: '15 10 * * 1-5'
+  workflow_dispatch:
+
+jobs:
+  daily-paper-trading-pipeline:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout Repository (main branch)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install yfinance pandas numpy scipy requests python-dotenv
+
+      - name: Restore Paper State Artifacts from State Branch
+        run: |
+          git fetch origin state 2>/dev/null || true
+          if git show-ref --verify --quiet refs/remotes/origin/state; then
+            echo "Restoring state files from origin/state branch..."
+            git checkout origin/state -- \
+              trading_system/data/etf_gold_state.json \
+              trading_system/data/etf_gold_trades.csv \
+              trading_system/data/etf_gold_equity_log.csv \
+              trading_system/data/bond_cash_state.json \
+              trading_system/data/bond_cash_trades.csv \
+              trading_system/data/bond_cash_equity_log.csv \
+              trading_system/data/manager_state.json \
+              trading_system/data/manager_equity_log.csv \
+              trading_system/data/unitized_nav_ledger.json 2>/dev/null || true
+            echo "State restoration complete."
+          else
+            echo "No origin/state branch found; initializing fresh incubation state."
+          fi
+
+      - name: Step 1 - Execute Bot 1: ETF & Gold Bot
+        env:
+          PYTHONPATH: .
+          ENABLE_NOTIFICATIONS: "0"
+        run: |
+          echo "================================================================"
+          echo ">>> PIPELINE STEP 1: EXECUTING BOT 1 (ETF & GOLD BOT) <<<"
+          echo "================================================================"
+          python trading_system/scripts/run_etf_gold_bot.py
+
+      - name: Step 2 - Execute Bot 2: Bond & Cash Bot
+        env:
+          PYTHONPATH: .
+          ENABLE_NOTIFICATIONS: "0"
+        run: |
+          echo "================================================================"
+          echo ">>> PIPELINE STEP 2: EXECUTING BOT 2 (BOND & CASH BOT) <<<"
+          echo "================================================================"
+          # Ingests previous session's manager max_duration_scale (1-day EOD lag)
+          python trading_system/scripts/run_bond_cash_bot.py
+
+      - name: Step 3 - Execute Central Portfolio Manager
+        env:
+          PYTHONPATH: .
+          ENABLE_NOTIFICATIONS: "0"
+        run: |
+          echo "================================================================"
+          echo ">>> PIPELINE STEP 3: EXECUTING CENTRAL PORTFOLIO MANAGER <<<"
+          echo "================================================================"
+          # Independently reconciles Bot 1 and Bot 2, updates ledger, publishes max_duration_scale
+          python trading_system/scripts/run_manager.py
+
+      - name: Step 4 - Persist All Paper State Artifacts to State Branch
+        if: always()
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+          echo "Staging state files into temporary directory..."
+          mkdir -p /tmp/pipeline_state
+          cp trading_system/data/etf_gold_state.json /tmp/pipeline_state/ 2>/dev/null || true
+          cp trading_system/data/etf_gold_trades.csv /tmp/pipeline_state/ 2>/dev/null || true
+          cp trading_system/data/etf_gold_equity_log.csv /tmp/pipeline_state/ 2>/dev/null || true
+          cp trading_system/data/bond_cash_state.json /tmp/pipeline_state/ 2>/dev/null || true
+          cp trading_system/data/bond_cash_trades.csv /tmp/pipeline_state/ 2>/dev/null || true
+          cp trading_system/data/bond_cash_equity_log.csv /tmp/pipeline_state/ 2>/dev/null || true
+          cp trading_system/data/manager_state.json /tmp/pipeline_state/ 2>/dev/null || true
+          cp trading_system/data/manager_equity_log.csv /tmp/pipeline_state/ 2>/dev/null || true
+          cp trading_system/data/unitized_nav_ledger.json /tmp/pipeline_state/ 2>/dev/null || true
+
+          # Checkout or create state branch
+          git fetch origin state 2>/dev/null || true
+          if git show-ref --verify --quiet refs/remotes/origin/state; then
+            git checkout -B state origin/state
+          else
+            git checkout --orphan state
+            git rm -rf . --quiet 2>/dev/null || true
+          fi
+
+          mkdir -p trading_system/data
+          cp /tmp/pipeline_state/* trading_system/data/ 2>/dev/null || true
+
+          git add \
+            trading_system/data/etf_gold_state.json \
+            trading_system/data/etf_gold_trades.csv \
+            trading_system/data/etf_gold_equity_log.csv \
+            trading_system/data/bond_cash_state.json \
+            trading_system/data/bond_cash_trades.csv \
+            trading_system/data/bond_cash_equity_log.csv \
+            trading_system/data/manager_state.json \
+            trading_system/data/manager_equity_log.csv \
+            trading_system/data/unitized_nav_ledger.json 2>/dev/null || true
+
+          git pull --rebase origin state 2>/dev/null || true
+          git diff --staged --quiet || (git commit -m "chore(state): persist daily multi-bot pipeline state [skip ci]" && git push origin state)
+          echo "Pipeline state persistence complete."

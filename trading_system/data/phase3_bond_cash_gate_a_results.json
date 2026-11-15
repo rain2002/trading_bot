@@ -1,7 +1,8 @@
 {
-  "timestamp": "2026-11-15T01:40:38.508743+00:00",
+  "timestamp": "2026-11-15T02:25:40.384279+00:00",
   "protocol": "PROTOCOL-BOND-AND-CASH-BOT-V1-20261114",
   "protocol_hash": "21ca8098b611110b065591853be6f457d4ba2394216cba6970e35baa0b8ecb82",
+  "runner_commit": "b2e4674",
   "trial_family_size": 3,
   "champion_elected": "B0",
   "champion_name": "B0 (100% Overnight Cash Benchmark)",
@@ -16,6 +17,14 @@
     "total_trades": 0,
     "trades_per_year": 0.0,
     "years": 1.86
+  },
+  "cash_model": {
+    "type": "CONSTANT_REPO_PROXY",
+    "annual_yield": 0.06,
+    "ter_drag": 0.0016,
+    "net_cagr_in_sample": 5.64,
+    "net_cagr_holdout": 5.74,
+    "note": "Assumed constant 6.0% repo yield minus 0.16% TER drag. Historical RBI repo rates ranged between ~3.3% and 9.0%. B0 figures serve as standardized benchmark proxies."
   },
   "in_sample_period": {
     "start": "2008-01-01",
@@ -42,7 +51,7 @@
       },
       "excess_cagr": 0.0,
       "hurdles_passed": true,
-      "role": "DEFAULT_BENCHMARK",
+      "role": "DEFAULT_BENCHMARK_PROXY",
       "is_champion": true
     },
     "B1_STATIC_70_30": {

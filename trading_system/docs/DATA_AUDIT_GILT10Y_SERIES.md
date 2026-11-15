@@ -24,7 +24,7 @@
 - **Ending Valuation (2024-12-31)**: ₹345.0504
 - **Realized Net CAGR**: **+7.43% per annum**
 - **Annualized Return Volatility**: **5.32%**
-- **Maximum Historical Drawdown**: **-11.69%** (during 2022 global rate hike cycle)
+- **Maximum Historical Drawdown**: **-11.69%** (full cycle peak-to-trough from 2022-05-02 peak to 2023-02-08 trough; intra-calendar-year 2022 drawdown was **-11.26%** to 2022-12-07)
 
 ### B. Clean Price vs. Total Return Mathematical Disproof
 If the `GILT10Y` series were a clean (price-only) index:
@@ -41,7 +41,7 @@ The series responds to historical Reserve Bank of India (RBI) rate regimes with 
 - **2013 Taper Tantrum Selloff**: -5.01% return (-6.02% MaxDD) during acute rupee depreciation and sudden liquidity tightening.
 - **2014–2016 RBI Disinflation Easing (Raghuram Rajan tenure)**: +44.28% cumulative return as headline inflation fell and policy rates were cut.
 - **2020 COVID Pandemic Emergency Easing**: +8.72% return as RBI lowered repo rate to 4.00% and introduced TLTROs.
-- **2022 Global Inflation & Rate Hikes**: -9.47% return (-11.26% MaxDD) during aggressive 250 bps policy rate tightening.
+- **2022 Global Inflation & Rate Hikes**: -9.47% calendar 2022 return (-11.26% intra-year 2022 MaxDD, extending to -11.69% cycle trough on 2023-02-08) during aggressive 250 bps policy rate tightening.
 
 ### D. Rolling 1-Year Return Distribution
 - **Median 1-Year Rolling Return**: **+7.83%** (matching median 10-year G-sec coupon rates).

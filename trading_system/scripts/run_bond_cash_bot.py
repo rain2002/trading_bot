@@ -4,6 +4,8 @@ Execution Script: Run Bond and Cash Bot (Phase 3 Gate B Incubation)
 Executes daily cycle for Bot 2 (Bond and Cash Bot):
 - Ingests latest market quotes for LIQUIDBEES.NS and LTGILTBEES.NS.
 - Ingests Manager's `max_duration_scale` (1.0 = normal, 0.0 = retreat/halt).
+  * Note on Retreat Lag: Ingests `max_duration_scale` from the previous session's Manager state
+    (1-day EOD lag), which is standard for sequential end-of-day paper trading.
 - Enforces stale-price and missing-quote fail-closed safety.
 - Executes Champion strategy (B0: 100% Overnight Cash Yield) with dedicated INR 20,000 paper capital.
 - Logs daily NAV, trades, and 13-week incubation progress.
