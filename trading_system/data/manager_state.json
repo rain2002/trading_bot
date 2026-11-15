@@ -1,0 +1,24 @@
+{
+  "manager_name": "CENTRAL_PORTFOLIO_MANAGER",
+  "phase": "PHASE_2",
+  "policy": "FIXED_SHARES_PLUS_KILL_SWITCH",
+  "unitized_nav": 99.9319,
+  "hwm_unit_nav": 100.0,
+  "current_drawdown": -0.0007,
+  "max_drawdown": -0.0007,
+  "throttle_level": 0,
+  "consecutive_recovery_days": 0,
+  "is_halted": false,
+  "halt_reason": null,
+  "human_override_required": false,
+  "last_reconciliation_gap_pct": 0.0,
+  "last_rebalance_date": null,
+  "current_shares": {
+    "ETF_AND_GOLD": 1.0,
+    "BOND_AND_CASH": 0.0,
+    "CASH_SLEEVE": 0.0
+  },
+  "last_update": "2026-11-15T05:47:00.071059+00:00",
+  "mode": "PAPER",
+  "max_duration_scale": 1.0
+}

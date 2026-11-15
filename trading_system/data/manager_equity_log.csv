@@ -1,0 +1,4 @@
+date,total_portfolio_value,nav_per_unit,true_trading_return_pct,current_drawdown_pct,throttle_level,is_halted,halt_reason,reconciliation_gap_pct,share_etf_gold,share_cash_sleeve
+2026-11-14 05:44:00,80000.0,100.0,0.0,0.0,0,False,,0.0,1.0,0.0
+2026-11-15 01:44:18,80000.0,100.0,0.0,0.0,0,False,,0.0,1.0,0.0,PAPER
+2026-11-15 05:46:58,79945.49,99.9319,-0.07,-0.07,0,False,,0.0,1.0,0.0,PAPER

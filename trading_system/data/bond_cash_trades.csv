@@ -1,0 +1,2 @@
+timestamp,bot,symbol,side,shares,price,trade_value,fees_paid,tax_paid,net_cash_impact
+2026-11-15 01:44:14,BOND_AND_CASH,LIQUIDBEES.NS,BUY,19,1000.0,19000.0,13.01,0.0,19013.01

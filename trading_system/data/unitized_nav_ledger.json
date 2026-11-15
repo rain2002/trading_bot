@@ -1,21 +1,21 @@
 {
     "base_nav_per_unit": 100.0,
-    "nav_per_unit": 97.502,
-    "total_units": 1026.1817,
-    "total_portfolio_value": 100054.81,
-    "cumulative_deposits": 102618.17,
+    "nav_per_unit": 99.9319,
+    "total_units": 800.0,
+    "total_portfolio_value": 79945.49,
+    "cumulative_deposits": 80000.0,
     "cumulative_withdrawals": 0.0,
     "tactical_cash_reserve": 0.0,
-    "last_dip_date": "2026-11-05",
+    "last_dip_date": "2026-11-15",
     "transactions": [
         {
-            "timestamp": "2026-11-05T01:58:59.797683+00:00",
+            "timestamp": "2026-11-15T05:47:00.069206+00:00",
             "type": "INITIAL_SEED",
-            "amount": 102618.17,
+            "amount": 80000.0,
             "nav_per_unit": 100.0,
-            "units_issued": 1026.1817,
-            "total_units_after": 1026.1817,
-            "portfolio_value_after": 102618.17
+            "units_issued": 800.0,
+            "total_units_after": 800.0,
+            "portfolio_value_after": 80000.0
         }
     ]
 }

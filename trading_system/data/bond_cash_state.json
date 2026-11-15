@@ -1,0 +1,27 @@
+{
+  "bot_name": "BOND_AND_CASH_BOT",
+  "phase": "PHASE_3",
+  "gate": "GATE_B_PAPER",
+  "strategy_id": "B0",
+  "incubation_start_date": "2026-11-15T01:44:13.726023+00:00",
+  "incubation_target_weeks": 13,
+  "days_incubated": 0,
+  "initial_capital": 20000.0,
+  "cash": 986.9945000000007,
+  "positions": {
+    "LIQUIDBEES.NS": {
+      "shares": 19,
+      "entry_price": 1000.0,
+      "entry_date": "2026-11-15",
+      "last_price": 1000.0
+    }
+  },
+  "nav": 19986.99,
+  "hwm": 20000.0,
+  "current_drawdown_pct": -0.07,
+  "max_drawdown_pct": -0.07,
+  "max_duration_scale": 1.0,
+  "last_run_timestamp": "2026-11-15T05:46:51.458283+00:00",
+  "last_rebalance_date": "2026-11-15T01:44:14.157100+00:00",
+  "status": "HEALTHY_ACTIVE"
+}
