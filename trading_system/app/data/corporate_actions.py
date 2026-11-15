@@ -118,3 +118,57 @@ def build_verified_split_adjustment_matrix(
     adj_factors = shifted_inv.iloc[::-1].cumprod().iloc[::-1]
 
     return mult_df, adj_factors
+
+
+from trading_system.app.common.logger import get_logger
+
+_ca_logger = get_logger("CorporateActions")
+
+
+class CorporateActionProcessor:
+    """
+    Handles Stock Splits, Reverse Splits, and Cash Dividends strictly point-in-time.
+    Maintains backward compatibility for yfinance and database data providers.
+    """
+
+    @staticmethod
+    def calculate_adjustment_factors(raw_df: pd.DataFrame) -> pd.DataFrame:
+        df = raw_df.copy()
+        for col in ["dividends", "stock splits"]:
+            if col not in df.columns:
+                df[col] = 0.0
+
+        df["dividends"] = df["dividends"].fillna(0)
+        df["stock splits"] = df["stock splits"].fillna(0)
+
+        inv_split_ratios = df["stock splits"].apply(lambda r: 1.0 / r if (pd.notnull(r) and r > 0) else 1.0)
+        shifted_inv_splits = inv_split_ratios.shift(-1, fill_value=1.0)
+        split_factor = shifted_inv_splits.iloc[::-1].cumprod().iloc[::-1]
+
+        prev_close = df["close"].shift(1)
+        div_yield = (df["dividends"] / prev_close).fillna(0.0)
+        div_multiplier = (1.0 - div_yield).clip(lower=0.0, upper=1.0)
+        shifted_div_multiplier = div_multiplier.shift(-1, fill_value=1.0)
+        div_factor = shifted_div_multiplier.iloc[::-1].cumprod().iloc[::-1]
+
+        df["adj_factor"] = split_factor * div_factor
+        df["adj_open"] = df["open"] * df["adj_factor"]
+        df["adj_high"] = df["high"] * df["adj_factor"]
+        df["adj_low"] = df["low"] * df["adj_factor"]
+        df["adj_close"] = df["close"] * df["adj_factor"]
+        df["adj_volume"] = df["volume"] / df["adj_factor"].replace(0.0, 1.0)
+
+        _ca_logger.info(f"Calculated corporate action adjustment factors for {len(df)} rows.")
+        return df
+
+    @staticmethod
+    def apply_splits_to_portfolio(current_positions: dict, today_splits: dict) -> dict:
+        new_positions = current_positions.copy()
+        for sym, split_ratio in today_splits.items():
+            if split_ratio > 0 and sym in new_positions:
+                old_qty = new_positions[sym]
+                new_qty = old_qty * split_ratio
+                new_positions[sym] = new_qty
+                _ca_logger.info(f"CORPORATE ACTION: {sym} split {split_ratio}:1. Position updated: {old_qty} -> {new_qty}")
+        return new_positions
+
