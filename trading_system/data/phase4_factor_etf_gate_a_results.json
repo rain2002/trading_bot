@@ -1,0 +1,213 @@
+{
+  "timestamp_utc": "2026-11-15T16:32:59.985448+00:00",
+  "runner_commit": "1041c30",
+  "protocol_hash": "ee358f4d929402018e874d670dc341cb5779c935e30dd91ea36f1fb00c808e24",
+  "declared_trials_n": 5,
+  "candidates": {
+    "F1": {
+      "ticker": "SPLV",
+      "cagr_pct": 0.44,
+      "sharpe_ratio": 0.0982,
+      "max_drawdown_pct": -29.65,
+      "worst_month_pct": -7.41,
+      "realized_beta": 0.0671,
+      "realized_corr": 0.1484,
+      "rolling_3y_positive_pct": 66.3,
+      "trades_per_year": 24.0,
+      "annual_alpha_pct": 0.7,
+      "alpha_tstat": 0.01,
+      "sharpe_first_half": 0.5118,
+      "sharpe_second_half": -0.1336,
+      "years": 11.15,
+      "total_days": 2809,
+      "deflated_sharpe_ratio": 0.1934,
+      "sim_start_date": "2011-11-02",
+      "sim_end_date": "2022-12-30",
+      "candidate_id": "F1"
+    },
+    "F2": {
+      "ticker": "USMV",
+      "cagr_pct": 0.85,
+      "sharpe_ratio": 0.2054,
+      "max_drawdown_pct": -21.02,
+      "worst_month_pct": -4.11,
+      "realized_beta": 0.0496,
+      "realized_corr": 0.1618,
+      "rolling_3y_positive_pct": 66.7,
+      "trades_per_year": 24.2,
+      "annual_alpha_pct": 1.09,
+      "alpha_tstat": 0.03,
+      "sharpe_first_half": 0.6737,
+      "sharpe_second_half": -0.0802,
+      "years": 10.68,
+      "total_days": 2692,
+      "deflated_sharpe_ratio": 0.3003,
+      "sim_start_date": "2012-04-23",
+      "sim_end_date": "2022-12-30",
+      "candidate_id": "F2"
+    },
+    "F3": {
+      "ticker": "QUAL",
+      "cagr_pct": -0.62,
+      "sharpe_ratio": -0.1818,
+      "max_drawdown_pct": -10.74,
+      "worst_month_pct": -1.87,
+      "realized_beta": 0.0127,
+      "realized_corr": 0.0746,
+      "rolling_3y_positive_pct": 48.6,
+      "trades_per_year": 24.1,
+      "annual_alpha_pct": -0.7,
+      "alpha_tstat": -0.04,
+      "sharpe_first_half": -0.0019,
+      "sharpe_second_half": -0.3274,
+      "years": 8.95,
+      "total_days": 2256,
+      "deflated_sharpe_ratio": 0.0,
+      "sim_start_date": "2014-01-16",
+      "sim_end_date": "2022-12-30",
+      "candidate_id": "F3"
+    },
+    "F4": {
+      "ticker": "VLUE",
+      "cagr_pct": -2.55,
+      "sharpe_ratio": -0.2912,
+      "max_drawdown_pct": -32.49,
+      "worst_month_pct": -5.85,
+      "realized_beta": 0.0575,
+      "realized_corr": 0.1352,
+      "rolling_3y_positive_pct": 5.3,
+      "trades_per_year": 24.1,
+      "annual_alpha_pct": -3.41,
+      "alpha_tstat": -0.06,
+      "sharpe_first_half": 0.0407,
+      "sharpe_second_half": -0.5143,
+      "years": 9.2,
+      "total_days": 2319,
+      "deflated_sharpe_ratio": 0.0,
+      "sim_start_date": "2013-10-16",
+      "sim_end_date": "2022-12-30",
+      "candidate_id": "F4"
+    },
+    "F5": {
+      "ticker": "MTUM",
+      "cagr_pct": 0.65,
+      "sharpe_ratio": 0.1197,
+      "max_drawdown_pct": -26.92,
+      "worst_month_pct": -5.75,
+      "realized_beta": 0.0695,
+      "realized_corr": 0.1475,
+      "rolling_3y_positive_pct": 69.3,
+      "trades_per_year": 24.1,
+      "annual_alpha_pct": 1.34,
+      "alpha_tstat": 0.03,
+      "sharpe_first_half": 0.8169,
+      "sharpe_second_half": -0.2394,
+      "years": 9.2,
+      "total_days": 2319,
+      "deflated_sharpe_ratio": 0.2032,
+      "sim_start_date": "2013-10-16",
+      "sim_end_date": "2022-12-30",
+      "candidate_id": "F5"
+    }
+  },
+  "control_null_results": {
+    "F1": {
+      "control_count": 13,
+      "p95_sharpe": 0.4461,
+      "mean_sharpe": 0.0676,
+      "max_sharpe": 0.4885
+    },
+    "F2": {
+      "control_count": 13,
+      "p95_sharpe": 0.4244,
+      "mean_sharpe": 0.0645,
+      "max_sharpe": 0.465
+    },
+    "F3": {
+      "control_count": 13,
+      "p95_sharpe": 0.4962,
+      "mean_sharpe": 0.049,
+      "max_sharpe": 0.631
+    },
+    "F4": {
+      "control_count": 13,
+      "p95_sharpe": 0.5263,
+      "mean_sharpe": 0.0511,
+      "max_sharpe": 0.6658
+    },
+    "F5": {
+      "control_count": 13,
+      "p95_sharpe": 0.5263,
+      "mean_sharpe": 0.0511,
+      "max_sharpe": 0.6658
+    }
+  },
+  "hurdles_verification": {
+    "F1": {
+      "H1_sharpe": false,
+      "H2_cagr": false,
+      "H3_maxdd": false,
+      "H4_worst_month": true,
+      "H5_market_neutrality": true,
+      "H6_consistency": false,
+      "H7_turnover": true,
+      "H8_deflated_sharpe": false,
+      "H9_control_null": false,
+      "ALL_PASS": false
+    },
+    "F2": {
+      "H1_sharpe": false,
+      "H2_cagr": false,
+      "H3_maxdd": false,
+      "H4_worst_month": true,
+      "H5_market_neutrality": true,
+      "H6_consistency": false,
+      "H7_turnover": false,
+      "H8_deflated_sharpe": false,
+      "H9_control_null": false,
+      "ALL_PASS": false
+    },
+    "F3": {
+      "H1_sharpe": false,
+      "H2_cagr": false,
+      "H3_maxdd": true,
+      "H4_worst_month": true,
+      "H5_market_neutrality": true,
+      "H6_consistency": false,
+      "H7_turnover": false,
+      "H8_deflated_sharpe": false,
+      "H9_control_null": false,
+      "ALL_PASS": false
+    },
+    "F4": {
+      "H1_sharpe": false,
+      "H2_cagr": false,
+      "H3_maxdd": false,
+      "H4_worst_month": true,
+      "H5_market_neutrality": true,
+      "H6_consistency": false,
+      "H7_turnover": false,
+      "H8_deflated_sharpe": false,
+      "H9_control_null": false,
+      "ALL_PASS": false
+    },
+    "F5": {
+      "H1_sharpe": false,
+      "H2_cagr": false,
+      "H3_maxdd": false,
+      "H4_worst_month": true,
+      "H5_market_neutrality": true,
+      "H6_consistency": false,
+      "H7_turnover": false,
+      "H8_deflated_sharpe": false,
+      "H9_control_null": false,
+      "ALL_PASS": false
+    }
+  },
+  "champion_selected": null,
+  "gate_a_cleared": false,
+  "holdout_results": {
+    "opened": false,
+    "reason": "No candidate passed all 9 Gate A hurdles; holdout strictly sealed."
+  }
+}

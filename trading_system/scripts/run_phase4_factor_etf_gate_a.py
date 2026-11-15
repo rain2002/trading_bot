@@ -240,7 +240,8 @@ def simulate_factor_market_neutral(
     dd = (res_df["equity"] - cummax) / cummax
     max_dd = float(dd.min())
 
-    monthly_eq = res_df["equity"].resample("ME").last()
+    # Monthly returns on trading-day boundaries
+    monthly_eq = res_df["equity"].groupby([res_df.index.year, res_df.index.month]).last()
     monthly_rets = monthly_eq.pct_change().dropna()
     worst_month = float(monthly_rets.min()) if len(monthly_rets) > 0 else 0.0
 
@@ -255,7 +256,8 @@ def simulate_factor_market_neutral(
     trades_per_yr = float(total_trades / years)
 
     # Jensen's alpha against SPY from monthly returns
-    spy_monthly = close_df.loc[monthly_eq.index, "SPY"].pct_change().dropna()
+    spy_daily = close_df.loc[res_df.index, "SPY"]
+    spy_monthly = spy_daily.groupby([spy_daily.index.year, spy_daily.index.month]).last().pct_change().dropna()
     common_m = monthly_rets.index.intersection(spy_monthly.index)
     if len(common_m) > 12:
         slope, intercept, r_val, p_val, std_err = stats.linregress(spy_monthly.loc[common_m], monthly_rets.loc[common_m])
