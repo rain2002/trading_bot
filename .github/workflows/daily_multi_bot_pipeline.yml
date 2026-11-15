@@ -152,7 +152,13 @@ jobs:
 
           if ! git diff --staged --quiet; then
             git commit -m "chore(state): persist daily multi-bot pipeline state [skip ci]"
-            git pull --rebase origin state 2>/dev/null || true
+            # Fetch latest state and rebase cleanly; abort rebase on conflict to avoid dirty state
+            git fetch origin state 2>/dev/null || true
+            if ! git rebase origin/state 2>/dev/null; then
+              echo "Rebase conflict detected on state branch! Aborting rebase to prevent dirty state."
+              git rebase --abort 2>/dev/null || true
+              exit 1
+            fi
             git push origin state
             echo "Pipeline state persistence complete."
           else
