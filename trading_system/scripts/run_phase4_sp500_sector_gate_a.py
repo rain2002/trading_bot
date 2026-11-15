@@ -578,8 +578,19 @@ def evaluate_gate_a():
         "holdout_results": m_ho,
     }
 
+    def json_serial(obj):
+        if isinstance(obj, (np.bool_, bool)):
+            return bool(obj)
+        if isinstance(obj, (np.floating, float)):
+            return float(obj)
+        if isinstance(obj, (np.integer, int)):
+            return int(obj)
+        if isinstance(obj, np.ndarray):
+            return obj.tolist()
+        return str(obj)
+
     with open(RESULTS_JSON_PATH, "w", encoding="utf-8") as f:
-        json.dump(payload, f, indent=2)
+        json.dump(payload, f, indent=2, default=json_serial)
     print(f"Results successfully saved to {RESULTS_JSON_PATH}", flush=True)
 
     return payload

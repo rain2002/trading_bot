@@ -1,0 +1,128 @@
+{
+  "timestamp_utc": "2026-11-15T15:27:33.000000+00:00",
+  "runner_commit": "7bf5920",
+  "protocol_hash": "cf3c41200397f7f87d0d3e3254de32e4083e9be5f96728d36f87bc72a8d848e7",
+  "declared_trials_n": 3,
+  "in_sample_window": {
+    "start": "2000-01-03",
+    "end": "2022-12-30"
+  },
+  "holdout_window": {
+    "start": "2023-01-03",
+    "end": "2026-11-13"
+  },
+  "null_test_p95_sharpe": 0.2956,
+  "null_test_mean_sharpe": 0.0477,
+  "candidates": {
+    "M1": {
+      "strategy_id": "M1",
+      "cagr_pct": 0.27,
+      "sharpe_ratio": 0.0865,
+      "max_drawdown_pct": -20.14,
+      "worst_month_pct": -3.29,
+      "realized_beta": 0.0074,
+      "realized_corr": 0.0348,
+      "rolling_3y_positive_pct": 43.8,
+      "trades_per_year": 55.7,
+      "deflated_sharpe_ratio": 0.1076
+    },
+    "R1": {
+      "strategy_id": "R1",
+      "cagr_pct": -0.53,
+      "sharpe_ratio": -0.0929,
+      "max_drawdown_pct": -24.52,
+      "worst_month_pct": -5.11,
+      "realized_beta": 0.0194,
+      "realized_corr": 0.0893,
+      "rolling_3y_positive_pct": 40.8,
+      "trades_per_year": 72.3,
+      "deflated_sharpe_ratio": 0.0179
+    },
+    "L1": {
+      "strategy_id": "L1",
+      "cagr_pct": -0.71,
+      "sharpe_ratio": -0.0747,
+      "max_drawdown_pct": -30.98,
+      "worst_month_pct": -5.09,
+      "realized_beta": 0.0086,
+      "realized_corr": 0.0251,
+      "rolling_3y_positive_pct": 32.5,
+      "trades_per_year": 86.1,
+      "deflated_sharpe_ratio": 0.022
+    }
+  },
+  "hurdles_verification": {
+    "M1": {
+      "H1_sharpe": false,
+      "H2_cagr": false,
+      "H3_maxdd": false,
+      "H4_worst_month": true,
+      "H5_market_neutrality": true,
+      "H6_consistency": false,
+      "H7_turnover": true,
+      "H8_deflated_sharpe": false,
+      "H9_null_test": false,
+      "ALL_PASS": false
+    },
+    "R1": {
+      "H1_sharpe": false,
+      "H2_cagr": false,
+      "H3_maxdd": false,
+      "H4_worst_month": true,
+      "H5_market_neutrality": true,
+      "H6_consistency": false,
+      "H7_turnover": false,
+      "H8_deflated_sharpe": false,
+      "H9_null_test": false,
+      "ALL_PASS": false
+    },
+    "L1": {
+      "H1_sharpe": false,
+      "H2_cagr": false,
+      "H3_maxdd": false,
+      "H4_worst_month": true,
+      "H5_market_neutrality": true,
+      "H6_consistency": false,
+      "H7_turnover": false,
+      "H8_deflated_sharpe": false,
+      "H9_null_test": false,
+      "ALL_PASS": false
+    }
+  },
+  "champion_selected": null,
+  "gate_a_cleared": false,
+  "diagnostics": {
+    "2_sectors": {
+      "sharpe_ratio": 0.1255,
+      "cagr_pct": 0.53,
+      "max_drawdown_pct": -20.38,
+      "pass": false
+    },
+    "4_sectors": {
+      "sharpe_ratio": 0.0777,
+      "cagr_pct": 0.2,
+      "max_drawdown_pct": -15.46,
+      "pass": false
+    },
+    "9m_lookback": {
+      "sharpe_ratio": 0.1173,
+      "cagr_pct": 0.4,
+      "max_drawdown_pct": -13.98,
+      "pass": false
+    },
+    "11m_lookback": {
+      "sharpe_ratio": 0.1375,
+      "cagr_pct": 0.48,
+      "max_drawdown_pct": -17.85,
+      "pass": false
+    }
+  },
+  "holdout_results": {
+    "period": "2023-01-03 to 2026-11-13",
+    "cagr_pct": -1.28,
+    "sharpe_ratio": -0.3382,
+    "max_drawdown_pct": -9.63,
+    "realized_beta": -0.0105,
+    "pass": false
+  }
+}
