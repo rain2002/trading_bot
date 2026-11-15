@@ -1,0 +1,97 @@
+{
+  "timestamp": "2026-11-15T01:40:38.508743+00:00",
+  "protocol": "PROTOCOL-BOND-AND-CASH-BOT-V1-20261114",
+  "protocol_hash": "21ca8098b611110b065591853be6f457d4ba2394216cba6970e35baa0b8ecb82",
+  "trial_family_size": 3,
+  "champion_elected": "B0",
+  "champion_name": "B0 (100% Overnight Cash Benchmark)",
+  "champion_reason": "Neither candidate cleared all hurdles. B0 ships by default.",
+  "champion_holdout_metrics": {
+    "cagr_pct": 5.74,
+    "max_drawdown_pct": 0.0,
+    "worst_month_pct": 0.2,
+    "terminal_equity": 22193.27,
+    "sharpe_ratio": 0.0,
+    "volatility_pct": 0.0,
+    "total_trades": 0,
+    "trades_per_year": 0.0,
+    "years": 1.86
+  },
+  "in_sample_period": {
+    "start": "2008-01-01",
+    "end": "2024-12-31",
+    "sessions": 4143
+  },
+  "holdout_period": {
+    "start": "2025-01-01",
+    "end": "2026-11-13",
+    "sessions": 463
+  },
+  "candidates": {
+    "B0_CASH_BENCHMARK": {
+      "metrics": {
+        "cagr_pct": 5.64,
+        "max_drawdown_pct": 0.0,
+        "worst_month_pct": 0.09,
+        "terminal_equity": 50837.85,
+        "sharpe_ratio": 0.0,
+        "volatility_pct": 0.0,
+        "total_trades": 0,
+        "trades_per_year": 0.0,
+        "years": 17.0
+      },
+      "excess_cagr": 0.0,
+      "hurdles_passed": true,
+      "role": "DEFAULT_BENCHMARK",
+      "is_champion": true
+    },
+    "B1_STATIC_70_30": {
+      "metrics": {
+        "cagr_pct": 6.0,
+        "max_drawdown_pct": -2.07,
+        "worst_month_pct": -1.08,
+        "terminal_equity": 53816.31,
+        "sharpe_ratio": 0.66,
+        "volatility_pct": 1.57,
+        "total_trades": 16,
+        "trades_per_year": 0.9,
+        "years": 17.0,
+        "total_tax_paid": 239.31
+      },
+      "excess_cagr": 0.36,
+      "bootstrap_mean_excess": 0.33,
+      "bootstrap_p5_excess": -0.42,
+      "bootstrap_p95_excess": 1.12,
+      "hurdles_passed": false,
+      "failure_reasons": [
+        "Excess return +0.36 pts < +0.50 pts hurdle",
+        "Bootstrap 5th percentile -0.42% <= 0.0%"
+      ],
+      "is_champion": false
+    },
+    "B2_TREND_GATED": {
+      "metrics": {
+        "cagr_pct": 6.15,
+        "max_drawdown_pct": -3.47,
+        "worst_month_pct": -3.03,
+        "terminal_equity": 55148.15,
+        "sharpe_ratio": 0.77,
+        "volatility_pct": 1.53,
+        "total_trades": 10,
+        "trades_per_year": 0.6,
+        "years": 17.0,
+        "total_tax_paid": 1690.78
+      },
+      "excess_cagr": 0.51,
+      "bootstrap_mean_excess": 0.48,
+      "bootstrap_p5_excess": -0.31,
+      "bootstrap_p95_excess": 1.27,
+      "hurdles_passed": false,
+      "failure_reasons": [
+        "Bootstrap 5th percentile -0.31% <= 0.0%",
+        "Worst month -3.03% < -2.00%"
+      ],
+      "is_champion": false
+    }
+  }
+}

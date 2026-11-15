@@ -101,6 +101,7 @@ class PortfolioManagerEngine(ManagerInterface):
             "human_override_required": False,
             "last_reconciliation_gap_pct": 0.0,
             "last_rebalance_date": None,
+            "max_duration_scale": 1.0,
             "current_shares": {"ETF_AND_GOLD": 1.0, "CASH_SLEEVE": 0.0},
             "last_update": now_iso
         }
@@ -146,8 +147,17 @@ class PortfolioManagerEngine(ManagerInterface):
         Enforces drawdown throttle, kill-switch, stale report checks, and re-risking.
         """
         # 1. Daily Reconciliation Guard
+        # Only bots allocated capital from the manager's portfolio are reconciled against manager total value.
+        # Bots with dedicated partitioned capital (e.g. 0% target share) are reconciled independently.
         manager_total_val = float(nav_state.get("total_portfolio_value", self.initial_capital))
-        bot_navs = {k: r.nav for k, r in reports.items()}
+        bot_navs = {
+            k: r.nav for k, r in reports.items()
+            if self.target_shares.get(k, 0.0) > 0.0
+        }
+        # If no bot has target_share > 0, fallback to all reported bots except cash sleeve
+        if not bot_navs:
+            bot_navs = {k: r.nav for k, r in reports.items() if k != "CASH_SLEEVE"}
+
         rec_pass, gap = self.reconcile_portfolio(bot_navs, manager_total_val)
         if not rec_pass:
             self.state["is_halted"] = True
@@ -172,6 +182,7 @@ class PortfolioManagerEngine(ManagerInterface):
             if not self.state.get("halt_reason"):
                 self.state["halt_reason"] = f"KILL_SWITCH_TRIGGERED: Drawdown {dd*100:.2f}% breached -40.0% hard stop"
             self.state["human_override_required"] = True
+            self.state["max_duration_scale"] = 0.0
             self.state["current_shares"] = {"CASH_SLEEVE": 1.0}
             self._save_state()
             logger.critical(f"MANAGER HALTED: {self.state['halt_reason']}. 100% capital routed to LIQUIDBEES.NS.")
@@ -218,15 +229,21 @@ class PortfolioManagerEngine(ManagerInterface):
         self.state["throttle_level"] = current_level
         self.state["consecutive_recovery_days"] = recovery_days
 
-        # 5. Compute Risk Exposure Multiplier
+        # 5. Compute Risk Exposure Multiplier & Duration Scale
         if current_level == 0:
             risk_scale = 1.0
+            max_duration_scale = 1.0
         elif current_level == 1:
             risk_scale = THROTTLE_L1_RISK_SCALE  # 0.50
+            max_duration_scale = 0.0  # Risk-off: defensive retreat to 100% cash
         elif current_level == 2:
             risk_scale = THROTTLE_L2_RISK_SCALE  # 0.25
+            max_duration_scale = 0.0  # Risk-off: defensive retreat to 100% cash
         else:
             risk_scale = KILL_SWITCH_RISK_SCALE  # 0.0
+            max_duration_scale = 0.0
+
+        self.state["max_duration_scale"] = max_duration_scale
 
         # 6. Allocate Shares Across Bots & Cash Sleeve
         # In LIVE mode, ONLY bots with LIVE_APPROVED are eligible for real capital allocation.
@@ -284,5 +301,6 @@ class PortfolioManagerEngine(ManagerInterface):
             "halt_reason": self.state.get("halt_reason"),
             "consecutive_recovery_days": self.state.get("consecutive_recovery_days", 0),
             "last_reconciliation_gap_pct": self.state.get("last_reconciliation_gap_pct", 0.0),
+            "max_duration_scale": self.state.get("max_duration_scale", 1.0),
             "current_shares": self.state.get("current_shares", {})
         }

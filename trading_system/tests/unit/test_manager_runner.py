@@ -336,3 +336,84 @@ def test_manager_runner_live_mode_vs_paper_mode(tmp_path: Path):
     )
     assert res_live_approved["shares"]["ETF_AND_GOLD"] == 1.0
     assert res_live_approved["shares"]["CASH_SLEEVE"] == 0.0
+
+
+def test_manager_runner_ingests_bond_cash_state_and_publishes_duration_scale(tmp_path: Path):
+    etf_state_path = str(tmp_path / "etf_gold_state.json")
+    bond_state_path = str(tmp_path / "bond_cash_state.json")
+    mgr_state_path = str(tmp_path / "manager_state.json")
+    ledger_path = str(tmp_path / "unitized_nav_ledger.json")
+    equity_log_path = str(tmp_path / "manager_equity_log.csv")
+
+    now = datetime.now(timezone.utc)
+    bond_state = {
+        "bot_name": "BOND_AND_CASH_BOT",
+        "phase": "PHASE_3",
+        "gate": "GATE_B_PAPER",
+        "strategy_id": "B0",
+        "nav": 20000.0,
+        "cash": 20000.0,
+        "positions": {},
+        "current_drawdown_pct": 0.0,
+        "max_drawdown_pct": 0.0,
+        "status": "HEALTHY_ACTIVE",
+        "last_run_timestamp": now.isoformat()
+    }
+    with open(bond_state_path, "w") as f:
+        json.dump(bond_state, f)
+
+    res = execute_manager_cycle(
+        etf_state_path=etf_state_path,
+        bond_cash_state_path=bond_state_path,
+        manager_state_path=mgr_state_path,
+        ledger_path=ledger_path,
+        equity_log_path=equity_log_path,
+        initial_capital=80000.0
+    )
+
+    assert res["status"]["is_halted"] is False
+    assert res["max_duration_scale"] == 1.0
+    assert res["status"]["max_duration_scale"] == 1.0
+    assert res["bond_cash_report"] is not None
+    assert res["bond_cash_report"]["nav"] == 20000.0
+    assert res["bond_cash_report"]["reconciliation_passed"] is True
+
+
+def test_manager_runner_catches_tampered_bond_state(tmp_path: Path):
+    etf_state_path = str(tmp_path / "etf_gold_state.json")
+    bond_state_path = str(tmp_path / "bond_cash_state.json")
+    mgr_state_path = str(tmp_path / "manager_state.json")
+    ledger_path = str(tmp_path / "unitized_nav_ledger.json")
+    equity_log_path = str(tmp_path / "manager_equity_log.csv")
+
+    now = datetime.now(timezone.utc)
+    # Tampered NAV: reports 25,000 but only holds 20,000 cash
+    tampered_bond_state = {
+        "bot_name": "BOND_AND_CASH_BOT",
+        "phase": "PHASE_3",
+        "gate": "GATE_B_PAPER",
+        "strategy_id": "B0",
+        "nav": 25000.0,
+        "cash": 20000.0,
+        "positions": {},
+        "current_drawdown_pct": 0.0,
+        "max_drawdown_pct": 0.0,
+        "status": "HEALTHY_ACTIVE",
+        "last_run_timestamp": now.isoformat()
+    }
+    with open(bond_state_path, "w") as f:
+        json.dump(tampered_bond_state, f)
+
+    res = execute_manager_cycle(
+        etf_state_path=etf_state_path,
+        bond_cash_state_path=bond_state_path,
+        manager_state_path=mgr_state_path,
+        ledger_path=ledger_path,
+        equity_log_path=equity_log_path,
+        initial_capital=80000.0
+    )
+
+    assert res["status"]["is_halted"] is True
+    assert "BOND_CASH_BOT_RECONCILIATION_BREACH" in res["status"]["halt_reason"]
+    assert res["bond_cash_report"]["reconciliation_passed"] is False
+

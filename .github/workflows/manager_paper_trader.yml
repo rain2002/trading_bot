@@ -10,8 +10,8 @@ concurrency:
 
 on:
   schedule:
-    # 15:50 IST (10:20 UTC) Monday through Friday
-    - cron: '20 10 * * 1-5'
+    # 15:52 IST (10:22 UTC) Monday through Friday (sequentially after Bot 1 at 10:15 and Bot 2 at 10:18)
+    - cron: '22 10 * * 1-5'
   workflow_dispatch:
 
 jobs:
@@ -45,6 +45,7 @@ jobs:
             echo "Restoring state files from origin/state branch..."
             git checkout origin/state -- \
               trading_system/data/etf_gold_state.json \
+              trading_system/data/bond_cash_state.json \
               trading_system/data/manager_state.json \
               trading_system/data/manager_equity_log.csv \
               trading_system/data/unitized_nav_ledger.json 2>/dev/null || true

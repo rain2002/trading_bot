@@ -101,6 +101,7 @@ def compute_independent_bot_nav(
 
 def execute_manager_cycle(
     etf_state_path: Optional[str] = None,
+    bond_cash_state_path: Optional[str] = None,
     manager_state_path: Optional[str] = None,
     ledger_path: Optional[str] = None,
     equity_log_path: Optional[str] = None,
@@ -112,6 +113,7 @@ def execute_manager_cycle(
 ) -> Dict[str, Any]:
     data_dir = os.path.join(PROJECT_ROOT, "trading_system", "data")
     etf_state_path = etf_state_path or os.path.join(data_dir, "etf_gold_state.json")
+    bond_cash_state_path = bond_cash_state_path or os.path.join(data_dir, "bond_cash_state.json")
     manager_state_path = manager_state_path or os.path.join(data_dir, "manager_state.json")
     ledger_path = ledger_path or os.path.join(data_dir, "unitized_nav_ledger.json")
     equity_log_path = equity_log_path or os.path.join(data_dir, "manager_equity_log.csv")
@@ -143,7 +145,46 @@ def execute_manager_cycle(
     # 2. Independent Bot NAV Calculation (from raw cash + positions * fresh quotes)
     independent_nav, quotes_used = compute_independent_bot_nav(etf_state, quotes_override=quotes_override)
 
-    # 3. Maintain Unitized NAV Ledger based on Verified Independent NAV
+    # 3. Ingest Bond and Cash Bot State (Dedicated INR 20,000 Paper Capital Partition)
+    bond_state = None
+    independent_bond_nav = 0.0
+    bond_reported_nav = 0.0
+    bond_stale = False
+    bond_rec_passed = True
+    bond_report = None
+
+    if os.path.exists(bond_cash_state_path):
+        try:
+            with open(bond_cash_state_path, "r") as f:
+                bond_state = json.load(f)
+            bond_reported_nav = float(bond_state.get("nav", 20000.0))
+            bond_stale = is_bot_state_stale(bond_state.get("last_run_timestamp"), current_time)
+            independent_bond_nav, bond_quotes = compute_independent_bot_nav(bond_state, quotes_override=quotes_override)
+            quotes_used.update(bond_quotes)
+
+            # Independent reconciliation of Bond & Cash Bot
+            if bond_reported_nav > 0:
+                bond_gap = abs(independent_bond_nav - bond_reported_nav) / bond_reported_nav
+                if bond_gap > RECONCILIATION_MAX_GAP:
+                    logger.error(f"BOND & CASH BOT RECONCILIATION GAP: {bond_gap*100:.3f}% > 0.1%")
+                    bond_rec_passed = False
+
+            bond_report = BotReport(
+                nav=bond_reported_nav,
+                risk_status={
+                    "current_drawdown_pct": bond_state.get("current_drawdown_pct", 0.0),
+                    "max_drawdown_pct": bond_state.get("max_drawdown_pct", 0.0),
+                    "strategy_id": bond_state.get("strategy_id", "B0"),
+                    "status": bond_state.get("status", "HEALTHY_ACTIVE")
+                },
+                gate_status=bond_state.get("gate", "GATE_B_PAPER"),
+                last_update=pd.Timestamp(bond_state.get("last_run_timestamp") or current_time),
+                stale=bond_stale
+            )
+        except Exception as e:
+            logger.error(f"Error reading bond cash state: {e}")
+
+    # 4. Maintain Unitized NAV Ledger based on Verified Independent Primary Portfolio NAV
     nav_engine = UnitizedNAVEngine(ledger_path=ledger_path, initial_capital=initial_capital)
     nav_engine.update_portfolio_valuation(independent_nav, timestamp=current_time)
     nav_metrics = nav_engine.get_fund_performance_metrics()
@@ -154,7 +195,7 @@ def execute_manager_cycle(
         "nav_per_unit": nav_metrics["nav_per_unit"]
     }
 
-    # 4. Construct Bot Report using Reported NAV to Test State File Integrity
+    # 5. Construct Bot Reports
     etf_report = BotReport(
         nav=reported_nav,
         risk_status={
@@ -168,10 +209,17 @@ def execute_manager_cycle(
     )
 
     reports = {"ETF_AND_GOLD": etf_report}
+    if bond_report is not None:
+        reports["BOND_AND_CASH"] = bond_report
 
-    # 5. Evaluate Portfolio Shares, Fiduciary Reconciliation & Risk Controls
+    # Target shares: ETF Bot holds 100% of deployable capital; Bond Bot holds dedicated partitioned paper capital (0.0% real share)
+    target_shares = {"ETF_AND_GOLD": 1.0}
+    if bond_report is not None:
+        target_shares["BOND_AND_CASH"] = 0.0
+
+    # 6. Evaluate Portfolio Shares, Fiduciary Reconciliation & Risk Controls
     manager = PortfolioManagerEngine(
-        target_shares={"ETF_AND_GOLD": 1.0},
+        target_shares=target_shares,
         initial_capital=initial_capital,
         state_file=manager_state_path,
         policy=policy,
@@ -183,6 +231,12 @@ def execute_manager_cycle(
         reports=reports,
         nav_state=nav_state
     )
+
+    # If bond bot failed independent reconciliation, flag alert
+    if not bond_rec_passed:
+        manager.state["is_halted"] = True
+        manager.state["halt_reason"] = "BOND_CASH_BOT_RECONCILIATION_BREACH"
+        manager._save_state()
 
     status = manager.get_status()
 
@@ -219,11 +273,18 @@ def execute_manager_cycle(
         "independent_nav": independent_nav,
         "reported_nav": reported_nav,
         "quotes_used": quotes_used,
+        "max_duration_scale": status.get("max_duration_scale", 1.0),
         "etf_report": {
             "nav": etf_report.nav,
             "stale": etf_report.stale,
             "gate_status": etf_report.gate_status
-        }
+        },
+        "bond_cash_report": {
+            "nav": bond_reported_nav,
+            "independent_nav": independent_bond_nav,
+            "stale": bond_stale,
+            "reconciliation_passed": bond_rec_passed
+        } if bond_report is not None else None
     }
 
 
@@ -240,7 +301,6 @@ def main():
     print(f"Timestamp        : {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')}")
     print(f"Execution Mode   : {args.mode.upper()}")
     print(f"Production Policy: {args.policy} (Per Pre-registered Test T1 Verdict)")
-    print(f"Active Universe  : Bot 1 (ETF & Gold Bot: 100%) + Cash Sleeve (LIQUIDBEES.NS: 0%)")
     print(f"Starting Capital : INR {args.capital:,.2f}")
     print("-" * 80)
 
@@ -257,6 +317,10 @@ def main():
     print(f"Reconciliation Gap    : {status['last_reconciliation_gap_pct']:.4f}% (Max Permissible: {RECONCILIATION_MAX_GAP * 100.0:.1f}%)")
     print(f"Trading Halted        : {'YES - ' + str(status['halt_reason']) if status['is_halted'] else 'NO (Normal Operations)'}")
     print(f"Risk Throttle Level   : {status['throttle_level']} (0: Normal, 1: -15%, 2: -30%, 3: -40% Kill)")
+    print(f"Max Duration Scale    : {status.get('max_duration_scale', 1.0):.2f} (1.0 = Normal, 0.0 = Retreat/Throttled)")
+    if res.get("bond_cash_report"):
+        b_rep = res["bond_cash_report"]
+        print(f"Bond & Cash Bot NAV   : INR {b_rep['nav']:,.2f} (Partitioned Gate B Capital | Rec Passed: {b_rep['reconciliation_passed']})")
     print("-" * 80)
     print("Allocated Capital Shares:")
     for sleeve, share in shares.items():
