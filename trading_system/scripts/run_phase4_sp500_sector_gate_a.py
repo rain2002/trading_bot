@@ -484,18 +484,19 @@ def evaluate_gate_a():
         if all_pass:
             passed_candidates.append(cid)
 
-    # Determine Winner
-    winner_cid = None
+    # Determine Champion strictly if cleared all hurdles
+    champion_cid = None
     if passed_candidates:
-        winner_cid = max(passed_candidates, key=lambda c: results[c]["sharpe_ratio"])
-        print(f"\n>>> CHAMPION CANDIDATE: {winner_cid} (Sharpe={results[winner_cid]['sharpe_ratio']})", flush=True)
+        champion_cid = max(passed_candidates, key=lambda c: results[c]["sharpe_ratio"])
+        print(f"\n>>> CHAMPION CANDIDATE: {champion_cid} (Sharpe={results[champion_cid]['sharpe_ratio']})", flush=True)
     else:
-        winner_cid = max(candidates, key=lambda c: results[c]["sharpe_ratio"])
-        print(f"\n>>> NO CANDIDATE CLEARED ALL 9 HURDLES. Best performer: {winner_cid} (Sharpe={results[winner_cid]['sharpe_ratio']})", flush=True)
+        best_performer = max(candidates, key=lambda c: results[c]["sharpe_ratio"])
+        print(f"\n>>> NO CANDIDATE CLEARED ALL 9 HURDLES. Best performer (unapproved): {best_performer} (Sharpe={results[best_performer]['sharpe_ratio']})", flush=True)
 
-    # Diagnostics for top candidate (Reported, not part of N)
+    # Diagnostics for best performer or champion (Reported, not part of N)
+    diag_target = champion_cid if champion_cid else best_performer
     print("\n" + "=" * 75)
-    print(f"PARAMETER SENSITIVITY DIAGNOSTICS FOR {winner_cid} (Hurdle: Sharpe >= 0.30)")
+    print(f"PARAMETER SENSITIVITY DIAGNOSTICS FOR {diag_target} (Hurdle: Sharpe >= 0.30)")
     print("=" * 75, flush=True)
     diagnostics = {}
     diag_configs = [
@@ -507,7 +508,7 @@ def evaluate_gate_a():
     for cfg in diag_configs:
         _, m_diag = simulate_strategy(
             close_df, open_df, beta_df,
-            strategy_id=winner_cid,
+            strategy_id=diag_target,
             lookback_months=cfg["lb"],
             skip_months=cfg["skip"],
             n_sectors=cfg["n_sec"]
@@ -516,25 +517,38 @@ def evaluate_gate_a():
         diagnostics[cfg["name"]] = {"metrics": m_diag, "pass": d_pass}
         print(f"  - {cfg['name']} (N={cfg['n_sec']}, LB={cfg['lb']}m): Sharpe={m_diag['sharpe_ratio']:.4f}, CAGR={m_diag['cagr_pct']}%, MaxDD={m_diag['max_drawdown_pct']}% -> {'PASS' if d_pass else 'FAIL'}", flush=True)
 
-    # Holdout Window Evaluation for Winner (opened once)
-    print("\n" + "=" * 75)
-    print(f"OUT-OF-SAMPLE HOLDOUT EVALUATION FOR {winner_cid} (2023-01-03 to Present)")
-    print("=" * 75, flush=True)
-    df_ho, m_ho = simulate_strategy(
-        close_df, open_df, beta_df,
-        strategy_id=winner_cid,
-        start_date=HOLDOUT_START,
-        end_date=close_df.index[-1].strftime("%Y-%m-%d")
-    )
-    dsr_ho = compute_dsr(df_ho["ret"], m_ho["sharpe_ratio"], n_trials=3)
-    m_ho["deflated_sharpe_ratio"] = round(dsr_ho, 4)
-    ho_pass = (m_ho["sharpe_ratio"] > 0.0) and (m_ho["max_drawdown_pct"] >= -20.00)
-    print(f"  Holdout Period   : {HOLDOUT_START} to {close_df.index[-1].strftime('%Y-%m-%d')}")
-    print(f"  CAGR             : {m_ho['cagr_pct']}%")
-    print(f"  Sharpe Ratio     : {m_ho['sharpe_ratio']} (Hurdle: > 0.0 -> {'PASS' if m_ho['sharpe_ratio'] > 0 else 'FAIL'})")
-    print(f"  Max Drawdown     : {m_ho['max_drawdown_pct']}% (Hurdle: >= -20.00% -> {'PASS' if m_ho['max_drawdown_pct'] >= -20 else 'FAIL'})")
-    print(f"  Beta to SPY      : {m_ho['beta_to_spy']}")
-    print(f"  Holdout Verdict  : {'PASS' if ho_pass else 'FAIL'}", flush=True)
+    # Holdout Window Evaluation: STRICTLY CONDITIONAL ON PASSING ALL 9 GATE A HURDLES
+    m_ho = {}
+    if champion_cid is not None:
+        print("\n" + "=" * 75)
+        print(f"OUT-OF-SAMPLE HOLDOUT EVALUATION FOR CHAMPION {champion_cid} ({HOLDOUT_START} to Present)")
+        print("=" * 75, flush=True)
+        df_ho, m_ho = simulate_strategy(
+            close_df, open_df, beta_df,
+            strategy_id=champion_cid,
+            start_date=HOLDOUT_START,
+            end_date=close_df.index[-1].strftime("%Y-%m-%d")
+        )
+        dsr_ho = compute_dsr(df_ho["ret"], m_ho["sharpe_ratio"], n_trials=3)
+        m_ho["deflated_sharpe_ratio"] = round(dsr_ho, 4)
+        ho_pass = (m_ho["sharpe_ratio"] > 0.0) and (m_ho["max_drawdown_pct"] >= -20.00)
+        m_ho["opened"] = True
+        m_ho["pass"] = ho_pass
+        print(f"  Holdout Period   : {HOLDOUT_START} to {close_df.index[-1].strftime('%Y-%m-%d')}")
+        print(f"  CAGR             : {m_ho['cagr_pct']}%")
+        print(f"  Sharpe Ratio     : {m_ho['sharpe_ratio']} (Hurdle: > 0.0 -> {'PASS' if m_ho['sharpe_ratio'] > 0 else 'FAIL'})")
+        print(f"  Max Drawdown     : {m_ho['max_drawdown_pct']}% (Hurdle: >= -20.00% -> {'PASS' if m_ho['max_drawdown_pct'] >= -20 else 'FAIL'})")
+        print(f"  Beta to SPY      : {m_ho['beta_to_spy']}")
+        print(f"  Holdout Verdict  : {'PASS' if ho_pass else 'FAIL'}", flush=True)
+    else:
+        print("\n" + "=" * 75)
+        print(f"OUT-OF-SAMPLE HOLDOUT GUARD: SEALED ({HOLDOUT_START} to Present)")
+        print("No candidate passed all 9 Gate A hurdles. Holdout was NOT opened.")
+        print("=" * 75, flush=True)
+        m_ho = {
+            "opened": False,
+            "reason": "No candidate passed all 9 Gate A hurdles; holdout strictly sealed."
+        }
 
     # Stamp trials into canonical trial_log.csv
     print("\nStamping N = 3 trials into canonical trial_log.csv...", flush=True)
@@ -554,7 +568,7 @@ def evaluate_gate_a():
             sharpe_ratio=m["sharpe_ratio"],
             kelly_fraction=0.00,  # Unleveraged equity
             lookback_days=252 if cid in ["M1", "L1"] else 21,
-            is_holdout_opened=(cid == winner_cid),
+            is_holdout_opened=(cid == champion_cid and champion_cid is not None),
             commit_hash=current_commit,
             script="run_phase4_sp500_sector_gate_a.py",
             universe="SP500_SECTORS_11_PLUS_SPY",

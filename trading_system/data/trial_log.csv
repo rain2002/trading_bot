@@ -130,6 +130,6 @@ date,commit_hash,script,universe,kelly_fraction,lookback_days,cagr_pct,max_drawd
 2026-11-15 02:25:40,b2e4674,run_phase3_bond_cash_gate_a.py,NSE_DEBT_CASH_B0,0.4,90,5.64,0.0,0.0,True,Phase 3 Candidate B0: 100% Overnight Cash Benchmark Proxy (Constant 6.0% Repo Yield Model; In-Sample 2008-2024; Elected Champion: True; Holdout opened: True)
 2026-11-15 02:25:40,b2e4674,run_phase3_bond_cash_gate_a.py,NSE_DEBT_CASH_B1,0.4,90,6.0,-2.07,0.66,False,"Phase 3 Candidate B1: Static 70/30 Sleeve (Excess: +0.36%, p5: -0.42%, FAILED excess return hurdle)"
 2026-11-15 02:25:40,b2e4674,run_phase3_bond_cash_gate_a.py,NSE_DEBT_CASH_B2,0.4,90,6.15,-3.47,0.77,False,"Phase 3 Candidate B2: Trend-Gated 30% Gilt Sleeve (Excess: +0.51%, WorstMonth: -3.03%, p5: -0.31%, FAILED worst month and bootstrap hurdles)"
-2026-11-15 15:27:33,7bf5920,run_phase4_sp500_sector_gate_a.py,SP500_SECTORS_11_PLUS_SPY,0.0,252,0.27,-20.14,0.09,True,Phase 4 Gate A M1: In-Sample 2000-2022. Passed=False. DSR=0.1076.
+2026-11-15 15:27:33,7bf5920,run_phase4_sp500_sector_gate_a.py,SP500_SECTORS_11_PLUS_SPY,0.0,252,0.27,-20.14,0.09,False,Phase 4 Gate A M1: In-Sample 2000-2022. Passed=False. DSR=0.1076.
 2026-11-15 15:27:33,7bf5920,run_phase4_sp500_sector_gate_a.py,SP500_SECTORS_11_PLUS_SPY,0.0,21,-0.53,-24.52,-0.09,False,Phase 4 Gate A R1: In-Sample 2000-2022. Passed=False. DSR=0.0179.
 2026-11-15 15:27:33,7bf5920,run_phase4_sp500_sector_gate_a.py,SP500_SECTORS_11_PLUS_SPY,0.0,252,-0.71,-30.98,-0.07,False,Phase 4 Gate A L1: In-Sample 2000-2022. Passed=False. DSR=0.0220.

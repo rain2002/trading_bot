@@ -118,11 +118,7 @@
     }
   },
   "holdout_results": {
-    "period": "2023-01-03 to 2026-11-13",
-    "cagr_pct": -1.28,
-    "sharpe_ratio": -0.3382,
-    "max_drawdown_pct": -9.63,
-    "realized_beta": -0.0105,
-    "pass": false
+    "opened": false,
+    "reason": "No candidate passed all 9 Gate A hurdles; holdout strictly sealed."
   }
 }
