@@ -37,25 +37,26 @@ jobs:
       contents: write
 
     steps:
-      - name: Checkout Repository (main branch)
+      - name: "Checkout Repository (main branch)"
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Set up Python 3.12
+      - name: "Set up Python 3.12"
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
           cache: "pip"
 
-      - name: Install Dependencies
+      - name: "Install Dependencies"
         run: |
           python -m pip install --upgrade pip
           pip install yfinance pandas numpy scipy requests python-dotenv
 
-      - name: Restore Paper State Artifacts from State Branch
+      - name: "Restore Paper State Artifacts from State Branch"
         run: |
-          git fetch origin state 2>/dev/null || true
+          mkdir -p trading_system/data
+          git fetch origin +refs/heads/state:refs/remotes/origin/state 2>/dev/null || true
           if git show-ref --verify --quiet refs/remotes/origin/state; then
             echo "Restoring state files individually from origin/state branch..."
             for f in \
@@ -75,7 +76,7 @@ jobs:
             echo "No origin/state branch found; initializing fresh incubation state."
           fi
 
-      - name: Step 1 - Execute Bot 1: ETF & Gold Bot
+      - name: "Step 1 - Execute Bot 1 (ETF & Gold Bot)"
         continue-on-error: true
         env:
           PYTHONPATH: .
@@ -86,7 +87,7 @@ jobs:
           echo "================================================================"
           python trading_system/scripts/run_etf_gold_bot.py
 
-      - name: Step 2 - Execute Bot 2: Bond & Cash Bot
+      - name: "Step 2 - Execute Bot 2 (Bond & Cash Bot)"
         continue-on-error: true
         env:
           PYTHONPATH: .
@@ -98,7 +99,7 @@ jobs:
           # Ingests previous session's manager max_duration_scale (1-day EOD lag)
           python trading_system/scripts/run_bond_cash_bot.py
 
-      - name: Step 3 - Execute Central Portfolio Manager
+      - name: "Step 3 - Execute Central Portfolio Manager"
         env:
           PYTHONPATH: .
           ENABLE_NOTIFICATIONS: "0"
@@ -109,36 +110,44 @@ jobs:
           # Independently reconciles Bot 1 and Bot 2, updates ledger, publishes max_duration_scale
           python trading_system/scripts/run_manager.py
 
-      - name: Step 4 - Persist All Paper State Artifacts to State Branch
+      - name: "Step 4 - Persist All Paper State Artifacts to State Branch"
         if: always()
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
-          echo "Staging state files into temporary directory..."
-          mkdir -p /tmp/pipeline_state
-          cp trading_system/data/etf_gold_state.json /tmp/pipeline_state/ 2>/dev/null || true
-          cp trading_system/data/etf_gold_trades.csv /tmp/pipeline_state/ 2>/dev/null || true
-          cp trading_system/data/etf_gold_equity_log.csv /tmp/pipeline_state/ 2>/dev/null || true
-          cp trading_system/data/bond_cash_state.json /tmp/pipeline_state/ 2>/dev/null || true
-          cp trading_system/data/bond_cash_trades.csv /tmp/pipeline_state/ 2>/dev/null || true
-          cp trading_system/data/bond_cash_equity_log.csv /tmp/pipeline_state/ 2>/dev/null || true
-          cp trading_system/data/manager_state.json /tmp/pipeline_state/ 2>/dev/null || true
-          cp trading_system/data/manager_equity_log.csv /tmp/pipeline_state/ 2>/dev/null || true
-          cp trading_system/data/unitized_nav_ledger.json /tmp/pipeline_state/ 2>/dev/null || true
-
-          # Checkout or create state branch
-          git fetch origin state 2>/dev/null || true
-          if git show-ref --verify --quiet refs/remotes/origin/state; then
-            git checkout -B state origin/state
+          echo "Staging state files into isolated temporary workspace..."
+          mkdir -p /tmp/state_repo
+          if git clone --depth 1 --branch state https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git /tmp/state_repo 2>/dev/null; then
+            echo "Successfully cloned existing state branch."
           else
-            git checkout --orphan state
-            git rm -rf . --quiet 2>/dev/null || true
+            echo "Initializing fresh state branch workspace..."
+            cd /tmp/state_repo
+            git init
+            git checkout -b state
+            git remote add origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
+            cd -
           fi
 
-          mkdir -p trading_system/data
-          cp /tmp/pipeline_state/* trading_system/data/ 2>/dev/null || true
+          mkdir -p /tmp/state_repo/trading_system/data
+          for f in \
+            trading_system/data/etf_gold_state.json \
+            trading_system/data/etf_gold_trades.csv \
+            trading_system/data/etf_gold_equity_log.csv \
+            trading_system/data/bond_cash_state.json \
+            trading_system/data/bond_cash_trades.csv \
+            trading_system/data/bond_cash_equity_log.csv \
+            trading_system/data/manager_state.json \
+            trading_system/data/manager_equity_log.csv \
+            trading_system/data/unitized_nav_ledger.json; do
+            if [ -f "$f" ]; then
+              cp "$f" /tmp/state_repo/trading_system/data/
+            fi
+          done
 
+          cd /tmp/state_repo
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
           git add \
             trading_system/data/etf_gold_state.json \
             trading_system/data/etf_gold_trades.csv \
@@ -152,13 +161,8 @@ jobs:
 
           if ! git diff --staged --quiet; then
             git commit -m "chore(state): persist daily multi-bot pipeline state [skip ci]"
-            # Fetch latest state and rebase cleanly; abort rebase on conflict to avoid dirty state
-            git fetch origin state 2>/dev/null || true
-            if ! git rebase origin/state 2>/dev/null; then
-              echo "Rebase conflict detected on state branch! Aborting rebase to prevent dirty state."
-              git rebase --abort 2>/dev/null || true
-              exit 1
-            fi
+            # Rebase to absorb concurrent commits conflict-free
+            git pull --rebase origin state 2>/dev/null || true
             git push origin state
             echo "Pipeline state persistence complete."
           else
