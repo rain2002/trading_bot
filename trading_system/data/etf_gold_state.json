@@ -43,7 +43,7 @@
   "hwm": 80000.0,
   "current_drawdown_pct": -0.07,
   "max_drawdown_pct": -0.07,
-  "last_run_timestamp": "2026-11-15T05:46:43.361788+00:00",
+  "last_run_timestamp": "2026-11-15T16:51:19.615829+00:00",
   "last_rebalance_date": "2026-11-15T05:46:43.345293+00:00",
   "status": "HEALTHY_ACTIVE"
 }

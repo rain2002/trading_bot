@@ -21,7 +21,7 @@
   "current_drawdown_pct": -0.07,
   "max_drawdown_pct": -0.07,
   "max_duration_scale": 1.0,
-  "last_run_timestamp": "2026-11-15T05:46:51.458283+00:00",
+  "last_run_timestamp": "2026-11-15T16:51:20.336378+00:00",
   "last_rebalance_date": "2026-11-15T01:44:14.157100+00:00",
   "status": "HEALTHY_ACTIVE"
 }
