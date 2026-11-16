@@ -1,2 +1,0 @@
-date,commit_hash,kelly_fraction,lookback_days,cagr_pct,max_drawdown_pct,sharpe_ratio,is_holdout_opened,notes
-2026-11-06 01:39:50,f8bd332,0.4,90,12.64,-34.11,0.71,True,Baseline Gate A Stressed (7.5 bps)
