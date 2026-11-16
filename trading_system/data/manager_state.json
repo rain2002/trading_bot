@@ -2,23 +2,51 @@
   "manager_name": "CENTRAL_PORTFOLIO_MANAGER",
   "phase": "PHASE_2",
   "policy": "FIXED_SHARES_PLUS_KILL_SWITCH",
-  "unitized_nav": 99.9319,
+  "unitized_nav": 0.0,
   "hwm_unit_nav": 100.0,
-  "current_drawdown": -0.0007,
-  "max_drawdown": -0.0007,
-  "throttle_level": 0,
+  "current_drawdown": -1.0,
+  "max_drawdown": -1.0,
+  "throttle_level": 3,
   "consecutive_recovery_days": 0,
-  "is_halted": false,
-  "halt_reason": null,
-  "human_override_required": false,
-  "last_reconciliation_gap_pct": 0.0,
+  "is_halted": true,
+  "halt_reason": "KILL_SWITCH_TRIGGERED: Drawdown -100.00% breached -40.0% hard stop",
+  "human_override_required": true,
+  "last_reconciliation_gap_pct": NaN,
   "last_rebalance_date": null,
   "current_shares": {
-    "ETF_AND_GOLD": 1.0,
-    "BOND_AND_CASH": 0.0,
-    "CASH_SLEEVE": 0.0
+    "CASH_SLEEVE": 1.0
   },
-  "last_update": "2026-11-15T16:51:21.218460+00:00",
+  "last_update": "2026-11-16T20:32:55.796347+00:00",
   "mode": "PAPER",
-  "max_duration_scale": 1.0
+  "max_duration_scale": 0.0,
+  "sleeves": {
+    "primary_sleeve": {
+      "bot_name": "ETF_AND_GOLD_BOT",
+      "mandate": "Active Multi-Asset Equity & Gold Growth (Phase 1)",
+      "target_capital": 80000.0,
+      "reported_nav": 79945.49,
+      "independent_nav": NaN,
+      "reconciliation_gap_pct": NaN,
+      "reconciliation_passed": false,
+      "reconciliation_status": "RECONCILIATION_BREACH",
+      "quotes_verified": true,
+      "stale": false
+    },
+    "reserve_sleeve": {
+      "bot_name": "BOND_AND_CASH_BOT",
+      "mandate": "Dedicated Safe Carry & Retreat Haven Partition (Phase 3 Champion B0)",
+      "target_capital": 20000.0,
+      "reported_nav": 19991.49,
+      "independent_nav": 19991.49,
+      "reconciliation_gap_pct": 0.0,
+      "reconciliation_passed": true,
+      "reconciliation_status": "PASSED",
+      "quotes_verified": true,
+      "stale": false
+    }
+  },
+  "combined_fund_nav": NaN,
+  "combined_target_capital": 100000.0,
+  "consecutive_unverified_quote_days": 0,
+  "unverified_quotes_warning": null
 }

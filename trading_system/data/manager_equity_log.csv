@@ -3,3 +3,4 @@ date,total_portfolio_value,primary_sleeve_nav,reserve_sleeve_nav,combined_fund_n
 2026-11-15 01:44:18,80000.0,80000.0,,,100.0,0.0,0.0,0,False,,0.0,1.0,0.0,PAPER
 2026-11-15 05:46:58,79945.49,79945.49,,,99.9319,-0.07,-0.07,0,False,,0.0,1.0,0.0,PAPER
 2026-11-15 16:51:20,79945.49,79945.49,,,99.9319,-0.07,-0.07,0,False,,0.0,1.0,0.0,PAPER
+2026-11-16 20:32:55,0.0,,19991.49,,0.0,-100.0,-100.0,3,True,KILL_SWITCH_TRIGGERED: Drawdown -100.00% breached -40.0% hard stop,,0.0,1.0,PAPER
