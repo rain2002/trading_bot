@@ -502,3 +502,113 @@ def test_manager_runner_multi_sleeve_reconciliation(tmp_path: Path):
     assert saved_mgr["sleeves"]["reserve_sleeve"]["reconciliation_passed"] is True
 
 
+def test_manager_equity_log_migration_and_header_alignment(tmp_path: Path):
+    """
+    Verifies that append_manager_equity_log transparently migrates a legacy equity log
+    (with 11 header names and 12 values per row) to the canonical 15-column schema,
+    preventing any column misalignment.
+    """
+    etf_state_path = str(tmp_path / "etf_gold_state.json")
+    mgr_state_path = str(tmp_path / "manager_state.json")
+    ledger_path = str(tmp_path / "unitized_nav_ledger.json")
+    equity_log_path = str(tmp_path / "manager_equity_log.csv")
+
+    # Write legacy 11-column header with ragged rows (11 and 12 columns)
+    legacy_content = (
+        "date,total_portfolio_value,nav_per_unit,true_trading_return_pct,current_drawdown_pct,throttle_level,is_halted,halt_reason,reconciliation_gap_pct,share_etf_gold,share_cash_sleeve\n"
+        "2026-11-14 05:44:00,80000.0,100.0,0.0,0.0,0,False,,0.0,1.0,0.0\n"
+        "2026-11-15 01:44:18,80000.0,100.0,0.0,0.0,0,False,,0.0,1.0,0.0,PAPER\n"
+        "2026-11-15 05:46:58,79945.49,99.9319,-0.07,-0.07,0,False,,0.0,1.0,0.0,PAPER\n"
+    )
+    with open(equity_log_path, "w", encoding="utf-8") as f:
+        f.write(legacy_content)
+
+    res = execute_manager_cycle(
+        etf_state_path=etf_state_path,
+        manager_state_path=mgr_state_path,
+        ledger_path=ledger_path,
+        equity_log_path=equity_log_path,
+        initial_capital=80000.0
+    )
+
+    # Read back migrated CSV
+    df = pd.read_csv(equity_log_path)
+    assert len(df) == 4  # 3 historical rows + 1 new row
+
+    # Invariant: exactly 15 columns
+    expected_cols = [
+        "date", "total_portfolio_value", "primary_sleeve_nav", "reserve_sleeve_nav",
+        "combined_fund_nav", "nav_per_unit", "true_trading_return_pct", "current_drawdown_pct",
+        "throttle_level", "is_halted", "halt_reason", "reconciliation_gap_pct",
+        "share_etf_gold", "share_cash_sleeve", "execution_mode"
+    ]
+    assert list(df.columns) == expected_cols
+
+    # Verify column alignment on historical and new rows
+    assert df.iloc[0]["total_portfolio_value"] == 80000.0
+    assert df.iloc[0]["primary_sleeve_nav"] == 80000.0
+    assert df.iloc[0]["reserve_sleeve_nav"] == 20000.0
+    assert df.iloc[0]["combined_fund_nav"] == 100000.0
+    assert df.iloc[0]["nav_per_unit"] == 100.0
+    assert df.iloc[0]["execution_mode"] == "PAPER"
+
+    # Row 2 (had 79945.49)
+    assert df.iloc[2]["total_portfolio_value"] == 79945.49
+    assert df.iloc[2]["primary_sleeve_nav"] == 79945.49
+    assert df.iloc[2]["nav_per_unit"] == 99.9319
+    assert df.iloc[2]["execution_mode"] == "PAPER"
+
+    # Row 3 (new appended row)
+    assert df.iloc[3]["total_portfolio_value"] == 80000.0
+    assert df.iloc[3]["primary_sleeve_nav"] == 80000.0
+    assert df.iloc[3]["nav_per_unit"] == 100.0
+    assert df.iloc[3]["execution_mode"] == "PAPER"
+
+
+def test_manager_runner_unverified_fallback_price(tmp_path: Path):
+    """
+    Verifies that when live quote fetching fails and independent NAV calculation
+    falls back to the bot's unverified last_price, the reconciliation is explicitly
+    marked as UNVERIFIED_FALLBACK_PRICE and reconciliation_passed=False (not claimed as PASS).
+    """
+    etf_state_path = str(tmp_path / "etf_gold_state.json")
+    mgr_state_path = str(tmp_path / "manager_state.json")
+    ledger_path = str(tmp_path / "unitized_nav_ledger.json")
+    equity_log_path = str(tmp_path / "manager_equity_log.csv")
+
+    now = datetime.now(timezone.utc)
+    # Positions with last_price, but no live quote provided for NON_EXISTENT.NS
+    etf_state = {
+        "bot_name": "ETF_AND_GOLD_BOT",
+        "phase": "PHASE_1",
+        "gate": "GATE_B_PAPER",
+        "nav": 80000.0,
+        "cash": 30000.0,
+        "positions": {
+            "NON_EXISTENT_TICKER.NS": {"shares": 500, "last_price": 100.0}
+        },
+        "last_run_timestamp": now.isoformat()
+    }
+    with open(etf_state_path, "w") as f:
+        json.dump(etf_state, f)
+
+    # Empty quotes override forces fallback to last_price
+    res = execute_manager_cycle(
+        etf_state_path=etf_state_path,
+        manager_state_path=mgr_state_path,
+        ledger_path=ledger_path,
+        equity_log_path=equity_log_path,
+        initial_capital=80000.0,
+        quotes_override={},
+        as_of=now
+    )
+
+    primary = res["sleeves"]["primary_sleeve"]
+    assert primary["quotes_verified"] is False
+    assert primary["reconciliation_passed"] is False
+    assert primary["reconciliation_status"] == "UNVERIFIED_FALLBACK_PRICE"
+    # Fiduciary gap is 0.0%, so trading is not halted, but reconciliation does not count as a pass
+    assert res["status"]["is_halted"] is False
+
+
+

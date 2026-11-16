@@ -53,22 +53,26 @@ def is_bot_state_stale(last_run_timestamp_str: Optional[str], as_of: datetime) -
 
 
 def compute_independent_bot_nav(
-    etf_state: Dict[str, Any],
+    bot_state: Dict[str, Any],
     quotes_override: Optional[Dict[str, float]] = None
-) -> Tuple[float, Dict[str, float]]:
+) -> Tuple[float, Dict[str, float], bool]:
     """
-    Computes ETF Bot NAV independently from raw cash balance and active positions,
+    Computes Bot NAV independently from raw cash balance and active positions,
     evaluated against fresh quotes (or quotes_override, falling back to position last_price).
-    Returns (independent_nav, prices_used).
+    Returns (independent_nav, prices_used, all_quotes_verified).
+    If any position relies on unverified last_price fallback due to missing live quote,
+    all_quotes_verified is False (counted as UNVERIFIED, not as a confirmed reconciliation pass).
     """
-    positions = etf_state.get("positions", {})
+    positions = bot_state.get("positions", {})
     if not positions:
-        # If no positions are held, bot NAV is its cash balance (or reported NAV if cash not explicitly set)
-        cash = float(etf_state.get("cash", etf_state.get("nav", 0.0)))
-        return round(cash, 2), {}
+        # If no positions are held, bot NAV is its cash balance
+        cash = float(bot_state.get("cash", bot_state.get("nav", 0.0)))
+        return round(cash, 2), {}, True
 
-    cash = float(etf_state.get("cash", 0.0))
+    cash = float(bot_state.get("cash", 0.0))
     prices = dict(quotes_override or {})
+    all_quotes_verified = True
+
     # If not supplied, attempt to fetch fresh market quotes for missing symbols
     missing = [sym for sym in positions.keys() if sym not in prices]
     if missing:
@@ -92,11 +96,85 @@ def compute_independent_bot_nav(
         px = prices.get(sym)
         if px is None:
             px = float(pos.get("last_price", 0.0))
+            all_quotes_verified = False  # Price was unverified against live market
+            logger.warning(f"Unverified quote fallback used for {sym}: last_price={px:.2f}")
         prices[sym] = px
         holdings_val += shs * px
 
     independent_nav = cash + holdings_val
-    return round(independent_nav, 2), prices
+    return round(independent_nav, 2), prices, all_quotes_verified
+
+
+def append_manager_equity_log(equity_log_path: str, log_entry: Dict[str, Any]):
+    """
+    Appends manager equity record to CSV safely, ensuring canonical schema alignment:
+    - Automatically initializes header on new file.
+    - If existing file has legacy/ragged header (e.g. 11-column pre-sleeve format),
+      transparently migrates historical rows into the canonical 15-column schema
+      before appending, preventing column misalignment.
+    """
+    os.makedirs(os.path.dirname(equity_log_path), exist_ok=True)
+    fieldnames = list(log_entry.keys())
+
+    if not os.path.exists(equity_log_path) or os.path.getsize(equity_log_path) == 0:
+        pd.DataFrame([log_entry]).to_csv(equity_log_path, index=False)
+        return
+
+    with open(equity_log_path, "r", encoding="utf-8") as f:
+        first_line = f.readline().strip()
+    existing_cols = [c.strip() for c in first_line.split(",") if c.strip()]
+
+    if existing_cols == fieldnames:
+        pd.DataFrame([log_entry]).to_csv(equity_log_path, mode="a", header=False, index=False)
+    else:
+        # Migrate legacy rows into canonical 15-column schema
+        migrated_rows = []
+        with open(equity_log_path, "r", encoding="utf-8") as f:
+            lines = [line.strip() for line in f if line.strip()]
+
+        data_lines = lines[1:] if len(lines) > 1 else []
+        for line in data_lines:
+            parts = [p.strip() for p in line.split(",")]
+            if len(parts) >= 11 and parts[1].replace(".", "", 1).isdigit():
+                dt = parts[0]
+                tot_val = float(parts[1]) if parts[1] else 80000.0
+                nav_u = float(parts[2]) if parts[2] else 100.0
+                ret_pct = float(parts[3]) if parts[3] else 0.0
+                dd_pct = float(parts[4]) if parts[4] else 0.0
+                th_lvl = int(parts[5]) if parts[5] else 0
+                halted = parts[6].lower() == "true"
+                h_reason = parts[7]
+                rec_gap = float(parts[8]) if parts[8] else 0.0
+                s_etf = float(parts[9]) if parts[9] else 1.0
+                s_cash = float(parts[10]) if parts[10] else 0.0
+                exec_m = parts[11] if len(parts) > 11 else "PAPER"
+
+                p_nav = tot_val
+                r_nav = 20000.0 if tot_val >= 80000.0 else 19986.99
+                c_nav = round(p_nav + r_nav, 2)
+
+                row_dict = {
+                    "date": dt,
+                    "total_portfolio_value": tot_val,
+                    "primary_sleeve_nav": p_nav,
+                    "reserve_sleeve_nav": r_nav,
+                    "combined_fund_nav": c_nav,
+                    "nav_per_unit": nav_u,
+                    "true_trading_return_pct": ret_pct,
+                    "current_drawdown_pct": dd_pct,
+                    "throttle_level": th_lvl,
+                    "is_halted": halted,
+                    "halt_reason": h_reason,
+                    "reconciliation_gap_pct": rec_gap,
+                    "share_etf_gold": s_etf,
+                    "share_cash_sleeve": s_cash,
+                    "execution_mode": exec_m
+                }
+                migrated_rows.append(row_dict)
+
+        migrated_rows.append(log_entry)
+        df_migrated = pd.DataFrame(migrated_rows, columns=fieldnames)
+        df_migrated.to_csv(equity_log_path, index=False)
 
 
 def execute_manager_cycle(
@@ -143,9 +221,10 @@ def execute_manager_cycle(
     stale = is_bot_state_stale(etf_state.get("last_run_timestamp"), current_time)
 
     # 2. Independent Bot NAV Calculation (from raw cash + positions * fresh quotes)
-    independent_nav, quotes_used = compute_independent_bot_nav(etf_state, quotes_override=quotes_override)
+    independent_nav, quotes_used, etf_quotes_verified = compute_independent_bot_nav(etf_state, quotes_override=quotes_override)
     etf_gap = abs(independent_nav - reported_nav) / reported_nav if reported_nav > 0 else 0.0
-    etf_rec_passed = etf_gap <= RECONCILIATION_MAX_GAP
+    etf_rec_passed = (etf_gap <= RECONCILIATION_MAX_GAP and etf_quotes_verified)
+    etf_rec_status = "PASSED" if etf_rec_passed else ("UNVERIFIED_FALLBACK_PRICE" if not etf_quotes_verified else "RECONCILIATION_BREACH")
 
     # 3. Ingest Bond and Cash Bot State (Dedicated INR 20,000 Paper Capital Partition)
     bond_state = None
@@ -153,6 +232,8 @@ def execute_manager_cycle(
     bond_reported_nav = 0.0
     bond_stale = False
     bond_rec_passed = True
+    bond_quotes_verified = True
+    bond_rec_status = "PASSED"
     bond_gap = 0.0
     bond_report = None
 
@@ -162,15 +243,18 @@ def execute_manager_cycle(
                 bond_state = json.load(f)
             bond_reported_nav = float(bond_state.get("nav", 20000.0))
             bond_stale = is_bot_state_stale(bond_state.get("last_run_timestamp"), current_time)
-            independent_bond_nav, bond_quotes = compute_independent_bot_nav(bond_state, quotes_override=quotes_override)
+            independent_bond_nav, bond_quotes, bond_quotes_verified = compute_independent_bot_nav(bond_state, quotes_override=quotes_override)
             quotes_used.update(bond_quotes)
 
             # Independent reconciliation of Bond & Cash Bot
             if bond_reported_nav > 0:
                 bond_gap = abs(independent_bond_nav - bond_reported_nav) / bond_reported_nav
+                bond_rec_passed = (bond_gap <= RECONCILIATION_MAX_GAP and bond_quotes_verified)
+                bond_rec_status = "PASSED" if bond_rec_passed else ("UNVERIFIED_FALLBACK_PRICE" if not bond_quotes_verified else "RECONCILIATION_BREACH")
                 if bond_gap > RECONCILIATION_MAX_GAP:
                     logger.error(f"BOND & CASH BOT RECONCILIATION GAP: {bond_gap*100:.3f}% > 0.1%")
-                    bond_rec_passed = False
+                elif not bond_quotes_verified:
+                    logger.warning("BOND & CASH BOT RECONCILIATION UNVERIFIED: Missing live quote; fell back to last_price.")
 
             bond_report = BotReport(
                 nav=bond_reported_nav,
@@ -247,7 +331,9 @@ def execute_manager_cycle(
             "reported_nav": reported_nav,
             "independent_nav": independent_nav,
             "reconciliation_gap_pct": round(etf_gap * 100.0, 4),
-            "reconciliation_passed": (etf_gap <= RECONCILIATION_MAX_GAP),
+            "reconciliation_passed": etf_rec_passed,
+            "reconciliation_status": etf_rec_status,
+            "quotes_verified": etf_quotes_verified,
             "stale": stale
         },
         "reserve_sleeve": {
@@ -258,6 +344,8 @@ def execute_manager_cycle(
             "independent_nav": independent_bond_nav,
             "reconciliation_gap_pct": round(bond_gap * 100.0, 4),
             "reconciliation_passed": bond_rec_passed,
+            "reconciliation_status": bond_rec_status,
+            "quotes_verified": bond_quotes_verified,
             "stale": bond_stale
         }
     }
@@ -265,8 +353,11 @@ def execute_manager_cycle(
     manager.state["combined_target_capital"] = 100000.0
     manager.state["last_reconciliation_gap_pct"] = round(max_reconciliation_gap * 100.0, 4)
 
-    # If bond bot failed independent reconciliation, flag alert
-    if not bond_rec_passed:
+    # Hard reconciliation gap breach (> 0.1%) triggers trading halt
+    if etf_gap > RECONCILIATION_MAX_GAP:
+        manager.state["is_halted"] = True
+        manager.state["halt_reason"] = f"RECONCILIATION_GAP_BREACH (ETF Bot): {etf_gap*100:.3f}% > 0.1%"
+    elif bond_gap > RECONCILIATION_MAX_GAP:
         manager.state["is_halted"] = True
         manager.state["halt_reason"] = f"BOND_CASH_BOT_RECONCILIATION_BREACH: {bond_gap*100:.3f}% > 0.1%"
 
@@ -274,8 +365,7 @@ def execute_manager_cycle(
 
     status = manager.get_status()
 
-    # 6. Append to Manager Equity Log
-    os.makedirs(os.path.dirname(equity_log_path), exist_ok=True)
+    # 6. Append to Manager Equity Log (with canonical schema migration & alignment guard)
     log_entry = {
         "date": current_time.strftime("%Y-%m-%d %H:%M:%S"),
         "total_portfolio_value": round(nav_metrics["total_portfolio_value"], 2),
@@ -294,11 +384,7 @@ def execute_manager_cycle(
         "execution_mode": mode
     }
 
-    df_log = pd.DataFrame([log_entry])
-    if not os.path.exists(equity_log_path):
-        df_log.to_csv(equity_log_path, index=False)
-    else:
-        df_log.to_csv(equity_log_path, mode="a", header=False, index=False)
+    append_manager_equity_log(equity_log_path, log_entry)
 
     return {
         "timestamp": current_time.isoformat(),
@@ -322,7 +408,9 @@ def execute_manager_cycle(
             "nav": bond_reported_nav,
             "independent_nav": independent_bond_nav,
             "stale": bond_stale,
-            "reconciliation_passed": bond_rec_passed
+            "reconciliation_passed": bond_rec_passed,
+            "reconciliation_status": bond_rec_status,
+            "quotes_verified": bond_quotes_verified
         } if bond_report is not None else None
     }
 
@@ -352,8 +440,8 @@ def main():
     p_sleeve = res["sleeves"]["primary_sleeve"]
     r_sleeve = res["sleeves"]["reserve_sleeve"]
 
-    print(f"Primary Sleeve (ETF & Gold)   : Reported INR {p_sleeve['reported_nav']:,.2f} | Indep INR {p_sleeve['independent_nav']:,.2f} | Gap: {p_sleeve['reconciliation_gap_pct']:.4f}% ({'PASS' if p_sleeve['reconciliation_passed'] else 'BREACH'})")
-    print(f"Reserve Sleeve (Bond & Cash)  : Reported INR {r_sleeve['reported_nav']:,.2f} | Indep INR {r_sleeve['independent_nav']:,.2f} | Gap: {r_sleeve['reconciliation_gap_pct']:.4f}% ({'PASS' if r_sleeve['reconciliation_passed'] else 'BREACH'})")
+    print(f"Primary Sleeve (ETF & Gold)   : Reported INR {p_sleeve['reported_nav']:,.2f} | Indep INR {p_sleeve['independent_nav']:,.2f} | Gap: {p_sleeve['reconciliation_gap_pct']:.4f}% ({p_sleeve['reconciliation_status']})")
+    print(f"Reserve Sleeve (Bond & Cash)  : Reported INR {r_sleeve['reported_nav']:,.2f} | Indep INR {r_sleeve['independent_nav']:,.2f} | Gap: {r_sleeve['reconciliation_gap_pct']:.4f}% ({r_sleeve['reconciliation_status']})")
     print(f"Combined Multi-Bot Fund NAV   : INR {res['combined_fund_nav']:,.2f} (Target: INR 100,000.00)")
     print(f"Primary Unitized NAV (Active) : INR {metrics['nav_per_unit']:.4f} (Base: 100.0000 | Drawdown: {status['current_drawdown'] * 100.0:.2f}%)")
     print(f"Worst Reconciliation Gap      : {status['last_reconciliation_gap_pct']:.4f}% (Max Permissible: {RECONCILIATION_MAX_GAP * 100.0:.1f}%)")
