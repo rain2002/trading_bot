@@ -96,6 +96,8 @@ class PortfolioManagerEngine(ManagerInterface):
             "max_drawdown": 0.0,
             "throttle_level": 0,  # 0: Normal, 1: Moderate (-15%), 2: Severe (-30%), 3: Killed (-40%)
             "consecutive_recovery_days": 0,
+            "consecutive_unverified_quote_days": 0,
+            "unverified_quotes_warning": None,
             "is_halted": False,
             "halt_reason": None,
             "human_override_required": False,

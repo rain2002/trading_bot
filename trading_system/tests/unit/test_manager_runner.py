@@ -547,14 +547,17 @@ def test_manager_equity_log_migration_and_header_alignment(tmp_path: Path):
     # Verify column alignment on historical and new rows
     assert df.iloc[0]["total_portfolio_value"] == 80000.0
     assert df.iloc[0]["primary_sleeve_nav"] == 80000.0
-    assert df.iloc[0]["reserve_sleeve_nav"] == 20000.0
-    assert df.iloc[0]["combined_fund_nav"] == 100000.0
+    # Invariant: historical rows predating multi-sleeve logging MUST be blank (no invented numbers)
+    assert pd.isna(df.iloc[0]["reserve_sleeve_nav"])
+    assert pd.isna(df.iloc[0]["combined_fund_nav"])
     assert df.iloc[0]["nav_per_unit"] == 100.0
     assert df.iloc[0]["execution_mode"] == "PAPER"
 
     # Row 2 (had 79945.49)
     assert df.iloc[2]["total_portfolio_value"] == 79945.49
     assert df.iloc[2]["primary_sleeve_nav"] == 79945.49
+    assert pd.isna(df.iloc[2]["reserve_sleeve_nav"])
+    assert pd.isna(df.iloc[2]["combined_fund_nav"])
     assert df.iloc[2]["nav_per_unit"] == 99.9319
     assert df.iloc[2]["execution_mode"] == "PAPER"
 
@@ -563,6 +566,93 @@ def test_manager_equity_log_migration_and_header_alignment(tmp_path: Path):
     assert df.iloc[3]["primary_sleeve_nav"] == 80000.0
     assert df.iloc[3]["nav_per_unit"] == 100.0
     assert df.iloc[3]["execution_mode"] == "PAPER"
+
+
+def test_manager_runner_consecutive_unverified_quote_warning(tmp_path: Path):
+    """
+    Verifies that unverified quote fallbacks escalate to a formal warning alert
+    after 3 consecutive unverified sessions, and reset to 0 once live quotes succeed.
+    """
+    etf_state_path = str(tmp_path / "etf_gold_state.json")
+    mgr_state_path = str(tmp_path / "manager_state.json")
+    ledger_path = str(tmp_path / "unitized_nav_ledger.json")
+    equity_log_path = str(tmp_path / "manager_equity_log.csv")
+
+    now = datetime.now(timezone.utc)
+    etf_state = {
+        "bot_name": "ETF_AND_GOLD_BOT",
+        "phase": "PHASE_1",
+        "gate": "GATE_B_PAPER",
+        "nav": 80000.0,
+        "cash": 30000.0,
+        "positions": {
+            "NON_EXISTENT_TICKER.NS": {"shares": 500, "last_price": 100.0}
+        },
+        "last_run_timestamp": now.isoformat()
+    }
+    with open(etf_state_path, "w") as f:
+        json.dump(etf_state, f)
+
+    # Session 1: Unverified
+    res1 = execute_manager_cycle(
+        etf_state_path=etf_state_path,
+        manager_state_path=mgr_state_path,
+        ledger_path=ledger_path,
+        equity_log_path=equity_log_path,
+        initial_capital=80000.0,
+        quotes_override={},
+        as_of=now
+    )
+    with open(mgr_state_path) as f:
+        s1 = json.load(f)
+    assert s1["consecutive_unverified_quote_days"] == 1
+    assert s1.get("unverified_quotes_warning") is None
+
+    # Session 2: Unverified
+    res2 = execute_manager_cycle(
+        etf_state_path=etf_state_path,
+        manager_state_path=mgr_state_path,
+        ledger_path=ledger_path,
+        equity_log_path=equity_log_path,
+        initial_capital=80000.0,
+        quotes_override={},
+        as_of=now + timedelta(days=1)
+    )
+    with open(mgr_state_path) as f:
+        s2 = json.load(f)
+    assert s2["consecutive_unverified_quote_days"] == 2
+    assert s2.get("unverified_quotes_warning") is None
+
+    # Session 3: 3rd consecutive unverified -> Escalate to Warning!
+    res3 = execute_manager_cycle(
+        etf_state_path=etf_state_path,
+        manager_state_path=mgr_state_path,
+        ledger_path=ledger_path,
+        equity_log_path=equity_log_path,
+        initial_capital=80000.0,
+        quotes_override={},
+        as_of=now + timedelta(days=2)
+    )
+    with open(mgr_state_path) as f:
+        s3 = json.load(f)
+    assert s3["consecutive_unverified_quote_days"] == 3
+    assert "UNVERIFIED_QUOTES_WARNING" in s3["unverified_quotes_warning"]
+
+    # Session 4: Live quote restored -> Resets counter & warning!
+    res4 = execute_manager_cycle(
+        etf_state_path=etf_state_path,
+        manager_state_path=mgr_state_path,
+        ledger_path=ledger_path,
+        equity_log_path=equity_log_path,
+        initial_capital=80000.0,
+        quotes_override={"NON_EXISTENT_TICKER.NS": 100.0},
+        as_of=now + timedelta(days=3)
+    )
+    with open(mgr_state_path) as f:
+        s4 = json.load(f)
+    assert s4["consecutive_unverified_quote_days"] == 0
+    assert s4.get("unverified_quotes_warning") is None
+
 
 
 def test_manager_runner_unverified_fallback_price(tmp_path: Path):

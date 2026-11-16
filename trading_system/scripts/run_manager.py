@@ -16,6 +16,7 @@ Core Responsibilities:
 
 import os
 import sys
+import csv
 import json
 import argparse
 import logging
@@ -112,6 +113,9 @@ def append_manager_equity_log(equity_log_path: str, log_entry: Dict[str, Any]):
     - If existing file has legacy/ragged header (e.g. 11-column pre-sleeve format),
       transparently migrates historical rows into the canonical 15-column schema
       before appending, preventing column misalignment.
+    - Uses csv.reader to safely handle any quoted fields with commas.
+    - For historical rows predating multi-sleeve logging, reserve_sleeve_nav and
+      combined_fund_nav are left blank (never populated with invented/guessed values).
     """
     os.makedirs(os.path.dirname(equity_log_path), exist_ok=True)
     fieldnames = list(log_entry.keys())
@@ -121,8 +125,9 @@ def append_manager_equity_log(equity_log_path: str, log_entry: Dict[str, Any]):
         return
 
     with open(equity_log_path, "r", encoding="utf-8") as f:
-        first_line = f.readline().strip()
-    existing_cols = [c.strip() for c in first_line.split(",") if c.strip()]
+        reader = csv.reader(f)
+        header_row = next(reader, None)
+    existing_cols = [c.strip() for c in header_row if c.strip()] if header_row else []
 
     if existing_cols == fieldnames:
         pd.DataFrame([log_entry]).to_csv(equity_log_path, mode="a", header=False, index=False)
@@ -130,47 +135,49 @@ def append_manager_equity_log(equity_log_path: str, log_entry: Dict[str, Any]):
         # Migrate legacy rows into canonical 15-column schema
         migrated_rows = []
         with open(equity_log_path, "r", encoding="utf-8") as f:
-            lines = [line.strip() for line in f if line.strip()]
+            reader = csv.reader(f)
+            _ = next(reader, None)  # Skip header
+            for parts in reader:
+                if not parts:
+                    continue
+                # Legacy schema: date, total_portfolio_value, nav_per_unit, true_trading_return_pct, current_drawdown_pct, throttle_level, is_halted, halt_reason, reconciliation_gap_pct, share_etf_gold, share_cash_sleeve [, execution_mode]
+                if len(parts) >= 11 and parts[1].replace(".", "", 1).isdigit():
+                    dt = parts[0].strip()
+                    tot_val = float(parts[1].strip()) if parts[1].strip() else 80000.0
+                    nav_u = float(parts[2].strip()) if parts[2].strip() else 100.0
+                    ret_pct = float(parts[3].strip()) if parts[3].strip() else 0.0
+                    dd_pct = float(parts[4].strip()) if parts[4].strip() else 0.0
+                    th_lvl = int(parts[5].strip()) if parts[5].strip() else 0
+                    halted = parts[6].strip().lower() == "true"
+                    h_reason = parts[7].strip()
+                    rec_gap = float(parts[8].strip()) if parts[8].strip() else 0.0
+                    s_etf = float(parts[9].strip()) if parts[9].strip() else 1.0
+                    s_cash = float(parts[10].strip()) if parts[10].strip() else 0.0
+                    exec_m = parts[11].strip() if len(parts) > 11 and parts[11].strip() else "PAPER"
 
-        data_lines = lines[1:] if len(lines) > 1 else []
-        for line in data_lines:
-            parts = [p.strip() for p in line.split(",")]
-            if len(parts) >= 11 and parts[1].replace(".", "", 1).isdigit():
-                dt = parts[0]
-                tot_val = float(parts[1]) if parts[1] else 80000.0
-                nav_u = float(parts[2]) if parts[2] else 100.0
-                ret_pct = float(parts[3]) if parts[3] else 0.0
-                dd_pct = float(parts[4]) if parts[4] else 0.0
-                th_lvl = int(parts[5]) if parts[5] else 0
-                halted = parts[6].lower() == "true"
-                h_reason = parts[7]
-                rec_gap = float(parts[8]) if parts[8] else 0.0
-                s_etf = float(parts[9]) if parts[9] else 1.0
-                s_cash = float(parts[10]) if parts[10] else 0.0
-                exec_m = parts[11] if len(parts) > 11 else "PAPER"
+                    # Historical rows only tracked primary sleeve; do NOT invent reserve or combined values
+                    p_nav = tot_val
+                    r_nav = ""
+                    c_nav = ""
 
-                p_nav = tot_val
-                r_nav = 20000.0 if tot_val >= 80000.0 else 19986.99
-                c_nav = round(p_nav + r_nav, 2)
-
-                row_dict = {
-                    "date": dt,
-                    "total_portfolio_value": tot_val,
-                    "primary_sleeve_nav": p_nav,
-                    "reserve_sleeve_nav": r_nav,
-                    "combined_fund_nav": c_nav,
-                    "nav_per_unit": nav_u,
-                    "true_trading_return_pct": ret_pct,
-                    "current_drawdown_pct": dd_pct,
-                    "throttle_level": th_lvl,
-                    "is_halted": halted,
-                    "halt_reason": h_reason,
-                    "reconciliation_gap_pct": rec_gap,
-                    "share_etf_gold": s_etf,
-                    "share_cash_sleeve": s_cash,
-                    "execution_mode": exec_m
-                }
-                migrated_rows.append(row_dict)
+                    row_dict = {
+                        "date": dt,
+                        "total_portfolio_value": tot_val,
+                        "primary_sleeve_nav": p_nav,
+                        "reserve_sleeve_nav": r_nav,
+                        "combined_fund_nav": c_nav,
+                        "nav_per_unit": nav_u,
+                        "true_trading_return_pct": ret_pct,
+                        "current_drawdown_pct": dd_pct,
+                        "throttle_level": th_lvl,
+                        "is_halted": halted,
+                        "halt_reason": h_reason,
+                        "reconciliation_gap_pct": rec_gap,
+                        "share_etf_gold": s_etf,
+                        "share_cash_sleeve": s_cash,
+                        "execution_mode": exec_m
+                    }
+                    migrated_rows.append(row_dict)
 
         migrated_rows.append(log_entry)
         df_migrated = pd.DataFrame(migrated_rows, columns=fieldnames)
@@ -361,6 +368,25 @@ def execute_manager_cycle(
         manager.state["is_halted"] = True
         manager.state["halt_reason"] = f"BOND_CASH_BOT_RECONCILIATION_BREACH: {bond_gap*100:.3f}% > 0.1%"
 
+    # Track consecutive unverified quote sessions and warn after 3 consecutive days
+    quotes_all_verified = (etf_quotes_verified and bond_quotes_verified)
+    consecutive_unverified = int(manager.state.get("consecutive_unverified_quote_days", 0))
+
+    if not quotes_all_verified:
+        consecutive_unverified += 1
+        manager.state["consecutive_unverified_quote_days"] = consecutive_unverified
+        if consecutive_unverified >= 3:
+            logger.warning(
+                f"[ALERT] UNVERIFIED QUOTES PERSISTENCE: Live market quotes have failed verification for "
+                f"{consecutive_unverified} consecutive sessions! Relying on unverified fallback prices."
+            )
+            manager.state["unverified_quotes_warning"] = (
+                f"UNVERIFIED_QUOTES_WARNING: {consecutive_unverified} consecutive sessions with unverified fallback quotes"
+            )
+    else:
+        manager.state["consecutive_unverified_quote_days"] = 0
+        manager.state["unverified_quotes_warning"] = None
+
     manager._save_state()
 
     status = manager.get_status()
@@ -445,6 +471,8 @@ def main():
     print(f"Combined Multi-Bot Fund NAV   : INR {res['combined_fund_nav']:,.2f} (Target: INR 100,000.00)")
     print(f"Primary Unitized NAV (Active) : INR {metrics['nav_per_unit']:.4f} (Base: 100.0000 | Drawdown: {status['current_drawdown'] * 100.0:.2f}%)")
     print(f"Worst Reconciliation Gap      : {status['last_reconciliation_gap_pct']:.4f}% (Max Permissible: {RECONCILIATION_MAX_GAP * 100.0:.1f}%)")
+    if manager.state.get("consecutive_unverified_quote_days", 0) >= 3:
+        print(f"[PERSISTENCE WARNING] Live quotes unverified for {manager.state['consecutive_unverified_quote_days']} consecutive sessions! Review yfinance/broker data feed.")
     print(f"Trading Halted                : {'YES - ' + str(status['halt_reason']) if status['is_halted'] else 'NO (Normal Operations)'}")
     print(f"Risk Throttle Level           : {status['throttle_level']} (0: Normal, 1: -15%, 2: -30%, 3: -40% Kill)")
     print(f"Max Duration Scale            : {status.get('max_duration_scale', 1.0):.2f} (1.0 = Normal, 0.0 = Retreat/Throttled)")
