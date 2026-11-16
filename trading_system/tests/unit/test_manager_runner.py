@@ -417,3 +417,88 @@ def test_manager_runner_catches_tampered_bond_state(tmp_path: Path):
     assert "BOND_CASH_BOT_RECONCILIATION_BREACH" in res["status"]["halt_reason"]
     assert res["bond_cash_report"]["reconciliation_passed"] is False
 
+
+def test_manager_runner_multi_sleeve_reconciliation(tmp_path: Path):
+    """
+    Verifies explicit multi-sleeve architecture and independent per-sleeve reconciliation:
+    1. Primary Sleeve (ETF & Gold Bot): INR 80,000 target capital.
+    2. Reserve Sleeve (Bond & Cash Bot): INR 20,000 target capital.
+    3. Combined Fund NAV: INR 100,000 target capital (sum of both independent NAVs).
+    4. Per-sleeve gap and pass/fail status persisted into manager_state.json.
+    """
+    etf_state_path = str(tmp_path / "etf_gold_state.json")
+    bond_state_path = str(tmp_path / "bond_cash_state.json")
+    mgr_state_path = str(tmp_path / "manager_state.json")
+    ledger_path = str(tmp_path / "unitized_nav_ledger.json")
+    equity_log_path = str(tmp_path / "manager_equity_log.csv")
+
+    now = datetime.now(timezone.utc)
+    etf_state = {
+        "bot_name": "ETF_AND_GOLD_BOT",
+        "phase": "PHASE_1",
+        "gate": "GATE_B_PAPER",
+        "nav": 79900.0,
+        "cash": 400.0,
+        "positions": {
+            "GOLDBEES.NS": {"shares": 100, "last_price": 200.0},
+            "LTGILTBEES.NS": {"shares": 595, "last_price": 100.0}
+        },
+        "last_run_timestamp": now.isoformat()
+    }
+    with open(etf_state_path, "w") as f:
+        json.dump(etf_state, f)
+
+    bond_state = {
+        "bot_name": "BOND_AND_CASH_BOT",
+        "phase": "PHASE_3",
+        "gate": "GATE_B_PAPER",
+        "strategy_id": "B0",
+        "nav": 19990.0,
+        "cash": 990.0,
+        "positions": {
+            "LIQUIDBEES.NS": {"shares": 19, "last_price": 1000.0}
+        },
+        "last_run_timestamp": now.isoformat()
+    }
+    with open(bond_state_path, "w") as f:
+        json.dump(bond_state, f)
+
+    quotes = {
+        "GOLDBEES.NS": 200.0,
+        "LTGILTBEES.NS": 100.0,
+        "LIQUIDBEES.NS": 1000.0
+    }
+
+    res = execute_manager_cycle(
+        etf_state_path=etf_state_path,
+        bond_cash_state_path=bond_state_path,
+        manager_state_path=mgr_state_path,
+        ledger_path=ledger_path,
+        equity_log_path=equity_log_path,
+        initial_capital=80000.0,
+        quotes_override=quotes,
+        as_of=now
+    )
+
+    assert res["status"]["is_halted"] is False
+    assert res["combined_fund_nav"] == pytest.approx(79900.0 + 19990.0, 0.1)
+
+    # Verify sleeves breakdown in res and in persisted manager_state.json
+    sleeves = res["sleeves"]
+    assert "primary_sleeve" in sleeves
+    assert "reserve_sleeve" in sleeves
+    assert sleeves["primary_sleeve"]["target_capital"] == 80000.0
+    assert sleeves["reserve_sleeve"]["target_capital"] == 20000.0
+    assert sleeves["primary_sleeve"]["reconciliation_passed"] is True
+    assert sleeves["reserve_sleeve"]["reconciliation_passed"] is True
+
+    # Check persisted manager_state.json
+    with open(mgr_state_path, "r") as f:
+        saved_mgr = json.load(f)
+    assert "sleeves" in saved_mgr
+    assert saved_mgr["combined_fund_nav"] == res["combined_fund_nav"]
+    assert saved_mgr["combined_target_capital"] == 100000.0
+    assert saved_mgr["sleeves"]["primary_sleeve"]["reconciliation_passed"] is True
+    assert saved_mgr["sleeves"]["reserve_sleeve"]["reconciliation_passed"] is True
+
+

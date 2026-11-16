@@ -69,6 +69,8 @@ def main():
     print(f"Execution Status    : {result.get('status')}")
     print(f"Portfolio NAV       : INR {result.get('nav', 0.0):,.2f}")
     print(f"Cash Balance        : INR {result.get('cash', 0.0):,.2f}")
+    if result.get("daily_carry_credited", 0.0) > 0:
+        print(f"Daily Carry Accrued : +INR {result.get('daily_carry_credited', 0.0):.2f} (Cumulative: INR {result.get('total_carry_earned', 0.0):.2f})")
     print(f"Current Drawdown    : {result.get('drawdown_pct', 0.0):.2f}% (Max: {runner.state.get('max_drawdown_pct', 0.0):.2f}%)")
     print(f"Rebalance Status    : {'EXECUTED' if result.get('rebalance_executed') else 'HOLD'} ({result.get('rebalance_reason')})")
     print(f"Incubation Progress : Day {days} of 91 ({weeks} / 13.0 weeks - {progress_pct}% Complete)")

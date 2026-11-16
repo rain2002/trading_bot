@@ -292,3 +292,62 @@ def test_bond_cash_runner_default_b0_champion_flow(tmp_path):
     assert "LTGILTBEES.NS" not in runner.state["positions"]
     assert runner.state["positions"]["LIQUIDBEES.NS"]["shares"] >= 19
 
+
+def test_bond_cash_daily_carry_accrual(tmp_path):
+    """
+    Verifies daily cash carry accrual for LIQUIDBEES.NS at protocol repo rate.
+    Pass conditions:
+    1. Day 0 (initial allocation): seeds positions, zero carry credited.
+    2. Same-day re-run: idempotent, zero duplicate carry credited.
+    3. Next session (Day 1): accrues daily carry (~INR 4.50 on INR 20k), cash & NAV increase.
+    4. Audit trail: DIVIDEND_CARRY transaction logged in trades CSV.
+    """
+    state_file = str(tmp_path / "test_state.json")
+    trades_file = str(tmp_path / "test_trades.csv")
+    equity_file = str(tmp_path / "test_equity.csv")
+
+    runner = BondCashPaperRunner(
+        initial_capital=DEFAULT_CAPITAL,
+        state_file=state_file,
+        trades_file=trades_file,
+        equity_log_file=equity_file
+    )
+
+    quotes = {"LIQUIDBEES.NS": 1000.00, "LTGILTBEES.NS": 30.00}
+    dates = pd.date_range("2026-01-01", periods=10, freq="D")
+    market_data = {
+        "LIQUIDBEES.NS": pd.DataFrame({"Close": [1000.0] * 10}, index=dates),
+        "LTGILTBEES.NS": pd.DataFrame({"Close": [30.0] * 10}, index=dates)
+    }
+
+    # Session 1: 2026-11-15 (Sunday Initial Run)
+    dt1 = datetime(2026, 11, 15, 10, 15, tzinfo=timezone.utc)
+    res1 = runner.run_daily_cycle(quotes=quotes, market_data=market_data, as_of=dt1)
+    assert res1["status"] == "SUCCESS"
+    assert res1["daily_carry_credited"] == 0.0
+    assert runner.state["total_carry_earned"] == 0.0
+    initial_cash = runner.state["cash"]
+    initial_nav = runner.state["nav"]
+
+    # Re-run same day: Idempotent guard prevents duplicate accrual
+    res1_repeat = runner.run_daily_cycle(quotes=quotes, market_data=market_data, as_of=dt1)
+    assert res1_repeat["daily_carry_credited"] == 0.0
+    assert runner.state["cash"] == initial_cash
+
+    # Session 2: 2026-11-16 (Monday Scheduled Run)
+    dt2 = datetime(2026, 11, 16, 10, 15, tzinfo=timezone.utc)
+    res2 = runner.run_daily_cycle(quotes=quotes, market_data=market_data, as_of=dt2)
+    assert res2["status"] == "SUCCESS"
+    assert res2["daily_carry_credited"] > 4.0  # ~INR 4.50 on ~INR 20,000 capital
+    assert runner.state["cash"] == pytest.approx(initial_cash + res2["daily_carry_credited"], 0.01)
+    assert runner.state["nav"] == pytest.approx(initial_nav + res2["daily_carry_credited"], 0.01)
+    assert runner.state["total_carry_earned"] == res2["daily_carry_credited"]
+
+    # Verify DIVIDEND_CARRY in trades log
+    tdf = pd.read_csv(trades_file)
+    carry_rows = tdf[tdf["side"] == "DIVIDEND_CARRY"]
+    assert len(carry_rows) == 1
+    assert carry_rows.iloc[0]["symbol"] == "LIQUIDBEES.NS"
+    assert carry_rows.iloc[0]["net_cash_impact"] == -round(res2["daily_carry_credited"], 2)
+
+

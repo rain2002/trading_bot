@@ -59,6 +59,12 @@ EXCHANGE_FEES_BPS = 0.345     # Exchange turnover + SEBI + GST
 SLIPPAGE_BPS = 5.0            # 5 bps conservative execution slippage
 DEBT_STCG_TAX_RATE = 0.15     # Standard statutory short-term debt capital gains rate
 
+# Cash Yield Parameters (Per PROTOCOL-BOND-AND-CASH-BOT-V1-20261114)
+ANNUAL_REPO_RATE = 0.06       # 6.0% sovereign repo cash yield per protocol
+LIQUIDBEES_TER = 0.0016       # 0.16% annual TER drag on cash ETF
+# Daily net compounding rate across 252 trading sessions per year: (1 + 0.06 - 0.0016)^(1/252) - 1
+DAILY_CARRY_RATE = (1.0 + ANNUAL_REPO_RATE - LIQUIDBEES_TER) ** (1.0 / 252.0) - 1.0
+
 
 class BondCashB0Strategy(StrategyInterface):
     """
@@ -248,6 +254,8 @@ class BondCashPaperRunner:
             "current_drawdown_pct": 0.0,
             "max_drawdown_pct": 0.0,
             "max_duration_scale": 1.0,
+            "total_carry_earned": 0.0,
+            "last_carry_date": None,
             "last_run_timestamp": None,
             "last_rebalance_date": None,
             "status": "HEALTHY_ACTIVE"
@@ -310,6 +318,7 @@ class BondCashPaperRunner:
             "nav": round(nav, 2),
             "cash": round(self.state["cash"], 2),
             "holdings_val": round(pos_val, 2),
+            "total_carry_earned": round(self.state.get("total_carry_earned", 0.0), 2),
             "hwm": round(hwm, 2),
             "current_drawdown_pct": round(dd, 2),
             "max_drawdown_pct": self.state["max_drawdown_pct"],
@@ -401,7 +410,8 @@ class BondCashPaperRunner:
         self,
         quotes: Optional[Dict[str, float]] = None,
         market_data: Optional[Dict[str, pd.DataFrame]] = None,
-        max_duration_scale: Optional[float] = None
+        max_duration_scale: Optional[float] = None,
+        as_of: Optional[datetime] = None
     ) -> Dict[str, Any]:
         """
         Executes daily evaluation, drift monitoring, rebalancing, and state persistence.
@@ -445,6 +455,42 @@ class BondCashPaperRunner:
                 "stale_quotes": stale_symbols,
                 "nav": self.state["nav"]
             }
+
+        now_dt = as_of or datetime.now(timezone.utc)
+        today_str = now_dt.strftime("%Y-%m-%d")
+
+        # Accrue daily cash carry on overnight holdings (LIQUIDBEES.NS + uninvested cash)
+        # LIQUIDBEES pays yield as daily distributions, keeping price flat at ~INR 1000.
+        # Accrues daily cash yield at the protocol repo rate (6.0% repo minus 0.16% TER compounded daily).
+        daily_carry_credited = 0.0
+        last_carry_date = self.state.get("last_carry_date")
+        last_run_ts = self.state.get("last_run_timestamp")
+
+        if last_run_ts is not None and last_carry_date != today_str:
+            liquidbees_pos = self.state["positions"].get("LIQUIDBEES.NS", {})
+            liquidbees_shares = liquidbees_pos.get("shares", 0)
+            liquidbees_px = quotes.get("LIQUIDBEES.NS", liquidbees_pos.get("last_price", 1000.0))
+
+            qualifying_capital = self.state["cash"] + (liquidbees_shares * liquidbees_px)
+            if qualifying_capital > 0:
+                daily_carry_credited = round(qualifying_capital * DAILY_CARRY_RATE, 2)
+                self.state["cash"] = round(self.state["cash"] + daily_carry_credited, 2)
+                self.state["total_carry_earned"] = round(self.state.get("total_carry_earned", 0.0) + daily_carry_credited, 2)
+                self.state["last_carry_date"] = today_str
+                logger.info(f"Credited daily overnight carry: INR {daily_carry_credited:.2f} (Cumulative: INR {self.state['total_carry_earned']:.2f})")
+
+                self.log_trade(
+                    symbol="LIQUIDBEES.NS",
+                    side="DIVIDEND_CARRY",
+                    shares=0,
+                    price=round(liquidbees_px, 2),
+                    total_cost=-daily_carry_credited,
+                    fees=0.0,
+                    tax=0.0
+                )
+        elif last_run_ts is None and last_carry_date is None:
+            # First initialization run: anchor carry date without back-crediting
+            self.state["last_carry_date"] = today_str
 
         # Update position prices and calculate holdings value
         for sym in self.state["positions"]:
@@ -571,6 +617,8 @@ class BondCashPaperRunner:
             "trades": trades_executed,
             "nav": self.state["nav"],
             "cash": self.state["cash"],
+            "daily_carry_credited": daily_carry_credited,
+            "total_carry_earned": self.state.get("total_carry_earned", 0.0),
             "positions": {s: p["shares"] for s, p in self.state["positions"].items()},
             "target_weights": target_weights,
             "max_duration_scale": current_scale,

@@ -144,6 +144,8 @@ def execute_manager_cycle(
 
     # 2. Independent Bot NAV Calculation (from raw cash + positions * fresh quotes)
     independent_nav, quotes_used = compute_independent_bot_nav(etf_state, quotes_override=quotes_override)
+    etf_gap = abs(independent_nav - reported_nav) / reported_nav if reported_nav > 0 else 0.0
+    etf_rec_passed = etf_gap <= RECONCILIATION_MAX_GAP
 
     # 3. Ingest Bond and Cash Bot State (Dedicated INR 20,000 Paper Capital Partition)
     bond_state = None
@@ -151,6 +153,7 @@ def execute_manager_cycle(
     bond_reported_nav = 0.0
     bond_stale = False
     bond_rec_passed = True
+    bond_gap = 0.0
     bond_report = None
 
     if os.path.exists(bond_cash_state_path):
@@ -232,11 +235,42 @@ def execute_manager_cycle(
         nav_state=nav_state
     )
 
+    # Record explicit multi-sleeve architecture and independent per-sleeve reconciliation
+    combined_fund_nav = round(independent_nav + independent_bond_nav, 2)
+    max_reconciliation_gap = max(etf_gap, bond_gap)
+
+    manager.state["sleeves"] = {
+        "primary_sleeve": {
+            "bot_name": "ETF_AND_GOLD_BOT",
+            "mandate": "Active Multi-Asset Equity & Gold Growth (Phase 1)",
+            "target_capital": 80000.0,
+            "reported_nav": reported_nav,
+            "independent_nav": independent_nav,
+            "reconciliation_gap_pct": round(etf_gap * 100.0, 4),
+            "reconciliation_passed": (etf_gap <= RECONCILIATION_MAX_GAP),
+            "stale": stale
+        },
+        "reserve_sleeve": {
+            "bot_name": "BOND_AND_CASH_BOT",
+            "mandate": "Dedicated Safe Carry & Retreat Haven Partition (Phase 3 Champion B0)",
+            "target_capital": 20000.0,
+            "reported_nav": bond_reported_nav,
+            "independent_nav": independent_bond_nav,
+            "reconciliation_gap_pct": round(bond_gap * 100.0, 4),
+            "reconciliation_passed": bond_rec_passed,
+            "stale": bond_stale
+        }
+    }
+    manager.state["combined_fund_nav"] = combined_fund_nav
+    manager.state["combined_target_capital"] = 100000.0
+    manager.state["last_reconciliation_gap_pct"] = round(max_reconciliation_gap * 100.0, 4)
+
     # If bond bot failed independent reconciliation, flag alert
     if not bond_rec_passed:
         manager.state["is_halted"] = True
-        manager.state["halt_reason"] = "BOND_CASH_BOT_RECONCILIATION_BREACH"
-        manager._save_state()
+        manager.state["halt_reason"] = f"BOND_CASH_BOT_RECONCILIATION_BREACH: {bond_gap*100:.3f}% > 0.1%"
+
+    manager._save_state()
 
     status = manager.get_status()
 
@@ -245,13 +279,16 @@ def execute_manager_cycle(
     log_entry = {
         "date": current_time.strftime("%Y-%m-%d %H:%M:%S"),
         "total_portfolio_value": round(nav_metrics["total_portfolio_value"], 2),
+        "primary_sleeve_nav": independent_nav,
+        "reserve_sleeve_nav": independent_bond_nav,
+        "combined_fund_nav": combined_fund_nav,
         "nav_per_unit": round(nav_metrics["nav_per_unit"], 4),
         "true_trading_return_pct": round(nav_metrics["true_trading_return_pct"], 4),
         "current_drawdown_pct": round(status["current_drawdown"] * 100.0, 2),
         "throttle_level": status["throttle_level"],
         "is_halted": status["is_halted"],
         "halt_reason": status["halt_reason"] or "",
-        "reconciliation_gap_pct": round(status["last_reconciliation_gap_pct"], 4),
+        "reconciliation_gap_pct": round(manager.state["last_reconciliation_gap_pct"], 4),
         "share_etf_gold": shares.get("ETF_AND_GOLD", 0.0),
         "share_cash_sleeve": shares.get("CASH_SLEEVE", 0.0),
         "execution_mode": mode
@@ -272,6 +309,8 @@ def execute_manager_cycle(
         "nav_metrics": nav_metrics,
         "independent_nav": independent_nav,
         "reported_nav": reported_nav,
+        "combined_fund_nav": combined_fund_nav,
+        "sleeves": manager.state["sleeves"],
         "quotes_used": quotes_used,
         "max_duration_scale": status.get("max_duration_scale", 1.0),
         "etf_report": {
@@ -310,17 +349,17 @@ def main():
     status = res["status"]
     shares = res["shares"]
 
-    print(f"Total Portfolio Value : INR {metrics['total_portfolio_value']:,.2f} (Independent: INR {res['independent_nav']:,.2f} | Reported: INR {res['reported_nav']:,.2f})")
-    print(f"NAV Per Unit          : INR {metrics['nav_per_unit']:.4f} (Base: 100.0000)")
-    print(f"True Trading Return   : {metrics['true_trading_return_pct']:+.2f}%")
-    print(f"Current Drawdown      : {status['current_drawdown'] * 100.0:.2f}% (HWM Unit NAV: {status['hwm_unit_nav']:.4f})")
-    print(f"Reconciliation Gap    : {status['last_reconciliation_gap_pct']:.4f}% (Max Permissible: {RECONCILIATION_MAX_GAP * 100.0:.1f}%)")
-    print(f"Trading Halted        : {'YES - ' + str(status['halt_reason']) if status['is_halted'] else 'NO (Normal Operations)'}")
-    print(f"Risk Throttle Level   : {status['throttle_level']} (0: Normal, 1: -15%, 2: -30%, 3: -40% Kill)")
-    print(f"Max Duration Scale    : {status.get('max_duration_scale', 1.0):.2f} (1.0 = Normal, 0.0 = Retreat/Throttled)")
-    if res.get("bond_cash_report"):
-        b_rep = res["bond_cash_report"]
-        print(f"Bond & Cash Bot NAV   : INR {b_rep['nav']:,.2f} (Partitioned Gate B Capital | Rec Passed: {b_rep['reconciliation_passed']})")
+    p_sleeve = res["sleeves"]["primary_sleeve"]
+    r_sleeve = res["sleeves"]["reserve_sleeve"]
+
+    print(f"Primary Sleeve (ETF & Gold)   : Reported INR {p_sleeve['reported_nav']:,.2f} | Indep INR {p_sleeve['independent_nav']:,.2f} | Gap: {p_sleeve['reconciliation_gap_pct']:.4f}% ({'PASS' if p_sleeve['reconciliation_passed'] else 'BREACH'})")
+    print(f"Reserve Sleeve (Bond & Cash)  : Reported INR {r_sleeve['reported_nav']:,.2f} | Indep INR {r_sleeve['independent_nav']:,.2f} | Gap: {r_sleeve['reconciliation_gap_pct']:.4f}% ({'PASS' if r_sleeve['reconciliation_passed'] else 'BREACH'})")
+    print(f"Combined Multi-Bot Fund NAV   : INR {res['combined_fund_nav']:,.2f} (Target: INR 100,000.00)")
+    print(f"Primary Unitized NAV (Active) : INR {metrics['nav_per_unit']:.4f} (Base: 100.0000 | Drawdown: {status['current_drawdown'] * 100.0:.2f}%)")
+    print(f"Worst Reconciliation Gap      : {status['last_reconciliation_gap_pct']:.4f}% (Max Permissible: {RECONCILIATION_MAX_GAP * 100.0:.1f}%)")
+    print(f"Trading Halted                : {'YES - ' + str(status['halt_reason']) if status['is_halted'] else 'NO (Normal Operations)'}")
+    print(f"Risk Throttle Level           : {status['throttle_level']} (0: Normal, 1: -15%, 2: -30%, 3: -40% Kill)")
+    print(f"Max Duration Scale            : {status.get('max_duration_scale', 1.0):.2f} (1.0 = Normal, 0.0 = Retreat/Throttled)")
     print("-" * 80)
     print("Allocated Capital Shares:")
     for sleeve, share in shares.items():
