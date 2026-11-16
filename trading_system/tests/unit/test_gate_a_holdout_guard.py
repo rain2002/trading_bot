@@ -94,3 +94,32 @@ def test_trial_log_phase4_holdout_integrity():
             assert str(row["is_holdout_opened"]).strip().lower() == "false", (
                 f"Failed candidate must have is_holdout_opened=False in trial log: {notes}"
             )
+
+
+def test_trial_log_phase5_holdout_integrity():
+    """Verify trial_log.csv rows for Phase 5 enforce is_holdout_opened=False for failed candidates."""
+    import json
+    trial_log_path = os.path.join(
+        os.path.dirname(__file__), "..", "..", "data", "trial_log.csv"
+    )
+    assert os.path.exists(trial_log_path), "trial_log.csv must exist"
+
+    df = pd.read_csv(trial_log_path)
+    phase5_rows = df[df["script"] == "run_phase5_nse_whole_market_gate_a.py"]
+    assert len(phase5_rows) >= 1, "Phase 5 must have at least 1 logged trial"
+
+    for _, row in phase5_rows.iterrows():
+        notes = str(row["notes"])
+        assert "AllPass=False" in notes
+        assert str(row["is_holdout_opened"]).strip().lower() == "false"
+        assert "Holdout=STRICTLY_SEALED" in notes
+
+    results_json = os.path.join(
+        os.path.dirname(__file__), "..", "..", "data", "phase5_nse_whole_market_gate_a_results.json"
+    )
+    assert os.path.exists(results_json), "phase5_nse_whole_market_gate_a_results.json must exist"
+    data = json.load(open(results_json, "r"))
+    assert data["gate_a_hurdles"]["ALL_HURDLES_PASSED"] is False
+    assert data["holdout_evaluation"]["status"] == "SEALED_GATE_A_FAILED"
+    assert data["recommendation"] == "PARK_NSE_BOT_PERMANENTLY_CORE_RETAINS_ETF_CASH_ONLY"
+
