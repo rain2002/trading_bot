@@ -238,10 +238,120 @@ def execute_manager_cycle(
         }
 
     reported_nav = float(etf_state.get("nav", initial_capital))
+    etf_status = etf_state.get("status", "UNKNOWN")
     stale = is_bot_state_stale(etf_state.get("last_run_timestamp"), current_time)
+
+    # Load prior manager state if present to check 1-day jump and retain prior state on DATA_FAULT
+    prior_manager_state = None
+    prior_nav = initial_capital
+    if os.path.exists(manager_state_path):
+        try:
+            with open(manager_state_path, "r") as f:
+                prior_manager_state = json.load(f)
+            u_nav = float(prior_manager_state.get("unitized_nav", 100.0))
+            if u_nav > 0:
+                prior_nav = u_nav * (initial_capital / 100.0)
+            elif prior_manager_state.get("total_portfolio_value"):
+                p_val = float(prior_manager_state["total_portfolio_value"])
+                if p_val > 0 and not math.isnan(p_val):
+                    prior_nav = p_val
+        except Exception:
+            prior_nav = initial_capital
 
     # 2. Independent Bot NAV Calculation (from raw cash + positions * fresh quotes)
     independent_nav, quotes_used, etf_quotes_verified = compute_independent_bot_nav(etf_state, quotes_override=quotes_override)
+
+    # Sanity checks for DATA_FAULT (Reviewer Requirement 2 & 3):
+    # - If ETF step fails (FAIL_CLOSED, FAILED, ERROR)
+    # - If independent NAV is NaN, non-positive (<=0), or moves > 25% in a single day
+    import math
+    is_data_fault = False
+    data_fault_reasons = []
+
+    if etf_status in ["FAILED", "ERROR", "FAIL_CLOSED"]:
+        is_data_fault = True
+        data_fault_reasons.append(f"ETF Bot execution step failed (status: {etf_status})")
+
+    if math.isnan(independent_nav) or math.isinf(independent_nav) or pd.isna(independent_nav):
+        is_data_fault = True
+        data_fault_reasons.append(f"Non-finite independent NAV: {independent_nav}")
+    elif independent_nav <= 0:
+        is_data_fault = True
+        data_fault_reasons.append(f"Non-positive independent NAV: {independent_nav}")
+    elif prior_nav > 0:
+        pct_jump = abs(independent_nav - prior_nav) / prior_nav
+        if pct_jump > 0.25:
+            is_data_fault = True
+            data_fault_reasons.append(f"Extreme single-day NAV jump of {pct_jump*100:.1f}% exceeds 25.0% sanity threshold (Prior: {prior_nav:.2f}, Indep: {independent_nav:.2f})")
+
+    if is_data_fault:
+        fault_msg = "DATA_FAULT: " + "; ".join(data_fault_reasons)
+        logger.error(f"[DATA FAULT DETECTED] {fault_msg}. Retaining prior manager state, skipping ledger update, and bypassing kill switch.")
+
+        # Retain prior manager state safely
+        state = dict(prior_manager_state or {})
+        if not state:
+            state = {
+                "manager_name": "CENTRAL_PORTFOLIO_MANAGER",
+                "phase": "PHASE_2",
+                "policy": policy,
+                "unitized_nav": 100.0,
+                "hwm_unit_nav": 100.0,
+                "current_drawdown": 0.0,
+                "max_drawdown": 0.0,
+                "throttle_level": 0,
+                "consecutive_recovery_days": 0,
+                "is_halted": False,
+                "halt_reason": None,
+                "human_override_required": False,
+                "last_reconciliation_gap_pct": 0.0,
+                "last_rebalance_date": None,
+                "current_shares": {"ETF_AND_GOLD": 1.0, "BOND_AND_CASH": 0.0, "CASH_SLEEVE": 0.0},
+                "mode": mode,
+                "max_duration_scale": 1.0
+            }
+
+        state["last_cycle_status"] = fault_msg
+        state["last_update"] = current_time.isoformat()
+        os.makedirs(os.path.dirname(manager_state_path), exist_ok=True)
+        with open(manager_state_path, "w") as f:
+            json.dump(state, f, indent=2)
+
+        # Skip ledger update & skip equity log append
+        return {
+            "policy": policy,
+            "mode": mode,
+            "shares": state.get("current_shares", {"ETF_AND_GOLD": 1.0}),
+            "status": {
+                "is_halted": state.get("is_halted", False),
+                "halt_reason": state.get("halt_reason"),
+                "throttle_level": state.get("throttle_level", 0),
+                "current_drawdown": state.get("current_drawdown", 0.0),
+                "max_drawdown": state.get("max_drawdown", 0.0),
+                "last_reconciliation_gap_pct": state.get("last_reconciliation_gap_pct", 0.0),
+                "is_data_fault": True,
+                "data_fault_reason": fault_msg
+            },
+            "nav_metrics": {
+                "nav_per_unit": state.get("unitized_nav", 100.0),
+                "total_portfolio_value": prior_nav
+            },
+            "independent_nav": prior_nav,
+            "reported_nav": reported_nav,
+            "combined_fund_nav": state.get("combined_fund_nav", prior_nav),
+            "sleeves": state.get("sleeves", {}),
+            "etf_report": {
+                "nav": reported_nav,
+                "stale": stale,
+                "gate_status": etf_state.get("gate", "GATE_B_PAPER")
+            },
+            "bond_cash_report": None,
+            "quotes_used": quotes_used,
+            "max_duration_scale": state.get("max_duration_scale", 1.0),
+            "consecutive_unverified_quote_days": state.get("consecutive_unverified_quote_days", 0),
+            "unverified_quotes_warning": state.get("unverified_quotes_warning")
+        }
+
     etf_gap = abs(independent_nav - reported_nav) / reported_nav if reported_nav > 0 else 0.0
     etf_rec_passed = (etf_gap <= RECONCILIATION_MAX_GAP and etf_quotes_verified)
     etf_rec_status = "PASSED" if etf_rec_passed else ("UNVERIFIED_FALLBACK_PRICE" if not etf_quotes_verified else "RECONCILIATION_BREACH")
@@ -474,8 +584,14 @@ def main():
 
     res = execute_manager_cycle(policy=args.policy, mode=args.mode, initial_capital=args.capital)
 
-    metrics = res["nav_metrics"]
     status = res["status"]
+    if status.get("is_data_fault"):
+        print(f"[DATA FAULT DETECTED] {status['data_fault_reason']}")
+        print("Cycle bypassed safely: Prior manager state retained, ledger unchanged, kill switch avoided.")
+        print("=" * 80)
+        return
+
+    metrics = res["nav_metrics"]
     shares = res["shares"]
 
     p_sleeve = res["sleeves"]["primary_sleeve"]

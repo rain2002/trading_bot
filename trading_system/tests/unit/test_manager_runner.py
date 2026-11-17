@@ -150,25 +150,46 @@ def test_manager_runner_kill_switch_breach(tmp_path: Path):
     equity_log_path = str(tmp_path / "manager_equity_log.csv")
 
     now = datetime.now(timezone.utc)
-    # Seed ledger at 100k, then crash to 55k (-45% drawdown)
+    # Seed ledger at 100k, then multi-day drawdown: 100k -> 80k -> 65k -> 55k (-45% drawdown)
+    # Each daily step is <= 20% (passing the 25% single-day sanity threshold), but cumulatively breaches -40% kill switch
     nav_engine = UnitizedNAVEngine(ledger_path=ledger_path, initial_capital=100000.0)
 
-    etf_state = {
-        "bot_name": "ETF_AND_GOLD_BOT",
-        "gate": "GATE_B_PAPER",
-        "nav": 55000.0,
-        "last_run_timestamp": now.isoformat()
-    }
+    # Day 1: 80,000 (-20%)
     with open(etf_state_path, "w") as f:
-        json.dump(etf_state, f)
-
-    res = execute_manager_cycle(
+        json.dump({"bot_name": "ETF_AND_GOLD_BOT", "gate": "GATE_B_PAPER", "nav": 80000.0, "last_run_timestamp": now.isoformat()}, f)
+    execute_manager_cycle(
         etf_state_path=etf_state_path,
         manager_state_path=mgr_state_path,
         ledger_path=ledger_path,
         equity_log_path=equity_log_path,
         initial_capital=100000.0,
         as_of=now
+    )
+
+    # Day 2: 65,000 (-18.75%)
+    d2 = now + timedelta(days=1)
+    with open(etf_state_path, "w") as f:
+        json.dump({"bot_name": "ETF_AND_GOLD_BOT", "gate": "GATE_B_PAPER", "nav": 65000.0, "last_run_timestamp": d2.isoformat()}, f)
+    execute_manager_cycle(
+        etf_state_path=etf_state_path,
+        manager_state_path=mgr_state_path,
+        ledger_path=ledger_path,
+        equity_log_path=equity_log_path,
+        initial_capital=100000.0,
+        as_of=d2
+    )
+
+    # Day 3: 55,000 (-15.38% daily, -45% cumulative from 100k HWM -> triggers kill switch)
+    d3 = now + timedelta(days=2)
+    with open(etf_state_path, "w") as f:
+        json.dump({"bot_name": "ETF_AND_GOLD_BOT", "gate": "GATE_B_PAPER", "nav": 55000.0, "last_run_timestamp": d3.isoformat()}, f)
+    res = execute_manager_cycle(
+        etf_state_path=etf_state_path,
+        manager_state_path=mgr_state_path,
+        ledger_path=ledger_path,
+        equity_log_path=equity_log_path,
+        initial_capital=100000.0,
+        as_of=d3
     )
 
     assert res["status"]["is_halted"] is True
@@ -744,6 +765,104 @@ def test_manager_runner_nan_quote_safe_fallback(tmp_path: Path):
     assert res["status"]["is_halted"] is False
     assert res["status"]["throttle_level"] == 0
     assert res["nav_metrics"]["nav_per_unit"] == 100.0
+
+
+def test_manager_runner_data_fault_on_failed_etf_step(tmp_path: Path):
+    """
+    Verifies that if the ETF Bot step fails (e.g. FAIL_CLOSED or FAILED status),
+    the manager flags a DATA_FAULT, retains prior state, skips the ledger update,
+    and NEVER triggers the kill switch from it.
+    """
+    etf_state_path = str(tmp_path / "etf_gold_state.json")
+    mgr_state_path = str(tmp_path / "manager_state.json")
+    ledger_path = str(tmp_path / "unitized_nav_ledger.json")
+    equity_log_path = str(tmp_path / "manager_equity_log.csv")
+
+    now = datetime.now(timezone.utc)
+    # Seed prior manager state
+    prior_state = {
+        "unitized_nav": 100.0,
+        "is_halted": False,
+        "current_shares": {"ETF_AND_GOLD": 1.0, "BOND_AND_CASH": 0.0, "CASH_SLEEVE": 0.0}
+    }
+    with open(mgr_state_path, "w") as f:
+        json.dump(prior_state, f)
+
+    # ETF bot has FAIL_CLOSED status
+    etf_state = {
+        "bot_name": "ETF_AND_GOLD_BOT",
+        "phase": "PHASE_1",
+        "status": "FAIL_CLOSED",
+        "nav": 80000.0,
+        "cash": 80000.0,
+        "positions": {},
+        "last_run_timestamp": now.isoformat()
+    }
+    with open(etf_state_path, "w") as f:
+        json.dump(etf_state, f)
+
+    res = execute_manager_cycle(
+        etf_state_path=etf_state_path,
+        manager_state_path=mgr_state_path,
+        ledger_path=ledger_path,
+        equity_log_path=equity_log_path,
+        initial_capital=80000.0,
+        as_of=now
+    )
+
+    assert res["status"]["is_data_fault"] is True
+    assert "DATA_FAULT" in res["status"]["data_fault_reason"]
+    assert res["status"]["is_halted"] is False
+    assert not os.path.exists(equity_log_path)  # Ledger log update skipped
+
+
+def test_manager_runner_data_fault_on_extreme_nav_jump(tmp_path: Path):
+    """
+    Verifies that if independent NAV shows an impossible single-day move > 25%,
+    the manager marks DATA_FAULT, keeps prior state, and does NOT trigger the kill switch.
+    """
+    etf_state_path = str(tmp_path / "etf_gold_state.json")
+    mgr_state_path = str(tmp_path / "manager_state.json")
+    ledger_path = str(tmp_path / "unitized_nav_ledger.json")
+    equity_log_path = str(tmp_path / "manager_equity_log.csv")
+
+    now = datetime.now(timezone.utc)
+    # Prior manager state: 80,000 INR
+    prior_state = {
+        "unitized_nav": 100.0,
+        "is_halted": False,
+        "current_shares": {"ETF_AND_GOLD": 1.0, "BOND_AND_CASH": 0.0, "CASH_SLEEVE": 0.0}
+    }
+    with open(mgr_state_path, "w") as f:
+        json.dump(prior_state, f)
+
+    # Current ETF state drops by 45% (to 44,000 INR) - impossible for diversified ETF basket
+    etf_state = {
+        "bot_name": "ETF_AND_GOLD_BOT",
+        "status": "HEALTHY_ACTIVE",
+        "nav": 44000.0,
+        "cash": 44000.0,
+        "positions": {},
+        "last_run_timestamp": now.isoformat()
+    }
+    with open(etf_state_path, "w") as f:
+        json.dump(etf_state, f)
+
+    res = execute_manager_cycle(
+        etf_state_path=etf_state_path,
+        manager_state_path=mgr_state_path,
+        ledger_path=ledger_path,
+        equity_log_path=equity_log_path,
+        initial_capital=80000.0,
+        as_of=now
+    )
+
+    assert res["status"]["is_data_fault"] is True
+    assert "25.0% sanity threshold" in res["status"]["data_fault_reason"]
+    # Crucially, the -40% kill switch was NOT triggered!
+    assert res["status"]["is_halted"] is False
+    assert not os.path.exists(equity_log_path)
+
 
 
 
