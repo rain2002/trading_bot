@@ -2,9 +2,9 @@
   "manager_name": "CENTRAL_PORTFOLIO_MANAGER",
   "phase": "PHASE_2",
   "policy": "FIXED_SHARES_PLUS_KILL_SWITCH",
-  "unitized_nav": 99.4298,
+  "unitized_nav": 99.4442,
   "hwm_unit_nav": 100.0,
-  "current_drawdown": -0.0057,
+  "current_drawdown": -0.0056,
   "max_drawdown": -0.0057,
   "throttle_level": 0,
   "consecutive_recovery_days": 0,
@@ -18,7 +18,7 @@
     "BOND_AND_CASH": 0.0,
     "CASH_SLEEVE": 0.0
   },
-  "last_update": "2026-11-17T00:32:19.550269+00:00",
+  "last_update": "2026-11-17T19:02:24.920571+00:00",
   "mode": "PAPER",
   "max_duration_scale": 1.0,
   "sleeves": {
@@ -26,8 +26,8 @@
       "bot_name": "ETF_AND_GOLD_BOT",
       "mandate": "Active Multi-Asset Equity & Gold Growth (Phase 1)",
       "target_capital": 80000.0,
-      "reported_nav": 79543.85,
-      "independent_nav": 79543.85,
+      "reported_nav": 79555.34,
+      "independent_nav": 79555.34,
       "reconciliation_gap_pct": 0.0,
       "reconciliation_passed": true,
       "reconciliation_status": "PASSED",
@@ -47,7 +47,7 @@
       "stale": false
     }
   },
-  "combined_fund_nav": 99535.34,
+  "combined_fund_nav": 99546.83,
   "combined_target_capital": 100000.0,
   "consecutive_unverified_quote_days": 0,
   "unverified_quotes_warning": null

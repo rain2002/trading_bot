@@ -4,46 +4,46 @@
   "gate": "GATE_B_PAPER",
   "incubation_start_date": "2026-11-15T05:46:42.358561+00:00",
   "incubation_target_weeks": 13,
-  "days_incubated": 1,
+  "days_incubated": 2,
   "initial_capital": 80000.0,
   "cash": 366.3060473546193,
   "positions": {
     "GOLDBEES.NS": {
       "shares": 178,
       "entry_price": 111.91000366210938,
-      "last_price": 110.06,
+      "last_price": 109.92,
       "entry_date": "2026-11-15"
     },
     "MON100.NS": {
       "shares": 66,
       "entry_price": 302.3500061035156,
-      "last_price": 301.5,
+      "last_price": 299.6,
       "entry_date": "2026-11-15"
     },
     "NIFTYBEES.NS": {
       "shares": 41,
       "entry_price": 286.6400146484375,
-      "last_price": 287.61,
+      "last_price": 289.6,
       "entry_date": "2026-11-15"
     },
     "MID150BEES.NS": {
       "shares": 51,
       "entry_price": 234.72000122070312,
-      "last_price": 233.94,
+      "last_price": 234.24,
       "entry_date": "2026-11-15"
     },
     "LTGILTBEES.NS": {
       "shares": 541,
       "entry_price": 29.540000915527344,
-      "last_price": 29.510000228881836,
+      "last_price": 29.6299991607666,
       "entry_date": "2026-11-15"
     }
   },
-  "nav": 79543.85,
+  "nav": 79555.34,
   "hwm": 80000.0,
-  "current_drawdown_pct": -0.57,
+  "current_drawdown_pct": -0.56,
   "max_drawdown_pct": -0.57,
-  "last_run_timestamp": "2026-11-17T00:31:28.833629+00:00",
+  "last_run_timestamp": "2026-11-17T19:02:09.382975+00:00",
   "last_rebalance_date": "2026-11-15T05:46:43.345293+00:00",
   "status": "HEALTHY_ACTIVE"
 }
