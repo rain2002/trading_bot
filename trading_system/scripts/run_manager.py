@@ -436,6 +436,8 @@ def execute_manager_cycle(
         "reported_nav": reported_nav,
         "combined_fund_nav": combined_fund_nav,
         "sleeves": manager.state["sleeves"],
+        "consecutive_unverified_quote_days": manager.state.get("consecutive_unverified_quote_days", 0),
+        "unverified_quotes_warning": manager.state.get("unverified_quotes_warning"),
         "quotes_used": quotes_used,
         "max_duration_scale": status.get("max_duration_scale", 1.0),
         "etf_report": {
@@ -484,8 +486,8 @@ def main():
     print(f"Combined Multi-Bot Fund NAV   : INR {res['combined_fund_nav']:,.2f} (Target: INR 100,000.00)")
     print(f"Primary Unitized NAV (Active) : INR {metrics['nav_per_unit']:.4f} (Base: 100.0000 | Drawdown: {status['current_drawdown'] * 100.0:.2f}%)")
     print(f"Worst Reconciliation Gap      : {status['last_reconciliation_gap_pct']:.4f}% (Max Permissible: {RECONCILIATION_MAX_GAP * 100.0:.1f}%)")
-    if manager.state.get("consecutive_unverified_quote_days", 0) >= 3:
-        print(f"[PERSISTENCE WARNING] Live quotes unverified for {manager.state['consecutive_unverified_quote_days']} consecutive sessions! Review yfinance/broker data feed.")
+    if res.get("consecutive_unverified_quote_days", 0) >= 3:
+        print(f"[PERSISTENCE WARNING] Live quotes unverified for {res['consecutive_unverified_quote_days']} consecutive sessions! Review yfinance/broker data feed.")
     print(f"Trading Halted                : {'YES - ' + str(status['halt_reason']) if status['is_halted'] else 'NO (Normal Operations)'}")
     print(f"Risk Throttle Level           : {status['throttle_level']} (0: Normal, 1: -15%, 2: -30%, 3: -40% Kill)")
     print(f"Max Duration Scale            : {status.get('max_duration_scale', 1.0):.2f} (1.0 = Normal, 0.0 = Retreat/Throttled)")
