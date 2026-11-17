@@ -6,7 +6,25 @@
     "entry_price": 124.415333,
     "peak_price": 141.16,
     "quantity": 45.0,
-    "updated_at": "2026-11-17T13:00:56.388773"
+    "updated_at": "2026-11-04T20:02:02.747354"
+  },
+  "HUBB": {
+    "symbol": "HUBB",
+    "holding_type": "MOMENTUM",
+    "entry_date": "2026-10-30",
+    "entry_price": 432.49,
+    "peak_price": 438.41,
+    "quantity": 6.0,
+    "updated_at": "2026-11-04T20:02:05.600930"
+  },
+  "FTNT": {
+    "symbol": "FTNT",
+    "holding_type": "MOMENTUM",
+    "entry_date": "2026-11-02",
+    "entry_price": 133.687805,
+    "peak_price": 133.687805,
+    "quantity": 64.0,
+    "updated_at": "2026-11-04T20:02:01.599536"
   },
   "SNA": {
     "symbol": "SNA",
@@ -15,51 +33,6 @@
     "entry_price": 361.31,
     "peak_price": 368.805,
     "quantity": 15.0,
-    "updated_at": "2026-11-17T13:01:01.533229"
-  },
-  "DXCM": {
-    "symbol": "DXCM",
-    "holding_type": "MOMENTUM",
-    "entry_date": "2026-10-28",
-    "entry_price": 78.468001,
-    "peak_price": 82.27,
-    "quantity": 70.0,
-    "updated_at": "2026-11-17T13:00:58.361071"
-  },
-  "TTWO": {
-    "symbol": "TTWO",
-    "holding_type": "MOMENTUM",
-    "entry_date": "2026-10-30",
-    "entry_price": 190.17,
-    "peak_price": 204.93,
-    "quantity": 16.0,
-    "updated_at": "2026-11-17T13:01:03.459564"
-  },
-  "UBER": {
-    "symbol": "UBER",
-    "holding_type": "MOMENTUM",
-    "entry_date": "2026-10-28",
-    "entry_price": 65.657949,
-    "peak_price": 69.08,
-    "quantity": 78.0,
-    "updated_at": "2026-11-17T13:01:04.102399"
-  },
-  "CRM": {
-    "symbol": "CRM",
-    "holding_type": "DIP_BUY",
-    "entry_date": "2026-11-17",
-    "entry_price": 196.99,
-    "peak_price": 196.99,
-    "quantity": 34.753,
-    "updated_at": "2026-11-17T13:01:16.885257"
-  },
-  "AFRM": {
-    "symbol": "AFRM",
-    "holding_type": "DIP_BUY",
-    "entry_date": "2026-11-17",
-    "entry_price": 59.425,
-    "peak_price": 59.425,
-    "quantity": 115.2039,
-    "updated_at": "2026-11-17T13:01:17.388325"
+    "updated_at": "2026-11-04T20:02:07.526966"
   }
 }
