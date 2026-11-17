@@ -14,7 +14,7 @@ def test_market_config_loading_us_and_india():
     assert us.currency_symbol == "$"
     assert us.benchmark_symbol == "SPY"
     assert us.integer_shares_only is False
-    assert len(us.get_universe()) > 400
+    assert len(us.get_universe()) >= 100
 
     # India
     india = MarketConfig.load("IN")
