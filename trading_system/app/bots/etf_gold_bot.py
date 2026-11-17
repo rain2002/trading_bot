@@ -227,20 +227,39 @@ class ETFGoldsPaperRunner:
             try:
                 t = yf.Ticker(lookup_sym)
                 hist = t.history(period="10d")
-                if hist.empty and sym in ALTERNATIVE_SYMBOLS:
+                if (hist.empty or hist.dropna(subset=["Close"]).empty) and sym in ALTERNATIVE_SYMBOLS:
                     lookup_sym = ALTERNATIVE_SYMBOLS[sym]
                     t = yf.Ticker(lookup_sym)
                     hist = t.history(period="10d")
 
-                if not hist.empty:
-                    last_bar = hist.iloc[-1]
-                    bar_dt = hist.index[-1].to_pydatetime()
-                    if bar_dt.tzinfo is None:
-                        bar_dt = bar_dt.replace(tzinfo=timezone.utc)
+                last_price = None
+                bar_dt = None
 
+                # 1. Check fast_info.last_price first for fresh real-time/closing price
+                try:
+                    fi_price = getattr(t.fast_info, "last_price", None)
+                    if fi_price is not None and not pd.isna(fi_price) and float(fi_price) > 0:
+                        last_price = float(fi_price)
+                        bar_dt = now_dt
+                except Exception:
+                    pass
+
+                # 2. Fallback to latest non-NaN bar from historical data
+                if last_price is None or pd.isna(last_price):
+                    if not hist.empty:
+                        valid_hist = hist.dropna(subset=["Close"])
+                        if not valid_hist.empty:
+                            last_bar = valid_hist.iloc[-1]
+                            b_dt = valid_hist.index[-1].to_pydatetime()
+                            if b_dt.tzinfo is None:
+                                b_dt = b_dt.replace(tzinfo=timezone.utc)
+                            p = float(last_bar["Close"])
+                            if p > 0 and not pd.isna(p):
+                                last_price = p
+                                bar_dt = b_dt
+
+                if last_price is not None and bar_dt is not None:
                     days_old = (now_dt - bar_dt).days
-                    last_price = float(last_bar["Close"])
-
                     # Stale-price guard
                     if days_old > MAX_PRICE_STALENESS_DAYS:
                         logger.error(f"Stale quote detected for {sym}: Bar date {bar_dt.date()} is {days_old} days old!")

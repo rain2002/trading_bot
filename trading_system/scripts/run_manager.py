@@ -79,12 +79,20 @@ def compute_independent_bot_nav(
     if missing:
         try:
             import yfinance as yf
-            tickers = yf.Tickers(" ".join(missing))
             for sym in missing:
                 try:
-                    hist = tickers.tickers[sym].history(period="5d")
-                    if not hist.empty:
-                        prices[sym] = float(hist["Close"].iloc[-1])
+                    t = yf.Ticker(sym)
+                    fi_px = getattr(t.fast_info, "last_price", None)
+                    if fi_px is not None and not pd.isna(fi_px) and float(fi_px) > 0:
+                        prices[sym] = float(fi_px)
+                    else:
+                        hist = t.history(period="5d")
+                        if not hist.empty:
+                            valid_hist = hist.dropna(subset=["Close"])
+                            if not valid_hist.empty:
+                                p = float(valid_hist["Close"].iloc[-1])
+                                if p > 0 and not pd.isna(p):
+                                    prices[sym] = p
                 except Exception:
                     pass
         except Exception:
@@ -93,9 +101,9 @@ def compute_independent_bot_nav(
     holdings_val = 0.0
     for sym, pos in positions.items():
         shs = int(pos.get("shares", 0))
-        # Use fresh quote if available, fallback to position last_price
+        # Use fresh quote if available (>0 and non-NaN), fallback to position last_price
         px = prices.get(sym)
-        if px is None:
+        if px is None or pd.isna(px) or px <= 0:
             px = float(pos.get("last_price", 0.0))
             all_quotes_verified = False  # Price was unverified against live market
             logger.warning(f"Unverified quote fallback used for {sym}: last_price={px:.2f}")
@@ -103,6 +111,11 @@ def compute_independent_bot_nav(
         holdings_val += shs * px
 
     independent_nav = cash + holdings_val
+    if pd.isna(independent_nav) or independent_nav <= 0:
+        logger.error(f"Non-positive or NaN independent NAV: {independent_nav}. Falling back to reported NAV.")
+        independent_nav = float(bot_state.get("nav", cash))
+        all_quotes_verified = False
+
     return round(independent_nav, 2), prices, all_quotes_verified
 
 

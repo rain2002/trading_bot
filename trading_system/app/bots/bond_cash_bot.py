@@ -313,6 +313,36 @@ class BondCashPaperRunner:
         self.state["max_drawdown_pct"] = round(min(self.state.get("max_drawdown_pct", 0.0), dd), 2)
         self.state["days_incubated"] = days
 
+        canonical_fields = [
+            "timestamp", "nav", "cash", "holdings_val", "total_carry_earned",
+            "hwm", "current_drawdown_pct", "max_drawdown_pct", "max_duration_scale",
+            "days_incubated", "weeks_incubated", "incubation_complete"
+        ]
+
+        # Automatic schema migration guard for bond_cash_equity_log.csv
+        if os.path.exists(self.equity_log_file) and os.path.getsize(self.equity_log_file) > 0:
+            try:
+                import csv
+                with open(self.equity_log_file, "r", encoding="utf-8") as f:
+                    reader = list(csv.reader(f))
+                if reader:
+                    header = [c.strip() for c in reader[0]]
+                    if "total_carry_earned" not in header:
+                        migrated_rows = []
+                        for row in reader[1:]:
+                            if not row:
+                                continue
+                            if len(row) >= 11:
+                                # Old layout: timestamp(0), nav(1), cash(2), holdings_val(3), hwm(4)...
+                                new_row = row[:4] + ["0.0"] + row[4:]
+                                migrated_rows.append(new_row)
+                        with open(self.equity_log_file, "w", newline="", encoding="utf-8") as f:
+                            writer = csv.writer(f)
+                            writer.writerow(canonical_fields)
+                            writer.writerows(migrated_rows)
+            except Exception as e:
+                logger.error(f"Failed to check/migrate bond cash equity log schema: {e}")
+
         record = {
             "timestamp": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S"),
             "nav": round(nav, 2),
@@ -327,7 +357,7 @@ class BondCashPaperRunner:
             "weeks_incubated": round(days / 7.0, 1),
             "incubation_complete": days >= INCUBATION_TARGET_DAYS
         }
-        df = pd.DataFrame([record])
+        df = pd.DataFrame([record])[canonical_fields]
         header = not os.path.exists(self.equity_log_file) or os.path.getsize(self.equity_log_file) == 0
         df.to_csv(self.equity_log_file, mode="a", index=False, header=header)
 
@@ -345,16 +375,37 @@ class BondCashPaperRunner:
             try:
                 t = yf.Ticker(sym)
                 hist = t.history(period="1y")
-                if not hist.empty:
-                    market_data[sym] = hist
-                    last_bar = hist.iloc[-1]
-                    bar_dt = hist.index[-1].to_pydatetime()
-                    if bar_dt.tzinfo is None:
-                        bar_dt = bar_dt.replace(tzinfo=timezone.utc)
+                valid_hist = hist.dropna(subset=["Close"]) if not hist.empty else pd.DataFrame()
 
+                last_price = None
+                bar_dt = None
+
+                # 1. Check fast_info first for fresh price
+                try:
+                    fi_p = getattr(t.fast_info, "last_price", None)
+                    if fi_p is not None and not pd.isna(fi_p) and float(fi_p) > 0:
+                        last_price = float(fi_p)
+                        bar_dt = now_dt
+                except Exception:
+                    pass
+
+                # 2. Fallback to latest non-NaN bar from history
+                if last_price is None or pd.isna(last_price):
+                    if not valid_hist.empty:
+                        last_bar = valid_hist.iloc[-1]
+                        b_dt = valid_hist.index[-1].to_pydatetime()
+                        if b_dt.tzinfo is None:
+                            b_dt = b_dt.replace(tzinfo=timezone.utc)
+                        p = float(last_bar["Close"])
+                        if p > 0 and not pd.isna(p):
+                            last_price = p
+                            bar_dt = b_dt
+
+                if not valid_hist.empty:
+                    market_data[sym] = valid_hist
+
+                if last_price is not None and bar_dt is not None:
                     days_old = (now_dt - bar_dt).days
-                    last_price = float(last_bar["Close"])
-
                     if days_old > MAX_PRICE_STALENESS_DAYS:
                         logger.error(f"Stale quote detected for {sym}: Bar date {bar_dt.date()} is {days_old} days old!")
                         stale_or_missing.append(f"{sym} (STALE: {days_old}d old)")

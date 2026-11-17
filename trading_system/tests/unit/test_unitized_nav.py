@@ -159,3 +159,25 @@ def test_t2_accounting_random_lump_sums_and_sips(tmp_path: Path):
             current_val += lump_sum
             assert abs(engine.state["nav_per_unit"] - independent_unit_val) / independent_unit_val < 0.0001
 
+
+def test_nan_valuation_does_not_corrupt_nav(nav_engine):
+    """
+    CRITICAL SAFETY GUARD:
+    Passing NaN or non-finite valuation must NEVER zero out or corrupt the ledger.
+    It must retain the previous valuation safely.
+    """
+    nav_engine.update_portfolio_valuation(105000.0)
+    assert nav_engine.state["nav_per_unit"] == 105.0
+
+    # Pass float('nan')
+    nav_after_nan = nav_engine.update_portfolio_valuation(float("nan"))
+    assert nav_after_nan == 105.0
+    assert nav_engine.state["nav_per_unit"] == 105.0
+    assert nav_engine.state["total_portfolio_value"] == 105000.0
+
+    # Pass float('inf')
+    nav_after_inf = nav_engine.update_portfolio_valuation(float("inf"))
+    assert nav_after_inf == 105.0
+    assert nav_engine.state["nav_per_unit"] == 105.0
+
+

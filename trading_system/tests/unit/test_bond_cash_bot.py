@@ -351,3 +351,50 @@ def test_bond_cash_daily_carry_accrual(tmp_path):
     assert carry_rows.iloc[0]["net_cash_impact"] == -round(res2["daily_carry_credited"], 2)
 
 
+def test_bond_cash_equity_log_migration(tmp_path):
+    """
+    Verifies that an older 11-column bond_cash_equity_log.csv (missing total_carry_earned)
+    is transparently migrated to the canonical 12-column layout without column displacement.
+    """
+    state_file = str(tmp_path / "state.json")
+    trades_file = str(tmp_path / "trades.csv")
+    equity_file = str(tmp_path / "equity.csv")
+
+    # Seed legacy 11-column file
+    legacy_header = "timestamp,nav,cash,holdings_val,hwm,current_drawdown_pct,max_drawdown_pct,max_duration_scale,days_incubated,weeks_incubated,incubation_complete\n"
+    legacy_row = "2026-11-15 01:44:14,19986.99,986.99,19000.0,20000.0,-0.07,-0.07,1.0,0,0.0,False\n"
+    with open(equity_file, "w") as f:
+        f.write(legacy_header + legacy_row)
+
+    runner = BondCashPaperRunner(
+        initial_capital=DEFAULT_CAPITAL,
+        state_file=state_file,
+        trades_file=trades_file,
+        equity_log_file=equity_file
+    )
+
+    quotes = {"LIQUIDBEES.NS": 1000.00, "LTGILTBEES.NS": 30.00}
+    dates = pd.date_range("2026-01-01", periods=10, freq="D")
+    market_data = {
+        "LIQUIDBEES.NS": pd.DataFrame({"Close": [1000.0] * 10}, index=dates),
+        "LTGILTBEES.NS": pd.DataFrame({"Close": [30.0] * 10}, index=dates)
+    }
+
+    # Run cycle
+    runner.run_daily_cycle(quotes=quotes, market_data=market_data)
+
+    # Read back equity log
+    df = pd.read_csv(equity_file)
+    assert len(df) == 2
+    assert "total_carry_earned" in df.columns
+    assert len(df.columns) == 12
+    # Verify legacy row has total_carry_earned = 0.0 and correct alignment
+    row0 = df.iloc[0]
+    assert row0["total_carry_earned"] == 0.0
+    assert row0["hwm"] == 20000.0
+    assert row0["current_drawdown_pct"] == -0.07
+    assert row0["max_drawdown_pct"] == -0.07
+    assert row0["max_duration_scale"] == 1.0
+
+
+

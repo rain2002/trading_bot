@@ -701,4 +701,50 @@ def test_manager_runner_unverified_fallback_price(tmp_path: Path):
     assert res["status"]["is_halted"] is False
 
 
+def test_manager_runner_nan_quote_safe_fallback(tmp_path: Path):
+    """
+    Verifies that when a quote source provides NaN or negative prices,
+    compute_independent_bot_nav gracefully ignores NaN, falls back to last_price,
+    does NOT crash or return NaN independent NAV, and does NOT trigger the kill switch.
+    """
+    etf_state_path = str(tmp_path / "etf_gold_state.json")
+    mgr_state_path = str(tmp_path / "manager_state.json")
+    ledger_path = str(tmp_path / "unitized_nav_ledger.json")
+    equity_log_path = str(tmp_path / "manager_equity_log.csv")
+
+    now = datetime.now(timezone.utc)
+    etf_state = {
+        "bot_name": "ETF_AND_GOLD_BOT",
+        "phase": "PHASE_1",
+        "gate": "GATE_B_PAPER",
+        "nav": 80000.0,
+        "cash": 30000.0,
+        "positions": {
+            "GOLDBEES.NS": {"shares": 500, "last_price": 100.0}
+        },
+        "last_run_timestamp": now.isoformat()
+    }
+    with open(etf_state_path, "w") as f:
+        json.dump(etf_state, f)
+
+    # Provide explicit NaN quote override to test poison quote resistance
+    res = execute_manager_cycle(
+        etf_state_path=etf_state_path,
+        manager_state_path=mgr_state_path,
+        ledger_path=ledger_path,
+        equity_log_path=equity_log_path,
+        initial_capital=80000.0,
+        quotes_override={"GOLDBEES.NS": float("nan")},
+        as_of=now
+    )
+
+    primary = res["sleeves"]["primary_sleeve"]
+    assert primary["quotes_verified"] is False
+    assert primary["independent_nav"] == 80000.0
+    assert res["status"]["is_halted"] is False
+    assert res["status"]["throttle_level"] == 0
+    assert res["nav_metrics"]["nav_per_unit"] == 100.0
+
+
+
 

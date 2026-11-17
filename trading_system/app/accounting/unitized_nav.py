@@ -96,8 +96,18 @@ class UnitizedNAVEngine:
         Updates portfolio valuation and calculates true NAV per unit:
         NAV per unit = Total Portfolio Value / Units Outstanding.
         """
+        import math
+        try:
+            val = float(current_total_value)
+            if math.isnan(val) or math.isinf(val):
+                logger.error(f"FATAL: Attempted to update portfolio valuation with non-finite value: {current_total_value}. Valuation unchanged.")
+                return float(self.state.get("nav_per_unit", 100.0))
+        except (ValueError, TypeError) as e:
+            logger.error(f"FATAL: Invalid valuation type passed: {current_total_value} ({e}). Valuation unchanged.")
+            return float(self.state.get("nav_per_unit", 100.0))
+
         now = timestamp or datetime.now(timezone.utc)
-        current_total_value = max(0.0, float(current_total_value))
+        current_total_value = max(0.0, val)
         units = max(1e-6, float(self.state.get("total_units", 1.0)))
 
         nav_per_unit = current_total_value / units
