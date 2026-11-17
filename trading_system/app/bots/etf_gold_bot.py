@@ -208,6 +208,20 @@ class ETFGoldsPaperRunner:
             "weeks_incubated": round(days / 7.0, 1),
             "incubation_complete": days >= INCUBATION_TARGET_DAYS
         }
+        session_date = str(record.get("timestamp", ""))[:10]
+        if os.path.exists(self.equity_log_file) and os.path.getsize(self.equity_log_file) > 0:
+            try:
+                existing_df = pd.read_csv(self.equity_log_file, dtype=str)
+                if "timestamp" in existing_df.columns:
+                    mask = existing_df["timestamp"].str[:10] == session_date
+                    if mask.any():
+                        existing_df = existing_df[~mask]
+                        new_df = pd.concat([existing_df, pd.DataFrame([record])], ignore_index=True)
+                        new_df.to_csv(self.equity_log_file, index=False)
+                        return
+            except Exception as e:
+                logger.warning(f"Error checking ETF equity log for deduplication: {e}")
+
         df = pd.DataFrame([record])
         header = not os.path.exists(self.equity_log_file) or os.path.getsize(self.equity_log_file) == 0
         df.to_csv(self.equity_log_file, mode="a", index=False, header=header)

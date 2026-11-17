@@ -397,4 +397,37 @@ def test_bond_cash_equity_log_migration(tmp_path):
     assert row0["max_duration_scale"] == 1.0
 
 
+def test_bond_cash_equity_log_idempotent_replace_on_rerun(tmp_path):
+    """
+    Verifies that BondCashPaperRunner log_equity replaces the existing row for the same session date
+    rather than duplicating it.
+    """
+    state_file = str(tmp_path / "state.json")
+    trades_file = str(tmp_path / "trades.csv")
+    equity_file = str(tmp_path / "equity.csv")
+
+    runner = BondCashPaperRunner(
+        initial_capital=DEFAULT_CAPITAL,
+        state_file=state_file,
+        trades_file=trades_file,
+        equity_log_file=equity_file
+    )
+    quotes = {"LIQUIDBEES.NS": 1000.00, "LTGILTBEES.NS": 30.00}
+    dates = pd.date_range("2026-01-01", periods=10, freq="D")
+    market_data = {
+        "LIQUIDBEES.NS": pd.DataFrame({"Close": [1000.0] * 10}, index=dates),
+        "LTGILTBEES.NS": pd.DataFrame({"Close": [30.0] * 10}, index=dates)
+    }
+
+    # Run cycle twice on same day
+    runner.run_daily_cycle(quotes=quotes, market_data=market_data)
+    df1 = pd.read_csv(equity_file)
+    assert len(df1) == 1
+
+    runner.run_daily_cycle(quotes=quotes, market_data=market_data)
+    df2 = pd.read_csv(equity_file)
+    assert len(df2) == 1  # Replaced on re-run, not duplicated
+
+
+
 

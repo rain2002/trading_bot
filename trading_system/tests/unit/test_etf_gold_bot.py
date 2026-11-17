@@ -150,3 +150,37 @@ def test_etf_runner_drift_band_rebalance(tmp_path):
     sells = tdf[tdf["side"] == "SELL"]
     assert len(sells) > 0
     assert "GOLDBEES.NS" in sells["symbol"].values
+
+
+def test_etf_runner_idempotent_equity_log_replace_on_rerun(tmp_path):
+    """
+    Verifies that ETFGoldPaperRunner update_equity_log replaces the row for the same session date
+    rather than duplicating it on re-run.
+    """
+    state_file = str(tmp_path / "state.json")
+    trades_file = str(tmp_path / "trades.csv")
+    equity_file = str(tmp_path / "equity.csv")
+
+    runner = ETFGoldsPaperRunner(
+        initial_capital=DEFAULT_CAPITAL,
+        state_file=state_file,
+        trades_file=trades_file,
+        equity_log_file=equity_file
+    )
+    quotes = {
+        "GOLDBEES.NS": 100.00,
+        "MON100.NS": 200.00,
+        "NIFTYBEES.NS": 250.00,
+        "MID150BEES.NS": 250.00,
+        "LTGILTBEES.NS": 30.00
+    }
+
+    runner.run_daily_cycle(quotes=quotes)
+    df1 = pd.read_csv(equity_file)
+    assert len(df1) == 1
+
+    # Re-run same day
+    runner.run_daily_cycle(quotes=quotes)
+    df2 = pd.read_csv(equity_file)
+    assert len(df2) == 1  # Replaced on re-run, not duplicated
+

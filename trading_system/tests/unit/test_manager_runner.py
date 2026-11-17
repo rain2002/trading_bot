@@ -12,7 +12,7 @@ import pandas as pd
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
 
-from trading_system.scripts.run_manager import execute_manager_cycle, is_bot_state_stale
+from trading_system.scripts.run_manager import execute_manager_cycle, is_bot_state_stale, append_manager_equity_log
 from trading_system.app.accounting.unitized_nav import UnitizedNAVEngine
 
 
@@ -588,6 +588,47 @@ def test_manager_equity_log_migration_and_header_alignment(tmp_path: Path):
     assert df.iloc[3]["primary_sleeve_nav"] == 80000.0
     assert df.iloc[3]["nav_per_unit"] == 100.0
     assert df.iloc[3]["execution_mode"] == "PAPER"
+
+
+def test_manager_equity_log_idempotent_replace_on_rerun(tmp_path: Path):
+    """
+    Verifies that append_manager_equity_log is strictly idempotent:
+    If multiple runs execute on the same session date, the existing row for that date
+    is replaced rather than duplicated.
+    """
+    equity_log_path = str(tmp_path / "manager_equity_log.csv")
+    entry_1 = {
+        "date": "2026-11-17 19:02:22",
+        "total_portfolio_value": 79555.34,
+        "primary_sleeve_nav": 79555.34,
+        "reserve_sleeve_nav": 19991.49,
+        "combined_fund_nav": 99546.83,
+        "nav_per_unit": 99.4442,
+        "true_trading_return_pct": -0.56,
+        "current_drawdown_pct": -0.56,
+        "throttle_level": 0,
+        "is_halted": False,
+        "halt_reason": "",
+        "reconciliation_gap_pct": 0.0,
+        "share_etf_gold": 1.0,
+        "share_cash_sleeve": 0.0,
+        "execution_mode": "PAPER"
+    }
+    append_manager_equity_log(equity_log_path, entry_1)
+    df1 = pd.read_csv(equity_log_path)
+    assert len(df1) == 1
+    assert df1.iloc[0]["date"] == "2026-11-17 19:02:22"
+
+    # Re-run 10 minutes later on same date
+    entry_2 = dict(entry_1)
+    entry_2["date"] = "2026-11-17 19:12:17"
+    entry_2["combined_fund_nav"] = 99547.00
+    append_manager_equity_log(equity_log_path, entry_2)
+
+    df2 = pd.read_csv(equity_log_path)
+    assert len(df2) == 1  # Replaced, not duplicated
+    assert df2.iloc[0]["date"] == "2026-11-17 19:12:17"
+    assert df2.iloc[0]["combined_fund_nav"] == 99547.00
 
 
 def test_manager_runner_consecutive_unverified_quote_warning(tmp_path: Path):

@@ -152,7 +152,22 @@ def append_manager_equity_log(equity_log_path: str, log_entry: Dict[str, Any]):
         header_row = next(reader, None)
     existing_cols = [c.strip() for c in header_row if c.strip()] if header_row else []
 
+    session_date = str(log_entry.get("date", ""))[:10]
+
     if existing_cols == fieldnames:
+        # Idempotent logging: replace existing row for this session date on re-run, otherwise append
+        try:
+            existing_df = pd.read_csv(equity_log_path, dtype=str)
+            if "date" in existing_df.columns:
+                mask = existing_df["date"].str[:10] == session_date
+                if mask.any():
+                    existing_df = existing_df[~mask]
+                    new_df = pd.concat([existing_df, pd.DataFrame([log_entry])], ignore_index=True)
+                    new_df.to_csv(equity_log_path, index=False)
+                    return
+        except Exception as e:
+            logger.warning(f"Error checking manager equity log for deduplication: {e}")
+
         pd.DataFrame([log_entry]).to_csv(equity_log_path, mode="a", header=False, index=False)
     else:
         # Migrate legacy rows into canonical 15-column schema
@@ -202,6 +217,7 @@ def append_manager_equity_log(equity_log_path: str, log_entry: Dict[str, Any]):
                     }
                     migrated_rows.append(row_dict)
 
+        migrated_rows = [r for r in migrated_rows if str(r.get("date", ""))[:10] != session_date]
         migrated_rows.append(log_entry)
         df_migrated = pd.DataFrame(migrated_rows, columns=fieldnames)
         df_migrated.to_csv(equity_log_path, index=False)
