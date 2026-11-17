@@ -232,44 +232,39 @@ class ETFGoldsPaperRunner:
                     t = yf.Ticker(lookup_sym)
                     hist = t.history(period="10d")
 
-                last_price = None
-                bar_dt = None
+                valid_hist = hist.dropna(subset=["Close"]) if not hist.empty else pd.DataFrame()
+                if valid_hist.empty:
+                    stale_or_missing.append(f"{sym} (EMPTY_HISTORY)")
+                    continue
 
-                # 1. Check fast_info.last_price first for fresh real-time/closing price
+                # 1. Anchor staleness strictly to the last valid historical bar's date (Reviewer Gap 2)
+                last_bar = valid_hist.iloc[-1]
+                bar_dt = valid_hist.index[-1].to_pydatetime()
+                if bar_dt.tzinfo is None:
+                    bar_dt = bar_dt.replace(tzinfo=timezone.utc)
+
+                days_old = (now_dt - bar_dt).days
+                if days_old > MAX_PRICE_STALENESS_DAYS:
+                    logger.error(f"Stale quote detected for {sym}: Bar date {bar_dt.date()} is {days_old} days old!")
+                    stale_or_missing.append(f"{sym} (STALE: {days_old}d old)")
+                    continue
+
+                # 2. Use fast_info only as a cross-check for execution price, falling back to bar Close
+                last_price = float(last_bar["Close"])
                 try:
                     fi_price = getattr(t.fast_info, "last_price", None)
-                    if fi_price is not None and not pd.isna(fi_price) and float(fi_price) > 0:
-                        last_price = float(fi_price)
-                        bar_dt = now_dt
+                    if fi_price is not None and not pd.isna(fi_price):
+                        fi_val = float(fi_price)
+                        # Ensure cross-check price is positive and within 20% of last close
+                        if fi_val > 0 and (last_price <= 0 or abs(fi_val - last_price) / last_price <= 0.20):
+                            last_price = fi_val
                 except Exception:
                     pass
 
-                # 2. Fallback to latest non-NaN bar from historical data
-                if last_price is None or pd.isna(last_price):
-                    if not hist.empty:
-                        valid_hist = hist.dropna(subset=["Close"])
-                        if not valid_hist.empty:
-                            last_bar = valid_hist.iloc[-1]
-                            b_dt = valid_hist.index[-1].to_pydatetime()
-                            if b_dt.tzinfo is None:
-                                b_dt = b_dt.replace(tzinfo=timezone.utc)
-                            p = float(last_bar["Close"])
-                            if p > 0 and not pd.isna(p):
-                                last_price = p
-                                bar_dt = b_dt
-
-                if last_price is not None and bar_dt is not None:
-                    days_old = (now_dt - bar_dt).days
-                    # Stale-price guard
-                    if days_old > MAX_PRICE_STALENESS_DAYS:
-                        logger.error(f"Stale quote detected for {sym}: Bar date {bar_dt.date()} is {days_old} days old!")
-                        stale_or_missing.append(f"{sym} (STALE: {days_old}d old)")
-                    elif last_price <= 0 or pd.isna(last_price):
-                        stale_or_missing.append(f"{sym} (INVALID_PRICE: {last_price})")
-                    else:
-                        quotes[sym] = last_price
+                if last_price <= 0 or pd.isna(last_price):
+                    stale_or_missing.append(f"{sym} (INVALID_PRICE: {last_price})")
                 else:
-                    stale_or_missing.append(f"{sym} (EMPTY_HISTORY)")
+                    quotes[sym] = last_price
             except Exception as e:
                 logger.error(f"Failed to fetch quote for {sym}: {e}")
                 stale_or_missing.append(f"{sym} (ERROR: {str(e)[:30]})")

@@ -137,10 +137,11 @@ def test_manager_runner_stale_bot_freezes_allocation(tmp_path: Path):
         initial_capital=80000.0
     )
 
-    # Stale bot: allocation frozen to 0%, capital held in CASH_SLEEVE
-    assert res["etf_report"]["stale"] is True
-    assert res["shares"]["ETF_AND_GOLD"] == 0.0
-    assert res["shares"]["CASH_SLEEVE"] == 1.0
+    # Bot last ran 5 days ago (not in today's session) -> Recorded as DATA_FAULT per Reviewer Gap 1
+    assert res["status"]["is_data_fault"] is True
+    assert "did not execute in today's session" in res["status"]["data_fault_reason"]
+    assert res["status"]["is_halted"] is False
+    assert not os.path.exists(equity_log_path)
 
 
 def test_manager_runner_kill_switch_breach(tmp_path: Path):
@@ -630,6 +631,10 @@ def test_manager_runner_consecutive_unverified_quote_warning(tmp_path: Path):
     assert s1.get("unverified_quotes_warning") is None
 
     # Session 2: Unverified
+    d2 = now + timedelta(days=1)
+    etf_state["last_run_timestamp"] = d2.isoformat()
+    with open(etf_state_path, "w") as f:
+        json.dump(etf_state, f)
     res2 = execute_manager_cycle(
         etf_state_path=etf_state_path,
         manager_state_path=mgr_state_path,
@@ -637,7 +642,7 @@ def test_manager_runner_consecutive_unverified_quote_warning(tmp_path: Path):
         equity_log_path=equity_log_path,
         initial_capital=80000.0,
         quotes_override={},
-        as_of=now + timedelta(days=1)
+        as_of=d2
     )
     with open(mgr_state_path) as f:
         s2 = json.load(f)
@@ -645,6 +650,10 @@ def test_manager_runner_consecutive_unverified_quote_warning(tmp_path: Path):
     assert s2.get("unverified_quotes_warning") is None
 
     # Session 3: 3rd consecutive unverified -> Escalate to Warning!
+    d3 = now + timedelta(days=2)
+    etf_state["last_run_timestamp"] = d3.isoformat()
+    with open(etf_state_path, "w") as f:
+        json.dump(etf_state, f)
     res3 = execute_manager_cycle(
         etf_state_path=etf_state_path,
         manager_state_path=mgr_state_path,
@@ -652,7 +661,7 @@ def test_manager_runner_consecutive_unverified_quote_warning(tmp_path: Path):
         equity_log_path=equity_log_path,
         initial_capital=80000.0,
         quotes_override={},
-        as_of=now + timedelta(days=2)
+        as_of=d3
     )
     with open(mgr_state_path) as f:
         s3 = json.load(f)
@@ -660,6 +669,10 @@ def test_manager_runner_consecutive_unverified_quote_warning(tmp_path: Path):
     assert "UNVERIFIED_QUOTES_WARNING" in s3["unverified_quotes_warning"]
 
     # Session 4: Live quote restored -> Resets counter & warning!
+    d4 = now + timedelta(days=3)
+    etf_state["last_run_timestamp"] = d4.isoformat()
+    with open(etf_state_path, "w") as f:
+        json.dump(etf_state, f)
     res4 = execute_manager_cycle(
         etf_state_path=etf_state_path,
         manager_state_path=mgr_state_path,
@@ -667,7 +680,7 @@ def test_manager_runner_consecutive_unverified_quote_warning(tmp_path: Path):
         equity_log_path=equity_log_path,
         initial_capital=80000.0,
         quotes_override={"NON_EXISTENT_TICKER.NS": 100.0},
-        as_of=now + timedelta(days=3)
+        as_of=d4
     )
     with open(mgr_state_path) as f:
         s4 = json.load(f)

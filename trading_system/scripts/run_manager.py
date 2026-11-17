@@ -79,20 +79,30 @@ def compute_independent_bot_nav(
     if missing:
         try:
             import yfinance as yf
+            now_dt = datetime.now(timezone.utc)
             for sym in missing:
                 try:
                     t = yf.Ticker(sym)
-                    fi_px = getattr(t.fast_info, "last_price", None)
-                    if fi_px is not None and not pd.isna(fi_px) and float(fi_px) > 0:
-                        prices[sym] = float(fi_px)
-                    else:
-                        hist = t.history(period="5d")
-                        if not hist.empty:
-                            valid_hist = hist.dropna(subset=["Close"])
-                            if not valid_hist.empty:
-                                p = float(valid_hist["Close"].iloc[-1])
-                                if p > 0 and not pd.isna(p):
-                                    prices[sym] = p
+                    hist = t.history(period="10d")
+                    valid_hist = hist.dropna(subset=["Close"]) if not hist.empty else pd.DataFrame()
+                    if not valid_hist.empty:
+                        bar_dt = valid_hist.index[-1].to_pydatetime()
+                        if bar_dt.tzinfo is None:
+                            bar_dt = bar_dt.replace(tzinfo=timezone.utc)
+                        days_old = (now_dt - bar_dt).days
+                        # Only accept quotes if within max price staleness threshold (5 days)
+                        if days_old <= 5:
+                            cand_price = float(valid_hist.iloc[-1]["Close"])
+                            try:
+                                fi_px = getattr(t.fast_info, "last_price", None)
+                                if fi_px is not None and not pd.isna(fi_px):
+                                    fi_val = float(fi_px)
+                                    if fi_val > 0 and (cand_price <= 0 or abs(fi_val - cand_price) / cand_price <= 0.20):
+                                        cand_price = fi_val
+                            except Exception:
+                                pass
+                            if cand_price > 0 and not pd.isna(cand_price):
+                                prices[sym] = cand_price
                 except Exception:
                     pass
         except Exception:
@@ -268,7 +278,31 @@ def execute_manager_cycle(
     is_data_fault = False
     data_fault_reasons = []
 
-    if etf_status in ["FAILED", "ERROR", "FAIL_CLOSED"]:
+    # 1. Check if ETF bot ran in today's session (Reviewer Gap 1)
+    last_run_str = etf_state.get("last_run_timestamp")
+    etf_ran_today = False
+    if last_run_str:
+        try:
+            last_run_dt = datetime.fromisoformat(last_run_str)
+            if last_run_dt.tzinfo is None:
+                last_run_dt = last_run_dt.replace(tzinfo=timezone.utc)
+            # Valid session window: same calendar date, or within last 6 hours
+            hours_diff = (current_time - last_run_dt).total_seconds() / 3600.0
+            if last_run_dt.date() == current_time.date() or (0 <= hours_diff <= 6.0):
+                etf_ran_today = True
+        except Exception:
+            etf_ran_today = False
+
+    # Allow initial unseeded state on day 0
+    if etf_state.get("status") == "INITIAL_UNSEEDED":
+        etf_ran_today = True
+
+    if not etf_ran_today:
+        is_data_fault = True
+        data_fault_reasons.append(
+            f"ETF Bot did not execute in today's session (last run: {last_run_str}, session: {current_time.strftime('%Y-%m-%d')})"
+        )
+    elif etf_status in ["FAILED", "ERROR", "FAIL_CLOSED"]:
         is_data_fault = True
         data_fault_reasons.append(f"ETF Bot execution step failed (status: {etf_status})")
 
@@ -589,7 +623,7 @@ def main():
         print(f"[DATA FAULT DETECTED] {status['data_fault_reason']}")
         print("Cycle bypassed safely: Prior manager state retained, ledger unchanged, kill switch avoided.")
         print("=" * 80)
-        return
+        sys.exit(1)
 
     metrics = res["nav_metrics"]
     shares = res["shares"]
