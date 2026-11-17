@@ -129,7 +129,11 @@ def compute_independent_bot_nav(
     return round(independent_nav, 2), prices, all_quotes_verified
 
 
-def append_manager_equity_log(equity_log_path: str, log_entry: Dict[str, Any]):
+def append_manager_equity_log(
+    equity_log_path: str,
+    log_entry: Dict[str, Any],
+    session_date: Optional[str] = None
+):
     """
     Appends manager equity record to CSV safely, ensuring canonical schema alignment:
     - Automatically initializes header on new file.
@@ -152,7 +156,8 @@ def append_manager_equity_log(equity_log_path: str, log_entry: Dict[str, Any]):
         header_row = next(reader, None)
     existing_cols = [c.strip() for c in header_row if c.strip()] if header_row else []
 
-    session_date = str(log_entry.get("date", ""))[:10]
+    if not session_date:
+        session_date = str(log_entry.get("date", ""))[:10]
 
     if existing_cols == fieldnames:
         # Idempotent logging: replace existing row for this session date on re-run, otherwise append
@@ -583,7 +588,8 @@ def execute_manager_cycle(
         "execution_mode": mode
     }
 
-    append_manager_equity_log(equity_log_path, log_entry)
+    session_date = etf_state.get("last_bar_date") or (bond_state.get("last_bar_date") if bond_state else None)
+    append_manager_equity_log(equity_log_path, log_entry, session_date=session_date)
 
     return {
         "timestamp": current_time.isoformat(),

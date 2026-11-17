@@ -208,7 +208,7 @@ class ETFGoldsPaperRunner:
             "weeks_incubated": round(days / 7.0, 1),
             "incubation_complete": days >= INCUBATION_TARGET_DAYS
         }
-        session_date = str(record.get("timestamp", ""))[:10]
+        session_date = self.state.get("last_bar_date") or str(record.get("timestamp", ""))[:10]
         if os.path.exists(self.equity_log_file) and os.path.getsize(self.equity_log_file) > 0:
             try:
                 existing_df = pd.read_csv(self.equity_log_file, dtype=str)
@@ -235,6 +235,7 @@ class ETFGoldsPaperRunner:
         quotes: Dict[str, float] = {}
         stale_or_missing: List[str] = []
         now_dt = datetime.now(timezone.utc)
+        latest_bar_date: Optional[str] = None
 
         for sym in symbols:
             lookup_sym = sym
@@ -256,6 +257,10 @@ class ETFGoldsPaperRunner:
                 bar_dt = valid_hist.index[-1].to_pydatetime()
                 if bar_dt.tzinfo is None:
                     bar_dt = bar_dt.replace(tzinfo=timezone.utc)
+
+                bar_date_str = bar_dt.strftime("%Y-%m-%d")
+                if latest_bar_date is None or bar_date_str > latest_bar_date:
+                    latest_bar_date = bar_date_str
 
                 days_old = (now_dt - bar_dt).days
                 if days_old > MAX_PRICE_STALENESS_DAYS:
@@ -282,6 +287,9 @@ class ETFGoldsPaperRunner:
             except Exception as e:
                 logger.error(f"Failed to fetch quote for {sym}: {e}")
                 stale_or_missing.append(f"{sym} (ERROR: {str(e)[:30]})")
+
+        if latest_bar_date:
+            self.state["last_bar_date"] = latest_bar_date
 
         return quotes, stale_or_missing
 

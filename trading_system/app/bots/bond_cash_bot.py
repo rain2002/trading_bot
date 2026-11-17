@@ -357,7 +357,7 @@ class BondCashPaperRunner:
             "weeks_incubated": round(days / 7.0, 1),
             "incubation_complete": days >= INCUBATION_TARGET_DAYS
         }
-        session_date = str(record.get("timestamp", ""))[:10]
+        session_date = self.state.get("last_bar_date") or str(record.get("timestamp", ""))[:10]
         if os.path.exists(self.equity_log_file) and os.path.getsize(self.equity_log_file) > 0:
             try:
                 existing_df = pd.read_csv(self.equity_log_file, dtype=str)
@@ -384,6 +384,7 @@ class BondCashPaperRunner:
         market_data: Dict[str, pd.DataFrame] = {}
         stale_or_missing: List[str] = []
         now_dt = datetime.now(timezone.utc)
+        latest_bar_date: Optional[str] = None
 
         for sym in DEFAULT_UNIVERSE:
             try:
@@ -402,6 +403,10 @@ class BondCashPaperRunner:
                 bar_dt = valid_hist.index[-1].to_pydatetime()
                 if bar_dt.tzinfo is None:
                     bar_dt = bar_dt.replace(tzinfo=timezone.utc)
+
+                bar_date_str = bar_dt.strftime("%Y-%m-%d")
+                if latest_bar_date is None or bar_date_str > latest_bar_date:
+                    latest_bar_date = bar_date_str
 
                 days_old = (now_dt - bar_dt).days
                 if days_old > MAX_PRICE_STALENESS_DAYS:
@@ -427,6 +432,9 @@ class BondCashPaperRunner:
             except Exception as e:
                 logger.error(f"Failed to fetch market data for {sym}: {e}")
                 stale_or_missing.append(f"{sym} (ERROR: {str(e)[:30]})")
+
+        if latest_bar_date:
+            self.state["last_bar_date"] = latest_bar_date
 
         return market_data, quotes, stale_or_missing
 
@@ -518,6 +526,7 @@ class BondCashPaperRunner:
 
         now_dt = as_of or datetime.now(timezone.utc)
         today_str = now_dt.strftime("%Y-%m-%d")
+        session_date = self.state.get("last_bar_date") or today_str
 
         # Accrue daily cash carry on overnight holdings (LIQUIDBEES.NS + uninvested cash)
         # LIQUIDBEES pays yield as daily distributions, keeping price flat at ~INR 1000.
@@ -526,7 +535,7 @@ class BondCashPaperRunner:
         last_carry_date = self.state.get("last_carry_date")
         last_run_ts = self.state.get("last_run_timestamp")
 
-        if last_run_ts is not None and last_carry_date != today_str:
+        if last_run_ts is not None and last_carry_date != session_date:
             liquidbees_pos = self.state["positions"].get("LIQUIDBEES.NS", {})
             liquidbees_shares = liquidbees_pos.get("shares", 0)
             liquidbees_px = quotes.get("LIQUIDBEES.NS", liquidbees_pos.get("last_price", 1000.0))
@@ -536,7 +545,7 @@ class BondCashPaperRunner:
                 daily_carry_credited = round(qualifying_capital * DAILY_CARRY_RATE, 2)
                 self.state["cash"] = round(self.state["cash"] + daily_carry_credited, 2)
                 self.state["total_carry_earned"] = round(self.state.get("total_carry_earned", 0.0) + daily_carry_credited, 2)
-                self.state["last_carry_date"] = today_str
+                self.state["last_carry_date"] = session_date
                 logger.info(f"Credited daily overnight carry: INR {daily_carry_credited:.2f} (Cumulative: INR {self.state['total_carry_earned']:.2f})")
 
                 self.log_trade(
