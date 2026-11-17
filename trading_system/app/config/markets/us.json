@@ -1,7 +1,7 @@
 {
     "market_code": "US",
     "country": "United States",
-    "name": "US Equity Markets (Multi-Sector Growth & Compounders)",
+    "name": "US Equity Markets (S&P 500)",
     "benchmark": {
         "symbol": "SPY",
         "name": "SPDR S&P 500 ETF Trust",
@@ -18,7 +18,7 @@
         "supports_gtc_stops": true
     },
     "universe": {
-        "file": "trading_system/data/us_growth_tickers.txt",
+        "file": "trading_system/data/sp500_tickers.txt",
         "format": "txt",
         "delimiter": "\n",
         "column": "symbol"
