@@ -2,7 +2,7 @@ name: "Daily Multi-Bot Paper Trading Pipeline"
 
 # ==============================================================================
 # Unified Daily Execution Pipeline: ETF & Gold Bot -> Bond & Cash Bot -> Manager
-# Runs strictly on NSE trading days after market close (15:45 IST / 10:15 UTC).
+# Runs strictly on NSE trading days after market close (16:13 IST / 10:43 UTC).
 #
 # Sequential Architecture:
 # 1. Restores all bot and manager state files from origin/state branch.
@@ -25,8 +25,8 @@ concurrency:
 
 on:
   schedule:
-    # 15:45 IST (10:15 UTC) Monday through Friday
-    - cron: '15 10 * * 1-5'
+    # 16:13 IST (10:43 UTC) Monday through Friday - uncrowded minute to minimize GitHub runner queue lag
+    - cron: '43 10 * * 1-5'
   workflow_dispatch:
 
 jobs:
