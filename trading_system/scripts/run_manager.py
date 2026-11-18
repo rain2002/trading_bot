@@ -137,18 +137,33 @@ def append_manager_equity_log(
     """
     Appends manager equity record to CSV safely, ensuring canonical schema alignment:
     - Automatically initializes header on new file.
-    - If existing file has legacy/ragged header (e.g. 11-column pre-sleeve format),
-      transparently migrates historical rows into the canonical 15-column schema
+    - If existing file has legacy/ragged header (e.g. 11-column pre-sleeve format, or 15-column pre-session_date format),
+      transparently migrates historical rows into the canonical 16-column schema
       before appending, preventing column misalignment.
     - Uses csv.reader to safely handle any quoted fields with commas.
     - For historical rows predating multi-sleeve logging, reserve_sleeve_nav and
       combined_fund_nav are left blank (never populated with invented/guessed values).
+    - Session date is keyed on the exchange bar date (session_date), ensuring that delayed runs
+      past midnight UTC or same-session re-runs are idempotently replaced rather than duplicated or erring.
     """
     os.makedirs(os.path.dirname(equity_log_path), exist_ok=True)
-    fieldnames = list(log_entry.keys())
+    canonical_columns = [
+        "date", "session_date", "total_portfolio_value", "primary_sleeve_nav", "reserve_sleeve_nav",
+        "combined_fund_nav", "nav_per_unit", "true_trading_return_pct", "current_drawdown_pct",
+        "throttle_level", "is_halted", "halt_reason", "reconciliation_gap_pct",
+        "share_etf_gold", "share_cash_sleeve", "execution_mode"
+    ]
+
+    if not session_date:
+        session_date = log_entry.get("session_date") or str(log_entry.get("date", ""))[:10]
+    log_entry["session_date"] = str(session_date)
 
     if not os.path.exists(equity_log_path) or os.path.getsize(equity_log_path) == 0:
-        pd.DataFrame([log_entry]).to_csv(equity_log_path, index=False)
+        df = pd.DataFrame([log_entry])
+        for col in canonical_columns:
+            if col not in df.columns:
+                df[col] = ""
+        df[canonical_columns].to_csv(equity_log_path, index=False)
         return
 
     with open(equity_log_path, "r", encoding="utf-8") as f:
@@ -156,26 +171,30 @@ def append_manager_equity_log(
         header_row = next(reader, None)
     existing_cols = [c.strip() for c in header_row if c.strip()] if header_row else []
 
-    if not session_date:
-        session_date = str(log_entry.get("date", ""))[:10]
-
-    if existing_cols == fieldnames:
+    if existing_cols == canonical_columns:
         # Idempotent logging: replace existing row for this session date on re-run, otherwise append
         try:
             existing_df = pd.read_csv(equity_log_path, dtype=str)
-            if "date" in existing_df.columns:
-                mask = existing_df["date"].str[:10] == session_date
+            if "session_date" in existing_df.columns:
+                mask = existing_df["session_date"].astype(str) == str(session_date)
                 if mask.any():
                     existing_df = existing_df[~mask]
                     new_df = pd.concat([existing_df, pd.DataFrame([log_entry])], ignore_index=True)
-                    new_df.to_csv(equity_log_path, index=False)
+                    for col in canonical_columns:
+                        if col not in new_df.columns:
+                            new_df[col] = ""
+                    new_df[canonical_columns].to_csv(equity_log_path, index=False)
                     return
         except Exception as e:
             logger.warning(f"Error checking manager equity log for deduplication: {e}")
 
-        pd.DataFrame([log_entry]).to_csv(equity_log_path, mode="a", header=False, index=False)
+        df = pd.DataFrame([log_entry])
+        for col in canonical_columns:
+            if col not in df.columns:
+                df[col] = ""
+        df[canonical_columns].to_csv(equity_log_path, mode="a", header=False, index=False)
     else:
-        # Migrate legacy rows into canonical 15-column schema
+        # Migrate legacy rows into canonical 16-column schema
         migrated_rows = []
         with open(equity_log_path, "r", encoding="utf-8") as f:
             reader = csv.reader(f)
@@ -183,8 +202,30 @@ def append_manager_equity_log(
             for parts in reader:
                 if not parts:
                     continue
-                # Legacy schema: date, total_portfolio_value, nav_per_unit, true_trading_return_pct, current_drawdown_pct, throttle_level, is_halted, halt_reason, reconciliation_gap_pct, share_etf_gold, share_cash_sleeve [, execution_mode]
-                if len(parts) >= 11 and parts[1].replace(".", "", 1).isdigit():
+                # Case 1: 15-column schema (missing session_date)
+                if len(parts) == 15 and "primary_sleeve_nav" in existing_cols:
+                    dt = parts[0].strip()
+                    row_dict = {
+                        "date": dt,
+                        "session_date": dt[:10],
+                        "total_portfolio_value": parts[1].strip(),
+                        "primary_sleeve_nav": parts[2].strip(),
+                        "reserve_sleeve_nav": parts[3].strip(),
+                        "combined_fund_nav": parts[4].strip(),
+                        "nav_per_unit": parts[5].strip(),
+                        "true_trading_return_pct": parts[6].strip(),
+                        "current_drawdown_pct": parts[7].strip(),
+                        "throttle_level": parts[8].strip(),
+                        "is_halted": parts[9].strip(),
+                        "halt_reason": parts[10].strip(),
+                        "reconciliation_gap_pct": parts[11].strip(),
+                        "share_etf_gold": parts[12].strip(),
+                        "share_cash_sleeve": parts[13].strip(),
+                        "execution_mode": parts[14].strip()
+                    }
+                    migrated_rows.append(row_dict)
+                # Case 2: Legacy 11-12 column schema
+                elif len(parts) >= 11 and parts[1].replace(".", "", 1).isdigit():
                     dt = parts[0].strip()
                     tot_val = float(parts[1].strip()) if parts[1].strip() else 80000.0
                     nav_u = float(parts[2].strip()) if parts[2].strip() else 100.0
@@ -198,17 +239,13 @@ def append_manager_equity_log(
                     s_cash = float(parts[10].strip()) if parts[10].strip() else 0.0
                     exec_m = parts[11].strip() if len(parts) > 11 and parts[11].strip() else "PAPER"
 
-                    # Historical rows only tracked primary sleeve; do NOT invent reserve or combined values
-                    p_nav = tot_val
-                    r_nav = ""
-                    c_nav = ""
-
                     row_dict = {
                         "date": dt,
+                        "session_date": dt[:10],
                         "total_portfolio_value": tot_val,
-                        "primary_sleeve_nav": p_nav,
-                        "reserve_sleeve_nav": r_nav,
-                        "combined_fund_nav": c_nav,
+                        "primary_sleeve_nav": tot_val,
+                        "reserve_sleeve_nav": "",
+                        "combined_fund_nav": "",
                         "nav_per_unit": nav_u,
                         "true_trading_return_pct": ret_pct,
                         "current_drawdown_pct": dd_pct,
@@ -222,10 +259,13 @@ def append_manager_equity_log(
                     }
                     migrated_rows.append(row_dict)
 
-        migrated_rows = [r for r in migrated_rows if str(r.get("date", ""))[:10] != session_date]
+        migrated_rows = [r for r in migrated_rows if str(r.get("session_date", "")) != str(session_date)]
         migrated_rows.append(log_entry)
-        df_migrated = pd.DataFrame(migrated_rows, columns=fieldnames)
-        df_migrated.to_csv(equity_log_path, index=False)
+        df_migrated = pd.DataFrame(migrated_rows)
+        for col in canonical_columns:
+            if col not in df_migrated.columns:
+                df_migrated[col] = ""
+        df_migrated[canonical_columns].to_csv(equity_log_path, index=False)
 
 
 def execute_manager_cycle(
@@ -569,9 +609,12 @@ def execute_manager_cycle(
 
     status = manager.get_status()
 
+    session_date = etf_state.get("last_bar_date") or (bond_state.get("last_bar_date") if bond_state else None) or current_time.strftime("%Y-%m-%d")
+
     # 6. Append to Manager Equity Log (with canonical schema migration & alignment guard)
     log_entry = {
         "date": current_time.strftime("%Y-%m-%d %H:%M:%S"),
+        "session_date": str(session_date),
         "total_portfolio_value": round(nav_metrics["total_portfolio_value"], 2),
         "primary_sleeve_nav": independent_nav,
         "reserve_sleeve_nav": independent_bond_nav,
@@ -588,7 +631,6 @@ def execute_manager_cycle(
         "execution_mode": mode
     }
 
-    session_date = etf_state.get("last_bar_date") or (bond_state.get("last_bar_date") if bond_state else None)
     append_manager_equity_log(equity_log_path, log_entry, session_date=session_date)
 
     return {

@@ -557,9 +557,9 @@ def test_manager_equity_log_migration_and_header_alignment(tmp_path: Path):
     df = pd.read_csv(equity_log_path)
     assert len(df) == 4  # 3 historical rows + 1 new row
 
-    # Invariant: exactly 15 columns
+    # Invariant: exactly 16 columns including explicit session_date
     expected_cols = [
-        "date", "total_portfolio_value", "primary_sleeve_nav", "reserve_sleeve_nav",
+        "date", "session_date", "total_portfolio_value", "primary_sleeve_nav", "reserve_sleeve_nav",
         "combined_fund_nav", "nav_per_unit", "true_trading_return_pct", "current_drawdown_pct",
         "throttle_level", "is_halted", "halt_reason", "reconciliation_gap_pct",
         "share_etf_gold", "share_cash_sleeve", "execution_mode"
@@ -567,6 +567,8 @@ def test_manager_equity_log_migration_and_header_alignment(tmp_path: Path):
     assert list(df.columns) == expected_cols
 
     # Verify column alignment on historical and new rows
+    assert df.iloc[0]["date"] == "2026-11-14 05:44:00"
+    assert df.iloc[0]["session_date"] == "2026-11-14"
     assert df.iloc[0]["total_portfolio_value"] == 80000.0
     assert df.iloc[0]["primary_sleeve_nav"] == 80000.0
     # Invariant: historical rows predating multi-sleeve logging MUST be blank (no invented numbers)
@@ -576,6 +578,8 @@ def test_manager_equity_log_migration_and_header_alignment(tmp_path: Path):
     assert df.iloc[0]["execution_mode"] == "PAPER"
 
     # Row 2 (had 79945.49)
+    assert df.iloc[2]["date"] == "2026-11-15 05:46:58"
+    assert df.iloc[2]["session_date"] == "2026-11-15"
     assert df.iloc[2]["total_portfolio_value"] == 79945.49
     assert df.iloc[2]["primary_sleeve_nav"] == 79945.49
     assert pd.isna(df.iloc[2]["reserve_sleeve_nav"])
@@ -593,12 +597,15 @@ def test_manager_equity_log_migration_and_header_alignment(tmp_path: Path):
 def test_manager_equity_log_idempotent_replace_on_rerun(tmp_path: Path):
     """
     Verifies that append_manager_equity_log is strictly idempotent:
-    If multiple runs execute on the same session date, the existing row for that date
-    is replaced rather than duplicated.
+    - If multiple runs execute on the same session date, the existing row for that date
+      is replaced rather than duplicated.
+    - Delayed runs past midnight UTC (e.g. clock date 2026-11-17 with session_date 2026-11-16)
+      are NOT overwritten by next session runs on the same calendar clock date.
     """
     equity_log_path = str(tmp_path / "manager_equity_log.csv")
     entry_1 = {
         "date": "2026-11-17 19:02:22",
+        "session_date": "2026-11-17",
         "total_portfolio_value": 79555.34,
         "primary_sleeve_nav": 79555.34,
         "reserve_sleeve_nav": 19991.49,
@@ -618,8 +625,9 @@ def test_manager_equity_log_idempotent_replace_on_rerun(tmp_path: Path):
     df1 = pd.read_csv(equity_log_path)
     assert len(df1) == 1
     assert df1.iloc[0]["date"] == "2026-11-17 19:02:22"
+    assert df1.iloc[0]["session_date"] == "2026-11-17"
 
-    # Re-run 10 minutes later on same date
+    # Re-run 10 minutes later on same session date
     entry_2 = dict(entry_1)
     entry_2["date"] = "2026-11-17 19:12:17"
     entry_2["combined_fund_nav"] = 99547.00
@@ -629,6 +637,35 @@ def test_manager_equity_log_idempotent_replace_on_rerun(tmp_path: Path):
     assert len(df2) == 1  # Replaced, not duplicated
     assert df2.iloc[0]["date"] == "2026-11-17 19:12:17"
     assert df2.iloc[0]["combined_fund_nav"] == 99547.00
+    assert df2.iloc[0]["session_date"] == "2026-11-17"
+
+    # Delayed run past midnight scenario:
+    # A fresh log where run 1 ran at 00:31 UTC on 2026-11-17 for session 2026-11-16
+    log_path_delayed = str(tmp_path / "delayed_run_log.csv")
+    delayed_monday = dict(entry_1)
+    delayed_monday["date"] = "2026-11-17 00:31:00"
+    delayed_monday["session_date"] = "2026-11-16"
+    append_manager_equity_log(log_path_delayed, delayed_monday)
+
+    tuesday_run = dict(entry_1)
+    tuesday_run["date"] = "2026-11-17 19:12:00"
+    tuesday_run["session_date"] = "2026-11-17"
+    append_manager_equity_log(log_path_delayed, tuesday_run)
+
+    df_delayed = pd.read_csv(log_path_delayed)
+    assert len(df_delayed) == 2  # Both preserved because session_dates differ!
+    assert df_delayed.iloc[0]["session_date"] == "2026-11-16"
+    assert df_delayed.iloc[1]["session_date"] == "2026-11-17"
+
+    # Re-running Tuesday replaces only the Tuesday row
+    tuesday_rerun = dict(tuesday_run)
+    tuesday_rerun["date"] = "2026-11-17 19:25:00"
+    append_manager_equity_log(log_path_delayed, tuesday_rerun)
+
+    df_delayed_2 = pd.read_csv(log_path_delayed)
+    assert len(df_delayed_2) == 2
+    assert df_delayed_2.iloc[0]["session_date"] == "2026-11-16"
+    assert df_delayed_2.iloc[1]["date"] == "2026-11-17 19:25:00"
 
 
 def test_manager_runner_consecutive_unverified_quote_warning(tmp_path: Path):

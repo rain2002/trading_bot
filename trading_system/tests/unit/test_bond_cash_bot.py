@@ -387,9 +387,11 @@ def test_bond_cash_equity_log_migration(tmp_path):
     df = pd.read_csv(equity_file)
     assert len(df) == 2
     assert "total_carry_earned" in df.columns
-    assert len(df.columns) == 12
-    # Verify legacy row has total_carry_earned = 0.0 and correct alignment
+    assert "session_date" in df.columns
+    assert len(df.columns) == 13
+    # Verify legacy row has total_carry_earned = 0.0, session_date backfilled, and correct alignment
     row0 = df.iloc[0]
+    assert row0["session_date"] == "2026-11-15"
     assert row0["total_carry_earned"] == 0.0
     assert row0["hwm"] == 20000.0
     assert row0["current_drawdown_pct"] == -0.07
@@ -400,7 +402,7 @@ def test_bond_cash_equity_log_migration(tmp_path):
 def test_bond_cash_equity_log_idempotent_replace_on_rerun(tmp_path):
     """
     Verifies that BondCashPaperRunner log_equity replaces the existing row for the same session date
-    rather than duplicating it.
+    rather than duplicating it, and preserves rows from different session dates.
     """
     state_file = str(tmp_path / "state.json")
     trades_file = str(tmp_path / "trades.csv")
@@ -423,10 +425,12 @@ def test_bond_cash_equity_log_idempotent_replace_on_rerun(tmp_path):
     runner.run_daily_cycle(quotes=quotes, market_data=market_data)
     df1 = pd.read_csv(equity_file)
     assert len(df1) == 1
+    assert "session_date" in df1.columns
 
     runner.run_daily_cycle(quotes=quotes, market_data=market_data)
     df2 = pd.read_csv(equity_file)
     assert len(df2) == 1  # Replaced on re-run, not duplicated
+    assert df2.iloc[0]["session_date"] == str(dates[-1].date())
 
 
 

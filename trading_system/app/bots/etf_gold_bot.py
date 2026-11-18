@@ -196,8 +196,16 @@ class ETFGoldsPaperRunner:
         self.state["max_drawdown_pct"] = round(min(self.state.get("max_drawdown_pct", 0.0), dd), 2)
         self.state["days_incubated"] = days
 
+        canonical_fields = [
+            "timestamp", "session_date", "nav", "cash", "holdings_val",
+            "hwm", "current_drawdown_pct", "max_drawdown_pct",
+            "days_incubated", "weeks_incubated", "incubation_complete"
+        ]
+        session_date = self.state.get("last_bar_date") or datetime.now(timezone.utc).strftime("%Y-%m-%d")
+
         record = {
             "timestamp": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S"),
+            "session_date": str(session_date),
             "nav": round(nav, 2),
             "cash": round(self.state["cash"], 2),
             "holdings_val": round(pos_val, 2),
@@ -208,21 +216,36 @@ class ETFGoldsPaperRunner:
             "weeks_incubated": round(days / 7.0, 1),
             "incubation_complete": days >= INCUBATION_TARGET_DAYS
         }
-        session_date = self.state.get("last_bar_date") or str(record.get("timestamp", ""))[:10]
+
         if os.path.exists(self.equity_log_file) and os.path.getsize(self.equity_log_file) > 0:
             try:
                 existing_df = pd.read_csv(self.equity_log_file, dtype=str)
-                if "timestamp" in existing_df.columns:
-                    mask = existing_df["timestamp"].str[:10] == session_date
-                    if mask.any():
-                        existing_df = existing_df[~mask]
-                        new_df = pd.concat([existing_df, pd.DataFrame([record])], ignore_index=True)
-                        new_df.to_csv(self.equity_log_file, index=False)
-                        return
+                if "session_date" not in existing_df.columns:
+                    if "timestamp" in existing_df.columns:
+                        existing_df["session_date"] = existing_df["timestamp"].str[:10]
+                    else:
+                        existing_df["session_date"] = str(session_date)
+
+                mask = existing_df["session_date"].astype(str) == str(session_date)
+                if mask.any():
+                    existing_df = existing_df[~mask]
+
+                new_row = pd.DataFrame([record])
+                new_df = pd.concat([existing_df, new_row], ignore_index=True)
+                for col in canonical_fields:
+                    if col not in new_df.columns:
+                        new_df[col] = ""
+                new_df = new_df[canonical_fields]
+                new_df.to_csv(self.equity_log_file, index=False)
+                return
             except Exception as e:
                 logger.warning(f"Error checking ETF equity log for deduplication: {e}")
 
         df = pd.DataFrame([record])
+        for col in canonical_fields:
+            if col not in df.columns:
+                df[col] = ""
+        df = df[canonical_fields]
         header = not os.path.exists(self.equity_log_file) or os.path.getsize(self.equity_log_file) == 0
         df.to_csv(self.equity_log_file, mode="a", index=False, header=header)
 

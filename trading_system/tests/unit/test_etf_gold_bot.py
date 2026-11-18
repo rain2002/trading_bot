@@ -178,9 +178,11 @@ def test_etf_runner_idempotent_equity_log_replace_on_rerun(tmp_path):
     runner.run_daily_cycle(quotes=quotes)
     df1 = pd.read_csv(equity_file)
     assert len(df1) == 1
+    assert "session_date" in df1.columns
 
     # Re-run same day
     runner.run_daily_cycle(quotes=quotes)
     df2 = pd.read_csv(equity_file)
     assert len(df2) == 1  # Replaced on re-run, not duplicated
+    assert "session_date" in df2.columns
 

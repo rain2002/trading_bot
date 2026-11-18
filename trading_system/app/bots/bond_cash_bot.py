@@ -314,37 +314,15 @@ class BondCashPaperRunner:
         self.state["days_incubated"] = days
 
         canonical_fields = [
-            "timestamp", "nav", "cash", "holdings_val", "total_carry_earned",
+            "timestamp", "session_date", "nav", "cash", "holdings_val", "total_carry_earned",
             "hwm", "current_drawdown_pct", "max_drawdown_pct", "max_duration_scale",
             "days_incubated", "weeks_incubated", "incubation_complete"
         ]
-
-        # Automatic schema migration guard for bond_cash_equity_log.csv
-        if os.path.exists(self.equity_log_file) and os.path.getsize(self.equity_log_file) > 0:
-            try:
-                import csv
-                with open(self.equity_log_file, "r", encoding="utf-8") as f:
-                    reader = list(csv.reader(f))
-                if reader:
-                    header = [c.strip() for c in reader[0]]
-                    if "total_carry_earned" not in header:
-                        migrated_rows = []
-                        for row in reader[1:]:
-                            if not row:
-                                continue
-                            if len(row) >= 11:
-                                # Old layout: timestamp(0), nav(1), cash(2), holdings_val(3), hwm(4)...
-                                new_row = row[:4] + ["0.0"] + row[4:]
-                                migrated_rows.append(new_row)
-                        with open(self.equity_log_file, "w", newline="", encoding="utf-8") as f:
-                            writer = csv.writer(f)
-                            writer.writerow(canonical_fields)
-                            writer.writerows(migrated_rows)
-            except Exception as e:
-                logger.error(f"Failed to check/migrate bond cash equity log schema: {e}")
+        session_date = self.state.get("last_bar_date") or datetime.now(timezone.utc).strftime("%Y-%m-%d")
 
         record = {
             "timestamp": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S"),
+            "session_date": str(session_date),
             "nav": round(nav, 2),
             "cash": round(self.state["cash"], 2),
             "holdings_val": round(pos_val, 2),
@@ -357,21 +335,38 @@ class BondCashPaperRunner:
             "weeks_incubated": round(days / 7.0, 1),
             "incubation_complete": days >= INCUBATION_TARGET_DAYS
         }
-        session_date = self.state.get("last_bar_date") or str(record.get("timestamp", ""))[:10]
+
         if os.path.exists(self.equity_log_file) and os.path.getsize(self.equity_log_file) > 0:
             try:
                 existing_df = pd.read_csv(self.equity_log_file, dtype=str)
-                if "timestamp" in existing_df.columns:
-                    mask = existing_df["timestamp"].str[:10] == session_date
-                    if mask.any():
-                        existing_df = existing_df[~mask]
-                        new_df = pd.concat([existing_df, pd.DataFrame([record])[canonical_fields]], ignore_index=True)
-                        new_df.to_csv(self.equity_log_file, index=False)
-                        return
+                if "total_carry_earned" not in existing_df.columns:
+                    existing_df["total_carry_earned"] = "0.0"
+                if "session_date" not in existing_df.columns:
+                    if "timestamp" in existing_df.columns:
+                        existing_df["session_date"] = existing_df["timestamp"].str[:10]
+                    else:
+                        existing_df["session_date"] = str(session_date)
+
+                mask = existing_df["session_date"].astype(str) == str(session_date)
+                if mask.any():
+                    existing_df = existing_df[~mask]
+
+                new_row = pd.DataFrame([record])
+                new_df = pd.concat([existing_df, new_row], ignore_index=True)
+                for col in canonical_fields:
+                    if col not in new_df.columns:
+                        new_df[col] = ""
+                new_df = new_df[canonical_fields]
+                new_df.to_csv(self.equity_log_file, index=False)
+                return
             except Exception as e:
                 logger.warning(f"Error checking bond equity log for deduplication: {e}")
 
-        df = pd.DataFrame([record])[canonical_fields]
+        df = pd.DataFrame([record])
+        for col in canonical_fields:
+            if col not in df.columns:
+                df[col] = ""
+        df = df[canonical_fields]
         header = not os.path.exists(self.equity_log_file) or os.path.getsize(self.equity_log_file) == 0
         df.to_csv(self.equity_log_file, mode="a", index=False, header=header)
 
@@ -506,6 +501,15 @@ class BondCashPaperRunner:
             if quotes is None:
                 quotes = fetched_quotes
 
+        if market_data and not self.state.get("last_bar_date"):
+            for df_m in market_data.values():
+                if isinstance(df_m, pd.DataFrame) and not df_m.empty:
+                    last_idx = df_m.index[-1]
+                    if hasattr(last_idx, "strftime"):
+                        b_str = last_idx.strftime("%Y-%m-%d")
+                        if not self.state.get("last_bar_date") or b_str > self.state["last_bar_date"]:
+                            self.state["last_bar_date"] = b_str
+
         target_weights = self.strategy.evaluate_allocations(
             current_date=pd.Timestamp.now(timezone.utc),
             market_data=market_data,
@@ -526,6 +530,8 @@ class BondCashPaperRunner:
 
         now_dt = as_of or datetime.now(timezone.utc)
         today_str = now_dt.strftime("%Y-%m-%d")
+        if as_of:
+            self.state["last_bar_date"] = today_str
         session_date = self.state.get("last_bar_date") or today_str
 
         # Accrue daily cash carry on overnight holdings (LIQUIDBEES.NS + uninvested cash)
@@ -535,7 +541,9 @@ class BondCashPaperRunner:
         last_carry_date = self.state.get("last_carry_date")
         last_run_ts = self.state.get("last_run_timestamp")
 
-        if last_run_ts is not None and last_carry_date != session_date:
+        if last_run_ts is None:
+            self.state["last_carry_date"] = session_date
+        elif last_carry_date != session_date:
             liquidbees_pos = self.state["positions"].get("LIQUIDBEES.NS", {})
             liquidbees_shares = liquidbees_pos.get("shares", 0)
             liquidbees_px = quotes.get("LIQUIDBEES.NS", liquidbees_pos.get("last_price", 1000.0))
