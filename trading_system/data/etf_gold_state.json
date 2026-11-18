@@ -45,5 +45,6 @@
   "max_drawdown_pct": -0.57,
   "last_run_timestamp": "2026-11-17T19:12:15.820220+00:00",
   "last_rebalance_date": "2026-11-15T05:46:43.345293+00:00",
+  "last_bar_date": "2026-11-17",
   "status": "HEALTHY_ACTIVE"
 }
