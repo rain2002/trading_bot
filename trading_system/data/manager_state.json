@@ -38,8 +38,8 @@
       "bot_name": "BOND_AND_CASH_BOT",
       "mandate": "Dedicated Safe Carry & Retreat Haven Partition (Phase 3 Champion B0)",
       "target_capital": 20000.0,
-      "reported_nav": 19991.49,
-      "independent_nav": 19991.49,
+      "reported_nav": 19995.99,
+      "independent_nav": 19995.99,
       "reconciliation_gap_pct": 0.0,
       "reconciliation_passed": true,
       "reconciliation_status": "PASSED",
@@ -47,7 +47,7 @@
       "stale": false
     }
   },
-  "combined_fund_nav": 99546.83,
+  "combined_fund_nav": 99551.33,
   "combined_target_capital": 100000.0,
   "consecutive_unverified_quote_days": 0,
   "unverified_quotes_warning": null

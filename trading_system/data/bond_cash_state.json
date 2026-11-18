@@ -7,7 +7,7 @@
   "incubation_target_weeks": 13,
   "days_incubated": 2,
   "initial_capital": 20000.0,
-  "cash": 991.49,
+  "cash": 995.99,
   "positions": {
     "LIQUIDBEES.NS": {
       "shares": 19,
@@ -16,15 +16,15 @@
       "last_price": 1000.0
     }
   },
-  "nav": 19991.49,
+  "nav": 19995.99,
   "hwm": 20000.0,
-  "current_drawdown_pct": -0.04,
+  "current_drawdown_pct": -0.02,
   "max_drawdown_pct": -0.07,
   "max_duration_scale": 1.0,
   "last_run_timestamp": "2026-11-17T19:12:16.773187+00:00",
   "last_rebalance_date": "2026-11-15T01:44:14.157100+00:00",
   "last_bar_date": "2026-11-17",
   "status": "HEALTHY_ACTIVE",
-  "total_carry_earned": 4.5,
+  "total_carry_earned": 9.0,
   "last_carry_date": "2026-11-17"
 }
