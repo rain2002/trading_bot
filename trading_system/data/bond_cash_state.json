@@ -5,26 +5,26 @@
   "strategy_id": "B0",
   "incubation_start_date": "2026-11-15T01:44:13.726023+00:00",
   "incubation_target_weeks": 13,
-  "days_incubated": 3,
+  "days_incubated": 4,
   "initial_capital": 20000.0,
-  "cash": 1000.49,
+  "cash": 4.32550684499995,
   "positions": {
     "LIQUIDBEES.NS": {
-      "shares": 19,
-      "entry_price": 1000.0,
+      "shares": 20,
+      "entry_price": 999.9995000000001,
       "entry_date": "2026-11-15",
-      "last_price": 1000.0
+      "last_price": 999.99
     }
   },
-  "nav": 20000.49,
-  "hwm": 20000.49,
+  "nav": 20004.13,
+  "hwm": 20004.13,
   "current_drawdown_pct": 0.0,
   "max_drawdown_pct": -0.07,
   "max_duration_scale": 1.0,
-  "last_run_timestamp": "2026-11-18T19:02:21.416927+00:00",
-  "last_rebalance_date": "2026-11-18T19:02:21.406658+00:00",
-  "last_bar_date": "2026-11-18",
+  "last_run_timestamp": "2026-11-19T19:09:40.058333+00:00",
+  "last_rebalance_date": "2026-11-19T19:09:40.053606+00:00",
+  "last_bar_date": "2026-11-19",
   "status": "HEALTHY_ACTIVE",
-  "total_carry_earned": 13.5,
-  "last_carry_date": "2026-11-18"
+  "total_carry_earned": 18.01,
+  "last_carry_date": "2026-11-19"
 }
