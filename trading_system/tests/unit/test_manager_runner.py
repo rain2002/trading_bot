@@ -93,8 +93,11 @@ def test_manager_runner_healthy_etf_state_ingestion(tmp_path: Path):
         "LTGILTBEES.NS": 100.0
     }
 
+    bond_state_path = str(tmp_path / "bond_cash_state.json")
+
     res = execute_manager_cycle(
         etf_state_path=etf_state_path,
+        bond_cash_state_path=bond_state_path,
         manager_state_path=mgr_state_path,
         ledger_path=ledger_path,
         equity_log_path=equity_log_path,
@@ -228,8 +231,10 @@ def test_manager_runner_reads_real_bot_state_file(tmp_path: Path):
     assert real_state["gate"] == "GATE_B_PAPER"
 
     # Execute Manager cycle reading this exact real state file
+    bond_state_path = str(tmp_path / "bond_cash_state.json")
     res = execute_manager_cycle(
         etf_state_path=etf_state_path,
+        bond_cash_state_path=bond_state_path,
         manager_state_path=mgr_state_path,
         ledger_path=ledger_path,
         equity_log_path=equity_log_path,
@@ -274,8 +279,11 @@ def test_manager_runner_reconciliation_catches_tampered_state_file(tmp_path: Pat
 
     quotes = {"GOLDBEES.NS": 200.0, "NIFTYBEES.NS": 1000.0}
 
+    bond_state_path = str(tmp_path / "bond_cash_state.json")
+
     res = execute_manager_cycle(
         etf_state_path=etf_state_path,
+        bond_cash_state_path=bond_state_path,
         manager_state_path=mgr_state_path,
         ledger_path=ledger_path,
         equity_log_path=equity_log_path,

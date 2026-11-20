@@ -199,8 +199,16 @@ class MultiBotBrokerAdapter(BrokerAdapter):
             if df.empty or "combined_fund_nav" not in df.columns:
                 return None
 
-            date_col = "session_date" if ("session_date" in df.columns and df["session_date"].notna().any()) else "date"
-            df["timestamp"] = pd.to_datetime(df[date_col].fillna(df["date"]))
+            if "session_date" in df.columns and df["session_date"].notna().any():
+                date_series = df["session_date"]
+                if "date" in df.columns:
+                    date_series = date_series.fillna(df["date"])
+            elif "date" in df.columns:
+                date_series = df["date"]
+            else:
+                date_series = pd.Series([datetime.now()] * len(df))
+
+            df["timestamp"] = pd.to_datetime(date_series)
             if "nav_per_unit" in df.columns and df["nav_per_unit"].notna().any():
                 df["equity"] = df["nav_per_unit"].astype(float) * 1000.0
             else:
