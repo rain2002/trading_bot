@@ -1,7 +1,7 @@
 {
   "pod_name": "US",
   "currency": "USD",
-  "cash": 13726.98,
+  "cash": 30115.81,
   "positions": {
     "BKNG": {
       "shares": 37.0,
@@ -15,35 +15,11 @@
       "entry_date": "2026-11-07 16:34:21",
       "peak_price": 138.17
     },
-    "DASH": {
-      "shares": 33.0,
-      "entry_price": 171.751515,
-      "entry_date": "2026-11-07 16:34:21",
-      "peak_price": 180.83
-    },
     "DXCM": {
       "shares": 70.0,
       "entry_price": 78.468,
       "entry_date": "2026-11-07 16:34:21",
       "peak_price": 80.51
-    },
-    "FFIV": {
-      "shares": 27.0,
-      "entry_price": 339.283333,
-      "entry_date": "2026-11-07 16:34:21",
-      "peak_price": 339.283333
-    },
-    "FTNT": {
-      "shares": 64.0,
-      "entry_price": 134.694844,
-      "entry_date": "2026-11-07 16:34:21",
-      "peak_price": 134.694844
-    },
-    "HOOD": {
-      "shares": 93.0,
-      "entry_price": 85.874194,
-      "entry_date": "2026-11-07 16:34:21",
-      "peak_price": 85.874194
     },
     "HUBB": {
       "shares": 6.0,
@@ -61,7 +37,7 @@
       "shares": 16.0,
       "entry_price": 173.53,
       "entry_date": "2026-11-07 16:34:21",
-      "peak_price": 173.53
+      "peak_price": 173.59
     },
     "PCAR": {
       "shares": 94.0,
@@ -92,6 +68,18 @@
       "entry_price": 65.657949,
       "entry_date": "2026-11-07 16:34:21",
       "peak_price": 71.06
+    },
+    "AFRM": {
+      "shares": 115.2039,
+      "entry_price": 59.47,
+      "entry_date": "2026-11-20 04:38:17",
+      "peak_price": 59.47
+    },
+    "CRM": {
+      "shares": 34.753,
+      "entry_price": 197.15,
+      "entry_date": "2026-11-20 04:38:17",
+      "peak_price": 197.15
     }
   },
   "pending_buys": [
@@ -170,7 +158,7 @@
   "in_tier4_defense": false,
   "cooling_off": 0,
   "recovery_streak": 0,
-  "last_updated": "2026-11-10T02:45:55.373206+00:00",
+  "last_updated": "2026-11-20T04:38:18.755184+00:00",
   "initial_capital": 100000.0,
-  "equity": 100057.51
+  "equity": 96343.66
 }
