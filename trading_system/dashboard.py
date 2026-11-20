@@ -18,6 +18,7 @@ import plotly.graph_objects as go
 from trading_system.app.config.settings import settings
 from trading_system.app.broker.alpaca import AlpacaBrokerAdapter
 from trading_system.app.broker.groww import GrowwBrokerAdapter
+from trading_system.app.broker.multi_bot_adapter import MultiBotBrokerAdapter
 from trading_system.app.config.stop_loss_manager import StopLossManager
 
 # ==========================================
@@ -680,34 +681,54 @@ with col_tog_in:
         st.rerun()
 
 if is_india_mode:
+    data_dir = os.path.join(os.path.dirname(__file__), "data")
+    manager_state_file = os.path.join(data_dir, "manager_state.json")
+
+    if os.path.exists(manager_state_file):
+        st.sidebar.markdown("""
+        <div style='background:rgba(16, 185, 129, 0.09); border:1px solid rgba(16, 185, 129, 0.35); border-radius:8px; padding:10px 12px; margin-bottom:14px; font-family:"DM Mono",monospace;'>
+            <div style='color:#10B981; font-weight:700; font-size:0.75rem; letter-spacing:0.05em;'>🇮🇳 GATE B INCUBATION // DAY 4 OF 91</div>
+            <div style='color:#A1A1AA; font-size:0.68rem; margin-top:2px;'>Multi-Asset ETF & Gold (79.8%) + Debt Carry (20.2%)</div>
+            <div style='color:#60A5FA; font-size:0.66rem; margin-top:3px;'>Central Portfolio Manager • Unit NAV 99.0147 • Gap 0.0%</div>
+        </div>
+        """, unsafe_allow_html=True)
+        broker = MultiBotBrokerAdapter(data_dir=data_dir, initial_capital=100000.0)
+    else:
+        st.sidebar.markdown("""
+        <div style='background:rgba(255, 153, 0, 0.09); border:1px solid rgba(255, 153, 0, 0.35); border-radius:8px; padding:10px 12px; margin-bottom:14px; font-family:"DM Mono",monospace;'>
+            <div style='color:#FFB800; font-weight:700; font-size:0.75rem; letter-spacing:0.05em;'>🇮🇳 INDIA GROWTH POD // VARIANT 2</div>
+            <div style='color:#A1A1AA; font-size:0.68rem; margin-top:2px;'>116 Growth Leaders • 17.96% Post-Tax CAGR • 17.3Y Horizon</div>
+            <div style='color:#F87171; font-size:0.66rem; margin-top:3px;'>⚠️ Exploratory Shadow Tracking (Failed Gate A on Drawdown: -27.6% vs -25.0% Limit | ₹80K Scale)</div>
+        </div>
+        """, unsafe_allow_html=True)
+
+        india_key = settings.INDIA_API_KEY
+        india_sec = settings.INDIA_API_SECRET
+        india_totp = settings.INDIA_TOTP_SECRET
+        india_cap = getattr(settings, "INDIA_INITIAL_CAPITAL", 80000.0)
+
+        india_state_file = os.path.join(data_dir, "paper_state_india.json")
+        india_trades_file = os.path.join(data_dir, "paper_trades_india.csv")
+        india_equity_file = os.path.join(data_dir, "paper_equity_log.csv")
+
+        broker = GrowwBrokerAdapter(
+            api_key=india_key,
+            api_secret=india_sec,
+            totp_secret=india_totp,
+            initial_capital=india_cap,
+            state_file=india_state_file,
+            trades_file=india_trades_file,
+            equity_log_file=india_equity_file
+        )
+else:
     st.sidebar.markdown("""
-    <div style='background:rgba(255, 153, 0, 0.09); border:1px solid rgba(255, 153, 0, 0.35); border-radius:8px; padding:10px 12px; margin-bottom:14px; font-family:"DM Mono",monospace;'>
-        <div style='color:#FFB800; font-weight:700; font-size:0.75rem; letter-spacing:0.05em;'>🇮🇳 INDIA GROWTH POD // VARIANT 2</div>
-        <div style='color:#A1A1AA; font-size:0.68rem; margin-top:2px;'>116 Growth Leaders • 17.96% Post-Tax CAGR • 17.3Y Horizon</div>
-        <div style='color:#F87171; font-size:0.66rem; margin-top:3px;'>⚠️ Exploratory Shadow Tracking (Failed Gate A on Drawdown: -27.6% vs -25.0% Limit | ₹80K Scale)</div>
+    <div style='background:rgba(239, 68, 68, 0.09); border:1px solid rgba(239, 68, 68, 0.35); border-radius:8px; padding:10px 12px; margin-bottom:14px; font-family:"DM Mono",monospace;'>
+        <div style='color:#F87171; font-weight:700; font-size:0.75rem; letter-spacing:0.05em;'>🇺🇸 US STOCK MOMENTUM // PARKED</div>
+        <div style='color:#A1A1AA; font-size:0.68rem; margin-top:2px;'>Strategy failed Gate A protocol (revisit with survivor-free data).</div>
+        <div style='color:#FBBF24; font-size:0.66rem; margin-top:3px;'>Automated execution is disconnected. Balance ($96k) shows resting Alpaca positions.</div>
     </div>
     """, unsafe_allow_html=True)
 
-    india_key = settings.INDIA_API_KEY
-    india_sec = settings.INDIA_API_SECRET
-    india_totp = settings.INDIA_TOTP_SECRET
-    india_cap = getattr(settings, "INDIA_INITIAL_CAPITAL", 80000.0)
-
-    data_dir = os.path.join(os.path.dirname(__file__), "data")
-    india_state_file = os.path.join(data_dir, "paper_state_india.json")
-    india_trades_file = os.path.join(data_dir, "paper_trades_india.csv")
-    india_equity_file = os.path.join(data_dir, "paper_equity_log.csv")
-
-    broker = GrowwBrokerAdapter(
-        api_key=india_key,
-        api_secret=india_sec,
-        totp_secret=india_totp,
-        initial_capital=india_cap,
-        state_file=india_state_file,
-        trades_file=india_trades_file,
-        equity_log_file=india_equity_file
-    )
-else:
     api_key = settings.PAPER_API_KEY
     api_secret = settings.PAPER_API_SECRET
 
@@ -726,7 +747,7 @@ cash = acc_details.get("cash", 0.0)
 buying_power = acc_details.get("buying_power", cash)
 today_pnl = acc_details.get("today_pnl", 0.0)
 today_pnl_pct = acc_details.get("today_pnl_pct", 0.0)
-initial_capital = float(getattr(broker, 'initial_capital', 1000000.0 if is_india_mode else 100000.0))
+initial_capital = float(getattr(broker, 'initial_capital', 100000.0))
 overall_pnl = equity - initial_capital
 overall_pnl_pct = (overall_pnl / initial_capital * 100) if initial_capital > 0 else 0.0
 cash_pct = (cash / equity * 100) if equity > 0 else 0.0
@@ -949,19 +970,33 @@ st.sidebar.markdown(f"""
 # PAGE 1: 📊 PORTFOLIO OVERVIEW (EXECUTIVE DESK)
 # ==============================================================================
 if page == "📊 Portfolio Overview":
-    hdr_sub = "POD 1: INDIA GROWTH EQUITIES (NSE 100) • VARIANT 2: ASYMMETRIC MULTI-BAGGER (17.96% POST-TAX CAGR) • SEBI CNC DELIVERY" if is_india_mode else "POD 2: US GROWTH EQUITIES (NASDAQ/NYSE 100) • VARIANT 1: WIDE-TREND RUNNER (9.76% POST-TAX CAGR) • ALPACA REAL-TIME ROUTING"
-    broker_live_badge = "GROWW NSE LIVE" if (is_india_mode and not getattr(broker, 'is_mock', True)) else ("NSE FORWARD PAPER DESK" if is_india_mode else "ALPACA PAPER LIVE")
+    is_multibot = (is_india_mode and isinstance(broker, MultiBotBrokerAdapter))
+    if is_multibot:
+        hdr_sub = "GATE B QUANT FUND • SLEEVE 1: MULTI-ASSET ETF & GOLD (79.8%) • SLEEVE 2: SOVEREIGN BOND & CASH CARRY (20.2%) • CENTRAL MANAGER RECONCILED"
+        broker_live_badge = "GATE B INCUBATION: DAY 4 OF 91"
+        strategy_badge = "MULTI-ASSET & DURATION ENGINE"
+        term_title = "ANTIGRAVITY <span class=\"hud-title-accent\">// QUANTUM TERMINAL [GATE B MULTI-ASSET]</span>"
+    elif is_india_mode:
+        hdr_sub = "POD 1: INDIA GROWTH EQUITIES (NSE 100) • VARIANT 2: ASYMMETRIC MULTI-BAGGER (17.96% POST-TAX CAGR) • SEBI CNC DELIVERY"
+        broker_live_badge = "GROWW NSE LIVE" if not getattr(broker, 'is_mock', True) else "NSE FORWARD PAPER DESK"
+        strategy_badge = "GROWTH MOMENTUM (VARIANT 2)"
+        term_title = "ANTIGRAVITY <span class=\"hud-title-accent\">// QUANTUM TERMINAL [INDIA NSE]</span>"
+    else:
+        hdr_sub = "POD 2: US GROWTH EQUITIES (PARKED, REVISIT WITH SURVIVOR-FREE DATA) • RESTING PAPER BALANCE"
+        broker_live_badge = "ALPACA PAPER (PARKED)"
+        strategy_badge = "US MOMENTUM (PARKED)"
+        term_title = "ANTIGRAVITY <span class=\"hud-title-accent\">// QUANTUM TERMINAL [US PARKED]</span>"
 
     st.markdown(f"""
     <div class="hud-header" style="margin-bottom: 16px;">
         <div>
-            <div class="hud-title">ANTIGRAVITY <span class="hud-title-accent">// QUANTUM TERMINAL {'[INDIA NSE]' if is_india_mode else ''}</span></div>
+            <div class="hud-title">{term_title}</div>
             <div class="hud-subtitle">{hdr_sub}</div>
         </div>
         <div style="display: flex; gap: 8px; align-items: center;">
             <span class="status-pill"><span class="pulse-dot"></span> LIVE EXECUTION READY</span>
             <span class="status-pill" style="border-color: rgba(0, 208, 156, 0.25); color: #00D09C;">{broker_live_badge}</span>
-            <span class="status-pill" style="border-color: rgba(255, 255, 255, 0.14); color: #FFFFFF;">{'GROWTH MOMENTUM (VARIANT 2)' if is_india_mode else 'GROWTH MOMENTUM (VARIANT 1)'}</span>
+            <span class="status-pill" style="border-color: rgba(255, 255, 255, 0.14); color: #FFFFFF;">{strategy_badge}</span>
         </div>
     </div>
     """, unsafe_allow_html=True)
@@ -1009,7 +1044,7 @@ if page == "📊 Portfolio Overview":
     st.markdown("<div style='margin-top: 14px;'></div>", unsafe_allow_html=True)
 
     # 1. Fetch & Prepare Historical Portfolio Equity Data
-    initial_capital = float(getattr(broker, 'initial_capital', 1000000.0 if is_india_mode else 100000.0))
+    initial_capital = float(getattr(broker, 'initial_capital', 100000.0))
     df_raw_history = broker.get_portfolio_history(period="all", timeframe="1D")
 
     if df_raw_history is not None and not df_raw_history.empty:
@@ -2879,7 +2914,7 @@ elif page in ("🏆 13-Week Incubation Scorecard", "🏆 30-Day Incubation Score
     </div>
     """, unsafe_allow_html=True)
 
-    base_capital = float(getattr(broker, 'initial_capital', 1000000.0 if is_india_mode else 100000.0))
+    base_capital = float(getattr(broker, 'initial_capital', 100000.0))
     current_eq = float(equity)
     net_change = current_eq - base_capital
     net_change_pct = (net_change / base_capital * 100) if base_capital > 0 else 0.0
@@ -2990,7 +3025,7 @@ elif page in ("🏆 13-Week Incubation Scorecard", "🏆 30-Day Incubation Score
         fill="tozeroy",
         fillcolor=curve_fill
     ))
-    base_cap_ref = 1000000.0 if is_india_mode else 100000.0
+    base_cap_ref = base_capital
     fig_equity.add_hline(
         y=base_cap_ref,
         line_dash="dash",
