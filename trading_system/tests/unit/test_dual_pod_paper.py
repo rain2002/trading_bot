@@ -504,3 +504,139 @@ def test_multi_asset_pod_c_defensive_exit_on_trend_break(tmp_path, monkeypatch):
     assert "MON100.NS" not in engine.state["positions"]
     # Proceeds restored to cash
     assert engine.state["cash"] > 56000.0 + 13000.0
+
+
+def test_verify_us_timing_window_and_delay_calculation(monkeypatch):
+    """
+    Verifies that verify_us_timing_window:
+      - Accurately detects active market session (09:25-16:00 EST) and computes delay_mins
+      - Correctly rejects and labels post-close stale runners as SKIPPED_RUNNER_POST_CLOSE
+      - Detects weekend closures as SKIPPED_WEEKEND
+      - Bypasses guards when force=True
+    """
+    from datetime import datetime, timezone, timedelta
+    from zoneinfo import ZoneInfo
+    from trading_system.scripts.run_dual_pod_paper import verify_us_timing_window
+
+    ny_tz = ZoneInfo("America/New_York")
+
+    # 1. Force flag
+    is_v, status, delay, msg = verify_us_timing_window("execute", force=True)
+    assert is_v is True
+    assert status == "FORCED_EXECUTE"
+
+    # 2. Weekend (Saturday 10:00 EST)
+    sat_dt = datetime(2026, 11, 21, 10, 0, tzinfo=ny_tz)
+    monkeypatch.setattr("trading_system.scripts.run_dual_pod_paper.get_ny_now", lambda: sat_dt)
+    is_v, status, delay, msg = verify_us_timing_window("execute")
+    assert is_v is False
+    assert status == "SKIPPED_WEEKEND"
+
+    # 3. Weekday Pre-Open (Monday 08:30 EST)
+    mon_pre = datetime(2026, 11, 23, 8, 30, tzinfo=ny_tz)
+    monkeypatch.setattr("trading_system.scripts.run_dual_pod_paper.get_ny_now", lambda: mon_pre)
+    is_v, status, delay, msg = verify_us_timing_window("execute")
+    assert is_v is False
+    assert status == "SKIPPED_PRE_OPEN"
+
+    # 4. Weekday Active Session On-Time (Monday 09:35 EST -> delay 5m)
+    mon_open = datetime(2026, 11, 23, 9, 35, tzinfo=ny_tz)
+    monkeypatch.setattr("trading_system.scripts.run_dual_pod_paper.get_ny_now", lambda: mon_open)
+    is_v, status, delay, msg = verify_us_timing_window("execute")
+    assert is_v is True
+    assert status == "EXECUTE_FILL"
+    assert delay == 5
+
+    # 5. Weekday Active Session Delayed Runner (Monday 14:15 EST -> 4h45m delay = 285m)
+    mon_late = datetime(2026, 11, 23, 14, 15, tzinfo=ny_tz)
+    monkeypatch.setattr("trading_system.scripts.run_dual_pod_paper.get_ny_now", lambda: mon_late)
+    is_v, status, delay, msg = verify_us_timing_window("execute")
+    assert is_v is True
+    assert status == "EXECUTE_FILL"
+    assert delay == 285  # (14*60+15) - (9*60+30) = 855 - 570 = 285 mins
+
+    # 6. Weekday Post-Close Stale Runner (Monday 16:45 EST -> delay 435m)
+    mon_post = datetime(2026, 11, 23, 16, 45, tzinfo=ny_tz)
+    monkeypatch.setattr("trading_system.scripts.run_dual_pod_paper.get_ny_now", lambda: mon_post)
+    is_v, status, delay, msg = verify_us_timing_window("execute")
+    assert is_v is False
+    assert status == "SKIPPED_RUNNER_POST_CLOSE"
+    assert delay == 435
+
+    # 7. Scan Pre-Close check (Monday 14:00 EST -> scan must be deferred)
+    mon_mid = datetime(2026, 11, 23, 14, 0, tzinfo=ny_tz)
+    monkeypatch.setattr("trading_system.scripts.run_dual_pod_paper.get_ny_now", lambda: mon_mid)
+    is_v, status, delay, msg = verify_us_timing_window("scan")
+    assert is_v is False
+    assert status == "SKIPPED_RUNNER_PRE_CLOSE"
+
+    # 8. Scan Post-Close check (Monday 16:30 EST -> scan complete, delay 15m from 16:15)
+    mon_scan = datetime(2026, 11, 23, 16, 30, tzinfo=ny_tz)
+    monkeypatch.setattr("trading_system.scripts.run_dual_pod_paper.get_ny_now", lambda: mon_scan)
+    is_v, status, delay, msg = verify_us_timing_window("scan")
+    assert is_v is True
+    assert status == "SCAN_COMPLETE"
+    assert delay == 15
+
+
+def test_nan_safe_equity_logging_and_skip_rows(tmp_path, monkeypatch):
+    """
+    Verifies that log_daily_equity:
+      - Writes complete rows for both executed and skipped cycles
+      - Never allows blank/NaN values in total_equity, portfolio_equity, cash, or drawdown
+      - Populates status, delay_mins, and notes columns cleanly
+    """
+    dummy_log = str(tmp_path / "test_paper_equity_log.csv")
+    monkeypatch.setattr("trading_system.scripts.run_dual_pod_paper.EQUITY_LOG_CSV", dummy_log)
+
+    engine = PodPaperEngine(
+        pod_name="US",
+        currency="USD",
+        initial_capital=100000.0,
+        state_file=str(tmp_path / "test_state.json"),
+        trades_file=str(tmp_path / "test_trades.csv")
+    )
+
+    # 1. Log a skipped run
+    engine.log_daily_equity(
+        status="SKIPPED_RUNNER_POST_CLOSE",
+        delay_mins=320,
+        notes="Runner arrived post-close. Queued orders preserved."
+    )
+
+    df_log = pd.read_csv(dummy_log)
+    assert len(df_log) == 1
+    row0 = df_log.iloc[0]
+    assert row0["pod"] == "US"
+    assert row0["total_equity"] == 100000.0
+    assert row0["cash"] == 100000.0
+    assert row0["portfolio_equity"] == 0.0
+    assert row0["status"] == "SKIPPED_RUNNER_POST_CLOSE"
+    assert row0["delay_mins"] == 320
+    assert not pd.isna(row0["total_equity"])
+    assert not pd.isna(row0["drawdown_pct"])
+
+    # 2. Simulate NaN inputs and verify fail-closed sanitization
+    engine.state["cash"] = float("nan")
+    engine.state["positions"]["FAULTY"] = {
+        "shares": float("nan"),
+        "entry_price": float("nan"),
+        "peak_price": float("nan")
+    }
+
+    engine.log_daily_equity(
+        status="EXECUTE_FILL",
+        delay_mins=10,
+        notes="Test NaN sanitization"
+    )
+
+    df_log2 = pd.read_csv(dummy_log)
+    assert len(df_log2) == 2
+    row1 = df_log2.iloc[1]
+    assert not pd.isna(row1["total_equity"])
+    assert not pd.isna(row1["cash"])
+    assert not pd.isna(row1["portfolio_equity"])
+    assert not pd.isna(row1["drawdown_pct"])
+    assert row1["total_equity"] >= 100000.0
+    assert row1["status"] == "EXECUTE_FILL"
+

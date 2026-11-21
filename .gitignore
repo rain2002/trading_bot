@@ -63,3 +63,12 @@ trading_system/data/bond_cash_equity_log.csv
 trading_system/data/manager_state.json
 trading_system/data/manager_equity_log.csv
 trading_system/data/unitized_nav_ledger.json
+
+# Exploratory US & Shadow Paper Trading State (Tracked strictly on origin/state-shadow-us, never on main)
+trading_system/data/paper_state_us.json
+trading_system/data/paper_trades_us.csv
+trading_system/data/paper_state_india.json
+trading_system/data/paper_trades_india.csv
+trading_system/data/paper_state_multi_asset.json
+trading_system/data/paper_trades_multi_asset.csv
+trading_system/data/paper_equity_log.csv

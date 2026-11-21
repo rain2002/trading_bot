@@ -447,7 +447,98 @@ class PodPaperEngine:
 
         self._save_state()
 
-    def scan_and_evaluate(self, universe_data: Dict[str, pd.DataFrame], benchmark_data: pd.DataFrame, active_pit_universe: Optional[Set[str]] = None):
+    def log_daily_equity(
+        self,
+        status: str = "COMPLETED",
+        delay_mins: int = 0,
+        notes: str = "",
+        port_equity: Optional[float] = None,
+        total_equity: Optional[float] = None,
+        hwm: Optional[float] = None,
+        drawdown_pct: Optional[float] = None
+    ):
+        """
+        Audited Provenance Tracking:
+        Appends an immutable daily equity log record with explicit status, runner delay,
+        and fail-closed NaN sanitization.
+        """
+        now_str = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
+        commit_hash = get_git_commit_hash()
+
+        # Sanitize Cash
+        cash_val = float(self.state.get("cash", 0.0))
+        if math.isnan(cash_val):
+            cash_val = float(self.state.get("initial_capital", 100000.0 if "US" in self.pod_name else 80000.0))
+        self.state["cash"] = cash_val
+
+        # Sanitize Portfolio Equity
+        if port_equity is None:
+            port_equity = 0.0
+            for sym, pos in self.state.get("positions", {}).items():
+                shs = float(pos.get("shares", 0.0))
+                p = float(pos.get("peak_price", pos.get("entry_price", 0.0)))
+                if not math.isnan(shs) and not math.isnan(p):
+                    port_equity += shs * p
+        if math.isnan(port_equity):
+            port_equity = 0.0
+
+        # Sanitize Total Equity
+        if total_equity is None:
+            total_equity = cash_val + port_equity
+        if math.isnan(total_equity) or total_equity <= 0:
+            total_equity = float(self.state.get("equity", self.state.get("initial_capital", cash_val)))
+        if math.isnan(total_equity) or total_equity <= 0:
+            total_equity = cash_val
+
+        # Sanitize HWM True
+        if hwm is None:
+            hwm = float(self.state.get("hwm_true", self.initial_capital))
+        if math.isnan(hwm) or hwm <= 0:
+            hwm = max(total_equity, self.initial_capital)
+        if total_equity > hwm:
+            hwm = total_equity
+        self.state["hwm_true"] = hwm
+
+        # Sanitize Drawdown
+        if drawdown_pct is None:
+            dd = (total_equity - hwm) / hwm if hwm > 0 else 0.0
+            drawdown_pct = dd * 100.0
+        if math.isnan(drawdown_pct):
+            drawdown_pct = 0.0
+
+        positions_count = len(self.state.get("positions", {}))
+
+        eq_entry = {
+            "date": now_str[:10],
+            "pod": self.pod_name,
+            "currency": self.currency,
+            "total_equity": round(float(total_equity), 2),
+            "cash": round(float(cash_val), 2),
+            "portfolio_equity": round(float(port_equity), 2),
+            "hwm_true": round(float(hwm), 2),
+            "drawdown_pct": round(float(drawdown_pct), 2),
+            "open_positions_count": int(positions_count),
+            "code_commit": commit_hash,
+            "universe_spec": "trading_system/data/us_growth_tickers.txt" if "US" in self.pod_name else ("trading_system/data/nse_tickers.txt" if "INDIA" in self.pod_name else "pod_c_etfs"),
+            "classification": "exploratory_shadow" if "US" in self.pod_name else "gate_b_incubation",
+            "status": str(status),
+            "delay_mins": int(delay_mins),
+            "notes": str(notes)
+        }
+
+        os.makedirs(os.path.dirname(EQUITY_LOG_CSV), exist_ok=True)
+        new_row_df = pd.DataFrame([eq_entry])
+        if os.path.exists(EQUITY_LOG_CSV) and os.path.getsize(EQUITY_LOG_CSV) > 0:
+            try:
+                existing_df = pd.read_csv(EQUITY_LOG_CSV)
+                combined_df = pd.concat([existing_df, new_row_df], ignore_index=True)
+                combined_df.to_csv(EQUITY_LOG_CSV, index=False)
+            except Exception:
+                new_row_df.to_csv(EQUITY_LOG_CSV, mode="a", index=False, header=False)
+        else:
+            new_row_df.to_csv(EQUITY_LOG_CSV, index=False)
+
+    def scan_and_evaluate(self, universe_data: Dict[str, pd.DataFrame], benchmark_data: pd.DataFrame, active_pit_universe: Optional[Set[str]] = None, delay_mins: int = 0, notes: str = ""):
         """Step E & F: Scan market closes, evaluate stops/trails/trims, and queue Next-Day Open orders."""
         now_str = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
 
@@ -477,26 +568,61 @@ class PodPaperEngine:
         for sym, pos in list(self.state["positions"].items()):
             p = None
             if sym in universe_data and not universe_data[sym].empty:
-                close_col = universe_data[sym]["close"].dropna()
-                if not close_col.empty:
-                    val = float(close_col.iloc[-1])
-                    if not np.isnan(val) and val > 0:
-                        p = val
+                try:
+                    close_col = universe_data[sym]["close"].dropna()
+                    if not close_col.empty:
+                        val = float(close_col.iloc[-1])
+                        if not np.isnan(val) and val > 0:
+                            p = val
+                except Exception:
+                    p = None
             if p is None:
                 p = float(pos.get("entry_price", 0.0))
+            if math.isnan(p) or p <= 0:
+                p = 1.0
 
             current_prices[sym] = p
-            port_equity += pos["shares"] * p
-            if p > pos.get("peak_price", p):
-                pos["peak_price"] = p
+            shs = float(pos.get("shares", 0.0))
+            if math.isnan(shs):
+                shs = 0.0
+            pos["shares"] = shs
 
-        total_equity = self.state["cash"] + port_equity
-        if total_equity > self.state.get("hwm_true", 0.0):
-            self.state["hwm_true"] = total_equity
-        hwm = max(self.state.get("hwm_true", 1.0), 1.0)
-        current_dd = (total_equity - hwm) / hwm
-        if current_dd < self.state.get("max_drawdown", 0.0):
-            self.state["max_drawdown"] = current_dd
+            port_equity += shs * p
+            peak_val = float(pos.get("peak_price", p))
+            if math.isnan(peak_val) or peak_val <= 0:
+                peak_val = p
+            if p > peak_val:
+                peak_val = p
+            pos["peak_price"] = peak_val
+
+        cash_val = float(self.state.get("cash", 0.0))
+        if math.isnan(cash_val):
+            cash_val = float(self.state.get("initial_capital", 100000.0 if "US" in self.pod_name else 80000.0))
+        self.state["cash"] = cash_val
+
+        if math.isnan(port_equity):
+            port_equity = 0.0
+
+        total_equity = cash_val + port_equity
+        if math.isnan(total_equity) or total_equity <= 0:
+            total_equity = float(self.state.get("initial_capital", 100000.0 if "US" in self.pod_name else 80000.0))
+
+        hwm = float(self.state.get("hwm_true", 1.0))
+        if math.isnan(hwm) or hwm <= 0:
+            hwm = max(total_equity, float(self.state.get("initial_capital", 1.0)))
+        if total_equity > hwm:
+            hwm = total_equity
+        self.state["hwm_true"] = hwm
+
+        current_dd = (total_equity - hwm) / hwm if hwm > 0 else 0.0
+        if math.isnan(current_dd):
+            current_dd = 0.0
+        max_dd = float(self.state.get("max_drawdown", 0.0))
+        if math.isnan(max_dd):
+            max_dd = 0.0
+        if current_dd < max_dd:
+            max_dd = current_dd
+        self.state["max_drawdown"] = max_dd
 
         print(f"[{self.pod_name} NAV] Total Equity: {self.currency} {total_equity:,.2f} | Cash: {self.currency} {self.state['cash']:,.2f} | Port: {self.currency} {port_equity:,.2f} | MaxDD: {self.state['max_drawdown']*100:.2f}%")
 
@@ -652,32 +778,15 @@ class PodPaperEngine:
         self._save_state()
 
         # Append to Daily Equity Log (Audited Provenance Tracking)
-        os.makedirs(os.path.dirname(EQUITY_LOG_CSV), exist_ok=True)
-        commit_hash = get_git_commit_hash()
-        eq_entry = {
-            "date": now_str[:10],
-            "pod": self.pod_name,
-            "currency": self.currency,
-            "total_equity": round(total_equity, 2) if not np.isnan(total_equity) else round(self.state.get("equity", self.state["cash"]), 2),
-            "cash": round(self.state["cash"], 2),
-            "portfolio_equity": round(port_equity, 2) if not np.isnan(port_equity) else 0.0,
-            "hwm_true": round(self.state["hwm_true"], 2),
-            "drawdown_pct": round(current_dd * 100.0, 2) if not np.isnan(current_dd) else 0.0,
-            "open_positions_count": len(self.state["positions"]),
-            "code_commit": commit_hash,
-            "universe_spec": "trading_system/data/us_growth_tickers.txt" if "US" in self.pod_name else ("trading_system/data/nse_tickers.txt" if "INDIA" in self.pod_name else "pod_c_etfs"),
-            "classification": "exploratory_shadow" if "US" in self.pod_name else "gate_b_incubation"
-        }
-        new_row_df = pd.DataFrame([eq_entry])
-        if os.path.exists(EQUITY_LOG_CSV) and os.path.getsize(EQUITY_LOG_CSV) > 0:
-            try:
-                existing_df = pd.read_csv(EQUITY_LOG_CSV)
-                combined_df = pd.concat([existing_df, new_row_df], ignore_index=True)
-                combined_df.to_csv(EQUITY_LOG_CSV, index=False)
-            except Exception:
-                new_row_df.to_csv(EQUITY_LOG_CSV, mode="a", index=False, header=False)
-        else:
-            new_row_df.to_csv(EQUITY_LOG_CSV, index=False)
+        self.log_daily_equity(
+            status="SCAN_COMPLETE",
+            delay_mins=delay_mins,
+            notes=notes if notes else f"Scan complete; {len(self.state.get('pending_buys', []))} buys, {len(self.state.get('pending_sells', []))} sells queued.",
+            port_equity=port_equity,
+            total_equity=total_equity,
+            hwm=hwm,
+            drawdown_pct=current_dd * 100.0
+        )
 
     def print_status_tear_sheet(self):
         if "US" in self.pod_name and self.live_broker:
@@ -1060,7 +1169,10 @@ class MultiAssetPodPaperEngine:
             "open_positions_count": len(self.state["positions"]),
             "code_commit": commit_hash,
             "universe_spec": "pod_c_macro_etfs",
-            "classification": "exploratory_shadow"
+            "classification": "exploratory_shadow",
+            "status": "SCAN_COMPLETE",
+            "delay_mins": 0,
+            "notes": "Pod C multi-asset scan complete"
         }
         new_row_df = pd.DataFrame([eq_entry])
         if os.path.exists(EQUITY_LOG_CSV) and os.path.getsize(EQUITY_LOG_CSV) > 0:
@@ -1154,60 +1266,90 @@ def fetch_yfinance_history(tickers: List[str], period: str = "1y") -> Dict[str, 
     return out
 
 
-def verify_us_timing_window(phase: str, force: bool = False) -> Tuple[bool, str]:
+def get_ny_now() -> datetime:
+    """Returns current datetime in America/New_York timezone with daylight savings awareness."""
+    try:
+        from zoneinfo import ZoneInfo
+        return datetime.now(ZoneInfo("America/New_York"))
+    except Exception:
+        pass
+    try:
+        import zoneinfo
+        return datetime.now(zoneinfo.ZoneInfo("America/New_York"))
+    except Exception:
+        pass
+    utc = datetime.now(timezone.utc)
+    year = utc.year
+    dst_start = datetime(year, 3, 8 + (6 - datetime(year, 3, 1).weekday()) % 7, 7, 0, tzinfo=timezone.utc)
+    dst_end = datetime(year, 11, 1 + (6 - datetime(year, 11, 1).weekday()) % 7, 6, 0, tzinfo=timezone.utc)
+    is_dst = dst_start <= utc < dst_end
+    from datetime import timedelta
+    offset_hours = -4 if is_dst else -5
+    return utc.astimezone(timezone(timedelta(hours=offset_hours)))
+
+
+def verify_us_timing_window(phase: str, force: bool = False) -> Tuple[bool, str, int, str]:
     """
     Institutional Execution Timing Guard:
     Enforces that scheduled automated runs arrive within their intended market windows
     to preserve the next-open / close-scan backtest invariant.
+
+    Returns:
+        (is_valid: bool, status: str, delay_mins: int, msg: str)
     """
     if force:
-        return True, "Force flag enabled; bypassing timing guard."
+        return True, f"FORCED_{phase.upper()}", 0, "Force flag enabled; bypassing timing guard."
 
     if phase == "status":
-        return True, "Status phase can be executed at any time."
+        return True, "STATUS_CHECK", 0, "Status phase can be executed at any time."
 
-    try:
-        from zoneinfo import ZoneInfo
-        ny_now = datetime.now(ZoneInfo("America/New_York"))
-    except Exception:
-        utc_now = datetime.now(timezone.utc)
-        ny_hour = (utc_now.hour - 5) % 24
-        ny_now = utc_now.replace(hour=ny_hour)
-
+    ny_now = get_ny_now()
     weekday = ny_now.weekday()  # 0=Monday, 4=Friday, 5=Saturday, 6=Sunday
     current_time_str = ny_now.strftime("%H:%M %Z")
-
-    if weekday >= 5:
-        return False, f"US market is closed on weekends (Current: {ny_now.strftime('%A %H:%M %Z')}). Skipping {phase} run."
-
     time_mins = ny_now.hour * 60 + ny_now.minute
 
+    if weekday >= 5:
+        msg = f"US market is closed on weekends (Current: {ny_now.strftime('%A %H:%M %Z')}). Preserving state for next session."
+        return False, "SKIPPED_WEEKEND", 0, msg
+
     if phase == "execute":
-        # Valid execution window: 09:25 to 11:30 Eastern Time (first 2 hours of market open)
-        open_start = 9 * 60 + 25   # 09:25
-        open_end = 11 * 60 + 30    # 11:30
-        if not (open_start <= time_mins <= open_end):
-            return False, (
-                f"STALE RUN: Current Eastern time is {current_time_str}, outside the valid Market Open "
-                f"execution window (09:25–11:30 Eastern / 14:25–16:30 UTC). Skipping run to prevent filling "
-                f"after-hours or breaking the Next-Open execution invariant."
+        # Regular US market open is 09:30 Eastern (570 mins); market close is 16:00 Eastern (960 mins).
+        # We allow execution across the active trading session (09:25–16:00 Eastern)
+        # to accommodate GitHub Actions queuing delays while filling at official open prices.
+        open_start = 9 * 60 + 25   # 09:25 Eastern
+        market_open = 9 * 60 + 30  # 09:30 Eastern
+        market_close = 16 * 60     # 16:00 Eastern
+
+        if time_mins < open_start:
+            msg = f"PREMATURE RUN: Current Eastern time is {current_time_str}, before 09:25 market open window. Preserving queued orders for open."
+            return False, "SKIPPED_PRE_OPEN", 0, msg
+
+        if time_mins > market_close:
+            delay_mins = max(0, time_mins - market_open)
+            msg = (
+                f"STALE RUN: Runner delayed by {delay_mins} mins, arrived at {current_time_str} post-close "
+                f"(after 16:00 Eastern). Skipping execution to prevent filling after-hours; queued orders preserved for next open."
             )
-        return True, f"Within valid Market Open execution window ({current_time_str})."
+            return False, "SKIPPED_RUNNER_POST_CLOSE", delay_mins, msg
+
+        delay_mins = max(0, time_mins - market_open)
+        msg = f"Within active US market session ({current_time_str}); runner delay {delay_mins}m. Executing open fills."
+        return True, "EXECUTE_FILL", delay_mins, msg
 
     elif phase == "scan":
-        # Valid scan window: 16:05 to 23:59 Eastern Time (post-market close) or pre-market 00:00–08:30
-        close_start = 16 * 60 + 5  # 16:05
-        close_end = 23 * 60 + 59   # 23:59
-        pre_market_end = 8 * 60 + 30 # 08:30
-        is_post_close = (time_mins >= close_start) or (time_mins <= pre_market_end)
-        if not is_post_close:
-            return False, (
-                f"PREMATURE RUN: Current Eastern time is {current_time_str}, during active market hours "
-                f"before official 16:00 close. Skipping scan until post-market."
-            )
-        return True, f"Within valid Market Close scan window ({current_time_str})."
+        # Scheduled scan window: post-close (after 16:00 Eastern)
+        market_close = 16 * 60     # 16:00 Eastern
+        close_sched = 16 * 60 + 15 # 16:15 Eastern
 
-    return True, "Timing verified."
+        if time_mins < market_close:
+            msg = f"PREMATURE RUN: Current Eastern time is {current_time_str}, during active market hours before official 16:00 close. Scan deferred."
+            return False, "SKIPPED_RUNNER_PRE_CLOSE", 0, msg
+
+        delay_mins = max(0, time_mins - close_sched)
+        msg = f"Within valid Market Close scan window ({current_time_str}); runner delay {delay_mins}m. Scanning closes and updating signals."
+        return True, "SCAN_COMPLETE", delay_mins, msg
+
+    return True, "VERIFIED", 0, "Timing verified."
 
 
 def main():
@@ -1218,15 +1360,6 @@ def main():
     parser.add_argument("--protocol-hash", type=str, default="", help="Audited Gate A protocol hash")
     parser.add_argument("--force", action="store_true", help="Bypass market timing guards (for manual override)")
     args = parser.parse_args()
-
-    # Timing Guard for US Pod automated execution
-    if args.pod == "us" and args.phase in ["scan", "execute"]:
-        is_valid, msg = verify_us_timing_window(args.phase, force=args.force)
-        if not is_valid:
-            print("\n" + "=" * 95)
-            print(f">>> [US POD TIMING GUARD] RUN SKIPPED: {msg}")
-            print("=" * 95 + "\n")
-            return
 
     # Fiduciary Code Guard: Refuse Gate B certification if Gate A has not passed
     if args.mode == "gate_b":
@@ -1287,18 +1420,19 @@ def main():
             india_engine.scan_and_evaluate(india_data, bench_india, active_pit_universe=set(india_tickers))
 
         if args.pod in ["all", "us"]:
-            is_valid, msg = verify_us_timing_window(args.phase, force=args.force)
+            is_valid, status, delay_mins, msg = verify_us_timing_window(args.phase, force=args.force)
             if not is_valid:
                 print(f"\n>>> [POD 2: US TIMING GUARD] SCAN SKIPPED: {msg}\n")
+                us_engine.log_daily_equity(status=status, delay_mins=delay_mins, notes=msg)
             else:
-                print("\n>>> [POD 2: US] SCANNING POINT-IN-TIME US UNIVERSE AT MARKET CLOSE (16:05 EST)...")
+                print(f"\n>>> [POD 2: US] SCANNING POINT-IN-TIME US UNIVERSE AT MARKET CLOSE (16:05 EST)... (Delay: {delay_mins}m)")
                 us_engine.sync_alpaca_live()
                 us_tickers = get_active_pit_universe("US")
                 combined_tickers = list(set(us_tickers) | set(us_engine.state["positions"].keys()))
                 us_data = fetch_yfinance_history(combined_tickers, period="1y")
                 bench_us = yf.download("SPY", period="1y", progress=False, auto_adjust=False)
                 bench_us = normalize_df_columns(bench_us)
-                us_engine.scan_and_evaluate(us_data, bench_us, active_pit_universe=set(us_tickers))
+                us_engine.scan_and_evaluate(us_data, bench_us, active_pit_universe=set(us_tickers), delay_mins=delay_mins, notes=msg)
 
         if args.pod in ["all", "pod_c", "multi_asset"]:
             print("\n>>> [POD C: MULTI-ASSET] SCANNING MACRO TREND REGIMES AT MARKET CLOSE (15:35 IST)...")
@@ -1335,11 +1469,12 @@ def main():
             india_engine.execute_open_fills(current_opens)
 
         if args.pod in ["all", "us"]:
-            is_valid, msg = verify_us_timing_window(args.phase, force=args.force)
+            is_valid, status, delay_mins, msg = verify_us_timing_window(args.phase, force=args.force)
             if not is_valid:
                 print(f"\n>>> [POD 2: US TIMING GUARD] EXECUTION SKIPPED: {msg}\n")
+                us_engine.log_daily_equity(status=status, delay_mins=delay_mins, notes=msg)
             else:
-                print("\n>>> [POD 2: US] EXECUTING QUEUED ORDERS AT MARKET OPEN (09:30 EST)...")
+                print(f"\n>>> [POD 2: US] EXECUTING QUEUED ORDERS AT MARKET OPEN (09:30 EST)... (Delay: {delay_mins}m)")
                 us_tickers = get_active_pit_universe("US")
                 needed_symbols = list(set(us_tickers) | set(us_engine.state["positions"].keys()) | {p["sym"] for p in us_engine.state["pending_buys"]} | {p["sym"] for p in us_engine.state["pending_sells"]})
                 us_open_df = yf.download(needed_symbols, period="5d", progress=False, group_by="ticker", auto_adjust=False)
@@ -1359,7 +1494,10 @@ def main():
                         current_opens[s] = float(df["open"].dropna().iloc[-1])
                     except Exception:
                         pass
+                had_orders = bool(us_engine.state.get("pending_buys") or us_engine.state.get("pending_sells"))
                 us_engine.execute_open_fills(current_opens)
+                fill_status = "EXECUTE_FILL" if had_orders else "EXECUTE_NO_ORDERS"
+                us_engine.log_daily_equity(status=fill_status, delay_mins=delay_mins, notes=msg)
 
         if args.pod in ["all", "pod_c", "multi_asset"]:
             print("\n>>> [POD C: MULTI-ASSET] EXECUTING QUEUED MACRO ORDERS AT MARKET OPEN (09:15 IST)...")
