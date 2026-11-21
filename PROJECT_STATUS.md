@@ -76,19 +76,22 @@ The baseline execution architecture (V1 Phases 1-14) is complete. The following 
 **Status**: **ACTIVE IN PRODUCTION (GATE B FORWARD INCUBATION)**
 
 ### 1. Active Champion Architecture
-The official production trading champion is the **Dual-Pod Autonomous Cloud Trader with Macro Multi-Asset Trend**:
-- **Pod C (Macro Trend Allocation - Core Anchor)**:
-  - 40% India Trend (`NIFTYBEES.NS`)
-  - 30% US Secular Tech (`MON100.NS`)
-  - 20% Domestic Gold (`GOLDBEES.NS`)
-  - 10% Sovereign Cash Yield (`LIQUIDBEES.NS`)
-  - Regime Protection: Individual 200-SMA filters (assets below 200-SMA switch 100% to liquid cash yield).
-- **Pod 1 (India Growth Momentum - Satellite)**:
-  - Point-in-Time NSE 100 universe, 10 slots (10% allocation).
-  - Volatility Radar dynamic exposure scaling + -12% hard stop + 150-SMA trailing exit.
-- **Pod 2 (US Growth Momentum - Satellite)**:
-  - Point-in-Time NASDAQ/NYSE universe, 10 slots.
-  - Live Alpaca Paper API routing + -10% hard stop + 150-SMA trailing exit.
+The official production Gate B trading fund (`origin/state`, Day 5/91, NAV ₹98,082.80) is partitioned into two specialist sleeves supervised by the Central Portfolio Manager:
+- **Sleeve 1: Specialist Bot 1 (ETF and Gold Bot - Phase 1 Champion)**:
+  - Governed by `PROTOCOL-ETF-GOLD-BONDS-ROTATION-V1-20261112` and `AMENDMENT-ETF-GOLD-BONDS-V1-1-20261114`.
+  - Target Capital: ₹80,000.
+  - Allocation: Static 5-Asset Mix (25% `GOLDBEES.NS`, 25% `MON100.NS`, 15% `NIFTYBEES.NS`, 15% `MID150BEES.NS`, 20% `LTGILTBEES.NS`).
+  - Audited Gate A Result: CAGR 15.15%, MaxDD -25.59%, Sharpe 0.75, DSR = 0.9957.
+  - **Fiduciary Clarification**: This is the **Static Multi-Asset Allocation**. It is **NOT** the failed active switching `MULTI_ASSET_TREND_PROTOCOL_V2_1` family (which failed Gate A hurdles due to Section 50AA turnover tax and is formally killed).
+- **Sleeve 2: Specialist Bot 2 (Bond and Cash Bot - Phase 3 Champion B0)**:
+  - Governed by `PROTOCOL-BOND-AND-CASH-BOT-V1-20261114`.
+  - Target Capital: ₹20,000.
+  - Allocation: 100% `LIQUIDBEES.NS` (Overnight MIBOR repo carry, ~6.0% net).
+  - Audited Gate A Result: CAGR 5.64%, MaxDD 0.00%, Worst Month +0.09%, DSR = 0.9999.
+- **Central Portfolio Manager (Phase 2)**:
+  - Reconciles sleeve NAVs daily within 0.1% tolerance; enforces 5% drift-band rebalance.
+  - Drawdown throttle ladder: -15% (50% risk), -30% (25% risk), -40% (hard kill switch to 100% cash).
+  - 21-day anti-whipsaw recovery cooldown before re-risking.
 
 ### 2. Operational Automation (GitHub Actions)
 - Automated execution across 6 daily sessions:

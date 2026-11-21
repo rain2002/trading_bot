@@ -114,6 +114,20 @@ graph LR
 
 ---
 
+### Fiduciary Fund Governance & Live Gate B Specification
+
+> [!IMPORTANT]
+> **Fiduciary Identity Confirmation for Gate B Production Fund**:
+> The live multi-asset chassis currently incubating under Gate B on the `state` branch (Day 5/91, NAV ₹98,082.80) is the **Champion Static 5-Asset Multi-Asset Allocation** governed by [`PROTOCOL-ETF-GOLD-BONDS-ROTATION-V1-20261112`](file:///d:/paper_trading_bot/trading_system/docs/ETF_GOLD_BONDS_ROTATION_PROTOCOL_V1.md) and [`AMENDMENT-ETF-GOLD-BONDS-V1-1-20261114`](file:///d:/paper_trading_bot/trading_system/docs/ETF_GOLD_BONDS_AMENDMENT_V1_1.md):
+> - **Sleeve 1 (Bot 1 - ₹80,000 target)**: Static 5-Asset Mix (25% `GOLDBEES.NS`, 25% `MON100.NS`, 15% `NIFTYBEES.NS`, 15% `MID150BEES.NS`, 20% `LTGILTBEES.NS`) with 5% drift-band rebalance. Cleared Gate A with **15.15% CAGR, -25.59% MaxDD, and DSR = 0.9957** ([`phase1_etf_gate_a_results.json`](file:///d:/paper_trading_bot/trading_system/data/phase1_etf_gate_a_results.json)).
+> - **Sleeve 2 (Bot 2 - ₹20,000 target)**: Champion B0 Sovereign Carry (100% `LIQUIDBEES.NS` earning ~6.0% net repo carry). Cleared Gate A with **5.64% CAGR, 0.00% MaxDD, and DSR = 0.9999** ([`phase3_bond_cash_gate_a_results.json`](file:///d:/paper_trading_bot/trading_system/data/phase3_bond_cash_gate_a_results.json)).
+> - **Central Portfolio Manager**: Enforces 0.1% daily NAV reconciliation, 5% drift-band rebalance, 3-tier drawdown throttle ladder (-15%, -30%, -40% kill switch), and 21-day re-risking cooldown ([`manager.py`](file:///d:/paper_trading_bot/trading_system/app/manager/manager.py)).
+> 
+> **Explicit Non-Identity with Failed V2.1 Variants**:
+> The live Gate B chassis does **NOT** belong to the active switching [`MULTI_ASSET_TREND_PROTOCOL_V2_1`](file:///d:/paper_trading_bot/trading_system/docs/MULTI_ASSET_TREND_PROTOCOL_V2_1.md) family. All V2.1 active switching variants (Variant A: 9.82% stressed / Sharpe 0.69; Variant B: 5.26% stressed / Sharpe 0.40; Variant C: 5.96% stressed / Sharpe 0.64) failed Gate A hurdles due to Indian Section 50AA turnover tax drag (31.2% slab on debt/international ETFs) and are **formally retired and killed**.
+
+---
+
 ### CHAPTER 1: Hardening the OG Core Phase System (4 Hardened Pillars)
 > **Cost to Boss**: **\$0.00** (Current local PC + Free GitHub Actions Cloud)  
 > **Mandate**: Harden, clean, and adapt the core pillars for honest execution, Indian fee realities, and zero-cost cloud reliability.

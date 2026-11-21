@@ -253,6 +253,14 @@ flowchart LR
 
 ---
 
+## 7.1 Production Foundation & Gate B Multi-Asset Chassis
+> [!IMPORTANT]
+> **Fiduciary Clarification on Gate B Chassis (Live Dalal Street Incubation)**:
+> - The live Gate B production multi-asset fund (running on the `state` branch, Day 5/91) is the **Champion Static 5-Asset Multi-Asset Allocation** (25% `GOLDBEES.NS`, 25% `MON100.NS`, 15% `NIFTYBEES.NS`, 15% `MID150BEES.NS`, 20% `LTGILTBEES.NS`) with a dedicated 20% overnight cash carry sleeve (`LIQUIDBEES.NS`). It passed Gate A with **15.15% CAGR, -25.59% MaxDD, and DSR 0.9957**.
+> - It is **NOT** the failed active switching `MULTI_ASSET_TREND_PROTOCOL_V2_1` family (which failed Gate A hurdles due to Section 50AA turnover tax drag and is formally retired).
+
+---
+
 ## 8. Verification & Next Actions
 
 This master plan document has been preserved directly in your workspace repository:
