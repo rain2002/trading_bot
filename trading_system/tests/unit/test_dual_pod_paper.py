@@ -640,3 +640,92 @@ def test_nan_safe_equity_logging_and_skip_rows(tmp_path, monkeypatch):
     assert row1["total_equity"] >= 100000.0
     assert row1["status"] == "EXECUTE_FILL"
 
+
+def test_delayed_runner_fills_at_runtime_price_not_stale_open(tmp_path):
+    """
+    Verifies that when a runner arrives with a delay (>5 mins):
+      - Orders fill at actual runtime price rather than stale session open price
+      - The trade log explicitly records delay_mins and open_delay_gap_pct
+    """
+    state_file = str(tmp_path / "test_delay_state.json")
+    trades_file = str(tmp_path / "test_delay_trades.csv")
+
+    engine = PodPaperEngine(
+        pod_name="US",
+        currency="USD",
+        initial_capital=100000.0,
+        state_file=state_file,
+        trades_file=trades_file
+    )
+
+    # Queue buy order
+    engine.state["pending_buys"].append({
+        "sym": "AAPL",
+        "target_alloc": 10000.0,
+        "score": 0.50
+    })
+
+    # Execute fill with 120 min delay: open is 100.0, but market has moved to 105.0 (+5%)
+    engine.execute_open_fills(
+        current_open_prices={"AAPL": 100.0},
+        runtime_prices={"AAPL": 105.0},
+        delay_mins=120
+    )
+
+    assert "AAPL" in engine.state["positions"]
+    pos = engine.state["positions"]["AAPL"]
+    # Fill price must be based on runtime price (105.0 * (1 + 0.0005) = 105.0525), NOT 100.0
+    assert pos["entry_price"] > 105.0
+    assert pos["last_close"] == 105.0
+
+    df_trades = pd.read_csv(trades_file)
+    assert len(df_trades) == 1
+    t = df_trades.iloc[0]
+    assert t["symbol"] == "AAPL"
+    assert t["open_price"] == 100.0
+    assert t["fill_price"] > 105.0
+    assert t["delay_mins"] == 120
+    assert math.isclose(t["open_delay_gap_pct"], 5.0, rel_tol=1e-3)
+
+
+def test_skip_row_uses_last_close_not_peak_price(tmp_path, monkeypatch):
+    """
+    Verifies that on skip rows (e.g. SKIPPED_RUNNER_POST_CLOSE):
+      - Equity valuation uses pos['last_close'] rather than pos['peak_price']
+      - Overstated equity marks are completely prevented
+    """
+    dummy_log = str(tmp_path / "test_skip_mark_equity_log.csv")
+    monkeypatch.setattr("trading_system.scripts.run_dual_pod_paper.EQUITY_LOG_CSV", dummy_log)
+
+    engine = PodPaperEngine(
+        pod_name="US",
+        currency="USD",
+        initial_capital=100000.0,
+        state_file=str(tmp_path / "test_mark_state.json"),
+        trades_file=str(tmp_path / "test_mark_trades.csv")
+    )
+
+    # Holding with entry=100.0, peak=200.0, but last known close is 120.0
+    engine.state["cash"] = 80000.0
+    engine.state["positions"]["XYZ"] = {
+        "shares": 100.0,
+        "entry_price": 100.0,
+        "peak_price": 200.0,
+        "last_close": 120.0
+    }
+
+    # Log skip row
+    engine.log_daily_equity(
+        status="SKIPPED_RUNNER_POST_CLOSE",
+        delay_mins=450,
+        notes="Stale runner skipped post-close"
+    )
+
+    df_log = pd.read_csv(dummy_log)
+    assert len(df_log) == 1
+    row = df_log.iloc[0]
+    # Portfolio equity must be 100 shs * $120.0 = $12,000, NOT 100 shs * $200.0 = $20,000!
+    assert row["portfolio_equity"] == 12000.0
+    assert row["total_equity"] == 92000.0  # $80k cash + $12k port
+
+

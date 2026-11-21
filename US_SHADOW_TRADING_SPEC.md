@@ -54,6 +54,7 @@ Retrospective simulation run across 2007–2024 (18.0 years, 4,530 sessions) on 
 
 ## 4. Mandatory Invalidation & Restart Clause
 - **Frozen Rule**: The strategy logic in [`trading_system/scripts/run_dual_pod_paper.py`](file:///d:/paper_trading_bot/trading_system/scripts/run_dual_pod_paper.py), the universe in [`trading_system/data/us_growth_tickers.txt`](file:///d:/paper_trading_bot/trading_system/data/us_growth_tickers.txt), and the risk parameters (8 slots, 4.0x ATR trailing stop, -12% hard stop, 150-SMA trend exit, 200-SMA macro filter) are strictly frozen.
+- **Strict Parameter Freeze Contract**: **No parameter changes during the 12-month window; any change restarts the clock.**
 - **Restart Condition**: Any code change, universe adjustment, or model modification invalidates the current incubation track, requiring an explicit new shadow sequence, labelled and restarted from Day 0.
 
 ---

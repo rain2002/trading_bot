@@ -265,13 +265,15 @@ class PodPaperEngine:
                         "shares": qty,
                         "entry_price": entry_p,
                         "entry_date": now_str,
-                        "peak_price": max(entry_p, cur_p)
+                        "peak_price": max(entry_p, cur_p),
+                        "last_close": cur_p
                     }
                 else:
                     self.state["positions"][sym]["shares"] = qty
                     self.state["positions"][sym]["entry_price"] = entry_p
                     prev_peak = self.state["positions"][sym].get("peak_price", entry_p)
                     self.state["positions"][sym]["peak_price"] = max(prev_peak, cur_p)
+                    self.state["positions"][sym]["last_close"] = cur_p
 
             # Clean up closed positions
             for sym in list(self.state["positions"].keys()):
@@ -318,8 +320,17 @@ class PodPaperEngine:
         df_row = pd.DataFrame([trade_data])
         df_row.to_csv(self.trades_file, mode="a", index=False, header=not file_exists)
 
-    def execute_open_fills(self, current_open_prices: Dict[str, float]):
-        """Step 0: Execute queued orders at 09:15 / 09:30 Market Open with realistic slippage."""
+    def execute_open_fills(
+        self,
+        current_open_prices: Dict[str, float],
+        runtime_prices: Optional[Dict[str, float]] = None,
+        delay_mins: int = 0
+    ):
+        """
+        Step 0: Execute queued orders with realistic slippage.
+        If runner arrives with delay past open (>5 mins), executes at the actual runtime market price
+        (eliminating optimistic fills at stale open prices) and records the delay gap in trade logs.
+        """
         buy_fee = (INDIA_BUY_BPS if "INDIA" in self.pod_name else US_BUY_BPS) / 10000.0
         sell_fee = (INDIA_SELL_BPS if "INDIA" in self.pod_name else US_SELL_BPS) / 10000.0
         flat_dp = INDIA_FLAT_DP_FEE if "INDIA" in self.pod_name else 0.0
@@ -349,7 +360,7 @@ class PodPaperEngine:
                 if sym not in self.state["positions"]:
                     continue
                 pos = self.state["positions"][sym]
-                total_pos_shares = pos["shares"]
+                total_pos_shares = float(pos["shares"])
                 trim_shares = item.get("trim_shares")
                 if trim_shares and 0 < trim_shares < total_pos_shares:
                     shares = float(trim_shares)
@@ -358,10 +369,19 @@ class PodPaperEngine:
                     shares = float(total_pos_shares)
                     is_full_exit = True
 
-                open_p = current_open_prices.get(sym, pos["entry_price"])
-                fill_p = open_p * (1.0 - sell_fee)
+                open_p = float(current_open_prices.get(sym, pos.get("entry_price", 1.0)))
+                if runtime_prices and sym in runtime_prices and delay_mins > 5:
+                    runtime_p = float(runtime_prices[sym])
+                else:
+                    runtime_p = open_p
+
+                # Fill at runtime price when delayed, preventing optimistic stale-open exits
+                base_exec_p = runtime_p if delay_mins > 5 else open_p
+                gap_pct = ((runtime_p - open_p) / open_p * 100.0) if open_p > 0 else 0.0
+
+                fill_p = base_exec_p * (1.0 - sell_fee)
                 proceeds = shares * fill_p
-                cost = pos["entry_price"]
+                cost = float(pos["entry_price"])
                 gain = proceeds - (shares * cost) - (flat_dp if is_full_exit else 0.0)
 
                 # Route real order to Alpaca Paper if active
@@ -382,19 +402,24 @@ class PodPaperEngine:
                     "symbol": sym,
                     "action": "TRIM" if not is_full_exit else "SELL",
                     "shares": shares,
-                    "open_price": open_p,
-                    "fill_price": fill_p,
-                    "proceeds": proceeds,
-                    "realized_pnl": gain,
-                    "pnl_pct": (fill_p - cost) / cost if cost > 0 else 0.0,
+                    "open_price": round(open_p, 4),
+                    "fill_price": round(fill_p, 4),
+                    "proceeds": round(proceeds, 2),
+                    "cost": round(cost, 4),
+                    "realized_pnl": round(gain, 2),
+                    "pnl_pct": round((fill_p - cost) / cost if cost > 0 else 0.0, 4),
                     "dp_fee": flat_dp if is_full_exit else 0.0,
-                    "reason": reason
+                    "reason": reason,
+                    "delay_mins": delay_mins,
+                    "open_delay_gap_pct": round(gap_pct, 4)
                 })
-                print(f"  [EXECUTE {'TRIM' if not is_full_exit else 'SELL'}] {sym:<12} {shares:>8.2f} shs @ {self.currency} {fill_p:>9.2f} | PnL: {self.currency} {gain:>+9.2f} ({reason})")
+                delay_str = f" [Delay: {delay_mins}m, Gap: {gap_pct:+.2f}%]" if delay_mins > 5 else ""
+                print(f"  [EXECUTE {'TRIM' if not is_full_exit else 'SELL'}] {sym:<12} {shares:>8.2f} shs @ {self.currency} {fill_p:>9.2f}{delay_str} | PnL: {self.currency} {gain:>+9.2f} ({reason})")
                 if is_full_exit:
                     del self.state["positions"][sym]
                 else:
                     self.state["positions"][sym]["shares"] -= shares
+                    self.state["positions"][sym]["last_close"] = runtime_p
             self.state["pending_sells"] = []
 
         # 2. Execute Buys
@@ -403,10 +428,20 @@ class PodPaperEngine:
                 sym = item["sym"]
                 alloc = min(item["target_alloc"], self.state["cash"] * 0.96)
                 score = item.get("score", 0.0)
-                open_p = current_open_prices.get(sym, 0.0)
+                open_p = float(current_open_prices.get(sym, 0.0))
                 if open_p <= 0 or alloc < 50.0:
                     continue
-                fill_p = open_p * (1.0 + buy_fee)
+
+                if runtime_prices and sym in runtime_prices and delay_mins > 5:
+                    runtime_p = float(runtime_prices[sym])
+                else:
+                    runtime_p = open_p
+
+                # Fill at runtime price when delayed, preventing optimistic stale-open entries
+                base_exec_p = runtime_p if delay_mins > 5 else open_p
+                gap_pct = ((runtime_p - open_p) / open_p * 100.0) if open_p > 0 else 0.0
+
+                fill_p = base_exec_p * (1.0 + buy_fee)
                 shares = round(alloc / fill_p, 4 if "US" in self.pod_name else 2)
                 cost = shares * fill_p
                 if cost <= self.state["cash"] and shares > 0:
@@ -427,22 +462,27 @@ class PodPaperEngine:
                         "shares": shares,
                         "entry_price": fill_p,
                         "entry_date": now_str,
-                        "peak_price": open_p
+                        "peak_price": max(open_p, runtime_p, fill_p),
+                        "last_close": runtime_p
                     }
                     self.log_trade({
                         "timestamp": now_str,
                         "symbol": sym,
                         "action": "BUY",
                         "shares": shares,
-                        "open_price": open_p,
-                        "fill_price": fill_p,
-                        "cost": cost,
+                        "open_price": round(open_p, 4),
+                        "fill_price": round(fill_p, 4),
+                        "proceeds": 0.0,
+                        "cost": round(cost, 2),
                         "realized_pnl": 0.0,
                         "pnl_pct": 0.0,
                         "dp_fee": 0.0,
-                        "reason": f"ENTRY Blended Mom Score: {score:.2f}"
+                        "reason": f"ENTRY Blended Mom Score: {score:.2f}",
+                        "delay_mins": delay_mins,
+                        "open_delay_gap_pct": round(gap_pct, 4)
                     })
-                    print(f"  [EXECUTE BUY ] {sym:<12} {shares:>8.2f} shs @ {self.currency} {fill_p:>9.2f} | Cost: {self.currency} {cost:>9.2f}")
+                    delay_str = f" [Delay: {delay_mins}m, Gap: {gap_pct:+.2f}%]" if delay_mins > 5 else ""
+                    print(f"  [EXECUTE BUY ] {sym:<12} {shares:>8.2f} shs @ {self.currency} {fill_p:>9.2f}{delay_str} | Cost: {self.currency} {cost:>9.2f}")
             self.state["pending_buys"] = []
 
         self._save_state()
@@ -476,8 +516,9 @@ class PodPaperEngine:
             port_equity = 0.0
             for sym, pos in self.state.get("positions", {}).items():
                 shs = float(pos.get("shares", 0.0))
-                p = float(pos.get("peak_price", pos.get("entry_price", 0.0)))
-                if not math.isnan(shs) and not math.isnan(p):
+                # Mark to market using last known close or entry price (NEVER peak_price, preventing overstated equity on skip rows)
+                p = float(pos.get("last_close", pos.get("entry_price", 0.0)))
+                if not math.isnan(shs) and not math.isnan(p) and p > 0:
                     port_equity += shs * p
         if math.isnan(port_equity):
             port_equity = 0.0
@@ -594,6 +635,7 @@ class PodPaperEngine:
             if p > peak_val:
                 peak_val = p
             pos["peak_price"] = peak_val
+            pos["last_close"] = p
 
         cash_val = float(self.state.get("cash", 0.0))
         if math.isnan(cash_val):
@@ -1479,6 +1521,7 @@ def main():
                 needed_symbols = list(set(us_tickers) | set(us_engine.state["positions"].keys()) | {p["sym"] for p in us_engine.state["pending_buys"]} | {p["sym"] for p in us_engine.state["pending_sells"]})
                 us_open_df = yf.download(needed_symbols, period="5d", progress=False, group_by="ticker", auto_adjust=False)
                 current_opens = {}
+                runtime_prices = {}
                 for s in needed_symbols:
                     try:
                         if isinstance(us_open_df.columns, pd.MultiIndex):
@@ -1492,10 +1535,11 @@ def main():
                             df = us_open_df.dropna(how="all")
                         df.columns = [str(c).lower() for c in df.columns]
                         current_opens[s] = float(df["open"].dropna().iloc[-1])
+                        runtime_prices[s] = float(df["close"].dropna().iloc[-1])
                     except Exception:
                         pass
                 had_orders = bool(us_engine.state.get("pending_buys") or us_engine.state.get("pending_sells"))
-                us_engine.execute_open_fills(current_opens)
+                us_engine.execute_open_fills(current_opens, runtime_prices=runtime_prices, delay_mins=delay_mins)
                 fill_status = "EXECUTE_FILL" if had_orders else "EXECUTE_NO_ORDERS"
                 us_engine.log_daily_equity(status=fill_status, delay_mins=delay_mins, notes=msg)
 
