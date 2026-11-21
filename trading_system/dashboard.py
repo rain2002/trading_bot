@@ -726,10 +726,10 @@ if is_india_mode:
         )
 else:
     st.sidebar.markdown("""
-    <div style='background:rgba(239, 68, 68, 0.09); border:1px solid rgba(239, 68, 68, 0.35); border-radius:8px; padding:10px 12px; margin-bottom:14px; font-family:"DM Mono",monospace;'>
-        <div style='color:#F87171; font-weight:700; font-size:0.75rem; letter-spacing:0.05em;'>🇺🇸 US STOCK MOMENTUM // PARKED</div>
-        <div style='color:#A1A1AA; font-size:0.68rem; margin-top:2px;'>Strategy failed Gate A protocol (revisit with survivor-free data).</div>
-        <div style='color:#FBBF24; font-size:0.66rem; margin-top:3px;'>Automated execution is disconnected. Balance ($96k) shows resting Alpaca positions.</div>
+    <div style='background:rgba(59, 130, 246, 0.09); border:1px solid rgba(59, 130, 246, 0.35); border-radius:8px; padding:10px 12px; margin-bottom:14px; font-family:"DM Mono",monospace;'>
+        <div style='color:#60A5FA; font-weight:700; font-size:0.75rem; letter-spacing:0.05em;'>🇺🇸 US MOMENTUM // ALPACA SHADOW (ACTIVE 2-PHASE)</div>
+        <div style='color:#A1A1AA; font-size:0.68rem; margin-top:2px;'>Backtested 2007–2024: 13.77% CAGR (beating SPY 11.97%). Zero fund capital.</div>
+        <div style='color:#34D399; font-size:0.66rem; margin-top:3px;'>Autonomous schedule: 09:30 EST Open Fills + 16:15 EST Close Scan on Alpaca Paper.</div>
     </div>
     """, unsafe_allow_html=True)
 
