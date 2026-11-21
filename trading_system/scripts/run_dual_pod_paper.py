@@ -116,6 +116,23 @@ def calc_vectorized_momentum(series: np.ndarray, window: int = 90) -> float:
 
 
 
+def get_git_commit_hash() -> str:
+    """Retrieves current short git commit hash for audit provenance and frozen spec validation."""
+    try:
+        import subprocess
+        res = subprocess.run(
+            ["git", "rev-parse", "--short", "HEAD"],
+            capture_output=True,
+            text=True,
+            check=True,
+            timeout=5
+        )
+        return res.stdout.strip()
+    except Exception:
+        return "UNKNOWN"
+
+
+
 def get_active_pit_universe(pod_name: str, as_of_date: Optional[pd.Timestamp] = None) -> List[str]:
     """
     Returns the exact set of active Point-in-Time (PIT) constituent tickers as of as_of_date
@@ -176,13 +193,17 @@ class PodPaperEngine:
             from trading_system.app.config.settings import settings
             from trading_system.app.broker.alpaca import AlpacaBrokerAdapter
 
-            api_key = settings.PAPER_API_KEY or settings.ALPACA_API_KEY or os.environ.get("PAPER_API_KEY") or os.environ.get("ALPACA_API_KEY") or os.environ.get("ALPACA_PAPER_KEY")
-            api_secret = settings.PAPER_API_SECRET or settings.ALPACA_SECRET_KEY or os.environ.get("PAPER_API_SECRET") or os.environ.get("ALPACA_SECRET_KEY") or os.environ.get("ALPACA_PAPER_SECRET")
+            api_key = settings.PAPER_API_KEY or os.environ.get("PAPER_API_KEY")
+            api_secret = settings.PAPER_API_SECRET or os.environ.get("PAPER_API_SECRET")
             if not api_key or not api_secret or api_key == "mock":
-                print(f"[{self.pod_name}] No live Alpaca credentials configured; continuing in simulated paper mode.")
+                print(f"[{self.pod_name}] No paper Alpaca credentials configured (PAPER_API_KEY / PAPER_API_SECRET); continuing in simulated paper mode.")
                 return
 
-            adapter = AlpacaBrokerAdapter(api_key=api_key, api_secret=api_secret)
+            adapter = AlpacaBrokerAdapter(
+                api_key=api_key,
+                api_secret=api_secret,
+                base_url="https://paper-api.alpaca.markets"
+            )
             if not adapter.is_connected():
                 print(f"[{self.pod_name}] Alpaca connection check failed.")
                 return
@@ -285,10 +306,14 @@ class PodPaperEngine:
             try:
                 from trading_system.app.config.settings import settings
                 from trading_system.app.execution.alpaca_live import AlpacaExecutionAdapter
-                api_key = settings.PAPER_API_KEY or settings.ALPACA_API_KEY or os.environ.get("PAPER_API_KEY") or os.environ.get("ALPACA_API_KEY") or os.environ.get("ALPACA_PAPER_KEY")
-                api_secret = settings.PAPER_API_SECRET or settings.ALPACA_SECRET_KEY or os.environ.get("PAPER_API_SECRET") or os.environ.get("ALPACA_SECRET_KEY") or os.environ.get("ALPACA_PAPER_SECRET")
+                api_key = settings.PAPER_API_KEY or os.environ.get("PAPER_API_KEY")
+                api_secret = settings.PAPER_API_SECRET or os.environ.get("PAPER_API_SECRET")
                 if api_key and api_secret and api_key != "mock":
-                    alpaca_adapter = AlpacaExecutionAdapter(api_key=api_key, api_secret=api_secret)
+                    alpaca_adapter = AlpacaExecutionAdapter(
+                        api_key=api_key,
+                        api_secret=api_secret,
+                        base_url="https://paper-api.alpaca.markets"
+                    )
             except Exception as e:
                 print(f"[{self.pod_name}] Alpaca adapter init error: {e}")
 
@@ -422,25 +447,31 @@ class PodPaperEngine:
 
         print(f"\n[{self.pod_name} RADAR] Benchmark: Close={bench_close:.2f} vs 200-SMA={bench_sma200:.2f} | 20D Vol={bench_vol_20d*100:.1f}% | 6M Ret={bench_ret_6m*100:+.1f}% (Scale={vol_scale:.2f}) -> Regime: [{macro_regime}] Max Exposure: {max_exposure*100:.0f}%")
 
-        # 2. Mark to Market & Peak Update
+        # 2. Mark to Market & Peak Update (Fail-Closed against NaN / Stale Quotes)
         port_equity = 0.0
         current_prices = {}
         for sym, pos in list(self.state["positions"].items()):
+            p = None
             if sym in universe_data and not universe_data[sym].empty:
-                p = float(universe_data[sym]["close"].iloc[-1])
-                current_prices[sym] = p
-                port_equity += pos["shares"] * p
-                if p > pos.get("peak_price", p):
-                    pos["peak_price"] = p
-            else:
-                port_equity += pos["shares"] * pos["entry_price"]
-                current_prices[sym] = pos["entry_price"]
+                close_col = universe_data[sym]["close"].dropna()
+                if not close_col.empty:
+                    val = float(close_col.iloc[-1])
+                    if not np.isnan(val) and val > 0:
+                        p = val
+            if p is None:
+                p = float(pos.get("entry_price", 0.0))
+
+            current_prices[sym] = p
+            port_equity += pos["shares"] * p
+            if p > pos.get("peak_price", p):
+                pos["peak_price"] = p
 
         total_equity = self.state["cash"] + port_equity
-        if total_equity > self.state["hwm_true"]:
+        if total_equity > self.state.get("hwm_true", 0.0):
             self.state["hwm_true"] = total_equity
-        current_dd = (total_equity - self.state["hwm_true"]) / self.state["hwm_true"]
-        if current_dd < self.state["max_drawdown"]:
+        hwm = max(self.state.get("hwm_true", 1.0), 1.0)
+        current_dd = (total_equity - hwm) / hwm
+        if current_dd < self.state.get("max_drawdown", 0.0):
             self.state["max_drawdown"] = current_dd
 
         print(f"[{self.pod_name} NAV] Total Equity: {self.currency} {total_equity:,.2f} | Cash: {self.currency} {self.state['cash']:,.2f} | Port: {self.currency} {port_equity:,.2f} | MaxDD: {self.state['max_drawdown']*100:.2f}%")
@@ -570,21 +601,33 @@ class PodPaperEngine:
 
         self._save_state()
 
-        # Append to Daily Equity Log
+        # Append to Daily Equity Log (Audited Provenance Tracking)
         os.makedirs(os.path.dirname(EQUITY_LOG_CSV), exist_ok=True)
-        file_exists = os.path.exists(EQUITY_LOG_CSV) and os.path.getsize(EQUITY_LOG_CSV) > 0
+        commit_hash = get_git_commit_hash()
         eq_entry = {
             "date": now_str[:10],
             "pod": self.pod_name,
             "currency": self.currency,
-            "total_equity": round(total_equity, 2),
+            "total_equity": round(total_equity, 2) if not np.isnan(total_equity) else round(self.state.get("equity", self.state["cash"]), 2),
             "cash": round(self.state["cash"], 2),
-            "portfolio_equity": round(port_equity, 2),
+            "portfolio_equity": round(port_equity, 2) if not np.isnan(port_equity) else 0.0,
             "hwm_true": round(self.state["hwm_true"], 2),
-            "drawdown_pct": round(current_dd * 100.0, 2),
-            "open_positions_count": len(self.state["positions"])
+            "drawdown_pct": round(current_dd * 100.0, 2) if not np.isnan(current_dd) else 0.0,
+            "open_positions_count": len(self.state["positions"]),
+            "code_commit": commit_hash,
+            "universe_spec": "trading_system/data/us_growth_tickers.txt" if "US" in self.pod_name else ("trading_system/data/nse_tickers.txt" if "INDIA" in self.pod_name else "pod_c_etfs"),
+            "classification": "exploratory_shadow" if "US" in self.pod_name else "gate_b_incubation"
         }
-        pd.DataFrame([eq_entry]).to_csv(EQUITY_LOG_CSV, mode="a", index=False, header=not file_exists)
+        new_row_df = pd.DataFrame([eq_entry])
+        if os.path.exists(EQUITY_LOG_CSV) and os.path.getsize(EQUITY_LOG_CSV) > 0:
+            try:
+                existing_df = pd.read_csv(EQUITY_LOG_CSV)
+                combined_df = pd.concat([existing_df, new_row_df], ignore_index=True)
+                combined_df.to_csv(EQUITY_LOG_CSV, index=False)
+            except Exception:
+                new_row_df.to_csv(EQUITY_LOG_CSV, mode="a", index=False, header=False)
+        else:
+            new_row_df.to_csv(EQUITY_LOG_CSV, index=False)
 
     def print_status_tear_sheet(self):
         if "US" in self.pod_name and self.live_broker:
@@ -839,25 +882,32 @@ class MultiAssetPodPaperEngine:
         self.state["cash"] += daily_yield
         self.state["total_interest_earned"] = self.state.get("total_interest_earned", 0.0) + daily_yield
 
-        # 2. Mark to Market & True Peak High-Water Mark
+        # 2. Mark to Market & True Peak High-Water Mark (Fail-Closed against NaN / Stale Quotes)
         port_val = 0.0
         current_prices = {}
         for sym, pos in list(self.state["positions"].items()):
+            p = None
             if sym in universe_data and not universe_data[sym].empty:
-                p = float(universe_data[sym]["close"].iloc[-1])
-                current_prices[sym] = p
-                port_val += pos["shares"] * p
-                if p > pos.get("peak_price", p):
-                    pos["peak_price"] = p
-            else:
-                port_val += pos["shares"] * pos["entry_price"]
-                current_prices[sym] = pos["entry_price"]
+                close_col = universe_data[sym]["close"].dropna()
+                if not close_col.empty:
+                    val = float(close_col.iloc[-1])
+                    if not np.isnan(val) and val > 0:
+                        p = val
+            if p is None:
+                p = float(pos.get("entry_price", 0.0))
+
+            current_prices[sym] = p
+            port_val += pos["shares"] * p
+            if p > pos.get("peak_price", p):
+                pos["peak_price"] = p
 
         total_equity = self.state["cash"] + port_val
-        if total_equity > self.state["hwm_true"]:
+        if total_equity > self.state.get("hwm_true", 0.0):
             self.state["hwm_true"] = total_equity
-        current_dd = (total_equity - self.state["hwm_true"]) / self.state["hwm_true"]
-        if current_dd < self.state["max_drawdown"]:
+        hwm = max(self.state.get("hwm_true", 1.0), 1.0)
+        current_dd = (total_equity - hwm) / hwm
+        if current_dd < self.state.get("max_drawdown", 0.0):
+            self.state["max_drawdown"] = current_dd
             self.state["max_drawdown"] = current_dd
 
         print(f"\n[{self.pod_name} NAV] Total Equity: {self.currency} {total_equity:,.2f} | Cash: {self.currency} {self.state['cash']:,.2f} | Port: {self.currency} {port_val:,.2f} | MaxDD: {self.state['max_drawdown']*100:.2f}% | Interest Earned: {self.currency} {self.state['total_interest_earned']:,.2f}")
@@ -945,21 +995,33 @@ class MultiAssetPodPaperEngine:
 
         self._save_state()
 
-        # 4. Append to Daily Equity Log
+        # 4. Append to Daily Equity Log (Audited Provenance Tracking)
         os.makedirs(os.path.dirname(EQUITY_LOG_CSV), exist_ok=True)
-        file_exists = os.path.exists(EQUITY_LOG_CSV) and os.path.getsize(EQUITY_LOG_CSV) > 0
+        commit_hash = get_git_commit_hash()
         eq_entry = {
             "date": now_str[:10],
             "pod": self.pod_name,
             "currency": self.currency,
-            "total_equity": round(total_equity, 2),
+            "total_equity": round(total_equity, 2) if not np.isnan(total_equity) else round(self.state.get("equity", self.state["cash"]), 2),
             "cash": round(self.state["cash"], 2),
-            "portfolio_equity": round(port_val, 2),
+            "portfolio_equity": round(port_val, 2) if not np.isnan(port_val) else 0.0,
             "hwm_true": round(self.state["hwm_true"], 2),
-            "drawdown_pct": round(current_dd * 100.0, 2),
-            "open_positions_count": len(self.state["positions"])
+            "drawdown_pct": round(current_dd * 100.0, 2) if not np.isnan(current_dd) else 0.0,
+            "open_positions_count": len(self.state["positions"]),
+            "code_commit": commit_hash,
+            "universe_spec": "pod_c_macro_etfs",
+            "classification": "exploratory_shadow"
         }
-        pd.DataFrame([eq_entry]).to_csv(EQUITY_LOG_CSV, mode="a", index=False, header=not file_exists)
+        new_row_df = pd.DataFrame([eq_entry])
+        if os.path.exists(EQUITY_LOG_CSV) and os.path.getsize(EQUITY_LOG_CSV) > 0:
+            try:
+                existing_df = pd.read_csv(EQUITY_LOG_CSV)
+                combined_df = pd.concat([existing_df, new_row_df], ignore_index=True)
+                combined_df.to_csv(EQUITY_LOG_CSV, index=False)
+            except Exception:
+                new_row_df.to_csv(EQUITY_LOG_CSV, mode="a", index=False, header=False)
+        else:
+            new_row_df.to_csv(EQUITY_LOG_CSV, index=False)
 
     def print_status_tear_sheet(self):
         print("\n" + "=" * 95)

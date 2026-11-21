@@ -76,8 +76,8 @@ jobs:
       - name: "Execute US Shadow Trading Routine (Alpaca Paper Desk)"
         env:
           PYTHONPATH: .
-          PAPER_API_KEY: ${{ secrets.PAPER_API_KEY || secrets.ALPACA_API_KEY || secrets.ALPACA_PAPER_KEY }}
-          PAPER_API_SECRET: ${{ secrets.PAPER_API_SECRET || secrets.ALPACA_SECRET_KEY || secrets.ALPACA_PAPER_SECRET }}
+          PAPER_API_KEY: ${{ secrets.PAPER_API_KEY }}
+          PAPER_API_SECRET: ${{ secrets.PAPER_API_SECRET }}
           ENABLE_NOTIFICATIONS: "0"
         run: |
           PHASE="${{ github.event.inputs.phase || 'scan' }}"
