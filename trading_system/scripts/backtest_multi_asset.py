@@ -916,21 +916,24 @@ def main():
     vb = results["variant_2"]["stressed"] if 2 in variants_to_run else None
     vc = results["variant_3"]["stressed"] if 3 in variants_to_run else None
 
+    def g(v, key):
+        return v.get(key) if isinstance(v, dict) else None
+
     def fmt(val, prefix="", suffix="", decimals=2):
         if val is None:
             return "N/A"
         return f"{prefix}{val:.{decimals}f}{suffix}"
 
-    print(f"{'Post-Tax Stressed CAGR':<28} | {fmt(va['cagr_pct'], suffix='%'):<21} | {fmt(vb['cagr_pct'], suffix='%'):<21} | {fmt(vc['cagr_pct'], suffix='%'):<21} | {fmt(b1['cagr_pct'], suffix='%'):<21} | {fmt(b4['cagr_pct'], suffix='%'):<21}")
-    print(f"{'Max Drawdown Depth':<28} | {fmt(va['max_drawdown_pct'], suffix='%'):<21} | {fmt(vb['max_drawdown_pct'], suffix='%'):<21} | {fmt(vc['max_drawdown_pct'], suffix='%'):<21} | {fmt(b1['max_drawdown_pct'], suffix='%'):<21} | {fmt(b4['max_drawdown_pct'], suffix='%'):<21}")
-    print(f"{'Annualized Sharpe Ratio':<28} | {fmt(va['sharpe_ratio']):<21} | {fmt(vb['sharpe_ratio']):<21} | {fmt(vc['sharpe_ratio']):<21} | {fmt(b1['sharpe_ratio']):<21} | {fmt(b4['sharpe_ratio']):<21}")
-    print(f"{'Calmar Ratio (CAGR/|DD|)':<28} | {fmt(va['calmar_ratio']):<21} | {fmt(vb['calmar_ratio']):<21} | {fmt(vc['calmar_ratio']):<21} | {fmt(b1['calmar_ratio']):<21} | {fmt(b4['calmar_ratio']):<21}")
-    print(f"{'Terminal Equity (Rs 80k)':<28} | {fmt(va['terminal_equity'], prefix='Rs '):<21} | {fmt(vb['terminal_equity'], prefix='Rs '):<21} | {fmt(vc['terminal_equity'], prefix='Rs '):<21} | {fmt(b1['terminal_equity'], prefix='Rs '):<21} | {fmt(b4['terminal_equity'], prefix='Rs '):<21}")
+    print(f"{'Post-Tax Stressed CAGR':<28} | {fmt(g(va, 'cagr_pct'), suffix='%'):<21} | {fmt(g(vb, 'cagr_pct'), suffix='%'):<21} | {fmt(g(vc, 'cagr_pct'), suffix='%'):<21} | {fmt(g(b1, 'cagr_pct'), suffix='%'):<21} | {fmt(g(b4, 'cagr_pct'), suffix='%'):<21}")
+    print(f"{'Max Drawdown Depth':<28} | {fmt(g(va, 'max_drawdown_pct'), suffix='%'):<21} | {fmt(g(vb, 'max_drawdown_pct'), suffix='%'):<21} | {fmt(g(vc, 'max_drawdown_pct'), suffix='%'):<21} | {fmt(g(b1, 'max_drawdown_pct'), suffix='%'):<21} | {fmt(g(b4, 'max_drawdown_pct'), suffix='%'):<21}")
+    print(f"{'Annualized Sharpe Ratio':<28} | {fmt(g(va, 'sharpe_ratio')):<21} | {fmt(g(vb, 'sharpe_ratio')):<21} | {fmt(g(vc, 'sharpe_ratio')):<21} | {fmt(g(b1, 'sharpe_ratio')):<21} | {fmt(g(b4, 'sharpe_ratio')):<21}")
+    print(f"{'Calmar Ratio (CAGR/|DD|)':<28} | {fmt(g(va, 'calmar_ratio')):<21} | {fmt(g(vb, 'calmar_ratio')):<21} | {fmt(g(vc, 'calmar_ratio')):<21} | {fmt(g(b1, 'calmar_ratio')):<21} | {fmt(g(b4, 'calmar_ratio')):<21}")
+    print(f"{'Terminal Equity (Rs 80k)':<28} | {fmt(g(va, 'terminal_equity'), prefix='Rs '):<21} | {fmt(g(vb, 'terminal_equity'), prefix='Rs '):<21} | {fmt(g(vc, 'terminal_equity'), prefix='Rs '):<21} | {fmt(g(b1, 'terminal_equity'), prefix='Rs '):<21} | {fmt(g(b4, 'terminal_equity'), prefix='Rs '):<21}")
     print(f"{'Total Closed Trades':<28} | {str(va['closed_trades']) if va else 'N/A':<21} | {str(vb['closed_trades']) if vb else 'N/A':<21} | {str(vc['closed_trades']) if vc else 'N/A':<21} | {'17 (Annual Rebal)':<21} | {'0 (Buy & Hold)':<21}")
-    print(f"{'Trades Per Year':<28} | {fmt(va['trades_per_year']):<21} | {fmt(vb['trades_per_year']):<21} | {fmt(vc['trades_per_year']):<21} | {'1.0':<21} | {'0.0':<21}")
-    print(f"{'Total DP Fees Paid':<28} | {fmt(va['total_dp_fees'], prefix='Rs '):<21} | {fmt(vb['total_dp_fees'], prefix='Rs '):<21} | {fmt(vc['total_dp_fees'], prefix='Rs '):<21} | {'Rs 250.75':<21} | {'Rs 0.00':<21}")
-    print(f"{'Total Statutory Friction':<28} | {fmt(va['total_friction_paid'], prefix='Rs '):<21} | {fmt(vb['total_friction_paid'], prefix='Rs '):<21} | {fmt(vc['total_friction_paid'], prefix='Rs '):<21} | {'Rs 4,110.50':<21} | {'Deferred LTCG':<21}")
-    print(f"{'Total Taxes (31.2% Slab)':<28} | {fmt(va['total_tax_paid'], prefix='Rs '):<21} | {fmt(vb['total_tax_paid'], prefix='Rs '):<21} | {fmt(vc['total_tax_paid'], prefix='Rs '):<21} | {'Rs 98,450.00':<21} | {'Deferred LTCG':<21}")
+    print(f"{'Trades Per Year':<28} | {fmt(g(va, 'trades_per_year')):<21} | {fmt(g(vb, 'trades_per_year')):<21} | {fmt(g(vc, 'trades_per_year')):<21} | {'1.0':<21} | {'0.0':<21}")
+    print(f"{'Total DP Fees Paid':<28} | {fmt(g(va, 'total_dp_fees'), prefix='Rs '):<21} | {fmt(g(vb, 'total_dp_fees'), prefix='Rs '):<21} | {fmt(g(vc, 'total_dp_fees'), prefix='Rs '):<21} | {'Rs 250.75':<21} | {'Rs 0.00':<21}")
+    print(f"{'Total Statutory Friction':<28} | {fmt(g(va, 'total_friction_paid'), prefix='Rs '):<21} | {fmt(g(vb, 'total_friction_paid'), prefix='Rs '):<21} | {fmt(g(vc, 'total_friction_paid'), prefix='Rs '):<21} | {'Rs 4,110.50':<21} | {'Deferred LTCG':<21}")
+    print(f"{'Total Taxes (31.2% Slab)':<28} | {fmt(g(va, 'total_tax_paid'), prefix='Rs '):<21} | {fmt(g(vb, 'total_tax_paid'), prefix='Rs '):<21} | {fmt(g(vc, 'total_tax_paid'), prefix='Rs '):<21} | {'Rs 98,450.00':<21} | {'Deferred LTCG':<21}")
     print(f"{'Trial Log Row Index':<28} | {'Row 77':<21} | {'Row 79':<21} | {'Row 81':<21} | {'Row 82':<21} | {'Row 83':<21}")
     print(f"{'Results JSON File':<28} | {'...variant_1.json':<21} | {'...variant_2.json':<21} | {'...variant_3.json':<21} | {'...baselines_v2_1.json':<21} | {'...baselines_v2_1.json':<21}")
     print(f"{'Hurdle vs Baseline 1':<28} | {'FAILED (9.82% < 14.17%)':<21} | {'FAILED (5.26% < 14.17%)':<21} | {'FAILED (5.41% < 14.17%)':<21} | {'BENCHMARK HURDLE':<21} | {'FAILED (10.14% < 14.17%)':<21}")
