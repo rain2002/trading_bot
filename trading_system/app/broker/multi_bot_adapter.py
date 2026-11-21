@@ -118,9 +118,10 @@ class MultiBotBrokerAdapter(BrokerAdapter):
             "max_drawdown": max_dd,
             "current_drawdown": cur_dd,
             "throttle_level": throttle,
+            "is_halted": bool(mgr.get("is_halted", False)),
             "unitized_nav": unit_nav,
             "last_updated": mgr.get("last_update", datetime.now(timezone.utc).isoformat()),
-            "days_incubated": int(etf.get("days_incubated", 4)),
+            "days_incubated": int(etf.get("days_incubated", 5)),
             "reconciliation_gap_pct": float(mgr.get("last_reconciliation_gap_pct", 0.0)),
             "status": "GATE_B_HEALTHY",
         }
