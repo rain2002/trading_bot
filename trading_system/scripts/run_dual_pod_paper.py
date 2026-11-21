@@ -198,7 +198,7 @@ def get_active_pit_universe(pod_name: str, as_of_date: Optional[pd.Timestamp] = 
         )
 
 class PodPaperEngine:
-    def __init__(self, pod_name: str, currency: str, initial_capital: float, state_file: str, trades_file: str, live_broker: bool = True):
+    def __init__(self, pod_name: str, currency: str, initial_capital: float, state_file: str, trades_file: str, live_broker: bool = False):
         self.pod_name = pod_name
         self.currency = currency
         self.initial_capital = initial_capital
@@ -1428,7 +1428,8 @@ def main():
         currency="USD",
         initial_capital=DEFAULT_US_CAPITAL,
         state_file=US_STATE_FILE,
-        trades_file=US_TRADES_CSV
+        trades_file=US_TRADES_CSV,
+        live_broker=(args.mode in ("live_alpaca", "exploratory_shadow"))
     )
 
     multi_asset_engine = MultiAssetPodPaperEngine(

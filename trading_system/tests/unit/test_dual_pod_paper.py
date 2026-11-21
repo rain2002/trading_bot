@@ -655,7 +655,8 @@ def test_delayed_runner_fills_at_runtime_price_not_stale_open(tmp_path):
         currency="USD",
         initial_capital=100000.0,
         state_file=state_file,
-        trades_file=trades_file
+        trades_file=trades_file,
+        live_broker=False
     )
 
     # Queue buy order
