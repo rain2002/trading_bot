@@ -33,6 +33,11 @@ on:
           - scan
           - execute
           - status
+      force:
+        description: 'Bypass market timing guard (manual force run)'
+        required: false
+        default: false
+        type: boolean
 
 jobs:
   us-shadow-trader:
@@ -92,7 +97,11 @@ jobs:
           echo "================================================================"
           echo ">>> EXECUTING US SHADOW PAPER TRADER (PHASE: $PHASE) <<<"
           echo "================================================================"
-          python trading_system/scripts/run_dual_pod_paper.py --pod us --phase "$PHASE" --mode exploratory_shadow
+          FORCE_ARG=""
+          if [ "${{ github.event.inputs.force }}" = "true" ]; then
+            FORCE_ARG="--force"
+          fi
+          python trading_system/scripts/run_dual_pod_paper.py --pod us --phase "$PHASE" --mode exploratory_shadow $FORCE_ARG
 
       - name: "Persist US Shadow State Artifacts to state-shadow-us Branch"
         if: always()

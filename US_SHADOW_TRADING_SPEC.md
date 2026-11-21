@@ -10,10 +10,10 @@ This specification establishes the formal, frozen operating parameters for the *
 
 ---
 
-## 2. Quantitative Backtest Audit & Empirical Validation (2007–2024)
-Prior to deployment, the strategy was rigorously backtested across 18.0 years (4,530 sessions) including the 2008 Global Financial Crisis, 2020 COVID crash, and 2022 Fed rate-hiking bear market.
+## 2. In-Sample Retrospective Performance (Optimized on Survivor-Biased List; N Unbounded)
+Retrospective simulation run across 2007–2024 (18.0 years, 4,530 sessions) on the static list of 123 contemporary US growth stocks. This is an in-sample exploratory parameter search on past survivors with multiple trials tested (N=33). It is NOT an out-of-sample validation or proof of alpha.
 
-| Metric | Old Variant 2 | SPY Benchmark (Buy & Hold) | Enhanced US Shadow (Validated) | Delta vs SPY |
+| Metric | Old Variant 2 | SPY Benchmark (Buy & Hold) | Tuned Candidate (Best of N=33 In-Sample Grid Search) | Delta vs SPY |
 | :--- | :--- | :--- | :--- | :--- |
 | **CAGR (Annualized Return)** | 9.50% | 11.97% | **13.77%** | **+1.80% / yr** |
 | **Sharpe Ratio (Rf=2%)** | 0.51 | 0.57 | **0.61** | **+0.04** |
@@ -22,7 +22,7 @@ Prior to deployment, the strategy was rigorously backtested across 18.0 years (4
 | **Trade Win Rate** | 44.4% | N/A | **54.8%** | **+10.4%** |
 | **Profit Factor** | 1.38 | N/A | **1.82** | **+0.44** |
 
-### Key Algorithmic Improvements:
+### Parameter Changes Deployed (Exploratory Grid Search):
 1. **Concentration from 12 to 8 Slots**: Allocating 12.5% per position in top momentum leaders eliminates performance dilution.
 2. **6M-1M Skip-Month Momentum (126d - 21d skip)**: Eliminates buying the peak of 1-month mean-reversion spikes.
 3. **4.0x ATR Trailing Stops**: Replaces blunt -10% stop whipsaws, giving winning compounders room to breathe.
