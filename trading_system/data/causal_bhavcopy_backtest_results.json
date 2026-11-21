@@ -1,14 +1,14 @@
 {
   "universe": "CAUSAL_NSE_BHAVCOPY_TOP300_LIQUID_12_1_MOM",
   "simulation_window": "2008-09-22 to 2024-07-05",
-  "cagr_pct": 7.91,
-  "max_drawdown_pct": -38.77,
+  "cagr_pct": 8.18,
+  "max_drawdown_pct": -41.15,
   "calmar_ratio": 0.2,
-  "sharpe_ratio": 0.57,
-  "terminal_equity": 266161.64,
+  "sharpe_ratio": 0.58,
+  "terminal_equity": 276600.02,
   "benchmark_tri_cagr": 13.21,
   "benchmark_tri_max_dd": -40.15,
-  "total_trades": 361,
-  "total_tax_paid": 57947.12,
-  "total_dp_fees": 5324.75
+  "total_trades": 365,
+  "total_tax_paid": 54748.92,
+  "total_dp_fees": 5383.75
 }
