@@ -977,7 +977,7 @@ if page == "📊 Portfolio Overview":
     is_multibot = (is_india_mode and isinstance(broker, MultiBotBrokerAdapter))
     if is_multibot:
         hdr_sub = "GATE B QUANT FUND • SLEEVE 1: MULTI-ASSET ETF & GOLD (79.8%) • SLEEVE 2: SOVEREIGN BOND & CASH CARRY (20.2%) • CENTRAL MANAGER RECONCILED"
-        days_inc = acc.get("days_incubated", 5)
+        days_inc = acc_details.get("days_incubated", 5)
         broker_live_badge = f"GATE B INCUBATION: DAY {days_inc} OF 91"
         strategy_badge = "MULTI-ASSET & DURATION ENGINE"
         term_title = "ANTIGRAVITY <span class=\"hud-title-accent\">// QUANTUM TERMINAL [GATE B MULTI-ASSET]</span>"
@@ -3111,8 +3111,8 @@ elif page in ("🏆 13-Week Incubation Scorecard", "🏆 30-Day Incubation Score
     g1, g2 = st.columns(2)
     with g1:
         if is_multi_bot:
-            throttle_level = int(acc.get("throttle_level", 0))
-            is_halted = bool(acc.get("is_halted", False))
+            throttle_level = int(acc_details.get("throttle_level", 0))
+            is_halted = bool(acc_details.get("is_halted", False))
             if throttle_level == 0 and not is_halted:
                 st.success("✅ **Criterion 1: Manager Throttle & Circuit Breakers** — Passed. Throttle Level 0 (Normal Operations), Circuit Breakers Inactive (Multi-Asset ETF allocation governed by Central Manager Drawdown Ladder).")
             else:
@@ -3136,7 +3136,7 @@ elif page in ("🏆 13-Week Incubation Scorecard", "🏆 30-Day Incubation Score
 
     with g2:
         if is_multi_bot:
-            gap_pct = float(acc.get("reconciliation_gap_pct", 0.0))
+            gap_pct = float(acc_details.get("reconciliation_gap_pct", 0.0))
             if gap_pct <= 0.005:
                 st.success(f"✅ **Criterion 4: Sleeve Dual-Audit & Reconciliation** — Passed. Last reconciliation gap {gap_pct:.1f}%, quotes 100% verified.")
             else:
