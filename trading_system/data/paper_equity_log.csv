@@ -1,6 +1,2 @@
-date,pod,currency,total_equity,cash,portfolio_equity,hwm_true,drawdown_pct,open_positions_count
-2026-11-07,INDIA,INR,80000.0,80000.0,0.0,80000.0,0.0,0
-2026-11-07,US,USD,97780.29,13726.98,84053.31,97780.29,0.0,15
-2026-11-07,US,USD,97780.29,13726.98,84053.31,97780.29,0.0,15
-2026-11-08,POD_C,INR,80019.05,80019.05,0.0,80019.05,0.0,0
-2026-11-21,US,USD,,30115.81,,100057.51,,13
+date,pod,currency,total_equity,cash,portfolio_equity,hwm_true,drawdown_pct,open_positions_count,code_commit,universe_spec,classification
+2026-11-21,US,USD,100000.0,100000.0,0.0,100000.0,0.0,0,275e24b,trading_system/data/us_growth_tickers.txt,exploratory_shadow

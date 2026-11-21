@@ -1,149 +1,17 @@
 {
   "pod_name": "US",
   "currency": "USD",
-  "cash": 30115.81,
-  "positions": {
-    "BKNG": {
-      "shares": 37.0,
-      "entry_price": 149.626216,
-      "entry_date": "2026-11-07 16:34:21",
-      "peak_price": 163.55
-    },
-    "CBRE": {
-      "shares": 45.0,
-      "entry_price": 124.415333,
-      "entry_date": "2026-11-07 16:34:21",
-      "peak_price": 138.17
-    },
-    "DXCM": {
-      "shares": 70.0,
-      "entry_price": 78.468,
-      "entry_date": "2026-11-07 16:34:21",
-      "peak_price": 80.51
-    },
-    "HUBB": {
-      "shares": 6.0,
-      "entry_price": 432.49,
-      "entry_date": "2026-11-07 16:34:21",
-      "peak_price": 441.57
-    },
-    "META": {
-      "shares": 9.0,
-      "entry_price": 622.386667,
-      "entry_date": "2026-11-07 16:34:21",
-      "peak_price": 643.3
-    },
-    "ODFL": {
-      "shares": 16.0,
-      "entry_price": 173.53,
-      "entry_date": "2026-11-07 16:34:21",
-      "peak_price": 173.59
-    },
-    "PCAR": {
-      "shares": 94.0,
-      "entry_price": 102.890106,
-      "entry_date": "2026-11-07 16:34:21",
-      "peak_price": 106.0
-    },
-    "SNA": {
-      "shares": 15.0,
-      "entry_price": 361.31,
-      "entry_date": "2026-11-07 16:34:21",
-      "peak_price": 373.82
-    },
-    "TT": {
-      "shares": 6.0,
-      "entry_price": 423.238333,
-      "entry_date": "2026-11-07 16:34:21",
-      "peak_price": 423.238333
-    },
-    "TTWO": {
-      "shares": 16.0,
-      "entry_price": 190.17,
-      "entry_date": "2026-11-07 16:34:21",
-      "peak_price": 216.0
-    },
-    "UBER": {
-      "shares": 78.0,
-      "entry_price": 65.657949,
-      "entry_date": "2026-11-07 16:34:21",
-      "peak_price": 71.06
-    },
-    "AFRM": {
-      "shares": 115.2039,
-      "entry_price": 59.47,
-      "entry_date": "2026-11-20 04:38:17",
-      "peak_price": 59.47
-    },
-    "CRM": {
-      "shares": 34.753,
-      "entry_price": 197.15,
-      "entry_date": "2026-11-20 04:38:17",
-      "peak_price": 197.15
-    }
-  },
+  "cash": 100000.0,
+  "initial_capital": 100000.0,
+  "positions": {},
   "pending_buys": [],
-  "pending_sells": [
-    {
-      "sym": "BKNG",
-      "reason": "BEAR_DEFENSE_MACRO_EXIT [BEAR_DEFENSE]"
-    },
-    {
-      "sym": "CBRE",
-      "reason": "BEAR_DEFENSE_MACRO_EXIT [BEAR_DEFENSE]"
-    },
-    {
-      "sym": "DXCM",
-      "reason": "BEAR_DEFENSE_MACRO_EXIT [BEAR_DEFENSE]"
-    },
-    {
-      "sym": "HUBB",
-      "reason": "BEAR_DEFENSE_MACRO_EXIT [BEAR_DEFENSE]"
-    },
-    {
-      "sym": "META",
-      "reason": "BEAR_DEFENSE_MACRO_EXIT [BEAR_DEFENSE]"
-    },
-    {
-      "sym": "ODFL",
-      "reason": "BEAR_DEFENSE_MACRO_EXIT [BEAR_DEFENSE]"
-    },
-    {
-      "sym": "PCAR",
-      "reason": "BEAR_DEFENSE_MACRO_EXIT [BEAR_DEFENSE]"
-    },
-    {
-      "sym": "SNA",
-      "reason": "BEAR_DEFENSE_MACRO_EXIT [BEAR_DEFENSE]"
-    },
-    {
-      "sym": "TT",
-      "reason": "BEAR_DEFENSE_MACRO_EXIT [BEAR_DEFENSE]"
-    },
-    {
-      "sym": "TTWO",
-      "reason": "BEAR_DEFENSE_MACRO_EXIT [BEAR_DEFENSE]"
-    },
-    {
-      "sym": "UBER",
-      "reason": "BEAR_DEFENSE_MACRO_EXIT [BEAR_DEFENSE]"
-    },
-    {
-      "sym": "AFRM",
-      "reason": "BEAR_DEFENSE_MACRO_EXIT [BEAR_DEFENSE]"
-    },
-    {
-      "sym": "CRM",
-      "reason": "BEAR_DEFENSE_MACRO_EXIT [BEAR_DEFENSE]"
-    }
-  ],
-  "hwm_true": 100057.51,
-  "hwm_ladder": 10000.0,
+  "pending_sells": [],
+  "hwm_true": 100000.0,
+  "hwm_ladder": 100000.0,
   "max_drawdown": 0.0,
   "in_tier4_defense": false,
   "cooling_off": 0,
   "recovery_streak": 0,
-  "last_updated": "2026-11-21T02:13:06.907697+00:00",
-  "initial_capital": 100000.0,
-  "equity": 96343.66
+  "last_updated": "2026-11-21T04:15:00+00:00",
+  "equity": 100000.0
 }
