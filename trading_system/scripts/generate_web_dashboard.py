@@ -25,6 +25,8 @@ import os
 import sys
 import json
 import math
+import io
+import subprocess
 from datetime import datetime, timezone, date
 import pandas as pd
 
@@ -38,12 +40,13 @@ ETF_GOLD_STATE_FILE = os.path.join(DATA_DIR, "etf_gold_state.json")
 BOND_CASH_STATE_FILE = os.path.join(DATA_DIR, "bond_cash_state.json")
 MANAGER_EQUITY_LOG = os.path.join(DATA_DIR, "manager_equity_log.csv")
 LEDGER_FILE = os.path.join(DATA_DIR, "unitized_nav_ledger.json")
-US_SHADOW_FILE = os.path.join(DATA_DIR, "portfolio_state_metadata.json")
+US_SHADOW_FILE = os.path.join(DATA_DIR, "paper_state_us.json")
+US_SHADOW_LOG = os.path.join(DATA_DIR, "paper_equity_log.csv")
 NSE_SHADOW_FILE = os.path.join(DATA_DIR, "paper_state_india.json")
 
 
-def load_json(path: str) -> dict:
-    """Safely load JSON file. Returns empty dict on failure or missing file."""
+def load_json(path: str, git_branch: str = None) -> dict:
+    """Safely load JSON file from disk, falling back to git branch if missing."""
     if os.path.exists(path) and os.path.getsize(path) > 0:
         try:
             with open(path, "r", encoding="utf-8") as f:
@@ -52,16 +55,52 @@ def load_json(path: str) -> dict:
                     return data
         except Exception:
             pass
+
+    if git_branch:
+        rel_path = os.path.relpath(path, PROJECT_ROOT).replace("\\", "/")
+        branches = [git_branch, git_branch.replace("origin/", "")]
+        for b in branches:
+            try:
+                res = subprocess.run(
+                    ["git", "show", f"{b}:{rel_path}"],
+                    capture_output=True,
+                    text=True,
+                    encoding="utf-8",
+                    timeout=5
+                )
+                if res.returncode == 0 and res.stdout.strip():
+                    data = json.loads(res.stdout)
+                    if isinstance(data, dict):
+                        return data
+            except Exception:
+                pass
     return {}
 
 
-def load_csv(path: str) -> pd.DataFrame:
-    """Safely load CSV file. Returns empty DataFrame on failure or missing file."""
+def load_csv(path: str, git_branch: str = None) -> pd.DataFrame:
+    """Safely load CSV file from disk, falling back to git branch if missing."""
     if os.path.exists(path) and os.path.getsize(path) > 0:
         try:
             return pd.read_csv(path)
         except Exception:
             pass
+
+    if git_branch:
+        rel_path = os.path.relpath(path, PROJECT_ROOT).replace("\\", "/")
+        branches = [git_branch, git_branch.replace("origin/", "")]
+        for b in branches:
+            try:
+                res = subprocess.run(
+                    ["git", "show", f"{b}:{rel_path}"],
+                    capture_output=True,
+                    text=True,
+                    encoding="utf-8",
+                    timeout=5
+                )
+                if res.returncode == 0 and res.stdout.strip():
+                    return pd.read_csv(io.StringIO(res.stdout))
+            except Exception:
+                pass
     return pd.DataFrame()
 
 
@@ -185,15 +224,22 @@ def generate_dashboard_html(data_dir: str = None, output_path: str = None, now_d
     bond_file = os.path.join(data_dir, "bond_cash_state.json")
     eq_file = os.path.join(data_dir, "manager_equity_log.csv")
     ledger_file = os.path.join(data_dir, "unitized_nav_ledger.json")
-    us_shadow_file = os.path.join(data_dir, "portfolio_state_metadata.json")
+    us_shadow_file = os.path.join(data_dir, "paper_state_us.json")
+    us_eq_file = os.path.join(data_dir, "paper_equity_log.csv")
     nse_shadow_file = os.path.join(data_dir, "paper_state_india.json")
 
-    mgr_state = load_json(mgr_file)
-    etf_state = load_json(etf_file)
-    bond_state = load_json(bond_file)
-    eq_log = load_csv(eq_file)
-    ledger = load_json(ledger_file)
-    us_shadow = load_json(us_shadow_file)
+    # Fallback to git state branches when running against the default project data directory
+    use_git = (os.path.abspath(data_dir) == os.path.abspath(DATA_DIR))
+    state_branch = "origin/state" if use_git else None
+    shadow_branch = "origin/state-shadow-us" if use_git else None
+
+    mgr_state = load_json(mgr_file, git_branch=state_branch)
+    etf_state = load_json(etf_file, git_branch=state_branch)
+    bond_state = load_json(bond_file, git_branch=state_branch)
+    eq_log = load_csv(eq_file, git_branch=state_branch)
+    ledger = load_json(ledger_file, git_branch=state_branch)
+    us_shadow = load_json(us_shadow_file, git_branch=shadow_branch)
+    us_eq_log = load_csv(us_eq_file, git_branch=shadow_branch)
     nse_shadow = load_json(nse_shadow_file)
 
     # -------------------------------------------------------------
@@ -499,14 +545,23 @@ def generate_dashboard_html(data_dir: str = None, output_path: str = None, now_d
     # -------------------------------------------------------------
     # 8. SHADOW PODS TAB (PERMANENT EXPLORATORY BANNER)
     # -------------------------------------------------------------
+    us_shadow_cash = us_shadow.get("cash", 100000.0) if isinstance(us_shadow, dict) else 100000.0
+    us_shadow_equity = us_shadow.get("equity", us_shadow_cash) if isinstance(us_shadow, dict) else us_shadow_cash
+    us_shadow_verified = us_shadow.get("day0_verified", False) if isinstance(us_shadow, dict) else False
+    us_shadow_verified_text = "[DAY 0 VERIFIED]" if us_shadow_verified else "[DAY 0 PENDING FIRST SCAN]"
+
     us_shadow_rows = ""
-    if us_shadow:
-        for sym, meta in sorted(us_shadow.items()):
-            q = meta.get("quantity")
+    us_pos = us_shadow.get("positions", {}) if isinstance(us_shadow, dict) else {}
+    if not isinstance(us_pos, dict):
+        us_pos = {}
+
+    if us_pos:
+        for sym, meta in sorted(us_pos.items()):
+            q = meta.get("shares") or meta.get("quantity")
             entry_p = meta.get("entry_price")
-            peak_p = meta.get("peak_price")
+            peak_p = meta.get("last_price") or meta.get("peak_price") or entry_p
             e_dt = meta.get("entry_date", "N/A")
-            h_type = meta.get("holding_type", "SHADOW")
+            h_type = meta.get("strategy", meta.get("holding_type", "MOMENTUM"))
             val = (q * peak_p) if (q is not None and peak_p is not None) else None
 
             us_shadow_rows += f"""
@@ -522,7 +577,13 @@ def generate_dashboard_html(data_dir: str = None, output_path: str = None, now_d
             </tr>
             """
     else:
-        us_shadow_rows = '<tr><td colspan="8" class="nodata-cell">[NO ACTIVE US SHADOW HOLDINGS RECORDED]</td></tr>'
+        us_shadow_rows = f"""
+            <tr>
+                <td colspan="8" class="nodata-cell">
+                    CLEAN DAY 0 RESET &bull; 0 OPEN POSITIONS &bull; {format_usd(us_shadow_cash)} CASH &bull; FREEZE CLAUSE ACTIVE &bull; <span class="badge-shadow">{us_shadow_verified_text}</span>
+                </td>
+            </tr>
+        """
 
     nse_shadow_cash = nse_shadow.get("cash") if nse_shadow else None
     nse_shadow_init = nse_shadow.get("initial_capital") if nse_shadow else None
@@ -1499,8 +1560,8 @@ def generate_dashboard_html(data_dir: str = None, output_path: str = None, now_d
             <!-- Pod A: US Momentum Shadow -->
             <div class="terminal-card" style="margin-bottom: 16px;">
                 <div class="card-header">
-                    <span>Pod A: US Growth Momentum Shadow (Alpaca Paper / USD)</span>
-                    <span class="badge-shadow">ZERO FUND CAPITAL &bull; 8-SLOT 4X ATR TRAIL</span>
+                    <span>Pod A: US Growth Momentum Shadow (Alpaca Paper / USD) &bull; Cash: {format_usd(us_shadow_cash)} &bull; Equity: {format_usd(us_shadow_equity)}</span>
+                    <span class="badge-shadow">{us_shadow_verified_text} &bull; ZERO FUND CAPITAL</span>
                 </div>
                 <div class="table-scroll">
                     <table>
