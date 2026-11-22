@@ -644,22 +644,23 @@ def generate_dashboard_html(data_dir: str = None, output_path: str = None, now_d
     <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=IBM+Plex+Mono:ital,wght@0,400;0,600;0,700;1,400&family=Share+Tech+Mono&display=swap" rel="stylesheet">
     <style>
         :root {{
-            /* 1980s CRT Workstation Default Theme - Strictly 0px Square Corners & Monospace */
-            --bg-canvas: #101310;
-            --bg-bezel: #0d100d;
-            --bg-panel: #1B211C;
-            --bg-panel-hover: #171C18;
-            --border-color: #343D34;
-            --border-bright: #D2AC70;
-            --text-primary: #D6D9CD;
-            --text-secondary: #92998D;
-            --text-dim: #7A8C7A;
-            --green-phosphor: #9BBF91;
-            --green-dim: #91B99A;
-            --green-bg: rgba(155, 191, 145, 0.12);
-            --alert-red: #C77F78;
-            --alert-red-bg: rgba(199, 127, 120, 0.18);
-            --amber-bg: rgba(210, 172, 112, 0.12);
+            /* High-Contrast Luminous CRT Workstation Theme - Strictly 0px Square Corners & Monospace */
+            --bg-canvas: #080A0C;
+            --bg-bezel: #050709;
+            --bg-panel: #131822;
+            --bg-panel-hover: #18202B;
+            --border-color: #212C3B;
+            --border-bright: #FFB020;
+            --text-primary: #F8FAFC;
+            --text-secondary: #94A3B8;
+            --text-dim: #64748B;
+            --green-phosphor: #00E599;
+            --green-dim: #00C782;
+            --green-bg: rgba(0, 229, 153, 0.12);
+            --alert-red: #FF3B56;
+            --alert-red-bg: rgba(255, 59, 86, 0.18);
+            --amber-bg: rgba(255, 176, 32, 0.14);
+            --teal-accent: #00D8F6;
             --font-mono: 'IBM Plex Mono', 'Share Tech Mono', monospace;
             --card-radius: 0px; /* Square corners everywhere */
         }}

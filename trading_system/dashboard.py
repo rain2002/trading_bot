@@ -49,25 +49,25 @@ st.markdown("""
    RESTRAINED 1980s CRT WORKSTATION PALETTE
    ============================================================================== */
 :root {
-    --bg-main: #101310;            /* Main CRT canvas */
-    --bg-secondary: #171C18;       /* Secondary frame / sidebar */
-    --bg-panel: #1B211C;           /* Instrument chassis panel */
-    --border-dim: #343D34;         /* Muted industrial panel divider */
-    --border-bright: #9BBF91;      /* Active / focus accent */
-    --phosphor-green: #9BBF91;     /* Primary phosphor green */
-    --muted-amber: #D2AC70;        /* Muted amber baseline / warning */
-    --secondary-teal: #83AAA0;     /* Secondary teal indicator */
-    --text-primary: #D6D9CD;       /* Primary CRT text */
-    --text-secondary: #92998D;     /* Secondary technical label text */
-    --profit: #91B99A;             /* Up / gain */
-    --loss: #C77F78;               /* Down / loss */
+    --bg-main: #080A0C;            /* Main CRT canvas */
+    --bg-secondary: #0D1117;       /* Secondary frame / sidebar */
+    --bg-panel: #131822;           /* Instrument chassis panel */
+    --border-dim: #212C3B;         /* Muted industrial panel divider */
+    --border-bright: #00E599;      /* Active / focus accent */
+    --phosphor-green: #00E599;     /* Primary phosphor green */
+    --muted-amber: #FFB020;        /* Muted amber baseline / warning */
+    --secondary-teal: #00D8F6;     /* Secondary teal indicator */
+    --text-primary: #F1F5F9;       /* Primary CRT text */
+    --text-secondary: #94A3B8;     /* Secondary technical label text */
+    --profit: #00E599;             /* Up / gain */
+    --loss: #FF3B56;               /* Down / loss */
 }
 
 /* Global Reset & Base Typography */
 html, body, [class*="css"], .stApp {
-    background: #101310 !important;
-    background-color: #101310 !important;
-    color: #D6D9CD !important;
+    background: #080A0C !important;
+    background-color: #080A0C !important;
+    color: #F1F5F9 !important;
     font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, sans-serif !important;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -112,23 +112,23 @@ code, pre, .mono-font, .quotron-font, .ticker-content, .metric-big, .metric-big-
     height: 6px;
 }
 ::-webkit-scrollbar-track {
-    background: #101310;
+    background: #080A0C;
 }
 ::-webkit-scrollbar-thumb {
-    background: #343D34;
+    background: #212C3B;
     border-radius: 2px;
 }
 ::-webkit-scrollbar-thumb:hover {
-    background: #9BBF91;
+    background: #00E599;
 }
 
 /* ==============================================================================
    TICKER TAPE RIBBON (ANALOG FINANCIAL WORKSTATION)
    ============================================================================== */
 .retro-ticker-ribbon {
-    background: #171C18 !important;
-    border: 1px solid #343D34 !important;
-    border-top: 2px solid #9BBF91 !important;
+    background: #0D1117 !important;
+    border: 1px solid #212C3B !important;
+    border-top: 2px solid #00E599 !important;
     padding: 6px 14px !important;
     margin-bottom: 14px !important;
     display: flex !important;
@@ -146,12 +146,12 @@ code, pre, .mono-font, .quotron-font, .ticker-content, .metric-big, .metric-big-
     font-family: 'IBM Plex Mono', monospace;
     font-size: 0.70rem;
     font-weight: 700;
-    color: #9BBF91;
-    background: rgba(155, 191, 145, 0.10);
+    color: #00E599;
+    background: rgba(0, 229, 153, 0.12);
     padding: 3px 8px;
     border-radius: 2px;
-    border: 1px solid #343D34;
-    border-left: 2px solid #9BBF91;
+    border: 1px solid #212C3B;
+    border-left: 2px solid #00E599;
     margin-right: 14px;
     letter-spacing: 0.06em;
     flex-shrink: 0;
@@ -164,17 +164,17 @@ code, pre, .mono-font, .quotron-font, .ticker-content, .metric-big, .metric-big-
     white-space: nowrap;
     font-family: 'IBM Plex Mono', monospace;
     font-size: 0.76rem;
-    color: #D6D9CD;
+    color: #F1F5F9;
     overflow: hidden;
 }
 
 .tick-up {
-    color: #91B99A !important;
+    color: #00E599 !important;
     font-weight: 600;
 }
 
 .tick-down {
-    color: #C77F78 !important;
+    color: #FF3B56 !important;
     font-weight: 600;
 }
 
@@ -183,17 +183,17 @@ code, pre, .mono-font, .quotron-font, .ticker-content, .metric-big, .metric-big-
     align-items: center;
     gap: 6px;
     padding: 2px 8px;
-    background: #1B211C;
+    background: #131822;
     border-radius: 2px;
-    border: 1px solid #343D34;
+    border: 1px solid #212C3B;
 }
 
 /* ==============================================================================
    1980s WORKSTATION SIDEBAR
    ============================================================================== */
 section[data-testid="stSidebar"] {
-    background: #171C18 !important;
-    border-right: 1px solid #343D34 !important;
+    background: #0D1117 !important;
+    border-right: 1px solid #212C3B !important;
     box-shadow: 6px 0 24px rgba(0, 0, 0, 0.7) !important;
 }
 
@@ -220,7 +220,7 @@ section[data-testid="stSidebar"] div.stButton > button {
     font-weight: 500 !important;
     letter-spacing: 0.02em !important;
     background: transparent !important;
-    color: #92998D !important;
+    color: #94A3B8 !important;
     border: 1px solid transparent !important;
     border-radius: 2px !important;
     transition: all 0.15s ease !important;
@@ -228,29 +228,29 @@ section[data-testid="stSidebar"] div.stButton > button {
 }
 
 section[data-testid="stSidebar"] div.stButton > button:hover {
-    background: #1B211C !important;
-    color: #D6D9CD !important;
-    border-color: #343D34 !important;
+    background: #131822 !important;
+    color: #F1F5F9 !important;
+    border-color: #212C3B !important;
 }
 
 /* Sidebar Active Function State */
 section[data-testid="stSidebar"] div.stButton > button[kind="primary"],
 section[data-testid="stSidebar"] div.stButton > button[data-testid="stBaseButton-primary"] {
-    background: #1B211C !important;
-    color: #D6D9CD !important;
-    border: 1px solid #343D34 !important;
-    border-left: 3px solid #9BBF91 !important;
+    background: #131822 !important;
+    color: #F1F5F9 !important;
+    border: 1px solid #212C3B !important;
+    border-left: 3px solid #00E599 !important;
     font-weight: 600 !important;
-    box-shadow: inset 1px 0 0 #9BBF91 !important;
+    box-shadow: inset 1px 0 0 #00E599 !important;
 }
 
 /* ==============================================================================
    CRT CHASSIS PANELS & KPI TELEMETRY
    ============================================================================== */
 .cyber-kpi-card {
-    background: #1B211C !important;
-    border: 1px solid #343D34 !important;
-    border-top: 2px solid #D2AC70 !important;
+    background: #131822 !important;
+    border: 1px solid #212C3B !important;
+    border-top: 2px solid #FFB020 !important;
     border-radius: 2px !important;
     padding: 14px 16px !important;
     height: 120px !important;
@@ -266,7 +266,7 @@ section[data-testid="stSidebar"] div.stButton > button[data-testid="stBaseButton
 }
 
 .cyber-kpi-card:hover {
-    border-color: #9BBF91 !important;
+    border-color: #00E599 !important;
 }
 
 .kpi-title {
@@ -275,7 +275,7 @@ section[data-testid="stSidebar"] div.stButton > button[data-testid="stBaseButton
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.08em;
-    color: #92998D;
+    color: #94A3B8;
     height: 18px;
     display: flex;
     align-items: center;
@@ -284,7 +284,7 @@ section[data-testid="stSidebar"] div.stButton > button[data-testid="stBaseButton
 .kpi-value {
     font-family: 'IBM Plex Mono', monospace !important;
     font-weight: 600 !important;
-    color: #D6D9CD !important;
+    color: #F1F5F9 !important;
     text-shadow: none !important;
     height: 44px;
     display: flex;
@@ -295,7 +295,7 @@ section[data-testid="stSidebar"] div.stButton > button[data-testid="stBaseButton
     font-size: 1.55rem !important;
     font-weight: 600 !important;
     line-height: 1.1 !important;
-    color: #D6D9CD !important;
+    color: #F1F5F9 !important;
     font-family: 'IBM Plex Mono', monospace !important;
     text-shadow: none !important;
 }
@@ -304,7 +304,7 @@ section[data-testid="stSidebar"] div.stButton > button[data-testid="stBaseButton
     font-size: 1.55rem !important;
     font-weight: 600 !important;
     line-height: 1.1 !important;
-    color: #91B99A !important;
+    color: #00E599 !important;
     font-family: 'IBM Plex Mono', monospace !important;
     text-shadow: none !important;
 }
@@ -313,7 +313,7 @@ section[data-testid="stSidebar"] div.stButton > button[data-testid="stBaseButton
     font-size: 1.55rem !important;
     font-weight: 600 !important;
     line-height: 1.1 !important;
-    color: #C77F78 !important;
+    color: #FF3B56 !important;
     font-family: 'IBM Plex Mono', monospace !important;
     text-shadow: none !important;
 }
@@ -332,9 +332,9 @@ section[data-testid="stSidebar"] div.stButton > button[data-testid="stBaseButton
     font-size: 0.66rem;
     font-weight: 600;
     font-family: 'IBM Plex Mono', monospace;
-    background: #171C18;
-    border: 1px solid #343D34;
-    color: #D6D9CD;
+    background: #0D1117;
+    border: 1px solid #212C3B;
+    color: #F1F5F9;
 }
 
 .metric-badge-mint {
@@ -345,10 +345,10 @@ section[data-testid="stSidebar"] div.stButton > button[data-testid="stBaseButton
     font-size: 0.66rem;
     font-weight: 600;
     font-family: 'IBM Plex Mono', monospace;
-    background: rgba(145, 185, 154, 0.12);
-    border: 1px solid #343D34;
-    border-left: 2px solid #91B99A;
-    color: #91B99A;
+    background: rgba(0, 229, 153, 0.12);
+    border: 1px solid #212C3B;
+    border-left: 2px solid #00E599;
+    color: #00E599;
 }
 
 .metric-badge-danger {
@@ -359,17 +359,17 @@ section[data-testid="stSidebar"] div.stButton > button[data-testid="stBaseButton
     font-size: 0.66rem;
     font-weight: 600;
     font-family: 'IBM Plex Mono', monospace;
-    background: rgba(199, 127, 120, 0.12);
-    border: 1px solid #343D34;
-    border-left: 2px solid #C77F78;
-    color: #C77F78;
+    background: rgba(255, 59, 86, 0.12);
+    border: 1px solid #212C3B;
+    border-left: 2px solid #FF3B56;
+    color: #FF3B56;
 }
 
 /* Industrial General Container Card */
 .cyber-card {
-    background: #1B211C !important;
-    border: 1px solid #343D34 !important;
-    border-top: 2px solid #9BBF91 !important;
+    background: #131822 !important;
+    border: 1px solid #212C3B !important;
+    border-top: 2px solid #00E599 !important;
     border-radius: 2px !important;
     padding: 18px 20px !important;
     margin-bottom: 14px !important;
@@ -377,7 +377,7 @@ section[data-testid="stSidebar"] div.stButton > button[data-testid="stBaseButton
 }
 
 .cyber-card:hover {
-    border-color: #9BBF91 !important;
+    border-color: #00E599 !important;
 }
 
 /* ==============================================================================
@@ -388,9 +388,9 @@ section[data-testid="stSidebar"] div.stButton > button[data-testid="stBaseButton
     justify-content: space-between;
     align-items: center;
     padding: 14px 20px;
-    background: #1B211C !important;
-    border: 1px solid #343D34 !important;
-    border-top: 2px solid #9BBF91 !important;
+    background: #131822 !important;
+    border: 1px solid #212C3B !important;
+    border-top: 2px solid #00E599 !important;
     border-radius: 2px !important;
     margin-bottom: 16px;
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5) !important;
@@ -401,20 +401,20 @@ section[data-testid="stSidebar"] div.stButton > button[data-testid="stBaseButton
     font-size: 1.18rem;
     font-weight: 700;
     letter-spacing: 0.02em;
-    color: #D6D9CD;
+    color: #F1F5F9;
     display: flex;
     align-items: center;
     gap: 8px;
 }
 
 .hud-title-accent {
-    color: #9BBF91 !important;
+    color: #00E599 !important;
 }
 
 .hud-subtitle {
     font-family: 'IBM Plex Mono', monospace;
     font-size: 0.68rem;
-    color: #92998D;
+    color: #94A3B8;
     letter-spacing: 0.05em;
     text-transform: uppercase;
     margin-top: 4px;
@@ -431,17 +431,17 @@ section[data-testid="stSidebar"] div.stButton > button[data-testid="stBaseButton
     font-size: 0.68rem;
     font-weight: 600;
     letter-spacing: 0.04em;
-    background: #171C18;
-    border: 1px solid #343D34;
-    border-left: 2px solid #9BBF91;
-    color: #D6D9CD;
+    background: #0D1117;
+    border: 1px solid #212C3B;
+    border-left: 2px solid #00E599;
+    color: #F1F5F9;
     text-transform: uppercase;
 }
 
 .pulse-dot {
     width: 6px;
     height: 6px;
-    background-color: #9BBF91;
+    background-color: #00E599;
     border-radius: 1px;
     display: inline-block;
 }
@@ -450,9 +450,9 @@ section[data-testid="stSidebar"] div.stButton > button[data-testid="stBaseButton
 .page-title-box {
     margin-bottom: 16px;
     padding: 14px 18px;
-    background: #1B211C;
-    border: 1px solid #343D34;
-    border-top: 2px solid #9BBF91;
+    background: #131822;
+    border: 1px solid #212C3B;
+    border-top: 2px solid #00E599;
     border-radius: 2px;
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
 }
@@ -460,13 +460,13 @@ section[data-testid="stSidebar"] div.stButton > button[data-testid="stBaseButton
     font-family: 'IBM Plex Mono', monospace !important;
     font-size: 1.15rem;
     font-weight: 700;
-    color: #D6D9CD;
+    color: #F1F5F9;
     letter-spacing: 0.02em;
 }
 .page-subtitle {
     font-family: 'IBM Plex Mono', monospace;
     font-size: 0.68rem;
-    color: #92998D;
+    color: #94A3B8;
     letter-spacing: 0.05em;
     text-transform: uppercase;
     margin-top: 4px;
@@ -476,9 +476,9 @@ section[data-testid="stSidebar"] div.stButton > button[data-testid="stBaseButton
    GROWW INDIA SIGNATURE 5-METRIC SUMMARY CARDS
    ============================================================================== */
 .groww-summary-card {
-    background: #1B211C !important;
-    border: 1px solid #343D34 !important;
-    border-top: 2px solid #9BBF91 !important;
+    background: #131822 !important;
+    border: 1px solid #212C3B !important;
+    border-top: 2px solid #00E599 !important;
     border-radius: 2px !important;
     padding: 16px 20px !important;
     display: flex !important;
@@ -496,14 +496,14 @@ section[data-testid="stSidebar"] div.stButton > button[data-testid="stBaseButton
 }
 
 .groww-summary-item:not(:last-child) {
-    border-right: 1px solid #343D34 !important;
+    border-right: 1px solid #212C3B !important;
     padding-right: 16px !important;
     margin-right: 16px !important;
 }
 
 .groww-item-label {
     font-size: 0.68rem !important;
-    color: #92998D !important;
+    color: #94A3B8 !important;
     font-weight: 600 !important;
     text-transform: uppercase !important;
     letter-spacing: 0.08em !important;
@@ -514,7 +514,7 @@ section[data-testid="stSidebar"] div.stButton > button[data-testid="stBaseButton
 .groww-item-val {
     font-size: 1.55rem !important;
     font-weight: 600 !important;
-    color: #D6D9CD !important;
+    color: #F1F5F9 !important;
     line-height: 1.15 !important;
     font-family: 'IBM Plex Mono', monospace !important;
     text-shadow: none !important;
@@ -523,7 +523,7 @@ section[data-testid="stSidebar"] div.stButton > button[data-testid="stBaseButton
 .groww-item-val-green {
     font-size: 1.55rem !important;
     font-weight: 600 !important;
-    color: #91B99A !important;
+    color: #00E599 !important;
     line-height: 1.15 !important;
     font-family: 'IBM Plex Mono', monospace !important;
     text-shadow: none !important;
@@ -532,7 +532,7 @@ section[data-testid="stSidebar"] div.stButton > button[data-testid="stBaseButton
 .groww-item-val-red {
     font-size: 1.55rem !important;
     font-weight: 600 !important;
-    color: #C77F78 !important;
+    color: #FF3B56 !important;
     line-height: 1.15 !important;
     font-family: 'IBM Plex Mono', monospace !important;
     text-shadow: none !important;
@@ -541,7 +541,7 @@ section[data-testid="stSidebar"] div.stButton > button[data-testid="stBaseButton
 .groww-item-sub {
     font-size: 0.68rem !important;
     margin-top: 4px !important;
-    color: #92998D !important;
+    color: #94A3B8 !important;
     font-family: 'IBM Plex Mono', monospace !important;
 }
 
@@ -549,9 +549,9 @@ section[data-testid="stSidebar"] div.stButton > button[data-testid="stBaseButton
    HOLDINGS CARD DECK & AVATAR
    ============================================================================== */
 .groww-holding-row {
-    background: #1B211C !important;
-    border: 1px solid #343D34 !important;
-    border-left: 3px solid #9BBF91 !important;
+    background: #131822 !important;
+    border: 1px solid #212C3B !important;
+    border-left: 3px solid #00E599 !important;
     border-radius: 2px !important;
     padding: 14px 18px !important;
     margin-bottom: 8px !important;
@@ -563,22 +563,22 @@ section[data-testid="stSidebar"] div.stButton > button[data-testid="stBaseButton
 }
 
 .groww-holding-row:hover {
-    border-color: #9BBF91 !important;
+    border-color: #00E599 !important;
 }
 
 .groww-avatar {
     width: 36px !important;
     height: 36px !important;
     border-radius: 2px !important;
-    background: #171C18 !important;
-    color: #D6D9CD !important;
+    background: #0D1117 !important;
+    color: #F1F5F9 !important;
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
     font-family: 'IBM Plex Mono', monospace !important;
     font-weight: 700 !important;
     font-size: 0.80rem !important;
-    border: 1px solid #343D34 !important;
+    border: 1px solid #212C3B !important;
     margin-right: 12px !important;
     flex-shrink: 0 !important;
 }
@@ -587,17 +587,17 @@ section[data-testid="stSidebar"] div.stButton > button[data-testid="stBaseButton
    ORDER DESK (ANALOG WORKSTATION)
    ============================================================================== */
 .groww-order-box {
-    background: #1B211C !important;
-    border: 1px solid #343D34 !important;
-    border-top: 2px solid #9BBF91 !important;
+    background: #131822 !important;
+    border: 1px solid #212C3B !important;
+    border-top: 2px solid #00E599 !important;
     border-radius: 2px !important;
     padding: 18px 20px !important;
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5) !important;
 }
 
 .groww-order-summary-box {
-    background: #171C18 !important;
-    border: 1px solid #343D34 !important;
+    background: #0D1117 !important;
+    border: 1px solid #212C3B !important;
     border-radius: 2px !important;
     padding: 14px !important;
     margin-top: 14px !important;
@@ -609,68 +609,68 @@ section[data-testid="stSidebar"] div.stButton > button[data-testid="stBaseButton
     display: flex !important;
     justify-content: space-between !important;
     padding: 5px 0 !important;
-    border-bottom: 1px solid #343D34 !important;
-    color: #92998D !important;
+    border-bottom: 1px solid #212C3B !important;
+    color: #94A3B8 !important;
 }
 
 /* Order Execution Buttons: Phosphor BUY / Loss-Red SELL */
 button[aria-label="BUY"],
 button[aria-label="BUY"][data-testid="stBaseButton-primary"] {
-    background: #1B211C !important;
-    color: #91B99A !important;
+    background: #131822 !important;
+    color: #00E599 !important;
     font-family: 'IBM Plex Mono', monospace !important;
     font-weight: 700 !important;
     font-size: 0.95rem !important;
     border-radius: 2px !important;
-    border: 1px solid #91B99A !important;
+    border: 1px solid #00E599 !important;
     box-shadow: none !important;
     transition: all 0.15s ease !important;
 }
 button[aria-label="BUY"]:hover {
-    background: #91B99A !important;
-    color: #101310 !important;
+    background: #00E599 !important;
+    color: #080A0C !important;
 }
 
 button[aria-label="SELL"],
 button[aria-label="SELL"][data-testid="stBaseButton-primary"] {
-    background: #1B211C !important;
-    color: #C77F78 !important;
+    background: #131822 !important;
+    color: #FF3B56 !important;
     font-family: 'IBM Plex Mono', monospace !important;
     font-weight: 700 !important;
     font-size: 0.95rem !important;
     border-radius: 2px !important;
-    border: 1px solid #C77F78 !important;
+    border: 1px solid #FF3B56 !important;
     box-shadow: none !important;
     transition: all 0.15s ease !important;
 }
 button[aria-label="SELL"]:hover {
-    background: #C77F78 !important;
-    color: #101310 !important;
+    background: #FF3B56 !important;
+    color: #080A0C !important;
 }
 
 /* Form Inputs, Selects, and Number Inputs */
 div[data-baseweb="input"] > div,
 input, select, textarea {
-    background-color: #171C18 !important;
-    border: 1px solid #343D34 !important;
-    color: #D6D9CD !important;
+    background-color: #0D1117 !important;
+    border: 1px solid #212C3B !important;
+    color: #F1F5F9 !important;
     font-family: 'IBM Plex Mono', monospace !important;
     border-radius: 2px !important;
     transition: border-color 0.15s ease !important;
 }
 input:focus, select:focus, textarea:focus,
 div[data-baseweb="input"]:focus-within {
-    border-color: #9BBF91 !important;
+    border-color: #00E599 !important;
     box-shadow: none !important;
 }
 div[data-testid="stSlider"] > div > div > div > div {
-    background-color: #9BBF91 !important;
+    background-color: #00E599 !important;
     box-shadow: none !important;
 }
 
 /* Tables, DataFrames & StAlerts */
 div[data-testid="stDataFrame"], div[data-testid="stTable"] {
-    border: 1px solid #343D34 !important;
+    border: 1px solid #212C3B !important;
     border-radius: 2px !important;
 }
 
@@ -698,7 +698,7 @@ CURRENCY_SYMBOL = "₹" if is_india_mode else "$"
 CURRENCY_CODE = "INR" if is_india_mode else "USD"
 
 st.sidebar.markdown("""
-<div style="font-family: 'IBM Plex Mono', monospace; font-size: 0.66rem; font-weight: 500; color: #92998D; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 6px; padding-left: 2px;">
+<div style="font-family: 'IBM Plex Mono', monospace; font-size: 0.66rem; font-weight: 500; color: #94A3B8; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 6px; padding-left: 2px;">
     // ACTIVE TRADING REGION
 </div>
 """, unsafe_allow_html=True)
@@ -728,18 +728,18 @@ if is_india_mode:
         u_nav = acc_quick.get("unitized_nav", 98.0828)
         g_pct = acc_quick.get("reconciliation_gap_pct", 0.0)
         st.sidebar.markdown(f"""
-        <div style='background:#1B211C; border:1px solid #343D34; border-left:3px solid #9BBF91; border-radius:2px; padding:10px 12px; margin-bottom:14px; font-family:"IBM Plex Mono",monospace;'>
-            <div style='color:#9BBF91; font-weight:700; font-size:0.75rem; letter-spacing:0.05em;'>🇮🇳 GATE B INCUBATION // DAY {d_inc} OF 91</div>
-            <div style='color:#92998D; font-size:0.68rem; margin-top:2px;'>Multi-Asset ETF & Gold (79.8%) + Debt Carry (20.2%)</div>
-            <div style='color:#83AAA0; font-size:0.66rem; margin-top:3px;'>Central Portfolio Manager • Unit NAV {u_nav:.4f} • Gap {g_pct:.1f}%</div>
+        <div style='background:#131822; border:1px solid #212C3B; border-left:3px solid #00E599; border-radius:2px; padding:10px 12px; margin-bottom:14px; font-family:"IBM Plex Mono",monospace;'>
+            <div style='color:#00E599; font-weight:700; font-size:0.75rem; letter-spacing:0.05em;'>🇮🇳 GATE B INCUBATION // DAY {d_inc} OF 91</div>
+            <div style='color:#94A3B8; font-size:0.68rem; margin-top:2px;'>Multi-Asset ETF & Gold (79.8%) + Debt Carry (20.2%)</div>
+            <div style='color:#00D8F6; font-size:0.66rem; margin-top:3px;'>Central Portfolio Manager • Unit NAV {u_nav:.4f} • Gap {g_pct:.1f}%</div>
         </div>
         """, unsafe_allow_html=True)
     else:
         st.sidebar.markdown("""
-        <div style='background:#1B211C; border:1px solid #343D34; border-left:3px solid #D2AC70; border-radius:2px; padding:10px 12px; margin-bottom:14px; font-family:"IBM Plex Mono",monospace;'>
-            <div style='color:#D2AC70; font-weight:700; font-size:0.75rem; letter-spacing:0.05em;'>🇮🇳 INDIA GROWTH POD // VARIANT 2</div>
-            <div style='color:#92998D; font-size:0.68rem; margin-top:2px;'>116 Growth Leaders • 17.96% Post-Tax CAGR • 17.3Y Horizon</div>
-            <div style='color:#C77F78; font-size:0.66rem; margin-top:3px;'>⚠️ Exploratory Shadow Tracking (Failed Gate A on Drawdown: -27.6% vs -25.0% Limit | ₹80K Scale)</div>
+        <div style='background:#131822; border:1px solid #212C3B; border-left:3px solid #FFB020; border-radius:2px; padding:10px 12px; margin-bottom:14px; font-family:"IBM Plex Mono",monospace;'>
+            <div style='color:#FFB020; font-weight:700; font-size:0.75rem; letter-spacing:0.05em;'>🇮🇳 INDIA GROWTH POD // VARIANT 2</div>
+            <div style='color:#94A3B8; font-size:0.68rem; margin-top:2px;'>116 Growth Leaders • 17.96% Post-Tax CAGR • 17.3Y Horizon</div>
+            <div style='color:#FF3B56; font-size:0.66rem; margin-top:3px;'>⚠️ Exploratory Shadow Tracking (Failed Gate A on Drawdown: -27.6% vs -25.0% Limit | ₹80K Scale)</div>
         </div>
         """, unsafe_allow_html=True)
 
@@ -763,10 +763,10 @@ if is_india_mode:
         )
 else:
     st.sidebar.markdown("""
-    <div style='background:#1B211C; border:1px solid #343D34; border-left:3px solid #83AAA0; border-radius:2px; padding:10px 12px; margin-bottom:14px; font-family:"IBM Plex Mono",monospace;'>
-        <div style='color:#83AAA0; font-weight:700; font-size:0.75rem; letter-spacing:0.05em;'>🇺🇸 US MOMENTUM // ALPACA SHADOW (ACTIVE 2-PHASE)</div>
-        <div style='color:#92998D; font-size:0.68rem; margin-top:2px;'>Exploratory shadow tracking (in-sample 8-slot, 4x ATR trail). Zero fund capital.</div>
-        <div style='color:#91B99A; font-size:0.66rem; margin-top:3px;'>Autonomous schedule: 09:30 EST Open Fills + 16:15 EST Close Scan on Alpaca Paper.</div>
+    <div style='background:#131822; border:1px solid #212C3B; border-left:3px solid #00D8F6; border-radius:2px; padding:10px 12px; margin-bottom:14px; font-family:"IBM Plex Mono",monospace;'>
+        <div style='color:#00D8F6; font-weight:700; font-size:0.75rem; letter-spacing:0.05em;'>🇺🇸 US MOMENTUM // ALPACA SHADOW (ACTIVE 2-PHASE)</div>
+        <div style='color:#94A3B8; font-size:0.68rem; margin-top:2px;'>Exploratory shadow tracking (in-sample 8-slot, 4x ATR trail). Zero fund capital.</div>
+        <div style='color:#00E599; font-size:0.66rem; margin-top:3px;'>Autonomous schedule: 09:30 EST Open Fills + 16:15 EST Close Scan on Alpaca Paper.</div>
     </div>
     """, unsafe_allow_html=True)
 
@@ -867,14 +867,14 @@ def create_donut_chart(
         labels=labels,
         values=values,
         hole=hole,
-        marker=dict(colors=colors, line=dict(color='#1B211C', width=1.5)),
+        marker=dict(colors=colors, line=dict(color='#131822', width=1.5)),
         textposition='inside',
         textinfo='percent' if len(labels) <= 4 else 'none',
         hovertemplate="<b>%{label}</b><br>Value: %{value}<br>Share: %{percent}<extra></extra>"
     )])
     fig.update_layout(
         title=dict(
-            text=f"<span style='font-family:IBM Plex Mono,monospace; font-size:11px; font-weight:600; color:#D6D9CD;'>{title}</span>" if title else "",
+            text=f"<span style='font-family:IBM Plex Mono,monospace; font-size:11px; font-weight:600; color:#F1F5F9;'>{title}</span>" if title else "",
             x=0.02,
             y=0.96
         ) if title else None,
@@ -885,7 +885,7 @@ def create_donut_chart(
             y=-0.24,
             xanchor="center",
             x=0.5,
-            font=dict(family="IBM Plex Mono, monospace", size=10, color="#92998D")
+            font=dict(family="IBM Plex Mono, monospace", size=10, color="#94A3B8")
         ),
         margin=dict(t=35 if title else 10, b=25 if show_legend else 10, l=10, r=10),
         height=height,
@@ -896,7 +896,7 @@ def create_donut_chart(
             x=0.5, y=0.5,
             font_size=12,
             font_family="IBM Plex Mono, monospace",
-            font_color="#D6D9CD",
+            font_color="#F1F5F9",
             showarrow=False
         )]
     )
@@ -905,15 +905,15 @@ def create_donut_chart(
 # SIDEBAR NAVIGATION MENU (1980s CRT TERMINAL)
 # ==========================================
 st.sidebar.markdown("""
-<div style="padding: 10px 0 14px 0; border-bottom: 1px solid #343D34; margin-bottom: 14px;">
-    <div style="font-size: 1.12rem; font-weight: 700; letter-spacing: 0.02em; color: #D6D9CD; font-family: 'IBM Plex Mono', monospace; display: flex; align-items: center; gap: 8px;">
-        ANTIGRAVITY <span style="color: #9BBF91;">// CRT-80</span>
+<div style="padding: 10px 0 14px 0; border-bottom: 1px solid #212C3B; margin-bottom: 14px;">
+    <div style="font-size: 1.12rem; font-weight: 700; letter-spacing: 0.02em; color: #F1F5F9; font-family: 'IBM Plex Mono', monospace; display: flex; align-items: center; gap: 8px;">
+        ANTIGRAVITY <span style="color: #00E599;">// CRT-80</span>
     </div>
-    <div style="font-family: 'IBM Plex Mono', monospace; font-size: 0.65rem; color: #92998D; letter-spacing: 0.10em; text-transform: uppercase; margin-top: 3px;">
+    <div style="font-family: 'IBM Plex Mono', monospace; font-size: 0.65rem; color: #94A3B8; letter-spacing: 0.10em; text-transform: uppercase; margin-top: 3px;">
         FINANCIAL WORKSTATION
     </div>
     <div style="margin-top: 8px;">
-        <span class="status-pill" style="padding: 2px 8px; font-size: 0.65rem; border-color: #343D34; border-left: 2px solid #9BBF91; color: #9BBF91;">
+        <span class="status-pill" style="padding: 2px 8px; font-size: 0.65rem; border-color: #212C3B; border-left: 2px solid #00E599; color: #00E599;">
             <span class="pulse-dot"></span> [STATUS: NOMINAL]
         </span>
     </div>
@@ -921,25 +921,25 @@ st.sidebar.markdown("""
 """, unsafe_allow_html=True)
 
 # Persistent Sidebar Account Strip
-nav_pnl_color = "#91B99A" if today_pnl >= 0 else "#C77F78"
-nav_all_color = "#91B99A" if overall_pnl >= 0 else "#C77F78"
+nav_pnl_color = "#00E599" if today_pnl >= 0 else "#FF3B56"
+nav_all_color = "#00E599" if overall_pnl >= 0 else "#FF3B56"
 st.sidebar.markdown(f"""
-<div style="background: #1B211C; border: 1px solid #343D34; border-top: 2px solid #9BBF91; border-radius: 2px; padding: 12px 14px; margin-bottom: 14px; font-family: 'IBM Plex Mono', monospace; box-shadow: 0 4px 16px rgba(0,0,0,0.5);">
-    <div style="font-size: 0.65rem; color: #92998D; letter-spacing: 0.10em; text-transform: uppercase;">PORTFOLIO NAV</div>
-    <div style="font-size: 1.40rem; font-weight: 600; color: #D6D9CD; margin: 2px 0; font-family: 'IBM Plex Mono', monospace; letter-spacing: -0.01em;">{CURRENCY_SYMBOL}{equity:,.2f}</div>
-    <div style="display: flex; justify-content: space-between; font-size: 0.70rem; color: #92998D; margin-top: 6px; border-top: 1px solid #343D34; padding-top: 6px;">
-        <span>SESSION: <b style="color: {'#91B99A' if today_pnl >= 0 else '#C77F78'};">{format_pnl_str(today_pnl)}</b></span>
-        <span>RETURN: <b style="color: {'#91B99A' if overall_pnl >= 0 else '#C77F78'};">{format_pct_str(overall_pnl_pct)}</b></span>
+<div style="background: #131822; border: 1px solid #212C3B; border-top: 2px solid #00E599; border-radius: 2px; padding: 12px 14px; margin-bottom: 14px; font-family: 'IBM Plex Mono', monospace; box-shadow: 0 4px 16px rgba(0,0,0,0.5);">
+    <div style="font-size: 0.65rem; color: #94A3B8; letter-spacing: 0.10em; text-transform: uppercase;">PORTFOLIO NAV</div>
+    <div style="font-size: 1.40rem; font-weight: 600; color: #F1F5F9; margin: 2px 0; font-family: 'IBM Plex Mono', monospace; letter-spacing: -0.01em;">{CURRENCY_SYMBOL}{equity:,.2f}</div>
+    <div style="display: flex; justify-content: space-between; font-size: 0.70rem; color: #94A3B8; margin-top: 6px; border-top: 1px solid #212C3B; padding-top: 6px;">
+        <span>SESSION: <b style="color: {'#00E599' if today_pnl >= 0 else '#FF3B56'};">{format_pnl_str(today_pnl)}</b></span>
+        <span>RETURN: <b style="color: {'#00E599' if overall_pnl >= 0 else '#FF3B56'};">{format_pct_str(overall_pnl_pct)}</b></span>
     </div>
-    <div style="display: flex; justify-content: space-between; font-size: 0.66rem; color: #92998D; margin-top: 3px;">
-        <span>CASH: <b style="color: #D2AC70;">{cash_pct:.1f}%</b></span>
-        <span>EQUITY: <b style="color: #D6D9CD;">{invested_pct:.1f}%</b></span>
+    <div style="display: flex; justify-content: space-between; font-size: 0.66rem; color: #94A3B8; margin-top: 3px;">
+        <span>CASH: <b style="color: #FFB020;">{cash_pct:.1f}%</b></span>
+        <span>EQUITY: <b style="color: #F1F5F9;">{invested_pct:.1f}%</b></span>
     </div>
 </div>
 """, unsafe_allow_html=True)
 
 st.sidebar.markdown("""
-<div style="font-family: 'IBM Plex Mono', monospace; font-size: 0.65rem; font-weight: 500; color: #92998D; letter-spacing: 0.10em; text-transform: uppercase; margin-bottom: 6px; padding-left: 2px;">
+<div style="font-family: 'IBM Plex Mono', monospace; font-size: 0.65rem; font-weight: 500; color: #94A3B8; letter-spacing: 0.10em; text-transform: uppercase; margin-bottom: 6px; padding-left: 2px;">
     // WORKSTATION MODULES
 </div>
 """, unsafe_allow_html=True)
@@ -1042,8 +1042,8 @@ def render_retro_ticker_ribbon(is_india_mode: bool, broker=None) -> str:
         cls = "tick-up" if is_up else "tick-down"
         items_html += (
             f'<div class="tick-item">'
-            f'<span style="font-weight:600; color:#D6D9CD;">{sym}</span> '
-            f'<span style="color:#92998D;">{price}</span> '
+            f'<span style="font-weight:600; color:#F1F5F9;">{sym}</span> '
+            f'<span style="color:#94A3B8;">{price}</span> '
             f'<span class="{cls}">{arrow} {chg}</span>'
             f'</div>'
         )
@@ -1072,14 +1072,14 @@ def render_retro_ticker_ribbon(is_india_mode: bool, broker=None) -> str:
     """
 
 st.sidebar.markdown(f"""
-<div style="font-family: 'IBM Plex Mono', monospace; font-size: 0.70rem; color: #92998D; line-height: 1.70; padding: 12px 14px; background: #1B211C; border-radius: 2px; border: 1px solid #343D34; border-top: 2px solid #9BBF91; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);">
-    <div>BROKER: <span style="color: #D6D9CD; font-weight: 600;">{broker_label}</span></div>
-    <div>EXCHANGE: <span style="color: #D6D9CD; font-weight: 600;">{exchange_label}</span></div>
-    <div>OPEN ORDERS: <span style="color: {'#C77F78' if open_orders_count > 0 else '#92998D'}; font-weight: 600;">{open_orders_count} QUEUED</span></div>
-    <div>BUYING POWER: <span style="color: #D2AC70; font-weight: 600;">{CURRENCY_SYMBOL}{buying_power:,.2f}</span></div>
-    <div>ACTIVE ARCH: <span style="color: #D6D9CD;">{active_arch}</span></div>
-    <div>MARKET HOURS: <span style="color: #92998D;">{market_hours}</span></div>
-    <div>SOLVENCY: <span style="color: #91B99A; font-weight: 600;">{solvency_label}</span></div>
+<div style="font-family: 'IBM Plex Mono', monospace; font-size: 0.70rem; color: #94A3B8; line-height: 1.70; padding: 12px 14px; background: #131822; border-radius: 2px; border: 1px solid #212C3B; border-top: 2px solid #00E599; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);">
+    <div>BROKER: <span style="color: #F1F5F9; font-weight: 600;">{broker_label}</span></div>
+    <div>EXCHANGE: <span style="color: #F1F5F9; font-weight: 600;">{exchange_label}</span></div>
+    <div>OPEN ORDERS: <span style="color: {'#FF3B56' if open_orders_count > 0 else '#94A3B8'}; font-weight: 600;">{open_orders_count} QUEUED</span></div>
+    <div>BUYING POWER: <span style="color: #FFB020; font-weight: 600;">{CURRENCY_SYMBOL}{buying_power:,.2f}</span></div>
+    <div>ACTIVE ARCH: <span style="color: #F1F5F9;">{active_arch}</span></div>
+    <div>MARKET HOURS: <span style="color: #94A3B8;">{market_hours}</span></div>
+    <div>SOLVENCY: <span style="color: #00E599; font-weight: 600;">{solvency_label}</span></div>
 </div>
 """, unsafe_allow_html=True)
 
@@ -1179,38 +1179,38 @@ def create_candlestick_chart(df: pd.DataFrame, symbol: str, currency: str = "₹
         row_heights=[0.74, 0.26]
     )
     
-    # Candlestick: Profit (#91B99A) / Loss (#C77F78)
+    # Candlestick: Profit (#00E599) / Loss (#FF3B56)
     fig.add_trace(go.Candlestick(
         x=df_slice.index,
         open=df_slice['open'],
         high=df_slice['high'],
         low=df_slice['low'],
         close=df_slice['close'],
-        increasing_line_color='#91B99A',
-        increasing_fillcolor='#91B99A',
-        decreasing_line_color='#C77F78',
-        decreasing_fillcolor='#C77F78',
+        increasing_line_color='#00E599',
+        increasing_fillcolor='#00E599',
+        decreasing_line_color='#FF3B56',
+        decreasing_fillcolor='#FF3B56',
         name='Price'
     ), row=1, col=1)
     
-    # SMA 20: Muted Amber (#D2AC70)
+    # SMA 20: Muted Amber (#FFB020)
     fig.add_trace(go.Scatter(
         x=df_slice.index,
         y=df_slice['sma20'],
-        line=dict(color='#D2AC70', width=1.5),
+        line=dict(color='#FFB020', width=1.5),
         name='SMA 20 (Trend)'
     ), row=1, col=1)
     
-    # SMA 50: Secondary Teal (#83AAA0)
+    # SMA 50: Secondary Teal (#00D8F6)
     fig.add_trace(go.Scatter(
         x=df_slice.index,
         y=df_slice['sma50'],
-        line=dict(color='#83AAA0', width=1.5),
+        line=dict(color='#00D8F6', width=1.5),
         name='SMA 50 (Regime)'
     ), row=1, col=1)
     
     # Volume bars
-    vol_colors = ['#91B99A' if c >= o else '#C77F78' for c, o in zip(df_slice['close'], df_slice['open'])]
+    vol_colors = ['#00E599' if c >= o else '#FF3B56' for c, o in zip(df_slice['close'], df_slice['open'])]
     fig.add_trace(go.Bar(
         x=df_slice.index,
         y=df_slice['volume'],
@@ -1220,9 +1220,9 @@ def create_candlestick_chart(df: pd.DataFrame, symbol: str, currency: str = "₹
     ), row=2, col=1)
     
     fig.update_layout(
-        paper_bgcolor='#1B211C',
-        plot_bgcolor='#171C18',
-        font=dict(family='IBM Plex Mono, monospace', color='#D6D9CD', size=11),
+        paper_bgcolor='#131822',
+        plot_bgcolor='#0D1117',
+        font=dict(family='IBM Plex Mono, monospace', color='#F1F5F9', size=11),
         xaxis_rangeslider_visible=False,
         margin=dict(l=10, r=10, t=10, b=10),
         height=390,
@@ -1233,12 +1233,12 @@ def create_candlestick_chart(df: pd.DataFrame, symbol: str, currency: str = "₹
             y=1.02,
             xanchor='right',
             x=1,
-            font=dict(family='IBM Plex Mono, monospace', size=10, color='#92998D')
+            font=dict(family='IBM Plex Mono, monospace', size=10, color='#94A3B8')
         ),
-        xaxis=dict(gridcolor='#343D34', showgrid=True, zeroline=False),
-        yaxis=dict(gridcolor='#343D34', showgrid=True, zeroline=False, title=f"Price ({currency})"),
-        xaxis2=dict(gridcolor='#343D34', showgrid=True, zeroline=False),
-        yaxis2=dict(gridcolor='#343D34', showgrid=True, zeroline=False, title="Volume")
+        xaxis=dict(gridcolor='#212C3B', showgrid=True, zeroline=False),
+        yaxis=dict(gridcolor='#212C3B', showgrid=True, zeroline=False, title=f"Price ({currency})"),
+        xaxis2=dict(gridcolor='#212C3B', showgrid=True, zeroline=False),
+        yaxis2=dict(gridcolor='#212C3B', showgrid=True, zeroline=False, title="Volume")
     )
     return fig
 
@@ -1327,8 +1327,8 @@ if page == "📊 Portfolio Overview":
         </div>
         <div style="display: flex; gap: 8px; align-items: center;">
             <span class="status-pill"><span class="pulse-dot"></span> [LIVE EXECUTION READY]</span>
-            <span class="status-pill" style="border-left-color: #9BBF91; color: #9BBF91;">{broker_live_badge}</span>
-            <span class="status-pill" style="border-left-color: #D2AC70; color: #D6D9CD;">{strategy_badge}</span>
+            <span class="status-pill" style="border-left-color: #00E599; color: #00E599;">{broker_live_badge}</span>
+            <span class="status-pill" style="border-left-color: #FFB020; color: #F1F5F9;">{strategy_badge}</span>
         </div>
     </div>
     """, unsafe_allow_html=True)
@@ -1354,17 +1354,17 @@ if page == "📊 Portfolio Overview":
         <div class="groww-summary-item">
             <div class="groww-item-label">Total Returns</div>
             <div class="{tot_pnl_cls}">{tot_pnl_icon} {format_pnl_str(overall_pnl)}</div>
-            <div class="groww-item-sub" style="color: {'#91B99A' if overall_pnl >= 0 else '#C77F78'}; font-weight: 600;">{format_pct_str(overall_pnl_pct)} Net Alpha</div>
+            <div class="groww-item-sub" style="color: {'#00E599' if overall_pnl >= 0 else '#FF3B56'}; font-weight: 600;">{format_pct_str(overall_pnl_pct)} Net Alpha</div>
         </div>
         <div class="groww-summary-item">
             <div class="groww-item-label">1D Returns</div>
             <div class="{day_pnl_cls}">{day_pnl_icon} {format_pnl_str(today_pnl)}</div>
-            <div class="groww-item-sub" style="color: {'#91B99A' if today_pnl >= 0 else '#C77F78'}; font-weight: 600;">{format_pct_str(today_pnl_pct)} Today</div>
+            <div class="groww-item-sub" style="color: {'#00E599' if today_pnl >= 0 else '#FF3B56'}; font-weight: 600;">{format_pct_str(today_pnl_pct)} Today</div>
         </div>
         <div class="groww-summary-item">
             <div class="groww-item-label">Available Cash</div>
             <div class="groww-item-val">{CURRENCY_SYMBOL}{cash:,.2f}</div>
-            <div class="groww-item-sub" style="color: #D2AC70;">{cash_pct:.1f}% Preserved Buffer</div>
+            <div class="groww-item-sub" style="color: #FFB020;">{cash_pct:.1f}% Preserved Buffer</div>
         </div>
     </div>
     """, unsafe_allow_html=True)
@@ -1378,14 +1378,14 @@ if page == "📊 Portfolio Overview":
         st.session_state.bot_safety_halt = False
 
     bot_st_label = "SAFETY HALT" if st.session_state.bot_safety_halt else ("ACTIVE // AUTONOMOUS" if st.session_state.bot_active else "PAUSED // MANUAL")
-    bot_st_color = "#C77F78" if st.session_state.bot_safety_halt else ("#91B99A" if st.session_state.bot_active else "#D2AC70")
+    bot_st_color = "#FF3B56" if st.session_state.bot_safety_halt else ("#00E599" if st.session_state.bot_active else "#FFB020")
 
     col_bot_tele, col_bot_ctrl = st.columns([3, 2])
     with col_bot_tele:
         st.markdown(f"""
         <div class="cyber-card" style="padding: 12px 16px; margin-bottom: 14px;">
-            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #343D34; padding-bottom: 6px; margin-bottom: 8px;">
-                <div style="font-family: 'IBM Plex Mono', monospace; font-size: 0.70rem; color: #92998D; letter-spacing: 0.08em; text-transform: uppercase;">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #212C3B; padding-bottom: 6px; margin-bottom: 8px;">
+                <div style="font-family: 'IBM Plex Mono', monospace; font-size: 0.70rem; color: #94A3B8; letter-spacing: 0.08em; text-transform: uppercase;">
                     // BOT OPERATIONAL TELEMETRY &amp; RISK GATING
                 </div>
                 <div>
@@ -1394,10 +1394,10 @@ if page == "📊 Portfolio Overview":
                     </span>
                 </div>
             </div>
-            <div style="display: flex; justify-content: space-between; font-family: 'IBM Plex Mono', monospace; font-size: 0.74rem; color: #92998D; line-height: 1.6;">
-                <div>POLICY: <span style="color: #D6D9CD; font-weight: 600;">FIXED_SHARES_PLUS_KILL_SWITCH (T1)</span></div>
-                <div>SAFETY GATE: <span style="color: #91B99A; font-weight: 600;">-40.0% KILL SWITCH [ARMED]</span></div>
-                <div>THROTTLE: <span style="color: #D2AC70; font-weight: 600;">OFF (policy)</span></div>
+            <div style="display: flex; justify-content: space-between; font-family: 'IBM Plex Mono', monospace; font-size: 0.74rem; color: #94A3B8; line-height: 1.6;">
+                <div>POLICY: <span style="color: #F1F5F9; font-weight: 600;">FIXED_SHARES_PLUS_KILL_SWITCH (T1)</span></div>
+                <div>SAFETY GATE: <span style="color: #00E599; font-weight: 600;">-40.0% KILL SWITCH [ARMED]</span></div>
+                <div>THROTTLE: <span style="color: #FFB020; font-weight: 600;">OFF (policy)</span></div>
             </div>
         </div>
         """, unsafe_allow_html=True)
@@ -1519,7 +1519,7 @@ if page == "📊 Portfolio Overview":
     body {{
         background: transparent;
         font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-        color: #D6D9CD;
+        color: #F1F5F9;
         padding: 2px;
         overflow: hidden;
     }}
@@ -1527,9 +1527,9 @@ if page == "📊 Portfolio Overview":
     /* 1980s CRT Instrument Chassis */
     .glass-hero-card {{
         position: relative;
-        background: #1B211C;
-        border: 1px solid #343D34;
-        border-top: 2px solid #9BBF91;
+        background: #131822;
+        border: 1px solid #212C3B;
+        border-top: 2px solid #00E599;
         border-radius: 2px;
         padding: 16px 20px 14px 20px;
         box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
@@ -1538,7 +1538,7 @@ if page == "📊 Portfolio Overview":
         transition: border-color 0.15s ease;
     }}
     .glass-hero-card:hover {{
-        border-color: #9BBF91;
+        border-color: #00E599;
     }}
     
     .card-content-layer {{
@@ -1574,14 +1574,14 @@ if page == "📊 Portfolio Overview":
         font-weight: 600;
         letter-spacing: 0.08em;
         text-transform: uppercase;
-        color: #92998D;
+        color: #94A3B8;
         height: 18px;
     }}
     
     .dot-mint {{
         width: 6px;
         height: 6px;
-        background-color: #91B99A;
+        background-color: #00E599;
         border-radius: 1px;
         display: inline-block;
     }}
@@ -1589,7 +1589,7 @@ if page == "📊 Portfolio Overview":
     .dot-red {{
         width: 6px;
         height: 6px;
-        background-color: #C77F78;
+        background-color: #FF3B56;
         border-radius: 1px;
         display: inline-block;
     }}
@@ -1597,7 +1597,7 @@ if page == "📊 Portfolio Overview":
     .dot-amber {{
         width: 6px;
         height: 6px;
-        background-color: #D2AC70;
+        background-color: #FFB020;
         border-radius: 1px;
         display: inline-block;
     }}
@@ -1607,7 +1607,7 @@ if page == "📊 Portfolio Overview":
         font-weight: 600;
         letter-spacing: -0.01em;
         line-height: 1.15;
-        color: #D6D9CD;
+        color: #F1F5F9;
         margin: 2px 0 2px 0;
         font-family: 'IBM Plex Mono', monospace;
         text-shadow: none;
@@ -1632,21 +1632,21 @@ if page == "📊 Portfolio Overview":
     }}
     
     .badge-green {{
-        background: rgba(145, 185, 154, 0.12);
-        border: 1px solid #343D34;
-        border-left: 2px solid #91B99A;
-        color: #91B99A;
+        background: rgba(0, 229, 153, 0.12);
+        border: 1px solid #212C3B;
+        border-left: 2px solid #00E599;
+        color: #00E599;
     }}
     
     .badge-red {{
-        background: rgba(199, 127, 120, 0.12);
-        border: 1px solid #343D34;
-        border-left: 2px solid #C77F78;
-        color: #C77F78;
+        background: rgba(255, 59, 86, 0.12);
+        border: 1px solid #212C3B;
+        border-left: 2px solid #FF3B56;
+        color: #FF3B56;
     }}
     
     .tf-sub {{
-        color: #92998D;
+        color: #94A3B8;
         font-family: 'IBM Plex Mono', monospace;
         font-size: 0.68rem;
         margin-left: 4px;
@@ -1656,8 +1656,8 @@ if page == "📊 Portfolio Overview":
     /* Currency Switcher */
     .currency-pill-box {{
         display: inline-flex;
-        background: #171C18;
-        border: 1px solid #343D34;
+        background: #0D1117;
+        border: 1px solid #212C3B;
         border-radius: 2px;
         padding: 2px;
         margin-bottom: 4px;
@@ -1668,7 +1668,7 @@ if page == "📊 Portfolio Overview":
         font-size: 0.66rem;
         font-weight: 600;
         font-family: 'IBM Plex Mono', monospace;
-        color: #92998D;
+        color: #94A3B8;
         border-radius: 2px;
         border: 1px solid transparent;
         background: transparent;
@@ -1677,9 +1677,9 @@ if page == "📊 Portfolio Overview":
     }}
     
     .curr-btn.active {{
-        background: #1B211C;
-        color: #D6D9CD;
-        border-color: #9BBF91;
+        background: #131822;
+        color: #F1F5F9;
+        border-color: #00E599;
     }}
     
     /* Oscilloscope Chart Area */
@@ -1710,8 +1710,8 @@ if page == "📊 Portfolio Overview":
         display: inline-flex;
         align-items: center;
         gap: 4px;
-        background: #171C18;
-        border: 1px solid #343D34;
+        background: #0D1117;
+        border: 1px solid #212C3B;
         border-radius: 2px;
         padding: 2px 4px;
     }}
@@ -1719,7 +1719,7 @@ if page == "📊 Portfolio Overview":
     .timeframe-pill {{
         background: transparent;
         border: 1px solid transparent;
-        color: #92998D;
+        color: #94A3B8;
         font-family: 'IBM Plex Mono', monospace;
         font-size: 0.70rem;
         font-weight: 500;
@@ -1730,15 +1730,15 @@ if page == "📊 Portfolio Overview":
     }}
     
     .timeframe-pill:hover {{
-        color: #D6D9CD;
-        background: #1B211C;
-        border-color: #343D34;
+        color: #F1F5F9;
+        background: #131822;
+        border-color: #212C3B;
     }}
     
     .timeframe-pill.active {{
-        background: #1B211C;
-        border: 1px solid #9BBF91;
-        color: #D6D9CD;
+        background: #131822;
+        border: 1px solid #00E599;
+        color: #F1F5F9;
         font-weight: 600;
     }}
     
@@ -1747,13 +1747,13 @@ if page == "📊 Portfolio Overview":
         position: absolute;
         display: none;
         pointer-events: none;
-        background: #1B211C;
-        border: 1px solid #343D34;
-        border-top: 2px solid #9BBF91;
+        background: #131822;
+        border: 1px solid #212C3B;
+        border-top: 2px solid #00E599;
         border-radius: 2px;
         padding: 8px 12px;
         font-size: 0.72rem;
-        color: #D6D9CD;
+        color: #F1F5F9;
         font-family: 'IBM Plex Mono', monospace;
         box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6);
         z-index: 100;
@@ -1766,7 +1766,7 @@ if page == "📊 Portfolio Overview":
         <div class="card-content-layer">
             <div class="groww-header">
                 <div class="metric-left">
-                    <div class="legend-row" style="font-size: 0.80rem; color: #92998D; font-weight: 500;">
+                    <div class="legend-row" style="font-size: 0.80rem; color: #94A3B8; font-weight: 500;">
                         <span>CURRENT VALUE</span> <span id="legend-dot" class="dot-mint" style="width: 6px; height: 6px; margin-left: 4px;"></span>
                     </div>
                     <div class="big-number" id="current-display">{CURRENCY_SYMBOL}{equity:,.2f}</div>
@@ -1774,7 +1774,7 @@ if page == "📊 Portfolio Overview":
                         <div id="pnl-badge" class="return-glass-badge {'badge-green' if overall_pnl >= 0 else 'badge-red'}">
                             <span id="pnl-span" style="font-weight: 600;">{format_pnl_str(overall_pnl)} ({format_pct_str(overall_pnl_pct)})</span>
                         </div>
-                        <span id="tf-tag" class="tf-sub" style="color: #92998D; margin-left: 6px;">All time</span>
+                        <span id="tf-tag" class="tf-sub" style="color: #94A3B8; margin-left: 6px;">All time</span>
                     </div>
                 </div>
                 <div class="metric-right">
@@ -1783,11 +1783,11 @@ if page == "📊 Portfolio Overview":
                             <button class="curr-btn {'active' if not is_india_mode else ''}" id="btn-usd" onclick="setCurrency('USD')">$ USD</button>
                             <button class="curr-btn {'active' if is_india_mode else ''}" id="btn-inr" onclick="setCurrency('INR')">&#8377; INR</button>
                         </div>
-                        <div class="legend-row" style="font-size: 0.80rem; color: #92998D; font-weight: 500;">
+                        <div class="legend-row" style="font-size: 0.80rem; color: #94A3B8; font-weight: 500;">
                             <span class="dot-amber" style="width: 6px; height: 6px; margin-right: 4px;"></span> <span>INVESTED BASELINE</span>
                         </div>
                     </div>
-                    <div class="big-number" id="invested-display" style="font-size: 2.10rem; font-weight: 600; color: #D6D9CD;">{CURRENCY_SYMBOL}{initial_capital:,.2f}</div>
+                    <div class="big-number" id="invested-display" style="font-size: 2.10rem; font-weight: 600; color: #F1F5F9;">{CURRENCY_SYMBOL}{initial_capital:,.2f}</div>
                 </div>
             </div>
 
@@ -1796,35 +1796,35 @@ if page == "📊 Portfolio Overview":
                     <defs>
                         <!-- Restrained Phosphor Glow Filter -->
                         <filter id="neon-glow" x="-20%" y="-20%" width="140%" height="140%">
-                            <feDropShadow id="glow-shadow" dx="0" dy="0" stdDeviation="2.0" flood-color="#9BBF91" flood-opacity="0.30" />
+                            <feDropShadow id="glow-shadow" dx="0" dy="0" stdDeviation="2.0" flood-color="#00E599" flood-opacity="0.30" />
                         </filter>
                         
                         <!-- Dynamic Neon Stroke Gradient -->
                         <linearGradient id="stroke-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                            <stop id="stroke-stop-0" offset="0%" stop-color="#D6D9CD" />
-                            <stop id="stroke-stop-100" offset="100%" stop-color="#9BBF91" />
+                            <stop id="stroke-stop-0" offset="0%" stop-color="#F1F5F9" />
+                            <stop id="stroke-stop-100" offset="100%" stop-color="#00E599" />
                         </linearGradient>
 
                         <!-- Dynamic Volumetric Area Fill Gradient -->
                         <linearGradient id="area-gradient" x1="0" y1="0" x2="0" y2="1">
-                            <stop id="area-stop-0" offset="0%" stop-color="#9BBF91" stop-opacity="0.10" />
-                            <stop id="area-stop-70" offset="70%" stop-color="#9BBF91" stop-opacity="0.02" />
-                            <stop id="area-stop-100" offset="100%" stop-color="#9BBF91" stop-opacity="0.00" />
+                            <stop id="area-stop-0" offset="0%" stop-color="#00E599" stop-opacity="0.10" />
+                            <stop id="area-stop-70" offset="70%" stop-color="#00E599" stop-opacity="0.02" />
+                            <stop id="area-stop-100" offset="100%" stop-color="#00E599" stop-opacity="0.00" />
                         </linearGradient>
 
                         <!-- Vertical Laser Cursor Beam Gradient -->
                         <linearGradient id="cursor-beam" x1="0" y1="0" x2="0" y2="1">
-                            <stop id="cursor-stop-0" offset="0%" stop-color="#D6D9CD" stop-opacity="0.80" />
-                            <stop id="cursor-stop-75" offset="75%" stop-color="#9BBF91" stop-opacity="0.25" />
-                            <stop id="cursor-stop-100" offset="100%" stop-color="#9BBF91" stop-opacity="0.0" />
+                            <stop id="cursor-stop-0" offset="0%" stop-color="#F1F5F9" stop-opacity="0.80" />
+                            <stop id="cursor-stop-75" offset="75%" stop-color="#00E599" stop-opacity="0.25" />
+                            <stop id="cursor-stop-100" offset="100%" stop-color="#00E599" stop-opacity="0.0" />
                         </linearGradient>
                     </defs>
 
                     <!-- Hairline Grid Baseline -->
-                    <line x1="0" y1="248" x2="1000" y2="248" stroke="#343D34" stroke-width="1" stroke-dasharray="4,4" />
+                    <line x1="0" y1="248" x2="1000" y2="248" stroke="#212C3B" stroke-width="1" stroke-dasharray="4,4" />
 
                     <!-- Muted Amber Invested Capital Line (Dotted) -->
-                    <path id="path-invested" stroke="#D2AC70" stroke-width="1.6" stroke-dasharray="4,4" fill="none" d="" />
+                    <path id="path-invested" stroke="#FFB020" stroke-width="1.6" stroke-dasharray="4,4" fill="none" d="" />
 
                     <!-- Oscilloscope Area Fill -->
                     <path id="path-area" fill="url(#area-gradient)" d="" />
@@ -1836,9 +1836,9 @@ if page == "📊 Portfolio Overview":
                     <line id="cursor-line" x1="0" y1="6" x2="0" y2="248" stroke="url(#cursor-beam)" stroke-width="1.2" stroke-dasharray="2,2" style="display:none;" />
 
                     <!-- Tracking Laser Rings & Dots -->
-                    <circle id="cursor-halo" r="8" fill="rgba(145, 185, 154, 0.15)" style="display:none;" />
-                    <circle id="cursor-dot-mint" r="4.0" fill="#101310" stroke="#9BBF91" stroke-width="2.0" style="display:none;" />
-                    <circle id="cursor-dot-amber" r="3.0" fill="#101310" stroke="#D2AC70" stroke-width="1.6" style="display:none;" />
+                    <circle id="cursor-halo" r="8" fill="rgba(0, 229, 153, 0.18)" style="display:none;" />
+                    <circle id="cursor-dot-mint" r="4.0" fill="#080A0C" stroke="#00E599" stroke-width="2.0" style="display:none;" />
+                    <circle id="cursor-dot-amber" r="3.0" fill="#080A0C" stroke="#FFB020" stroke-width="1.6" style="display:none;" />
                 </svg>
                 <div class="live-tooltip" id="live-tooltip"></div>
             </div>
@@ -1938,8 +1938,8 @@ if page == "📊 Portfolio Overview":
         const pnlSpan = document.getElementById('pnl-span');
         const sign = pnl >= 0 ? '+' : '-';
         const isPos = pnl >= 0;
-        const themeColor = isPos ? '#91B99A' : '#C77F78';
-        const strokeStart = '#D6D9CD';
+        const themeColor = isPos ? '#00E599' : '#FF3B56';
+        const strokeStart = '#F1F5F9';
         const areaOp0 = isPos ? '0.10' : '0.12';
         const areaOp70 = isPos ? '0.02' : '0.02';
 
@@ -1971,7 +1971,7 @@ if page == "📊 Portfolio Overview":
         if (legendDot) legendDot.className = isPos ? 'dot-mint' : 'dot-red';
 
         dotMint.setAttribute('stroke', themeColor);
-        cursorHalo.setAttribute('fill', isPos ? 'rgba(145, 185, 154, 0.15)' : 'rgba(199, 127, 120, 0.15)');
+        cursorHalo.setAttribute('fill', isPos ? 'rgba(0, 229, 153, 0.18)' : 'rgba(255, 59, 86, 0.18)');
 
         // Scale SVG coordinate system
         const allVals = equities.concat(investedArr);
@@ -2083,7 +2083,7 @@ if page == "📊 Portfolio Overview":
         const pnlPct = (pnl / invVal) * 100;
         const sign = pnl >= 0 ? '+' : '-';
         const isPointPos = pnl >= 0;
-        const pointColor = isPointPos ? '#91B99A' : '#C77F78';
+        const pointColor = isPointPos ? '#00E599' : '#FF3B56';
         const pnlBadge = document.getElementById('pnl-badge');
         const pnlSpan = document.getElementById('pnl-span');
         if (pnlBadge) pnlBadge.className = 'return-glass-badge ' + (isPointPos ? 'badge-green' : 'badge-red');
@@ -2091,17 +2091,17 @@ if page == "📊 Portfolio Overview":
         document.getElementById('tf-tag').innerText = dateStr;
 
         dotMint.setAttribute('stroke', pointColor);
-        cursorHalo.setAttribute('fill', isPointPos ? 'rgba(145, 185, 154, 0.15)' : 'rgba(199, 127, 120, 0.15)');
+        cursorHalo.setAttribute('fill', isPointPos ? 'rgba(0, 229, 153, 0.18)' : 'rgba(255, 59, 86, 0.18)');
         
         // Tooltip position & content
         tooltip.style.display = 'block';
         const tooltipX = Math.min(rect.width - 200, Math.max(10, mouseX - 90));
         tooltip.style.left = tooltipX + 'px';
         tooltip.style.top = '10px';
-        tooltip.innerHTML = `<span style="color:#D6D9CD; font-family:'IBM Plex Mono',monospace; font-size:0.70rem; letter-spacing:0.06em; text-transform:uppercase;">${{dateStr}}</span><br>` +
+        tooltip.innerHTML = `<span style="color:#F1F5F9; font-family:'IBM Plex Mono',monospace; font-size:0.70rem; letter-spacing:0.06em; text-transform:uppercase;">${{dateStr}}</span><br>` +
             `<div style="margin-top:3px; font-family:'IBM Plex Mono',monospace; font-size:0.80rem;"><b style="color:${{pointColor}};">Valuation:</b> ${{formatCurrency(eqVal, currentCurrency)}}</div>` +
-            `<div style="font-family:'IBM Plex Mono',monospace; font-size:0.80rem;"><b style="color:#D2AC70;">Invested:</b> ${{formatCurrency(invVal, currentCurrency)}}</div>` +
-            `<div style="font-family:'IBM Plex Mono',monospace; font-size:0.80rem; margin-top:2px; border-top:1px solid #343D34; padding-top:2px;"><b style="color:#92998D;">Net Alpha:</b> <span style="color:${{pointColor}}; font-weight:600;">${{sign}}${{formatCurrency(Math.abs(pnl), currentCurrency)}} (${{pnlPct >= 0 ? '+' : ''}}${{pnlPct.toFixed(2)}}%)</span></div>`;
+            `<div style="font-family:'IBM Plex Mono',monospace; font-size:0.80rem;"><b style="color:#FFB020;">Invested:</b> ${{formatCurrency(invVal, currentCurrency)}}</div>` +
+            `<div style="font-family:'IBM Plex Mono',monospace; font-size:0.80rem; margin-top:2px; border-top:1px solid #212C3B; padding-top:2px;"><b style="color:#94A3B8;">Net Alpha:</b> <span style="color:${{pointColor}}; font-weight:600;">${{sign}}${{formatCurrency(Math.abs(pnl), currentCurrency)}} (${{pnlPct >= 0 ? '+' : ''}}${{pnlPct.toFixed(2)}}%)</span></div>`;
     }});
 
     chartArea.addEventListener('mouseleave', () => {{
@@ -2165,36 +2165,36 @@ if page == "📊 Portfolio Overview":
         s50 = float(df_sym['close'].rolling(50, min_periods=1).mean().iloc[-1]) if not df_sym.empty else last_c
         is_bull = (last_c >= s50)
         regime_label = "BULL REGIME (P ≥ SMA50)" if is_bull else "BEAR DEFENSE (P < SMA50)"
-        regime_color = "#91B99A" if is_bull else "#C77F78"
+        regime_color = "#00E599" if is_bull else "#FF3B56"
 
         with col_k1:
             st.markdown(f"""
-            <div style="background:#171C18; border:1px solid #343D34; padding:7px 10px; border-radius:2px;">
-                <div style="font-family:'IBM Plex Mono',monospace; font-size:0.64rem; color:#92998D;">LTP / CLOSE</div>
-                <div style="font-family:'IBM Plex Mono',monospace; font-size:1.00rem; font-weight:700; color:#D6D9CD;">{CURRENCY_SYMBOL}{last_c:,.2f}</div>
+            <div style="background:#0D1117; border:1px solid #212C3B; padding:7px 10px; border-radius:2px;">
+                <div style="font-family:'IBM Plex Mono',monospace; font-size:0.64rem; color:#94A3B8;">LTP / CLOSE</div>
+                <div style="font-family:'IBM Plex Mono',monospace; font-size:1.00rem; font-weight:700; color:#F1F5F9;">{CURRENCY_SYMBOL}{last_c:,.2f}</div>
             </div>
             """, unsafe_allow_html=True)
 
         with col_k2:
-            chg_c = "#91B99A" if d_chg >= 0 else "#C77F78"
+            chg_c = "#00E599" if d_chg >= 0 else "#FF3B56"
             st.markdown(f"""
-            <div style="background:#171C18; border:1px solid #343D34; padding:7px 10px; border-radius:2px;">
-                <div style="font-family:'IBM Plex Mono',monospace; font-size:0.64rem; color:#92998D;">24H MOMENTUM</div>
+            <div style="background:#0D1117; border:1px solid #212C3B; padding:7px 10px; border-radius:2px;">
+                <div style="font-family:'IBM Plex Mono',monospace; font-size:0.64rem; color:#94A3B8;">24H MOMENTUM</div>
                 <div style="font-family:'IBM Plex Mono',monospace; font-size:1.00rem; font-weight:700; color:{chg_c};">{'+' if d_chg>=0 else ''}{d_chg_pct:.2f}%</div>
             </div>
             """, unsafe_allow_html=True)
 
         with col_k3:
             st.markdown(f"""
-            <div style="background:#171C18; border:1px solid #343D34; padding:7px 10px; border-radius:2px;">
-                <div style="font-family:'IBM Plex Mono',monospace; font-size:0.64rem; color:#D2AC70;">SMA 20 (TREND)</div>
-                <div style="font-family:'IBM Plex Mono',monospace; font-size:1.00rem; font-weight:700; color:#D2AC70;">{CURRENCY_SYMBOL}{s20:,.2f}</div>
+            <div style="background:#0D1117; border:1px solid #212C3B; padding:7px 10px; border-radius:2px;">
+                <div style="font-family:'IBM Plex Mono',monospace; font-size:0.64rem; color:#FFB020;">SMA 20 (TREND)</div>
+                <div style="font-family:'IBM Plex Mono',monospace; font-size:1.00rem; font-weight:700; color:#FFB020;">{CURRENCY_SYMBOL}{s20:,.2f}</div>
             </div>
             """, unsafe_allow_html=True)
 
         with col_k4:
             st.markdown(f"""
-            <div style="background:#171C18; border:1px solid #343D34; padding:7px 10px; border-radius:2px;">
+            <div style="background:#0D1117; border:1px solid #212C3B; padding:7px 10px; border-radius:2px;">
                 <div style="font-family:'IBM Plex Mono',monospace; font-size:0.64rem; color:{regime_color};">REGIME ANCHOR</div>
                 <div style="font-family:'IBM Plex Mono',monospace; font-size:0.75rem; font-weight:700; color:{regime_color}; margin-top:3px;">{regime_label}</div>
             </div>
@@ -2225,22 +2225,22 @@ if page == "📊 Portfolio Overview":
             s_hi = item["high"]
             s_lo = item["low"]
             s_reg = item["regime"]
-            c_color = "#91B99A" if s_chg >= 0 else "#C77F78"
-            reg_badge_col = "#91B99A" if s_reg == "BULL" else "#C77F78"
-            reg_bg = "rgba(145, 185, 154, 0.12)" if s_reg == "BULL" else "rgba(199, 127, 120, 0.12)"
+            c_color = "#00E599" if s_chg >= 0 else "#FF3B56"
+            reg_badge_col = "#00E599" if s_reg == "BULL" else "#FF3B56"
+            reg_bg = "rgba(0, 229, 153, 0.12)" if s_reg == "BULL" else "rgba(255, 59, 86, 0.12)"
 
-            watch_rows_html += f"""<tr style="border-bottom: 1px solid #343D34;">
-<td style="padding: 7px 6px; font-weight: 700; color: #D6D9CD; font-family: 'IBM Plex Mono', monospace;">
+            watch_rows_html += f"""<tr style="border-bottom: 1px solid #212C3B;">
+<td style="padding: 7px 6px; font-weight: 700; color: #F1F5F9; font-family: 'IBM Plex Mono', monospace;">
 {s_name}
-<div style="font-size: 0.62rem; color: #92998D; font-weight: 400;">{s_desc}</div>
+<div style="font-size: 0.62rem; color: #94A3B8; font-weight: 400;">{s_desc}</div>
 </td>
-<td style="padding: 7px 6px; text-align: right; color: #D6D9CD; font-family: 'IBM Plex Mono', monospace; font-weight: 600;">
+<td style="padding: 7px 6px; text-align: right; color: #F1F5F9; font-family: 'IBM Plex Mono', monospace; font-weight: 600;">
 {CURRENCY_SYMBOL}{s_px:,.2f}
 </td>
 <td style="padding: 7px 6px; text-align: right; color: {c_color}; font-family: 'IBM Plex Mono', monospace; font-weight: 600;">
 {'+' if s_chg >= 0 else ''}{s_pct:.2f}%
 </td>
-<td style="padding: 7px 6px; text-align: right; color: #92998D; font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem;">
+<td style="padding: 7px 6px; text-align: right; color: #94A3B8; font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem;">
 H:{s_hi:,.1f}<br>L:{s_lo:,.1f}
 </td>
 <td style="padding: 7px 6px; text-align: center;">
@@ -2252,12 +2252,12 @@ H:{s_hi:,.1f}<br>L:{s_lo:,.1f}
 
         render_raw_html(f"""
         <div class="cyber-card" style="padding: 14px 16px; min-height: 400px;">
-            <div class="kpi-title" style="color: #9BBF91; font-size: 0.72rem; margin-bottom: 10px;">
+            <div class="kpi-title" style="color: #00E599; font-size: 0.72rem; margin-bottom: 10px;">
                 // 02. REAL-TIME MARKET WATCHLIST (BENCHMARKS & CORE ASSETS)
             </div>
             <table style="width: 100%; border-collapse: collapse; font-family: 'IBM Plex Mono', monospace; font-size: 0.78rem;">
                 <thead>
-                    <tr style="border-bottom: 1px solid #343D34; color: #92998D; font-size: 0.66rem; text-transform: uppercase;">
+                    <tr style="border-bottom: 1px solid #212C3B; color: #94A3B8; font-size: 0.66rem; text-transform: uppercase;">
                         <th style="text-align: left; padding: 6px;">ASSET</th>
                         <th style="text-align: right; padding: 6px;">LTP</th>
                         <th style="text-align: right; padding: 6px;">24H CHG</th>
@@ -2275,7 +2275,7 @@ H:{s_hi:,.1f}<br>L:{s_lo:,.1f}
     with col_allocation:
         positions = broker.get_positions_detailed()
         terminal_palette = [
-            "#9BBF91", "#D2AC70", "#83AAA0", "#91B99A", "#7A8C7A",
+            "#00E599", "#FFB020", "#00D8F6", "#00E599", "#7A8C7A",
             "#A3B899", "#C29B63", "#6E948B", "#B8A37E", "#7D9C7D",
             "#647A64", "#B58A55"
         ]
@@ -2307,21 +2307,21 @@ H:{s_hi:,.1f}<br>L:{s_lo:,.1f}
             fig.update_traces(
                 textposition='inside',
                 textinfo='percent+label',
-                marker=dict(line=dict(color='#1B211C', width=1.5)),
+                marker=dict(line=dict(color='#131822', width=1.5)),
                 hovertemplate=f"<b>%{{label}}</b><br>Allocation: {CURRENCY_SYMBOL}%{{value:,.2f}}<br>Share: %{{percent}}<extra></extra>"
             )
             fig.update_layout(
                 showlegend=False,
                 margin=dict(t=35, b=10, l=10, r=10),
-                paper_bgcolor='#1B211C',
-                plot_bgcolor='#1B211C',
-                font=dict(family="IBM Plex Mono, monospace", color="#D6D9CD", size=10),
+                paper_bgcolor='#131822',
+                plot_bgcolor='#131822',
+                font=dict(family="IBM Plex Mono, monospace", color="#F1F5F9", size=10),
                 annotations=[dict(
-                    text=f"<b>PORTFOLIO</b><br><span style='font-size:16px; color:#9BBF91;'>{CURRENCY_SYMBOL}{equity:,.0f}</span><br><span style='font-size:10px; color:#92998D;'>CASH {cash_pct:.1f}%</span>",
+                    text=f"<b>PORTFOLIO</b><br><span style='font-size:16px; color:#00E599;'>{CURRENCY_SYMBOL}{equity:,.0f}</span><br><span style='font-size:10px; color:#94A3B8;'>CASH {cash_pct:.1f}%</span>",
                     x=0.5, y=0.5,
                     font_size=12,
                     font_family="IBM Plex Mono, monospace",
-                    font_color="#D6D9CD",
+                    font_color="#F1F5F9",
                     showarrow=False
                 )]
             )
@@ -2330,29 +2330,29 @@ H:{s_hi:,.1f}<br>L:{s_lo:,.1f}
             winners = df_pos[df_pos['unrealized_pl'] > 0]
             losers = df_pos[df_pos['unrealized_pl'] < 0]
             win_rate = (len(winners) / len(df_pos) * 100) if len(df_pos) > 0 else 0.0
-            wr_color = "#91B99A" if win_rate >= 50.0 else "#C77F78"
+            wr_color = "#00E599" if win_rate >= 50.0 else "#FF3B56"
 
             st.markdown(f"""
             <div class="cyber-card" style="margin-top: 10px;">
-                <div class="kpi-title" style="color: #9BBF91; font-size: 0.70rem;">// 03. EXPOSURE TELEMETRY</div>
-                <div style="display: flex; justify-content: space-between; padding: 7px 0; border-bottom: 1px solid #343D34; font-family: 'IBM Plex Mono', monospace; font-size: 0.78rem;">
-                    <span style="color: #92998D;">Invested Equities Value:</span>
-                    <span style="color: #D6D9CD; font-weight: 600;">{CURRENCY_SYMBOL}{invested_capital:,.2f} ({invested_pct:.1f}%)</span>
+                <div class="kpi-title" style="color: #00E599; font-size: 0.70rem;">// 03. EXPOSURE TELEMETRY</div>
+                <div style="display: flex; justify-content: space-between; padding: 7px 0; border-bottom: 1px solid #212C3B; font-family: 'IBM Plex Mono', monospace; font-size: 0.78rem;">
+                    <span style="color: #94A3B8;">Invested Equities Value:</span>
+                    <span style="color: #F1F5F9; font-weight: 600;">{CURRENCY_SYMBOL}{invested_capital:,.2f} ({invested_pct:.1f}%)</span>
                 </div>
-                <div style="display: flex; justify-content: space-between; padding: 7px 0; border-bottom: 1px solid #343D34; font-family: 'IBM Plex Mono', monospace; font-size: 0.78rem;">
-                    <span style="color: #92998D;">Liquid Cash Reserve:</span>
-                    <span style="color: #D2AC70; font-weight: 600;">{CURRENCY_SYMBOL}{cash:,.2f} ({cash_pct:.1f}%)</span>
+                <div style="display: flex; justify-content: space-between; padding: 7px 0; border-bottom: 1px solid #212C3B; font-family: 'IBM Plex Mono', monospace; font-size: 0.78rem;">
+                    <span style="color: #94A3B8;">Liquid Cash Reserve:</span>
+                    <span style="color: #FFB020; font-weight: 600;">{CURRENCY_SYMBOL}{cash:,.2f} ({cash_pct:.1f}%)</span>
                 </div>
-                <div style="display: flex; justify-content: space-between; padding: 7px 0; border-bottom: 1px solid #343D34; font-family: 'IBM Plex Mono', monospace; font-size: 0.78rem;">
-                    <span style="color: #92998D;">Active Holdings:</span>
-                    <span style="color: #D6D9CD; font-weight: 600;">{len(positions)} Stocks (Dynamic Sizing)</span>
+                <div style="display: flex; justify-content: space-between; padding: 7px 0; border-bottom: 1px solid #212C3B; font-family: 'IBM Plex Mono', monospace; font-size: 0.78rem;">
+                    <span style="color: #94A3B8;">Active Holdings:</span>
+                    <span style="color: #F1F5F9; font-weight: 600;">{len(positions)} Stocks (Dynamic Sizing)</span>
                 </div>
-                <div style="display: flex; justify-content: space-between; padding: 7px 0; border-bottom: 1px solid #343D34; font-family: 'IBM Plex Mono', monospace; font-size: 0.78rem;">
-                    <span style="color: #92998D;">Single Stock Ceiling:</span>
-                    <span style="color: #D6D9CD; font-weight: 600;">15.0% ({CURRENCY_SYMBOL}{equity*0.15:,.2f})</span>
+                <div style="display: flex; justify-content: space-between; padding: 7px 0; border-bottom: 1px solid #212C3B; font-family: 'IBM Plex Mono', monospace; font-size: 0.78rem;">
+                    <span style="color: #94A3B8;">Single Stock Ceiling:</span>
+                    <span style="color: #F1F5F9; font-weight: 600;">15.0% ({CURRENCY_SYMBOL}{equity*0.15:,.2f})</span>
                 </div>
                 <div style="display: flex; justify-content: space-between; padding: 7px 0; font-family: 'IBM Plex Mono', monospace; font-size: 0.78rem;">
-                    <span style="color: #92998D;">Open Win Rate:</span>
+                    <span style="color: #94A3B8;">Open Win Rate:</span>
                     <span style="font-weight: 700; color: {wr_color};">{win_rate:.1f}% ({len(winners)}W / {len(losers)}L)</span>
                 </div>
             </div>
@@ -2370,26 +2370,26 @@ H:{s_hi:,.1f}<br>L:{s_lo:,.1f}
                 values="Value",
                 title="CAPITAL ALLOCATION (100% CASH DEFENSE)",
                 hole=0.62,
-                color_discrete_sequence=["#9BBF91"]
+                color_discrete_sequence=["#00E599"]
             )
             fig.update_traces(
                 textposition='inside',
                 textinfo='percent+label',
-                marker=dict(line=dict(color='#1B211C', width=1.5)),
+                marker=dict(line=dict(color='#131822', width=1.5)),
                 hovertemplate=f"<b>%{{label}}</b><br>Buffer: {CURRENCY_SYMBOL}%{{value:,.2f}}<br>Share: 100%<extra></extra>"
             )
             fig.update_layout(
                 showlegend=False,
                 margin=dict(t=35, b=10, l=10, r=10),
-                paper_bgcolor='#1B211C',
-                plot_bgcolor='#1B211C',
-                font=dict(family="IBM Plex Mono, monospace", color="#D6D9CD", size=10),
+                paper_bgcolor='#131822',
+                plot_bgcolor='#131822',
+                font=dict(family="IBM Plex Mono, monospace", color="#F1F5F9", size=10),
                 annotations=[dict(
-                    text=f"<b>PORTFOLIO</b><br><span style='font-size:16px; color:#9BBF91;'>{CURRENCY_SYMBOL}{equity:,.0f}</span><br><span style='font-size:10px; color:#92998D;'>CASH 100%</span>",
+                    text=f"<b>PORTFOLIO</b><br><span style='font-size:16px; color:#00E599;'>{CURRENCY_SYMBOL}{equity:,.0f}</span><br><span style='font-size:10px; color:#94A3B8;'>CASH 100%</span>",
                     x=0.5, y=0.5,
                     font_size=12,
                     font_family="IBM Plex Mono, monospace",
-                    font_color="#D6D9CD",
+                    font_color="#F1F5F9",
                     showarrow=False
                 )]
             )
@@ -2398,26 +2398,26 @@ H:{s_hi:,.1f}<br>L:{s_lo:,.1f}
             status_note = "BEAR DEFENSE (50-SMA Downtick - Capital Preserved)" if is_india_mode else "100% CASH BUFFER"
             st.markdown(f"""
             <div class="cyber-card" style="margin-top: 10px;">
-                <div class="kpi-title" style="color: #9BBF91; font-size: 0.70rem;">// 03. EXPOSURE TELEMETRY</div>
-                <div style="display: flex; justify-content: space-between; padding: 7px 0; border-bottom: 1px solid #343D34; font-family: 'IBM Plex Mono', monospace; font-size: 0.78rem;">
-                    <span style="color: #92998D;">Invested Equities Value:</span>
-                    <span style="color: #D6D9CD; font-weight: 600;">{CURRENCY_SYMBOL}0.00 (0.0%)</span>
+                <div class="kpi-title" style="color: #00E599; font-size: 0.70rem;">// 03. EXPOSURE TELEMETRY</div>
+                <div style="display: flex; justify-content: space-between; padding: 7px 0; border-bottom: 1px solid #212C3B; font-family: 'IBM Plex Mono', monospace; font-size: 0.78rem;">
+                    <span style="color: #94A3B8;">Invested Equities Value:</span>
+                    <span style="color: #F1F5F9; font-weight: 600;">{CURRENCY_SYMBOL}0.00 (0.0%)</span>
                 </div>
-                <div style="display: flex; justify-content: space-between; padding: 7px 0; border-bottom: 1px solid #343D34; font-family: 'IBM Plex Mono', monospace; font-size: 0.78rem;">
-                    <span style="color: #92998D;">Liquid Cash Reserve:</span>
-                    <span style="color: #D2AC70; font-weight: 600;">{CURRENCY_SYMBOL}{cash:,.2f} (100.0%)</span>
+                <div style="display: flex; justify-content: space-between; padding: 7px 0; border-bottom: 1px solid #212C3B; font-family: 'IBM Plex Mono', monospace; font-size: 0.78rem;">
+                    <span style="color: #94A3B8;">Liquid Cash Reserve:</span>
+                    <span style="color: #FFB020; font-weight: 600;">{CURRENCY_SYMBOL}{cash:,.2f} (100.0%)</span>
                 </div>
-                <div style="display: flex; justify-content: space-between; padding: 7px 0; border-bottom: 1px solid #343D34; font-family: 'IBM Plex Mono', monospace; font-size: 0.78rem;">
-                    <span style="color: #92998D;">Active Holdings:</span>
-                    <span style="color: #D6D9CD; font-weight: 600;">0 Slots ({'Exploratory Shadow Track' if is_india_mode else 'US Desk'})</span>
+                <div style="display: flex; justify-content: space-between; padding: 7px 0; border-bottom: 1px solid #212C3B; font-family: 'IBM Plex Mono', monospace; font-size: 0.78rem;">
+                    <span style="color: #94A3B8;">Active Holdings:</span>
+                    <span style="color: #F1F5F9; font-weight: 600;">0 Slots ({'Exploratory Shadow Track' if is_india_mode else 'US Desk'})</span>
                 </div>
-                <div style="display: flex; justify-content: space-between; padding: 7px 0; border-bottom: 1px solid #343D34; font-family: 'IBM Plex Mono', monospace; font-size: 0.78rem;">
-                    <span style="color: #92998D;">Macro Benchmark Status:</span>
-                    <span style="color: #D2AC70; font-weight: 600;">{status_note}</span>
+                <div style="display: flex; justify-content: space-between; padding: 7px 0; border-bottom: 1px solid #212C3B; font-family: 'IBM Plex Mono', monospace; font-size: 0.78rem;">
+                    <span style="color: #94A3B8;">Macro Benchmark Status:</span>
+                    <span style="color: #FFB020; font-weight: 600;">{status_note}</span>
                 </div>
                 <div style="display: flex; justify-content: space-between; padding: 7px 0; font-family: 'IBM Plex Mono', monospace; font-size: 0.78rem;">
-                    <span style="color: #92998D;">Tactical Yield:</span>
-                    <span style="color: #91B99A; font-weight: 600;">Overnight Compounding Active</span>
+                    <span style="color: #94A3B8;">Tactical Yield:</span>
+                    <span style="color: #00E599; font-weight: 600;">Overnight Compounding Active</span>
                 </div>
             </div>
             """, unsafe_allow_html=True)
@@ -2445,39 +2445,39 @@ H:{s_hi:,.1f}<br>L:{s_lo:,.1f}
 
             if is_breached:
                 r_status = "STOP BREACH"
-                r_col = "#C77F78"
+                r_col = "#FF3B56"
             elif is_warning:
                 r_status = "WATCHLIST (<2.5%)"
-                r_col = "#D2AC70"
+                r_col = "#FFB020"
             elif unreal_pl > 0:
                 r_status = "PROFITABLE"
-                r_col = "#91B99A"
+                r_col = "#00E599"
             else:
                 r_status = "IN BUFFER"
-                r_col = "#83AAA0"
+                r_col = "#00D8F6"
 
-            pl_color = "#91B99A" if unreal_pl >= 0 else "#C77F78"
+            pl_color = "#00E599" if unreal_pl >= 0 else "#FF3B56"
 
-            pos_rows_html += f"""<tr style="border-bottom: 1px solid #343D34;">
-<td style="padding: 8px 6px; font-weight: 700; color: #D6D9CD; font-family: 'IBM Plex Mono', monospace;">
+            pos_rows_html += f"""<tr style="border-bottom: 1px solid #212C3B;">
+<td style="padding: 8px 6px; font-weight: 700; color: #F1F5F9; font-family: 'IBM Plex Mono', monospace;">
 {sym}
 </td>
-<td style="padding: 8px 6px; text-align: right; color: #D6D9CD; font-family: 'IBM Plex Mono', monospace;">
+<td style="padding: 8px 6px; text-align: right; color: #F1F5F9; font-family: 'IBM Plex Mono', monospace;">
 {int(shares) if shares.is_integer() else shares}
 </td>
-<td style="padding: 8px 6px; text-align: right; color: #92998D; font-family: 'IBM Plex Mono', monospace;">
+<td style="padding: 8px 6px; text-align: right; color: #94A3B8; font-family: 'IBM Plex Mono', monospace;">
 {CURRENCY_SYMBOL}{entry_p:,.2f}
 </td>
-<td style="padding: 8px 6px; text-align: right; color: #D6D9CD; font-family: 'IBM Plex Mono', monospace; font-weight: 600;">
+<td style="padding: 8px 6px; text-align: right; color: #F1F5F9; font-family: 'IBM Plex Mono', monospace; font-weight: 600;">
 {CURRENCY_SYMBOL}{cur_p:,.2f}
 </td>
-<td style="padding: 8px 6px; text-align: right; color: #D6D9CD; font-family: 'IBM Plex Mono', monospace;">
+<td style="padding: 8px 6px; text-align: right; color: #F1F5F9; font-family: 'IBM Plex Mono', monospace;">
 {CURRENCY_SYMBOL}{mkt_v:,.2f}
 </td>
 <td style="padding: 8px 6px; text-align: right; color: {pl_color}; font-family: 'IBM Plex Mono', monospace; font-weight: 600;">
 {'+' if unreal_pl>=0 else ''}{CURRENCY_SYMBOL}{unreal_pl:,.2f} ({'+' if unreal_plpc>=0 else ''}{unreal_plpc*100:.2f}%)
 </td>
-<td style="padding: 8px 6px; text-align: right; color: #D2AC70; font-family: 'IBM Plex Mono', monospace;">
+<td style="padding: 8px 6px; text-align: right; color: #FFB020; font-family: 'IBM Plex Mono', monospace;">
 {CURRENCY_SYMBOL}{sl_price:,.2f} ({'+' if pct_buf>=0 else ''}{pct_buf:.1f}%)
 </td>
 <td style="padding: 8px 6px; text-align: center;">
@@ -2489,12 +2489,12 @@ H:{s_hi:,.1f}<br>L:{s_lo:,.1f}
 
         render_raw_html(f"""
         <div class="cyber-card" style="padding: 14px 16px;">
-            <div class="kpi-title" style="color: #9BBF91; font-size: 0.72rem; margin-bottom: 10px;">
+            <div class="kpi-title" style="color: #00E599; font-size: 0.72rem; margin-bottom: 10px;">
                 // 04. OPEN POSITIONS & RISK GATING SNAPSHOT
             </div>
             <table style="width: 100%; border-collapse: collapse; font-family: 'IBM Plex Mono', monospace; font-size: 0.78rem;">
                 <thead>
-                    <tr style="border-bottom: 1px solid #343D34; color: #92998D; font-size: 0.66rem; text-transform: uppercase;">
+                    <tr style="border-bottom: 1px solid #212C3B; color: #94A3B8; font-size: 0.66rem; text-transform: uppercase;">
                         <th style="text-align: left; padding: 6px;">TICKER</th>
                         <th style="text-align: right; padding: 6px;">SHARES</th>
                         <th style="text-align: right; padding: 6px;">AVG ENTRY</th>
@@ -2514,11 +2514,11 @@ H:{s_hi:,.1f}<br>L:{s_lo:,.1f}
     else:
         render_raw_html(f"""
         <div class="cyber-card" style="padding: 14px 16px;">
-            <div class="kpi-title" style="color: #9BBF91; font-size: 0.72rem; margin-bottom: 10px;">
+            <div class="kpi-title" style="color: #00E599; font-size: 0.72rem; margin-bottom: 10px;">
                 // 04. OPEN POSITIONS & RISK GATING SNAPSHOT
             </div>
-            <div style="padding: 16px; background: #171C18; border: 1px solid #343D34; border-radius: 2px; text-align: center; font-family: 'IBM Plex Mono', monospace; font-size: 0.82rem; color: #92998D;">
-                <div style="color: #9BBF91; font-weight: 700; margin-bottom: 4px;">[STATUS: 0 OPEN POSITIONS RECORDED]</div>
+            <div style="padding: 16px; background: #0D1117; border: 1px solid #212C3B; border-radius: 2px; text-align: center; font-family: 'IBM Plex Mono', monospace; font-size: 0.82rem; color: #94A3B8;">
+                <div style="color: #00E599; font-weight: 700; margin-bottom: 4px;">[STATUS: 0 OPEN POSITIONS RECORDED]</div>
                 100% CAPITAL PRESERVED IN LIQUID BUFFER • REPO YIELD @ 6.5% APY • ZERO DRAWDOWN EXPOSURE
             </div>
         </div>
@@ -2536,28 +2536,28 @@ H:{s_hi:,.1f}<br>L:{s_lo:,.1f}
             o_sym = o.get("symbol", "N/A")
             o_qty = o.get("qty", 0)
             o_side = o.get("side", "BUY")
-            o_side_col = "#91B99A" if o_side.upper() == "BUY" else "#C77F78"
+            o_side_col = "#00E599" if o_side.upper() == "BUY" else "#FF3B56"
             o_type = o.get("type", "MARKET")
             o_status = o.get("status", "QUEUED")
-            q_rows_html += f"""<tr style="border-bottom: 1px solid #343D34;">
-<td style="padding: 6px; font-weight: 700; color: #D6D9CD;">{o_sym}</td>
+            q_rows_html += f"""<tr style="border-bottom: 1px solid #212C3B;">
+<td style="padding: 6px; font-weight: 700; color: #F1F5F9;">{o_sym}</td>
 <td style="padding: 6px; text-align: center; color: {o_side_col}; font-weight: 700;">{o_side}</td>
-<td style="padding: 6px; text-align: right; color: #D6D9CD;">{o_qty}</td>
-<td style="padding: 6px; text-align: center; color: #92998D;">{o_type}</td>
-<td style="padding: 6px; text-align: right; color: #D2AC70;">{o_status}</td>
+<td style="padding: 6px; text-align: right; color: #F1F5F9;">{o_qty}</td>
+<td style="padding: 6px; text-align: center; color: #94A3B8;">{o_type}</td>
+<td style="padding: 6px; text-align: right; color: #FFB020;">{o_status}</td>
 </tr>"""
 
         render_raw_html(f"""
         <div class="cyber-card" style="padding: 14px 16px;">
-            <div class="kpi-title" style="color: #9BBF91; font-size: 0.72rem; margin-bottom: 10px;">
+            <div class="kpi-title" style="color: #00E599; font-size: 0.72rem; margin-bottom: 10px;">
                 // 05. RECENT TRADE ACTIVITY & RECONCILIATION AUDIT
             </div>
-            <div style="font-family: 'IBM Plex Mono', monospace; font-size: 0.76rem; color: #D2AC70; margin-bottom: 8px;">
+            <div style="font-family: 'IBM Plex Mono', monospace; font-size: 0.76rem; color: #FFB020; margin-bottom: 8px;">
                 ⚡ ACTIVE QUEUED ORDERS ({len(open_orders_cached)} PENDING):
             </div>
             <table style="width: 100%; border-collapse: collapse; font-family: 'IBM Plex Mono', monospace; font-size: 0.76rem;">
                 <thead>
-                    <tr style="border-bottom: 1px solid #343D34; color: #92998D; font-size: 0.65rem;">
+                    <tr style="border-bottom: 1px solid #212C3B; color: #94A3B8; font-size: 0.65rem;">
                         <th style="text-align: left; padding: 6px;">SYMBOL</th>
                         <th style="text-align: center; padding: 6px;">SIDE</th>
                         <th style="text-align: right; padding: 6px;">QTY</th>
@@ -2573,16 +2573,16 @@ H:{s_hi:,.1f}<br>L:{s_lo:,.1f}
         now_utc = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
         render_raw_html(f"""
         <div class="cyber-card" style="padding: 14px 16px;">
-            <div class="kpi-title" style="color: #9BBF91; font-size: 0.72rem; margin-bottom: 10px;">
+            <div class="kpi-title" style="color: #00E599; font-size: 0.72rem; margin-bottom: 10px;">
                 // 05. RECENT TRADE ACTIVITY & RECONCILIATION AUDIT
             </div>
-            <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: #171C18; border: 1px solid #343D34; border-radius: 2px; font-family: 'IBM Plex Mono', monospace; font-size: 0.78rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: #0D1117; border: 1px solid #212C3B; border-radius: 2px; font-family: 'IBM Plex Mono', monospace; font-size: 0.78rem;">
                 <div>
-                    <span style="color: #9BBF91; font-weight: 700;">● RECONCILED</span>
-                    <span style="color: #92998D; margin-left: 10px;">ZERO UNFILLED SLIPPAGE • 0 OPEN ORDERS IN QUEUE</span>
+                    <span style="color: #00E599; font-weight: 700;">● RECONCILED</span>
+                    <span style="color: #94A3B8; margin-left: 10px;">ZERO UNFILLED SLIPPAGE • 0 OPEN ORDERS IN QUEUE</span>
                 </div>
-                <div style="color: #92998D; font-size: 0.72rem;">
-                    AUDIT TIMESTAMP: <span style="color: #D6D9CD;">{now_utc}</span>
+                <div style="color: #94A3B8; font-size: 0.72rem;">
+                    AUDIT TIMESTAMP: <span style="color: #F1F5F9;">{now_utc}</span>
                 </div>
             </div>
         </div>
@@ -2719,17 +2719,17 @@ elif page == "📋 Positions & Stop-Loss":
 
             h_labels = ["Profitable (> 0%)", "Holding in Safe Buffer", "Near Stop Watchlist (< 2.5%)", "Stop Breach Triggered"]
             h_values = [prof_count, hold_count, watch_count, breach_count]
-            h_colors = ["#91B99A", "#92998D", "#D2AC70", "#C77F78"]
+            h_colors = ["#00E599", "#94A3B8", "#FFB020", "#FF3B56"]
 
             f_labels = [l for l, v in zip(h_labels, h_values) if v > 0]
             f_values = [v for v in h_values if v > 0]
             f_colors = [c for c, v in zip(h_colors, h_values) if v > 0]
 
-            health_center = f"<b>HEALTH</b><br><span style='font-size:18px; color:{'#91B99A' if breach_count == 0 else '#C77F78'};'>{win_rate:.0f}%</span><br><span style='font-size:10px; color:#92998D;'>WIN RATE</span>"
+            health_center = f"<b>HEALTH</b><br><span style='font-size:18px; color:{'#00E599' if breach_count == 0 else '#FF3B56'};'>{win_rate:.0f}%</span><br><span style='font-size:10px; color:#94A3B8;'>WIN RATE</span>"
             fig_health = create_donut_chart(
                 labels=f_labels if f_values else ["Active Holdings"],
                 values=f_values if f_values else [len(positions)],
-                colors=f_colors if f_values else ["#91B99A"],
+                colors=f_colors if f_values else ["#00E599"],
                 center_text=health_center,
                 title="HOLDING HEALTH & STOP-LOSS GATING DISTRIBUTION",
                 height=260,
@@ -2748,9 +2748,9 @@ elif page == "📋 Positions & Stop-Loss":
                 c_labels = top_holdings["symbol"].tolist()
                 c_values = top_holdings["market_value"].round(2).tolist()
 
-            pos_palette = ["#9BBF91", "#D2AC70", "#83AAA0", "#91B99A", "#7A8C7A", "#A3B899", "#C29B63", "#6E948B"]
+            pos_palette = ["#00E599", "#FFB020", "#00D8F6", "#00E599", "#7A8C7A", "#A3B899", "#C29B63", "#6E948B"]
             total_holdings_val = df_pos["market_value"].sum()
-            conc_center = f"<b>INVESTED</b><br><span style='font-size:16px; color:#9BBF91;'>{CURRENCY_SYMBOL}{total_holdings_val:,.0f}</span><br><span style='font-size:10px; color:#92998D;'>{len(positions)} ASSETS</span>"
+            conc_center = f"<b>INVESTED</b><br><span style='font-size:16px; color:#00E599;'>{CURRENCY_SYMBOL}{total_holdings_val:,.0f}</span><br><span style='font-size:10px; color:#94A3B8;'>{len(positions)} ASSETS</span>"
 
             fig_conc = create_donut_chart(
                 labels=c_labels,
@@ -2783,22 +2783,22 @@ elif page == "📋 Positions & Stop-Loss":
         def color_pnl_cells(v):
             if isinstance(v, (int, float)):
                 if v > 0:
-                    return "color: #91B99A; font-weight: 600;"
+                    return "color: #00E599; font-weight: 600;"
                 elif v < 0:
-                    return "color: #C77F78; font-weight: 600;"
+                    return "color: #FF3B56; font-weight: 600;"
             return ""
 
         def color_buffer_cells(v):
             if isinstance(v, (int, float)):
                 if v <= 2.5:
-                    return "color: #C77F78; font-weight: 600;"
+                    return "color: #FF3B56; font-weight: 600;"
                 else:
-                    return "color: #91B99A; font-weight: 600;"
+                    return "color: #00E599; font-weight: 600;"
             return ""
 
         def color_stop_limit(v):
             if isinstance(v, (int, float)):
-                return "color: #C77F78; font-weight: 600;"
+                return "color: #FF3B56; font-weight: 600;"
             return ""
 
         styled_pos_df = (
@@ -2839,11 +2839,11 @@ elif page == "📋 Positions & Stop-Loss":
                 h_sp = r[f"Stop Price ({CURRENCY_SYMBOL})"]
                 h_breached = r["is_breached"]
                 h_pos = (h_pl >= 0)
-                h_color = "#91B99A" if h_pos else "#C77F78"
+                h_color = "#00E599" if h_pos else "#FF3B56"
                 h_icon = "▲" if h_pos else "▼"
                 h_tag = "NSE CNC" if is_india_mode else "US EQUITY"
                 
-                gtt_pill_style = "border-color: #C77F78; color: #C77F78;" if h_breached else "border-color: #91B99A; color: #91B99A;"
+                gtt_pill_style = "border-color: #FF3B56; color: #FF3B56;" if h_breached else "border-color: #00E599; color: #00E599;"
                 gtt_pill_text = f"🛑 BREACH: {CURRENCY_SYMBOL}{h_sp:,.2f}" if h_breached else f"🛡️ GTT: {CURRENCY_SYMBOL}{h_sp:,.2f}"
 
                 st.markdown(f"""
@@ -2851,18 +2851,18 @@ elif page == "📋 Positions & Stop-Loss":
                     <div style="display: flex; align-items: center;">
                         <div class="groww-avatar">{h_avatar}</div>
                         <div>
-                            <div style="font-size: 0.96rem; font-weight: 700; color: #D6D9CD; display: flex; align-items: center; gap: 6px;">
-                                {h_clean} <span style="font-size: 0.68rem; color: #92998D; font-weight: 500; font-family: 'IBM Plex Mono', monospace; background: #171C18; border: 1px solid #343D34; padding: 1px 6px; border-radius: 2px;">{h_tag}</span>
+                            <div style="font-size: 0.96rem; font-weight: 700; color: #F1F5F9; display: flex; align-items: center; gap: 6px;">
+                                {h_clean} <span style="font-size: 0.68rem; color: #94A3B8; font-weight: 500; font-family: 'IBM Plex Mono', monospace; background: #0D1117; border: 1px solid #212C3B; padding: 1px 6px; border-radius: 2px;">{h_tag}</span>
                             </div>
-                            <div style="font-size: 0.74rem; color: #92998D; margin-top: 3px; font-family: 'IBM Plex Mono', monospace;">
+                            <div style="font-size: 0.74rem; color: #94A3B8; margin-top: 3px; font-family: 'IBM Plex Mono', monospace;">
                                 {h_shares:,.0f} shares • Avg. {CURRENCY_SYMBOL}{h_entry:,.2f}
                             </div>
                         </div>
                     </div>
                     <div style="display: flex; gap: 24px; align-items: center;">
                         <div style="text-align: right;">
-                            <div style="font-size: 0.96rem; font-weight: 700; color: #D6D9CD; font-family: 'IBM Plex Mono', monospace;">{CURRENCY_SYMBOL}{h_cur:,.2f}</div>
-                            <div style="font-size: 0.72rem; color: #92998D; font-family: 'IBM Plex Mono', monospace;">LTP (Market)</div>
+                            <div style="font-size: 0.96rem; font-weight: 700; color: #F1F5F9; font-family: 'IBM Plex Mono', monospace;">{CURRENCY_SYMBOL}{h_cur:,.2f}</div>
+                            <div style="font-size: 0.72rem; color: #94A3B8; font-family: 'IBM Plex Mono', monospace;">LTP (Market)</div>
                         </div>
                         <div style="text-align: right; min-width: 140px;">
                             <div style="font-size: 0.96rem; font-weight: 700; color: {h_color}; font-family: 'IBM Plex Mono', monospace;">
@@ -2901,13 +2901,13 @@ elif page == "📋 Positions & Stop-Loss":
         <div class="cyber-card" style="margin-bottom: 14px;">
             <div style="display: flex; justify-content: space-between; align-items: center;">
                 <div>
-                    <div class="kpi-title" style="color: #9BBF91; font-size: 0.78rem; letter-spacing: 0.12em;">// 02. EDITABLE STOP-LOSS CONTROL DESK</div>
-                    <div style="font-size: 0.78rem; color: #92998D; margin-top: 3px;">
+                    <div class="kpi-title" style="color: #00E599; font-size: 0.78rem; letter-spacing: 0.12em;">// 02. EDITABLE STOP-LOSS CONTROL DESK</div>
+                    <div style="font-size: 0.78rem; color: #94A3B8; margin-top: 3px;">
                         Alter the stop-loss limit for any active position. Custom overrides are stored persistently in bot configuration and instantly enforced by both the Quant Engine and live risk monitors.
                     </div>
                 </div>
                 <div>
-                    <span class="status-pill" style="border-color: #9BBF91; color: #9BBF91;">BOT DEFAULT: {sl_manager.global_default_pct*100:.1f}%</span>
+                    <span class="status-pill" style="border-color: #00E599; color: #00E599;">BOT DEFAULT: {sl_manager.global_default_pct*100:.1f}%</span>
                 </div>
             </div>
         </div>
@@ -2934,13 +2934,13 @@ elif page == "📋 Positions & Stop-Loss":
                 pos_dollar_buf = pos_cur_price - pos_active_stop_price
                 pos_pct_buf = (pos_dollar_buf / pos_cur_price * 100) if pos_cur_price > 0 else 0.0
 
-                badge_bg = "rgba(255, 184, 0, 0.12)" if pos_is_custom else "rgba(0, 208, 156, 0.1)"
-                badge_border = "rgba(255, 184, 0, 0.35)" if pos_is_custom else "rgba(0, 208, 156, 0.28)"
-                badge_text_c = "#D2AC70" if pos_is_custom else "#91B99A"
+                badge_bg = "rgba(255, 176, 32, 0.12)" if pos_is_custom else "rgba(0, 229, 153, 0.15)"
+                badge_border = "rgba(255, 176, 32, 0.35)" if pos_is_custom else "rgba(0, 229, 153, 0.28)"
+                badge_text_c = "#FFB020" if pos_is_custom else "#00E599"
                 badge_label = "✏️ USER CUSTOM OVERRIDE" if pos_is_custom else "🤖 BOT ALGORITHM DEFAULT"
 
                 st.markdown(f"""
-                <div style="background: #171C18; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 10px; padding: 14px 16px; font-family: 'IBM Plex Mono', monospace;">
+                <div style="background: #0D1117; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 10px; padding: 14px 16px; font-family: 'IBM Plex Mono', monospace;">
                     <div style="display: flex; justify-content: space-between; align-items: center;">
                         <span>TICKER: <b style="color: #FFFFFF; font-size: 1.05rem; font-family: 'IBM Plex Mono';">{target_sym}</b></span>
                         <span style="font-size: 0.68rem; padding: 3px 8px; border-radius: 4px; background: {badge_bg}; border: 1px solid {badge_border}; color: {badge_text_c}; font-weight: 600;">
@@ -2957,15 +2957,15 @@ elif page == "📋 Positions & Stop-Loss":
                     </div>
                     <div style="display: flex; justify-content: space-between; font-size: 0.76rem; color: #71717A; margin-top: 5px;">
                         <span>Current Position P&L:</span>
-                        <span style="color: {'#91B99A' if pos_pl >= 0 else '#C77F78'}; font-weight: 600;">{format_pnl_str(pos_pl)} ({format_pct_str(pos_plpc)})</span>
+                        <span style="color: {'#00E599' if pos_pl >= 0 else '#FF3B56'}; font-weight: 600;">{format_pnl_str(pos_pl)} ({format_pct_str(pos_plpc)})</span>
                     </div>
                     <div style="display: flex; justify-content: space-between; font-size: 0.76rem; color: #71717A; margin-top: 8px; padding-top: 7px; border-top: 1px solid rgba(255,255,255,0.06);">
                         <span>Active Stop-Loss Trigger:</span>
-                        <span style="color: #C77F78; font-weight: 600;">{CURRENCY_SYMBOL}{pos_active_stop_price:,.2f} ({pos_active_sl_pct*100:+.1f}%)</span>
+                        <span style="color: #FF3B56; font-weight: 600;">{CURRENCY_SYMBOL}{pos_active_stop_price:,.2f} ({pos_active_sl_pct*100:+.1f}%)</span>
                     </div>
                     <div style="display: flex; justify-content: space-between; font-size: 0.76rem; color: #71717A; margin-top: 5px;">
                         <span>Safety Buffer to Stop:</span>
-                        <span style="color: {'#91B99A' if pos_pct_buf > 2.5 else '#C77F78'}; font-weight: 600;">{'+' if pos_dollar_buf >= 0 else ''}{CURRENCY_SYMBOL}{pos_dollar_buf:,.2f} ({pos_pct_buf:+.1f}%)</span>
+                        <span style="color: {'#00E599' if pos_pct_buf > 2.5 else '#FF3B56'}; font-weight: 600;">{'+' if pos_dollar_buf >= 0 else ''}{CURRENCY_SYMBOL}{pos_dollar_buf:,.2f} ({pos_pct_buf:+.1f}%)</span>
                     </div>
                 </div>
                 """, unsafe_allow_html=True)
@@ -3014,18 +3014,18 @@ elif page == "📋 Positions & Stop-Loss":
                 staged_dist_curr_pct = (staged_dist_curr / pos_cur_price * 100) if pos_cur_price > 0 else 0.0
 
                 st.markdown(f"""
-                <div style="background: #1B211C; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px; padding: 10px 14px; margin: 10px 0; font-family: 'IBM Plex Mono', monospace; font-size: 0.74rem;">
+                <div style="background: #131822; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px; padding: 10px 14px; margin: 10px 0; font-family: 'IBM Plex Mono', monospace; font-size: 0.74rem;">
                     <div style="display: flex; justify-content: space-between; padding-bottom: 4px;">
                         <span style="color: #71717A;">NEW STOP TRIGGER:</span>
                         <span style="color: #FFFFFF; font-weight: 600;">{CURRENCY_SYMBOL}{staged_stop_price:,.2f} ({staged_pct*100:+.1f}% from Entry)</span>
                     </div>
                     <div style="display: flex; justify-content: space-between; padding-bottom: 4px; border-bottom: 1px solid rgba(255,255,255,0.06);">
                         <span style="color: #71717A;">DISTANCE FROM CURRENT PRICE:</span>
-                        <span style="color: {'#91B99A' if staged_dist_curr > 0 else '#C77F78'}; font-weight: 600;">{'+' if staged_dist_curr >= 0 else ''}{CURRENCY_SYMBOL}{staged_dist_curr:,.2f} ({staged_dist_curr_pct:+.1f}%)</span>
+                        <span style="color: {'#00E599' if staged_dist_curr > 0 else '#FF3B56'}; font-weight: 600;">{'+' if staged_dist_curr >= 0 else ''}{CURRENCY_SYMBOL}{staged_dist_curr:,.2f} ({staged_dist_curr_pct:+.1f}%)</span>
                     </div>
                     <div style="display: flex; justify-content: space-between; padding-top: 4px;">
                         <span style="color: #71717A;">MAX DOWNSIDE AT-RISK CAPITAL:</span>
-                        <span style="color: #C77F78; font-weight: 600;">-{CURRENCY_SYMBOL}{abs(staged_total_loss):,.2f} ({int(pos_qty)} shares)</span>
+                        <span style="color: #FF3B56; font-weight: 600;">-{CURRENCY_SYMBOL}{abs(staged_total_loss):,.2f} ({int(pos_qty)} shares)</span>
                     </div>
                 </div>
                 """, unsafe_allow_html=True)
@@ -3075,7 +3075,7 @@ elif page == "📋 Positions & Stop-Loss":
                 if sel_pos_data:
                     pnl_v = sel_pos_data.get("unrealized_pl", 0.0)
                     plpc_v = sel_pos_data.get("unrealized_plpc", 0.0) * 100
-                    pnl_c = "#91B99A" if pnl_v >= 0 else "#C77F78"
+                    pnl_c = "#00E599" if pnl_v >= 0 else "#FF3B56"
                     st.markdown(f"<div style='font-family:\"IBM Plex Mono\",monospace; font-size:0.75rem; color:#71717A; margin-top:-6px; margin-bottom:8px;'>Holding: <b style='color:#FFFFFF;'>{sel_pos_data.get('qty')} shares</b> | Market Val: <b style='color:#FFFFFF;'>{CURRENCY_SYMBOL}{sel_pos_data.get('market_value', 0):,.2f}</b> | P&L: <b style='color:{pnl_c};'>{format_pnl_str(pnl_v)} ({format_pct_str(plpc_v)})</b></div>", unsafe_allow_html=True)
             with liq_col2:
                 st.markdown("<div style='margin-top: 28px;'></div>", unsafe_allow_html=True)
@@ -3090,9 +3090,9 @@ elif page == "📋 Positions & Stop-Loss":
     else:
         if is_india_mode:
             st.markdown(f"""
-            <div class="cyber-card" style="padding: 24px; text-align: center; border: 1px solid rgba(0, 208, 156, 0.25); background: #1B211C; border-radius: 12px; margin-top: 15px;">
+            <div class="cyber-card" style="padding: 24px; text-align: center; border: 1px solid rgba(0, 229, 153, 0.25); background: #131822; border-radius: 12px; margin-top: 15px;">
                 <div style="font-size: 1.15rem; font-weight: 700; color: #FFFFFF; margin-bottom: 8px;">🛡️ EXPLORATORY SHADOW TRACKING: 0 / 10 POSITIONS HELD</div>
-                <div style="color: #91B99A; font-size: 0.95rem; font-family: 'IBM Plex Mono', monospace; margin-bottom: 12px;">100% Capital Preserved in Liquid Cash Buffer ({CURRENCY_SYMBOL}{cash:,.2f})</div>
+                <div style="color: #00E599; font-size: 0.95rem; font-family: 'IBM Plex Mono', monospace; margin-bottom: 12px;">100% Capital Preserved in Liquid Cash Buffer ({CURRENCY_SYMBOL}{cash:,.2f})</div>
                 <div style="color: #A1A1AA; font-size: 0.85rem; max-width: 680px; margin: 0 auto; line-height: 1.6;">
                     The autonomous cloud trading engine has safely shielded capital from equity market pullbacks via the <b>Nifty 50 (^NSEI) 50-SMA</b> trend slope filter.
                     When market regime confirms upward momentum, the bot will automatically screen liquid NSE 100 leaders and queue Next-Day Open buy allocations.
@@ -3171,8 +3171,8 @@ elif page == "⚡ Manual Order Desk & Execution":
         with d_desk1:
             power_labels = ["Invested Capital", "Liquid Cash Reserve"]
             power_values = [round(max(0.0, invested_capital), 2), round(max(0.0, cash), 2)]
-            power_colors = ["#91B99A", "#3B82F6"]
-            power_center = f"<b>EQUITY</b><br><span style='font-size:16px; color:#91B99A;'>{CURRENCY_SYMBOL}{equity:,.0f}</span><br><span style='font-size:10px; color:#71717A;'>TOTAL NAV</span>"
+            power_colors = ["#00E599", "#3B82F6"]
+            power_center = f"<b>EQUITY</b><br><span style='font-size:16px; color:#00E599;'>{CURRENCY_SYMBOL}{equity:,.0f}</span><br><span style='font-size:10px; color:#71717A;'>TOTAL NAV</span>"
             fig_power = create_donut_chart(
                 labels=power_labels,
                 values=power_values,
@@ -3188,8 +3188,8 @@ elif page == "⚡ Manual Order Desk & Execution":
             uncommitted_power = max(0.0, buying_power - open_ord_notional)
             buf_labels = ["Committed in Open Orders", "Uncommitted Buying Power"]
             buf_values = [round(open_ord_notional, 2), round(uncommitted_power, 2)] if open_orders else [0.0, round(buying_power, 2)]
-            buf_colors = ["#D2AC70", "#83AAA0"]
-            buf_center = f"<b>AVAILABLE</b><br><span style='font-size:16px; color:#83AAA0;'>{CURRENCY_SYMBOL}{buying_power:,.0f}</span><br><span style='font-size:10px; color:#71717A;'>BUYING POWER</span>"
+            buf_colors = ["#FFB020", "#00D8F6"]
+            buf_center = f"<b>AVAILABLE</b><br><span style='font-size:16px; color:#00D8F6;'>{CURRENCY_SYMBOL}{buying_power:,.0f}</span><br><span style='font-size:10px; color:#71717A;'>BUYING POWER</span>"
             fig_buf = create_donut_chart(
                 labels=buf_labels,
                 values=buf_values,
@@ -3212,7 +3212,7 @@ elif page == "⚡ Manual Order Desk & Execution":
         desk_sub_prompt = "Select an Indian stock from the bot's NIFTY 100 universe dictionary and configure order sizing by either Rupee capital (₹) or whole share quantity (SEBI CNC)." if is_india_mode else "Select a stock from the bot's S&P 500 universe dictionary and configure order sizing by either exact dollar value ($) or share quantity."
         st.markdown(f"""
         <div class="cyber-card" style="margin-bottom: 12px;">
-            <div class="kpi-title" style="color: #91B99A; font-size: 0.76rem; letter-spacing: 0.12em;">// 01. PROMPT BOT ORDER EXECUTION</div>
+            <div class="kpi-title" style="color: #00E599; font-size: 0.76rem; letter-spacing: 0.12em;">// 01. PROMPT BOT ORDER EXECUTION</div>
             <div style="font-size: 0.78rem; color: #71717A; margin-top: 4px; line-height: 1.4;">
                 {desk_sub_prompt}
             </div>
@@ -3263,15 +3263,15 @@ elif page == "⚡ Manual Order Desk & Execution":
         existing_plpc = (existing_pos["unrealized_plpc"] * 100) if existing_pos else 0.0
 
         st.markdown(f"""
-        <div style="padding: 10px 14px; background: #171C18; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px; margin-bottom: 14px; font-family: 'IBM Plex Mono', monospace; font-size: 0.78rem;">
+        <div style="padding: 10px 14px; background: #0D1117; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px; margin-bottom: 14px; font-family: 'IBM Plex Mono', monospace; font-size: 0.78rem;">
             <div style="display: flex; justify-content: space-between; align-items: center;">
                 <span>TICKER: <b style="color: #FFFFFF; font-size: 0.95rem;">{selected_symbol}</b></span>
-                <span>LIVE PRICE: <b style="color: #91B99A; font-size: 0.95rem;">{CURRENCY_SYMBOL}{curr_price:,.2f}</b></span>
+                <span>LIVE PRICE: <b style="color: #00E599; font-size: 0.95rem;">{CURRENCY_SYMBOL}{curr_price:,.2f}</b></span>
             </div>
             <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 6px; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 6px; color: #71717A;">
                 <span>PORTFOLIO STATUS:</span>
                 <span>
-                    {f"Holding {existing_qty} shares ({CURRENCY_SYMBOL}{existing_val:,.2f} | <b style='color: {'#91B99A' if existing_pnl >= 0 else '#C77F78'};'>{format_pnl_str(existing_pnl)} ({format_pct_str(existing_plpc)})</b>)" if existing_qty > 0 else "<span style='color: #71717A;'>No Active Position (0 Shares)</span>"}
+                    {f"Holding {existing_qty} shares ({CURRENCY_SYMBOL}{existing_val:,.2f} | <b style='color: {'#00E599' if existing_pnl >= 0 else '#FF3B56'};'>{format_pnl_str(existing_pnl)} ({format_pct_str(existing_plpc)})</b>)" if existing_qty > 0 else "<span style='color: #71717A;'>No Active Position (0 Shares)</span>"}
                 </span>
             </div>
         </div>
@@ -3360,22 +3360,22 @@ elif page == "⚡ Manual Order Desk & Execution":
 
         brokerage_label = "₹0 (Zero Delivery Brokerage)" if is_india_mode else "$0 (Free Paper Trading)"
         st.markdown(f"""
-        <div style="background: #171C18; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 10px; padding: 12px 16px; margin: 14px 0; font-family: 'IBM Plex Mono', monospace; font-size: 0.76rem;">
+        <div style="background: #0D1117; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 10px; padding: 12px 16px; margin: 14px 0; font-family: 'IBM Plex Mono', monospace; font-size: 0.76rem;">
             <div style="display: flex; justify-content: space-between; padding-bottom: 5px;">
                 <span style="color: #8F9CAE;">REQUIRED MARGIN:</span>
                 <span style="color: #FFFFFF; font-weight: 700; font-size: 0.90rem;">{CURRENCY_SYMBOL}{calc_notional:,.2f}</span>
             </div>
             <div style="display: flex; justify-content: space-between; padding-bottom: 5px;">
                 <span style="color: #8F9CAE;">AVAILABLE BALANCE:</span>
-                <span style="color: #91B99A; font-weight: 600;">{CURRENCY_SYMBOL}{buying_power:,.2f}</span>
+                <span style="color: #00E599; font-weight: 600;">{CURRENCY_SYMBOL}{buying_power:,.2f}</span>
             </div>
             <div style="display: flex; justify-content: space-between; padding-bottom: 5px; border-bottom: 1px solid rgba(255,255,255,0.06);">
                 <span style="color: #8F9CAE;">POST-TRADE ALLOCATION:</span>
-                <span style="color: {'#C77F78' if is_cap_breach else '#91B99A'}; font-weight: 600;">{post_weight:.1f}% of Equity (15% Max)</span>
+                <span style="color: {'#FF3B56' if is_cap_breach else '#00E599'}; font-weight: 600;">{post_weight:.1f}% of Equity (15% Max)</span>
             </div>
             <div style="display: flex; justify-content: space-between; padding-top: 5px;">
                 <span style="color: #8F9CAE;">BROKERAGE CHARGES:</span>
-                <span style="color: #91B99A; font-weight: 600;">{brokerage_label}</span>
+                <span style="color: #00E599; font-weight: 600;">{brokerage_label}</span>
             </div>
         </div>
         """, unsafe_allow_html=True)
@@ -3429,13 +3429,13 @@ elif page == "⚡ Manual Order Desk & Execution":
         st.markdown(f"""
         <div class="cyber-card" style="margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;">
             <div>
-                <div class="kpi-title" style="color: #91B99A; font-size: 0.76rem; letter-spacing: 0.12em;">// 02. ACTIVE PLACED ORDERS QUEUE</div>
+                <div class="kpi-title" style="color: #00E599; font-size: 0.76rem; letter-spacing: 0.12em;">// 02. ACTIVE PLACED ORDERS QUEUE</div>
                 <div style="font-size: 0.78rem; color: #71717A; margin-top: 4px;">
                     Inspect, modify, or cancel currently queued & pending orders on {target_desk_broker}.
                 </div>
             </div>
             <div>
-                <span class="status-pill" style="border-color: rgba(130,251,189,0.3); color: #91B99A;">{len(open_orders)} LIVE</span>
+                <span class="status-pill" style="border-color: rgba(130,251,189,0.3); color: #00E599;">{len(open_orders)} LIVE</span>
             </div>
         </div>
         """, unsafe_allow_html=True)
@@ -3458,14 +3458,14 @@ elif page == "⚡ Manual Order Desk & Execution":
 
             # Render individual orders with cancel & modify buttons
             for idx, o in enumerate(open_orders):
-                side_color = "#91B99A" if o["side"] == "BUY" else "#C77F78"
-                badge_border = "rgba(0, 208, 156, 0.3)" if o["side"] == "BUY" else "rgba(235, 91, 86, 0.3)"
+                side_color = "#00E599" if o["side"] == "BUY" else "#FF3B56"
+                badge_border = "rgba(0, 229, 153, 0.30)" if o["side"] == "BUY" else "rgba(255, 59, 86, 0.30)"
                 lp_str = f"@ {CURRENCY_SYMBOL}{o['limit_price']:,.2f}" if o.get("limit_price") else ""
                 sub_time = o.get("submitted_at", "")[11:19] if len(o.get("submitted_at", "")) >= 19 else ""
                 
                 with st.container():
                     st.markdown(f"""
-                    <div style="background: #171C18; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px; padding: 12px 14px; margin-bottom: 8px; font-family: 'IBM Plex Mono', monospace;">
+                    <div style="background: #0D1117; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px; padding: 12px 14px; margin-bottom: 8px; font-family: 'IBM Plex Mono', monospace;">
                         <div style="display: flex; justify-content: space-between; align-items: center;">
                             <div style="display: flex; align-items: center; gap: 8px;">
                                 <span style="font-size: 1.05rem; font-weight: 700; color: #FFFFFF; font-family: 'IBM Plex Mono', sans-serif;">{o['symbol']}</span>
@@ -3473,7 +3473,7 @@ elif page == "⚡ Manual Order Desk & Execution":
                                 <span style="font-size: 0.68rem; color: #71717A;">{o['type']} {lp_str}</span>
                             </div>
                             <div style="display: flex; align-items: center; gap: 8px;">
-                                <span style="font-size: 0.68rem; color: #91B99A; background: rgba(130,251,189,0.08); padding: 2px 6px; border-radius: 4px; border: 1px solid rgba(130,251,189,0.2);">{o['status']}</span>
+                                <span style="font-size: 0.68rem; color: #00E599; background: rgba(130,251,189,0.08); padding: 2px 6px; border-radius: 4px; border: 1px solid rgba(130,251,189,0.2);">{o['status']}</span>
                                 <span style="font-size: 0.68rem; color: #71717A;">{sub_time} UTC</span>
                             </div>
                         </div>
@@ -3534,7 +3534,7 @@ elif page == "⚡ Manual Order Desk & Execution":
         st.markdown("<div style='margin-top: 20px;'></div>", unsafe_allow_html=True)
         st.markdown("""
         <div class="cyber-card">
-            <div class="kpi-title" style="color: #C77F78; font-size: 0.74rem;">// 03. QUICK POSITION LIQUIDATOR</div>
+            <div class="kpi-title" style="color: #FF3B56; font-size: 0.74rem;">// 03. QUICK POSITION LIQUIDATOR</div>
             <div style="font-size: 0.78rem; color: #71717A; margin-top: 4px; line-height: 1.4;">
                 Manually exit or close any open equity position via immediate broker market sell.
             </div>
@@ -3547,7 +3547,7 @@ elif page == "⚡ Manual Order Desk & Execution":
             if chosen_pos:
                 chosen_pnl = chosen_pos['unrealized_pl']
                 chosen_plpc = chosen_pos['unrealized_plpc'] * 100
-                chosen_pnl_color = "#91B99A" if chosen_pnl >= 0 else "#C77F78"
+                chosen_pnl_color = "#00E599" if chosen_pnl >= 0 else "#FF3B56"
                 st.markdown(f"<div style='font-family:\"IBM Plex Mono\",monospace; font-size:0.75rem; color:#71717A; margin-bottom:8px;'>Holds: <b style='color:#FFFFFF;'>{chosen_pos['qty']} shares</b> | Market Value: <b style='color:#FFFFFF;'>{CURRENCY_SYMBOL}{chosen_pos['market_value']:,.2f}</b> | PnL: <b style='color:{chosen_pnl_color};'>{format_pnl_str(chosen_pnl)} ({format_pct_str(chosen_plpc)})</b></div>", unsafe_allow_html=True)
                 if st.button(f"🚨 MARKET CLOSE {close_sym} POSITION", type="secondary", key="desk_close_pos_btn", use_container_width=True):
                     with st.spinner(f"Liquidating position in {close_sym}..."):
@@ -3673,8 +3673,8 @@ elif page in ("🏆 13-Week Incubation Scorecard", "🏆 30-Day Incubation Score
 
     # Sleek Equity Curve (Blacklead Studio Minimalist Edition)
     fig_equity = go.Figure()
-    curve_color = "#91B99A" if net_change >= 0 else "#C77F78"
-    curve_fill = "rgba(0, 208, 156, 0.08)" if net_change >= 0 else "rgba(235, 91, 86, 0.08)"
+    curve_color = "#00E599" if net_change >= 0 else "#FF3B56"
+    curve_fill = "rgba(0, 229, 153, 0.10)" if net_change >= 0 else "rgba(255, 59, 86, 0.10)"
     fig_equity.add_trace(go.Scatter(
         x=df_history["timestamp"],
         y=df_history["equity"],
@@ -3714,8 +3714,8 @@ elif page in ("🏆 13-Week Incubation Scorecard", "🏆 30-Day Incubation Score
     with inc_c1:
         m_labels = ["Sessions Completed", "Sessions Remaining"]
         m_values = [sessions_done, sessions_rem]
-        m_colors = ["#91B99A", "#27272A"]
-        m_center = f"<b>PROGRESS</b><br><span style='font-size:18px; color:#91B99A;'>{progress_pct:.0f}%</span><br><span style='font-size:10px; color:#71717A;'>WEEK {current_week}/13</span>"
+        m_colors = ["#00E599", "#27272A"]
+        m_center = f"<b>PROGRESS</b><br><span style='font-size:18px; color:#00E599;'>{progress_pct:.0f}%</span><br><span style='font-size:10px; color:#71717A;'>WEEK {current_week}/13</span>"
 
         fig_inc_prog = create_donut_chart(
             labels=m_labels,
@@ -3740,10 +3740,10 @@ elif page in ("🏆 13-Week Incubation Scorecard", "🏆 30-Day Incubation Score
 
         s_labels = ["Winning Sessions", "Losing Sessions"] + (["Flat Sessions"] if flat_days > 0 else [])
         s_values = [win_days, loss_days] + ([flat_days] if flat_days > 0 else [])
-        s_colors = ["#91B99A", "#C77F78"] + (["#52525B"] if flat_days > 0 else [])
+        s_colors = ["#00E599", "#FF3B56"] + (["#52525B"] if flat_days > 0 else [])
         tot_s = max(1, win_days + loss_days)
         s_win_rate = (win_days / tot_s) * 100
-        s_center = f"<b>DAY WIN RATE</b><br><span style='font-size:18px; color:{'#91B99A' if s_win_rate >= 50 else '#C77F78'};'>{s_win_rate:.0f}%</span><br><span style='font-size:10px; color:#71717A;'>{win_days}W - {loss_days}L</span>"
+        s_center = f"<b>DAY WIN RATE</b><br><span style='font-size:18px; color:{'#00E599' if s_win_rate >= 50 else '#FF3B56'};'>{s_win_rate:.0f}%</span><br><span style='font-size:10px; color:#71717A;'>{win_days}W - {loss_days}L</span>"
 
         fig_inc_win = create_donut_chart(
             labels=s_labels,
@@ -3913,7 +3913,7 @@ elif page in ("⚡ Order Activity Log", "📜 Order Activity Log"):
             sells_count = int((df_all_orders["Side"] == "SELL").sum())
             side_labels = ["Buy Orders", "Sell Orders"]
             side_values = [buys_count, sells_count]
-            side_colors = ["#91B99A", "#C77F78"]
+            side_colors = ["#00E599", "#FF3B56"]
             tot_orders = len(df_all_orders)
             side_center = f"<b>ORDERS</b><br><span style='font-size:18px; color:#FFFFFF;'>{tot_orders}</span><br><span style='font-size:10px; color:#71717A;'>LIFETIME</span>"
 
@@ -3933,15 +3933,15 @@ elif page in ("⚡ Order Activity Log", "📜 Order Activity Log"):
             stat_labels = list(status_counts.keys())
             stat_values = list(status_counts.values())
             stat_colors_map = {
-                "FILLED": "#83AAA0",
-                "NEW": "#91B99A",
+                "FILLED": "#00D8F6",
+                "NEW": "#00E599",
                 "ACCEPTED": "#3B82F6",
-                "CANCELED": "#C77F78",
+                "CANCELED": "#FF3B56",
                 "EXPIRED": "#71717A",
-                "REPLACED": "#D2AC70"
+                "REPLACED": "#FFB020"
             }
             stat_colors = [stat_colors_map.get(k, "#A1A1AA") for k in stat_labels]
-            fill_center = f"<b>FILL RATE</b><br><span style='font-size:18px; color:#83AAA0;'>{fill_rate:.1f}%</span><br><span style='font-size:10px; color:#71717A;'>{filled_count} FILLED</span>"
+            fill_center = f"<b>FILL RATE</b><br><span style='font-size:18px; color:#00D8F6;'>{fill_rate:.1f}%</span><br><span style='font-size:10px; color:#71717A;'>{filled_count} FILLED</span>"
 
             fig_order_stat = create_donut_chart(
                 labels=stat_labels,
@@ -4018,16 +4018,16 @@ elif page in ("⚡ Order Activity Log", "📜 Order Activity Log"):
         session_sells = sum(filtered_df["Side"] == "SELL")
 
         st.markdown(f"""
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px; margin-bottom: 12px; padding: 11px 18px; background: #1B211C; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 10px; font-family: 'IBM Plex Mono', monospace; font-size: 0.80rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px; margin-bottom: 12px; padding: 11px 18px; background: #131822; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 10px; font-family: 'IBM Plex Mono', monospace; font-size: 0.80rem;">
             <div style="display: flex; gap: 14px; align-items: center;">
                 <span style="color: #FFFFFF; font-weight: 700; font-size: 0.86rem;">// LEDGER STATUS:</span>
-                <span style="color: #91B99A; font-weight: 600;">{session_orders} Matching Orders</span>
+                <span style="color: #00E599; font-weight: 600;">{session_orders} Matching Orders</span>
                 <span style="color: #52525B;">|</span>
-                <span style="color: #FFFFFF;">Volume: <b style="color: #91B99A;">{CURRENCY_SYMBOL}{session_vol:,.2f}</b></span>
+                <span style="color: #FFFFFF;">Volume: <b style="color: #00E599;">{CURRENCY_SYMBOL}{session_vol:,.2f}</b></span>
             </div>
             <div style="display: flex; gap: 12px; color: #71717A;">
-                <span>BUYS: <b style="color: #91B99A;">{session_buys}</b></span>
-                <span>SELLS: <b style="color: #C77F78;">{session_sells}</b></span>
+                <span>BUYS: <b style="color: #00E599;">{session_buys}</b></span>
+                <span>SELLS: <b style="color: #FF3B56;">{session_sells}</b></span>
             </div>
         </div>
         """, unsafe_allow_html=True)
@@ -4077,7 +4077,7 @@ elif page in ("⚡ Order Activity Log", "📜 Order Activity Log"):
         with p_col2:
             st.markdown(f"""
             <div style="text-align: center; font-family: 'IBM Plex Mono', monospace; font-size: 0.80rem; color: #71717A; padding-top: 8px;">
-                Page <b style="color: #91B99A;">{st.session_state.order_ledger_page}</b> of <b style="color: #FFFFFF;">{total_pages}</b> • Displaying rows {start_row + 1} – {end_row} of {total_rows}
+                Page <b style="color: #00E599;">{st.session_state.order_ledger_page}</b> of <b style="color: #FFFFFF;">{total_pages}</b> • Displaying rows {start_row + 1} – {end_row} of {total_rows}
             </div>
             """, unsafe_allow_html=True)
 
@@ -4096,9 +4096,9 @@ elif page in ("⚡ Order Activity Log", "📜 Order Activity Log"):
                 d_notional = d_df["Total Value"].sum()
 
                 st.markdown(f"""
-                <div style="padding: 8px 12px; background: #1B211C; border-left: 3px solid #91B99A; border-radius: 6px; margin: 8px 0; font-family: 'IBM Plex Mono', monospace; font-size: 0.80rem; display: flex; justify-content: space-between;">
+                <div style="padding: 8px 12px; background: #131822; border-left: 3px solid #00E599; border-radius: 6px; margin: 8px 0; font-family: 'IBM Plex Mono', monospace; font-size: 0.80rem; display: flex; justify-content: space-between;">
                     <span><b>📅 {d}</b> — {len(d_df)} Orders</span>
-                    <span>Volume: <b style="color: #91B99A;">{CURRENCY_SYMBOL}{d_notional:,.2f}</b> (<b style="color: #91B99A;">{d_buys} Buys</b> / <b style="color: #C77F78;">{d_sells} Sells</b>)</span>
+                    <span>Volume: <b style="color: #00E599;">{CURRENCY_SYMBOL}{d_notional:,.2f}</b> (<b style="color: #00E599;">{d_buys} Buys</b> / <b style="color: #FF3B56;">{d_sells} Sells</b>)</span>
                 </div>
                 """, unsafe_allow_html=True)
 
@@ -4121,9 +4121,9 @@ elif page in ("⚡ Order Activity Log", "📜 Order Activity Log"):
     else:
         if is_india_mode:
             st.markdown(f"""
-            <div class="cyber-card" style="padding: 24px; text-align: center; border: 1px solid rgba(0, 208, 156, 0.25); background: #1B211C; border-radius: 12px; margin-top: 15px;">
+            <div class="cyber-card" style="padding: 24px; text-align: center; border: 1px solid rgba(0, 229, 153, 0.25); background: #131822; border-radius: 12px; margin-top: 15px;">
                 <div style="font-size: 1.15rem; font-weight: 700; color: #FFFFFF; margin-bottom: 8px;">📜 INDIAN POD ORDER AUDIT TRAIL</div>
-                <div style="color: #91B99A; font-size: 0.92rem; font-family: 'IBM Plex Mono', monospace; margin-bottom: 12px;">Exploratory Shadow Paper Trading Active • GitHub Actions Automated Cloud Trader</div>
+                <div style="color: #00E599; font-size: 0.92rem; font-family: 'IBM Plex Mono', monospace; margin-bottom: 12px;">Exploratory Shadow Paper Trading Active • GitHub Actions Automated Cloud Trader</div>
                 <div style="color: #A1A1AA; font-size: 0.84rem; max-width: 680px; margin: 0 auto; line-height: 1.6;">
                     No closed trades executed yet in this session. The autonomous cloud scheduler runs at <b>09:16 IST</b> (Market Open Execution) and <b>15:35 IST</b> (Market Close Scan).
                     You can also execute instant test trades anytime using the <b>Manual Order Desk</b>.
@@ -4177,8 +4177,8 @@ elif page == "🧠 Quant Brain & Strategy":
     with qb_c1:
         alpha_labels = ["Velocity Momentum (ROC-20)", "Trend Extension Anchor (SMA)"]
         alpha_values = [70, 30]
-        alpha_colors = ["#91B99A", "#3B82F6"]
-        alpha_center = "<b>WEIGHT</b><br><span style='font-size:18px; color:#91B99A;'>70%</span><span style='font-size:12px; color:#71717A;'>/30%</span><br><span style='font-size:10px; color:#71717A;'>ALPHA SPLIT</span>"
+        alpha_colors = ["#00E599", "#3B82F6"]
+        alpha_center = "<b>WEIGHT</b><br><span style='font-size:18px; color:#00E599;'>70%</span><span style='font-size:12px; color:#71717A;'>/30%</span><br><span style='font-size:10px; color:#71717A;'>ALPHA SPLIT</span>"
 
         fig_alpha_weight = create_donut_chart(
             labels=alpha_labels,
@@ -4194,7 +4194,7 @@ elif page == "🧠 Quant Brain & Strategy":
     with qb_c2:
         ml_labels = ["Multi-Horizon Momentum", "Trend & MA Architecture", "Volatility & ATR Spreads", "Volume & Flow Surges"]
         ml_values = [35, 25, 20, 20]
-        ml_colors = ["#91B99A", "#83AAA0", "#A855F7", "#D2AC70"]
+        ml_colors = ["#00E599", "#00D8F6", "#A855F7", "#FFB020"]
         ml_center = "<b>FEATURES</b><br><span style='font-size:18px; color:#A855F7;'>18</span><br><span style='font-size:10px; color:#71717A;'>150 TREES</span>"
 
         fig_ml_feat = create_donut_chart(
@@ -4277,7 +4277,7 @@ elif page == "🛡️ Risk Safeguards":
         p_rates = m_diag.get("rates_pillar", {})
 
         st.markdown("""
-        <div style="font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem; color: #91B99A; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 8px;">
+        <div style="font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem; color: #00E599; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 8px;">
             // LIVE 4-PILLAR INSTITUTIONAL MACRO RADAR & TAIL-RISK TELEMETRY
         </div>
         """, unsafe_allow_html=True)
@@ -4285,7 +4285,7 @@ elif page == "🛡️ Risk Safeguards":
         mr_c1, mr_c2, mr_c3, mr_c4, mr_c5 = st.columns(5)
 
         with mr_c1:
-            msi_color = "#91B99A" if m_msi < 0.35 else ("#D2AC70" if m_msi < 0.65 else "#C77F78")
+            msi_color = "#00E599" if m_msi < 0.35 else ("#FFB020" if m_msi < 0.65 else "#FF3B56")
             st.markdown(f"""
             <div class="cyber-kpi-card">
                 <div class="kpi-title">MACRO STRESS INDEX (MSI)</div>
@@ -4297,7 +4297,7 @@ elif page == "🛡️ Risk Safeguards":
         with mr_c2:
             dist_200 = p_trend.get("distance_to_200_pct", 0.0)
             tr_val = p_trend.get("trend_ratio", 0.0)
-            t_color = "#91B99A" if dist_200 >= 0 else "#C77F78"
+            t_color = "#00E599" if dist_200 >= 0 else "#FF3B56"
             st.markdown(f"""
             <div class="cyber-kpi-card">
                 <div class="kpi-title">1. EQUITY TREND ANCHOR</div>
@@ -4309,7 +4309,7 @@ elif page == "🛡️ Risk Safeguards":
         with mr_c3:
             c_ratio = p_credit.get("credit_ratio")
             c_state = p_credit.get("credit_state", "HEALTHY")
-            c_color = "#91B99A" if c_state == "HEALTHY" else ("#D2AC70" if c_state == "DETERIORATING" else "#C77F78")
+            c_color = "#00E599" if c_state == "HEALTHY" else ("#FFB020" if c_state == "DETERIORATING" else "#FF3B56")
             c_ratio_str = f"{c_ratio:.4f}" if c_ratio else "N/A"
             st.markdown(f"""
             <div class="cyber-kpi-card">
@@ -4322,7 +4322,7 @@ elif page == "🛡️ Risk Safeguards":
         with mr_c4:
             v_val = p_vol.get("vix")
             v_state = p_vol.get("vol_state", "CALM")
-            v_color = "#91B99A" if (v_val and v_val < 20) else ("#D2AC70" if (v_val and v_val < 28) else "#C77F78")
+            v_color = "#00E599" if (v_val and v_val < 20) else ("#FFB020" if (v_val and v_val < 28) else "#FF3B56")
             v_str = f"{v_val:.2f}" if v_val else "N/A"
             st.markdown(f"""
             <div class="cyber-kpi-card">
@@ -4347,8 +4347,8 @@ elif page == "🛡️ Risk Safeguards":
         if m_canaries:
             canary_text = " • ".join(m_canaries)
             st.markdown(f"""
-            <div style="background: rgba(255, 184, 0, 0.08); border: 1px solid rgba(255, 184, 0, 0.3); border-radius: 8px; padding: 10px 14px; margin-top: 10px; margin-bottom: 16px; font-family: 'IBM Plex Mono', monospace; font-size: 0.78rem;">
-                <b style="color: #D2AC70;">⚠️ ACTIVE INSTITUTIONAL CANARIES:</b> <span style="color: #FFFFFF;">{canary_text}</span>
+            <div style="background: rgba(255, 176, 32, 0.10); border: 1px solid rgba(255, 176, 32, 0.30); border-radius: 8px; padding: 10px 14px; margin-top: 10px; margin-bottom: 16px; font-family: 'IBM Plex Mono', monospace; font-size: 0.78rem;">
+                <b style="color: #FFB020;">⚠️ ACTIVE INSTITUTIONAL CANARIES:</b> <span style="color: #FFFFFF;">{canary_text}</span>
                 <div style="color: #A1A1AA; font-size: 0.72rem; margin-top: 4px;">Capital exposure dynamically calibrated to <b>{m_max_exp*100:.0f}%</b> with <b>{(1.0-m_max_exp)*100:.0f}%</b> held in safe liquid cash reserves.</div>
             </div>
             """, unsafe_allow_html=True)
@@ -4363,11 +4363,11 @@ elif page == "🛡️ Risk Safeguards":
             <div class="hud-title" style="font-size: 1.02rem;">1. Multi-Asset Macro Weather & Crash Radar</div>
             <div style="font-size: 0.82rem; color: #71717A; margin-top: 8px; line-height: 1.6;">
                 Continuous evaluation of <b>NIFTY 50</b> (200 SMA & Trend Ratio) & <b>INDIA VIX</b> (India mode) or <b>SPY</b>, <b>QQQ</b>, and <b>VIX</b> (US mode):
-                <br>• <b style="color: #91B99A;">BULL_NORMAL:</b> 95% Max Exposure (Full Risk-On Momentum)
+                <br>• <b style="color: #00E599;">BULL_NORMAL:</b> 95% Max Exposure (Full Risk-On Momentum)
                 <br>• <b style="color: #FFFFFF;">BULL_ROTATION:</b> 85% Exposure (QQQ &lt; 50 SMA Tech Fatigue; Value Rotation)
                 <br>• <b style="color: #FFFFFF;">BULL_CHOPPY:</b> 85% Max Exposure (Dip-Buying Focus, 15% Cash Shield)
-                <br>• <b style="color: #D2AC70;">VOLATILITY_CAUTION:</b> 60% Exposure (VIX &gt; 22; 40% Cash Defense)
-                <br>• <b style="color: #C77F78;">CRASH_WARNING:</b> 0% Exposure (SPY &lt; 200 SMA or VIX &ge; 28; 100% Cash / Treasury Halt)
+                <br>• <b style="color: #FFB020;">VOLATILITY_CAUTION:</b> 60% Exposure (VIX &gt; 22; 40% Cash Defense)
+                <br>• <b style="color: #FF3B56;">CRASH_WARNING:</b> 0% Exposure (SPY &lt; 200 SMA or VIX &ge; 28; 100% Cash / Treasury Halt)
             </div>
         </div>
 
@@ -4416,8 +4416,8 @@ elif page == "🛡️ Risk Safeguards":
     with rs_c1:
         regime_labels = ["Max Equity Exposure Limit", "Mandatory Cash Defense Buffer"]
         regime_values = [95.0, 5.0]
-        regime_colors = ["#91B99A", "#27272A"]
-        regime_center = "<b>REGIME</b><br><span style='font-size:18px; color:#91B99A;'>95%</span><br><span style='font-size:10px; color:#71717A;'>BULL_NORMAL</span>"
+        regime_colors = ["#00E599", "#27272A"]
+        regime_center = "<b>REGIME</b><br><span style='font-size:18px; color:#00E599;'>95%</span><br><span style='font-size:10px; color:#71717A;'>BULL_NORMAL</span>"
 
         fig_regime = create_donut_chart(
             labels=regime_labels,
@@ -4433,8 +4433,8 @@ elif page == "🛡️ Risk Safeguards":
     with rs_c2:
         cap_labels = ["Single Stock Max Ceiling", "Uncapped Universe Equity Capacity", "Minimum Cash Buffer"]
         cap_values = [15.0, 80.0, 5.0]
-        cap_colors = ["#D2AC70", "#3B82F6", "#91B99A"]
-        cap_center = "<b>HARD CAP</b><br><span style='font-size:18px; color:#D2AC70;'>15.0%</span><br><span style='font-size:10px; color:#71717A;'>MAX / ASSET</span>"
+        cap_colors = ["#FFB020", "#3B82F6", "#00E599"]
+        cap_center = "<b>HARD CAP</b><br><span style='font-size:18px; color:#FFB020;'>15.0%</span><br><span style='font-size:10px; color:#71717A;'>MAX / ASSET</span>"
 
         fig_cap = create_donut_chart(
             labels=cap_labels,
