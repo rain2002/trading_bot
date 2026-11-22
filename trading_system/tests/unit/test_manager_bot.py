@@ -213,3 +213,162 @@ def test_fixed_shares_plus_kill_switch_policy(tmp_path: Path):
     assert mgr.state["is_halted"] is True
     assert mgr.state["throttle_level"] == 3
 
+
+def test_reconcile_portfolio_fails_closed_on_nan_inf_negative_and_zero_nav(tmp_path: Path):
+    """
+    Verifies that reconcile_portfolio fails closed (returns False, 1.0) on:
+    - NaN, Inf, zero, negative, or None manager NAV
+    - NaN, Inf, negative, or None bot NAV
+    - empty bot_navs dictionary
+    """
+    state_file = str(tmp_path / "test_rec_mgr_state.json")
+    mgr = PortfolioManagerEngine(state_file=state_file)
+
+    # 1. Invalid Manager NAVs
+    for invalid_val in [float("nan"), float("inf"), float("-inf"), 0.0, -100.0, None]:
+        passed, gap = mgr.reconcile_portfolio({"ETF_AND_GOLD": 100000.0}, invalid_val)
+        assert passed is False, f"Expected fail-closed on manager_nav={invalid_val}"
+        assert gap == 1.0
+
+    # 2. Invalid Bot NAVs
+    for invalid_val in [float("nan"), float("inf"), float("-inf"), -50.0, None]:
+        passed, gap = mgr.reconcile_portfolio({"ETF_AND_GOLD": invalid_val}, 100000.0)
+        assert passed is False, f"Expected fail-closed on bot_nav={invalid_val}"
+        assert gap == 1.0
+
+    # 3. Empty bot NAVs
+    passed, gap = mgr.reconcile_portfolio({}, 100000.0)
+    assert passed is False
+    assert gap == 1.0
+
+    # 4. Valid matching NAVs pass
+    passed, gap = mgr.reconcile_portfolio({"ETF_AND_GOLD": 100000.0}, 100000.0)
+    assert passed is True
+    assert gap == 0.0
+
+
+def test_evaluate_shares_raises_error_on_missing_or_invalid_nav_per_unit(tmp_path: Path):
+    """
+    Verifies that evaluate_shares fails closed and raises ValueError when
+    nav_per_unit is missing, None, NaN, Inf, zero, or negative.
+    """
+    state_file = str(tmp_path / "test_missing_nav_mgr_state.json")
+    mgr = PortfolioManagerEngine(state_file=state_file)
+    now = pd.Timestamp.now(timezone.utc)
+    reports = {"ETF_AND_GOLD": make_bot_report(nav=100000.0)}
+
+    # Missing key
+    with pytest.raises(ValueError, match="nav_per_unit is missing from nav_state"):
+        mgr.evaluate_shares(now, reports, {"total_portfolio_value": 100000.0})
+
+    # None value
+    with pytest.raises(ValueError, match="nav_per_unit is missing from nav_state"):
+        mgr.evaluate_shares(now, reports, {"nav_per_unit": None, "total_portfolio_value": 100000.0})
+
+    # NaN / Inf / non-positive
+    for bad_nav in [float("nan"), float("inf"), 0.0, -25.0, "not_a_number"]:
+        with pytest.raises(ValueError):
+            mgr.evaluate_shares(now, reports, {"nav_per_unit": bad_nav, "total_portfolio_value": 100000.0})
+
+
+def test_transient_reconciliation_pause_recovers_without_kill_switch(tmp_path: Path):
+    """
+    Verifies that:
+    1. A single transient reconciliation gap pauses trading for the cycle into CASH_SLEEVE.
+    2. The pause does NOT set kill_switch_active or lock human_override_required.
+    3. When quotes align on the next cycle, trading resumes automatically.
+    4. Persistent breach (>= 3 consecutive cycles) escalates to human_override_required.
+    """
+    state_file = str(tmp_path / "test_transient_rec_state.json")
+    mgr = PortfolioManagerEngine(
+        target_shares={"ETF_AND_GOLD": 1.0},
+        initial_capital=100000.0,
+        state_file=state_file,
+        policy="FIXED_SHARES_PLUS_KILL_SWITCH"
+    )
+    now = pd.Timestamp.now(timezone.utc)
+
+    # Day 1: Clean cycle -> 100% ETF Bot
+    s1 = mgr.evaluate_shares(now, {"ETF_AND_GOLD": make_bot_report(nav=100000.0)}, {"nav_per_unit": 100.0, "total_portfolio_value": 100000.0})
+    assert s1["ETF_AND_GOLD"] == 1.0
+    assert mgr.state["is_halted"] is False
+
+    # Day 2: Transient quote discrepancy (gap 0.5% > 0.1%)
+    s2 = mgr.evaluate_shares(now, {"ETF_AND_GOLD": make_bot_report(nav=99500.0)}, {"nav_per_unit": 100.0, "total_portfolio_value": 100000.0})
+    assert s2["CASH_SLEEVE"] == 1.0
+    assert s2.get("ETF_AND_GOLD", 0.0) == 0.0
+    assert mgr.state["is_halted"] is True
+    assert "RECONCILIATION_GAP_BREACH" in mgr.state["halt_reason"]
+    assert mgr.state["kill_switch_active"] is False
+    assert mgr.state["human_override_required"] is False
+    assert mgr.state["consecutive_reconciliation_breaches"] == 1
+
+    # Day 3: Next day quotes align -> transient pause clears automatically!
+    s3 = mgr.evaluate_shares(now, {"ETF_AND_GOLD": make_bot_report(nav=100000.0)}, {"nav_per_unit": 100.0, "total_portfolio_value": 100000.0})
+    assert s3["ETF_AND_GOLD"] == 1.0
+    assert s3["CASH_SLEEVE"] == 0.0
+    assert mgr.state["is_halted"] is False
+    assert mgr.state["halt_reason"] is None
+    assert mgr.state["throttle_level"] == 0
+    assert mgr.state["consecutive_reconciliation_breaches"] == 0
+
+    # Day 4, 5, 6: Persistent gap over 3 consecutive cycles escalates to human override lock
+    mgr.evaluate_shares(now, {"ETF_AND_GOLD": make_bot_report(nav=99000.0)}, {"nav_per_unit": 100.0, "total_portfolio_value": 100000.0})
+    assert mgr.state["consecutive_reconciliation_breaches"] == 1
+    assert mgr.state["human_override_required"] is False
+
+    mgr.evaluate_shares(now, {"ETF_AND_GOLD": make_bot_report(nav=99000.0)}, {"nav_per_unit": 100.0, "total_portfolio_value": 100000.0})
+    assert mgr.state["consecutive_reconciliation_breaches"] == 2
+    assert mgr.state["human_override_required"] is False
+
+    mgr.evaluate_shares(now, {"ETF_AND_GOLD": make_bot_report(nav=99000.0)}, {"nav_per_unit": 100.0, "total_portfolio_value": 100000.0})
+    assert mgr.state["consecutive_reconciliation_breaches"] == 3
+    assert mgr.state["human_override_required"] is True
+    assert mgr.state["is_halted"] is True
+
+
+def test_resume_approved_policy_awareness(tmp_path: Path):
+    """
+    Verifies that resume_approved() restores:
+    - throttle_level = 0 (fully invested) under FIXED_SHARES_PLUS_KILL_SWITCH (production policy)
+    - throttle_level = 2 (25% risk scale) under THROTTLE_AND_KILL_SWITCH (research policy)
+    """
+    now = pd.Timestamp.now(timezone.utc)
+
+    # 1. FIXED_SHARES_PLUS_KILL_SWITCH
+    state_file_fixed = str(tmp_path / "fixed_state.json")
+    mgr_fixed = PortfolioManagerEngine(
+        target_shares={"ETF_AND_GOLD": 1.0},
+        initial_capital=100000.0,
+        state_file=state_file_fixed,
+        policy="FIXED_SHARES_PLUS_KILL_SWITCH"
+    )
+    # Trigger kill switch with -41% crash
+    mgr_fixed.evaluate_shares(now, {"ETF_AND_GOLD": make_bot_report(nav=59000.0)}, {"nav_per_unit": 59.0, "total_portfolio_value": 59000.0})
+    assert mgr_fixed.state["is_halted"] is True
+    assert mgr_fixed.state["throttle_level"] == 3
+
+    # Human resume under FIXED_SHARES_PLUS_KILL_SWITCH
+    mgr_fixed.resume_approved()
+    assert mgr_fixed.state["is_halted"] is False
+    assert mgr_fixed.state["throttle_level"] == 0  # Fully invested, throttle is OFF
+
+    # 2. THROTTLE_AND_KILL_SWITCH
+    state_file_throttle = str(tmp_path / "throttle_state.json")
+    mgr_throttle = PortfolioManagerEngine(
+        target_shares={"ETF_AND_GOLD": 1.0},
+        initial_capital=100000.0,
+        state_file=state_file_throttle,
+        policy="THROTTLE_AND_KILL_SWITCH"
+    )
+    # Trigger kill switch with -41% crash
+    mgr_throttle.evaluate_shares(now, {"ETF_AND_GOLD": make_bot_report(nav=59000.0)}, {"nav_per_unit": 59.0, "total_portfolio_value": 59000.0})
+    assert mgr_throttle.state["is_halted"] is True
+    assert mgr_throttle.state["throttle_level"] == 3
+
+    # Human resume under THROTTLE_AND_KILL_SWITCH
+    mgr_throttle.resume_approved()
+    assert mgr_throttle.state["is_halted"] is False
+    assert mgr_throttle.state["throttle_level"] == 2  # Cautious Level 2 (25% scale)
+
+

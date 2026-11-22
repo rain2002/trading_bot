@@ -19,6 +19,7 @@ Core Responsibilities:
 import os
 import sys
 import json
+import math
 import logging
 from datetime import datetime, timezone
 from typing import Dict, Any, List, Optional, Tuple
@@ -80,6 +81,13 @@ class PortfolioManagerEngine(ManagerInterface):
                         data["policy"] = self.policy
                     if "mode" not in data:
                         data["mode"] = self.mode
+                    if "kill_switch_active" not in data:
+                        data["kill_switch_active"] = bool(
+                            data.get("is_halted", False)
+                            and "KILL_SWITCH" in str(data.get("halt_reason", ""))
+                        )
+                    if "consecutive_reconciliation_breaches" not in data:
+                        data["consecutive_reconciliation_breaches"] = 0
                     return data
             except Exception as e:
                 logger.error(f"Error reading manager state: {e}. Reinitializing.")
@@ -96,9 +104,11 @@ class PortfolioManagerEngine(ManagerInterface):
             "max_drawdown": 0.0,
             "throttle_level": 0,  # 0: Normal, 1: Moderate (-15%), 2: Severe (-30%), 3: Killed (-40%)
             "consecutive_recovery_days": 0,
+            "consecutive_reconciliation_breaches": 0,
             "consecutive_unverified_quote_days": 0,
             "unverified_quotes_warning": None,
             "is_halted": False,
+            "kill_switch_active": False,
             "halt_reason": None,
             "human_override_required": False,
             "last_reconciliation_gap_pct": 0.0,
@@ -122,12 +132,45 @@ class PortfolioManagerEngine(ManagerInterface):
         """
         Daily check that Manager NAV equals the sum of Bot NAVs within 0.1%.
         Returns: (is_passed, gap_fraction)
+        Fails closed on NaN, non-positive, non-finite, or missing NAV values.
         """
-        total_bot_nav = sum(bot_navs.values())
-        if manager_nav <= 0:
-            return True, 0.0
+        # Fail-closed validation for manager_nav
+        if (
+            manager_nav is None
+            or not isinstance(manager_nav, (int, float))
+            or math.isnan(manager_nav)
+            or math.isinf(manager_nav)
+            or manager_nav <= 0
+        ):
+            logger.error(f"RECONCILIATION FAILED (FAIL-CLOSED): Non-positive or non-finite Manager NAV: {manager_nav}")
+            self.state["last_reconciliation_gap_pct"] = 100.0
+            return False, 1.0
 
+        # Fail-closed validation for bot_navs
+        if not bot_navs:
+            logger.error("RECONCILIATION FAILED (FAIL-CLOSED): bot_navs is empty")
+            self.state["last_reconciliation_gap_pct"] = 100.0
+            return False, 1.0
+
+        for bot_id, b_nav in bot_navs.items():
+            if (
+                b_nav is None
+                or not isinstance(b_nav, (int, float))
+                or math.isnan(b_nav)
+                or math.isinf(b_nav)
+                or b_nav < 0
+            ):
+                logger.error(f"RECONCILIATION FAILED (FAIL-CLOSED): Invalid NAV for bot {bot_id}: {b_nav}")
+                self.state["last_reconciliation_gap_pct"] = 100.0
+                return False, 1.0
+
+        total_bot_nav = sum(bot_navs.values())
         gap = abs(manager_nav - total_bot_nav) / manager_nav
+        if math.isnan(gap) or math.isinf(gap):
+            logger.error(f"RECONCILIATION FAILED (FAIL-CLOSED): Computed gap is non-finite: {gap}")
+            self.state["last_reconciliation_gap_pct"] = 100.0
+            return False, 1.0
+
         self.state["last_reconciliation_gap_pct"] = round(gap * 100.0, 4)
 
         if gap > RECONCILIATION_MAX_GAP:
@@ -162,13 +205,43 @@ class PortfolioManagerEngine(ManagerInterface):
 
         rec_pass, gap = self.reconcile_portfolio(bot_navs, manager_total_val)
         if not rec_pass:
+            self.state["consecutive_reconciliation_breaches"] = int(self.state.get("consecutive_reconciliation_breaches", 0)) + 1
+            breaches = self.state["consecutive_reconciliation_breaches"]
             self.state["is_halted"] = True
             self.state["halt_reason"] = f"RECONCILIATION_GAP_BREACH: {gap*100:.3f}% > 0.1%"
+            if breaches >= 3:
+                self.state["human_override_required"] = True
+                logger.critical(
+                    f"PERSISTENT RECONCILIATION BREACH ({breaches} consecutive cycles). Human override required. "
+                    f"100% capital routed to LIQUIDBEES.NS."
+                )
+            else:
+                logger.warning(
+                    f"TRANSIENT RECONCILIATION PAUSE (cycle {breaches}): Gap of {gap*100:.3f}% > 0.1%. "
+                    f"Capital paused in CASH_SLEEVE for today's cycle."
+                )
             self._save_state()
             return {"CASH_SLEEVE": 1.0}
 
-        # 2. Update Unitized NAV & Lifetime High-Water Mark
-        unit_nav = float(nav_state.get("nav_per_unit", 100.0))
+        # Reconciliation passed today -> clear transient pause if not under hard kill switch or human override
+        self.state["consecutive_reconciliation_breaches"] = 0
+        if not self.state.get("kill_switch_active", False) and not self.state.get("human_override_required", False):
+            if self.state.get("is_halted", False) and "RECONCILIATION" in str(self.state.get("halt_reason", "")):
+                logger.info("Transient reconciliation pause resolved: Daily reconciliation passed within 0.1%. Resuming normal evaluation.")
+                self.state["is_halted"] = False
+                self.state["halt_reason"] = None
+
+        # 2. Update Unitized NAV & Lifetime High-Water Mark (Fail-closed on missing/invalid NAV)
+        if "nav_per_unit" not in nav_state or nav_state["nav_per_unit"] is None:
+            raise ValueError("nav_per_unit is missing from nav_state")
+        try:
+            unit_nav = float(nav_state["nav_per_unit"])
+        except (ValueError, TypeError) as e:
+            raise ValueError(f"nav_per_unit is invalid in nav_state: {nav_state.get('nav_per_unit')}") from e
+
+        if math.isnan(unit_nav) or math.isinf(unit_nav) or unit_nav <= 0:
+            raise ValueError(f"nav_per_unit must be positive and finite, got {unit_nav}")
+
         hwm = max(float(self.state.get("hwm_unit_nav", 100.0)), unit_nav)
         dd = (unit_nav - hwm) / hwm
 
@@ -177,8 +250,9 @@ class PortfolioManagerEngine(ManagerInterface):
         self.state["current_drawdown"] = round(dd, 4)
         self.state["max_drawdown"] = round(min(float(self.state.get("max_drawdown", 0.0)), dd), 4)
 
-        # 3. Hard Kill Switch Check (-40%)
-        if dd <= KILL_SWITCH_TRIGGER or self.state.get("is_halted", False):
+        # 3. Hard Kill Switch Check (-40%) or Human Override Lock
+        if dd <= KILL_SWITCH_TRIGGER or self.state.get("kill_switch_active", False):
+            self.state["kill_switch_active"] = True
             self.state["throttle_level"] = 3
             self.state["is_halted"] = True
             if not self.state.get("halt_reason"):
@@ -188,6 +262,14 @@ class PortfolioManagerEngine(ManagerInterface):
             self.state["current_shares"] = {"CASH_SLEEVE": 1.0}
             self._save_state()
             logger.critical(f"MANAGER HALTED: {self.state['halt_reason']}. 100% capital routed to LIQUIDBEES.NS.")
+            return {"CASH_SLEEVE": 1.0}
+
+        if self.state.get("human_override_required", False):
+            self.state["is_halted"] = True
+            self.state["max_duration_scale"] = 0.0
+            self.state["current_shares"] = {"CASH_SLEEVE": 1.0}
+            self._save_state()
+            logger.critical(f"MANAGER HALTED (HUMAN OVERRIDE REQUIRED): {self.state.get('halt_reason')}. 100% capital routed to LIQUIDBEES.NS.")
             return {"CASH_SLEEVE": 1.0}
 
         # 4. Drawdown Throttle Transitions (Only active under THROTTLE_AND_KILL_SWITCH policy)
@@ -289,10 +371,20 @@ class PortfolioManagerEngine(ManagerInterface):
         self.state["is_halted"] = False
         self.state["halt_reason"] = None
         self.state["human_override_required"] = False
-        self.state["throttle_level"] = 2  # Restart cautiously at Level 2
+        self.state["kill_switch_active"] = False
+        self.state["consecutive_reconciliation_breaches"] = 0
         self.state["consecutive_recovery_days"] = 0
+
+        if self.policy == "FIXED_SHARES_PLUS_KILL_SWITCH":
+            # Production policy has no intermediate throttle; resuming restores fully invested state
+            self.state["throttle_level"] = 0
+            logger.info("Human boss override received: Resuming portfolio trading at Level 0 (Fully Invested under FIXED_SHARES_PLUS_KILL_SWITCH).")
+        else:
+            # THROTTLE_AND_KILL_SWITCH policy restarts cautiously at Level 2 (25% risk scale)
+            self.state["throttle_level"] = 2
+            logger.info("Human boss override received: Resuming portfolio trading cautiously at Throttle Level 2.")
+
         self._save_state()
-        logger.info("Human boss override received: Resuming portfolio trading at Throttle Level 2.")
 
     def get_status(self) -> Dict[str, Any]:
         return {
@@ -300,8 +392,11 @@ class PortfolioManagerEngine(ManagerInterface):
             "current_drawdown": self.state.get("current_drawdown", 0.0),
             "hwm_unit_nav": self.state.get("hwm_unit_nav", 100.0),
             "is_halted": self.state.get("is_halted", False),
+            "kill_switch_active": self.state.get("kill_switch_active", False),
+            "human_override_required": self.state.get("human_override_required", False),
             "halt_reason": self.state.get("halt_reason"),
             "consecutive_recovery_days": self.state.get("consecutive_recovery_days", 0),
+            "consecutive_reconciliation_breaches": self.state.get("consecutive_reconciliation_breaches", 0),
             "last_reconciliation_gap_pct": self.state.get("last_reconciliation_gap_pct", 0.0),
             "max_duration_scale": self.state.get("max_duration_scale", 1.0),
             "current_shares": self.state.get("current_shares", {})
