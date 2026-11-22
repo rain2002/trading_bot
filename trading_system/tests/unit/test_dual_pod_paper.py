@@ -781,5 +781,23 @@ def test_day0_alpaca_integrity_guard_and_sha256_provenance(tmp_path, monkeypatch
     assert len(str(row["script_hash"])) == 64
     assert len(str(row["universe_hash"])) == 64
 
+    # 3. Verify that once day0_verified is True, a flat book with cash != $100k does NOT raise RuntimeError
+    engine.state["day0_verified"] = True
+    engine.state["positions"] = {}
+    class FlatCashBroker:
+        def __init__(self, *args, **kwargs):
+            pass
+        def is_connected(self):
+            return True
+        def get_account_details(self):
+            return {"equity": 105000.0, "cash": 105000.0}
+        def get_positions_detailed(self):
+            return []
+
+    monkeypatch.setattr("trading_system.app.broker.alpaca.AlpacaBrokerAdapter", FlatCashBroker)
+    engine.sync_alpaca_live()
+    assert engine.state["cash"] == 105000.0
+
+
 
 

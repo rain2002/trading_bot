@@ -251,15 +251,16 @@ class PodPaperEngine:
 
             # Strict Day 0 & State Provenance Integrity Guard
             acc_cash = float(acc["cash"])
-            logged_pos_count = len(self.state.get("positions", {}))
-            if self.initial_capital == 100000.0 and logged_pos_count == 0:
+            is_day0_verified = self.state.get("day0_verified", False)
+            if self.initial_capital == 100000.0 and not is_day0_verified:
                 if len(positions) > 0 or abs(acc_cash - 100000.0) > 1.0:
                     raise RuntimeError(
                         f"CRITICAL DAY 0 INTEGRITY GUARD: Alpaca account state does not match logged Day 0 baseline! "
-                        f"Expected 0 positions and $100,000.00 cash, but Alpaca returned {len(positions)} open positions "
+                        f"Expected 0 positions and $100,000.00 cash on Day 0 verification, but Alpaca returned {len(positions)} open positions "
                         f"and ${acc_cash:,.2f} cash. Execution halted to prevent contaminating shadow incubation. "
                         f"Please reset the Alpaca paper account to clean $100,000.00 cash with 0 positions."
                     )
+                self.state["day0_verified"] = True
 
             self.state["cash"] = float(acc["cash"])
             total_equity = float(acc["equity"])
@@ -336,6 +337,7 @@ class PodPaperEngine:
             "in_tier4_defense": False,
             "cooling_off": 0,
             "recovery_streak": 0,
+            "day0_verified": False,
             "last_updated": None
         }
 
