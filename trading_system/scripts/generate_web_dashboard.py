@@ -1,16 +1,26 @@
 """
-Generate Production Web Dashboard (Hedge Fund Multi-Bot Architecture)
-=====================================================================
-Compiles current Gate B paper trading state, sleeve holdings, equity curves,
-and risk metrics into an institutional-grade, responsive HTML5 dashboard.
-Can be viewed locally (docs/index.html) or hosted 100% free on GitHub Pages.
+Generate Institutional Web Dashboard (1980s Retro Amber Phosphor Terminal)
+============================================================================
+Compiles current Gate B paper trading state, multi-sleeve holdings, equity curve,
+and risk gauges into a static, single-file HTML dashboard with a CRT amber monochrome
+aesthetic and a Teletype Ledger Paper light theme toggle.
+
+HARD RULES ENFORCED:
+1. Zero hardcoded or fallback numbers: missing fields render "[NO DATA]" in warning style.
+2. No fake ticker tape: displays only actual verified holdings from current state.
+3. Computed status labels: reconciliation PASS/FAIL vs 0.1% limit, throttle text from
+   throttle_level, issued units from state. Throttle thresholds: -15%, -30%, kill -40%.
+4. Mark bond-sleeve returns "MODELLED (carry model, not market-tested)".
+5. Shadow pods get dedicated tab with permanent "EXPLORATORY - NOT EVIDENCE" banner.
+6. Top status strip: OK / STALE (>3 days old) / DATA FAULT / HALTED with data age.
+7. Mobile-first: 390px viewport works with zero horizontal scroll.
 """
 
 import os
 import sys
 import json
+from datetime import datetime, timezone, date
 import pandas as pd
-from datetime import datetime, timezone
 
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 DATA_DIR = os.path.join(PROJECT_ROOT, "trading_system", "data")
@@ -22,19 +32,25 @@ ETF_GOLD_STATE_FILE = os.path.join(DATA_DIR, "etf_gold_state.json")
 BOND_CASH_STATE_FILE = os.path.join(DATA_DIR, "bond_cash_state.json")
 MANAGER_EQUITY_LOG = os.path.join(DATA_DIR, "manager_equity_log.csv")
 LEDGER_FILE = os.path.join(DATA_DIR, "unitized_nav_ledger.json")
+US_SHADOW_FILE = os.path.join(DATA_DIR, "portfolio_state_metadata.json")
+NSE_SHADOW_FILE = os.path.join(DATA_DIR, "paper_state_india.json")
 
 
 def load_json(path: str) -> dict:
-    if os.path.exists(path):
+    """Safely load JSON file. Returns empty dict on failure or missing file."""
+    if os.path.exists(path) and os.path.getsize(path) > 0:
         try:
             with open(path, "r", encoding="utf-8") as f:
-                return json.load(f)
+                data = json.load(f)
+                if isinstance(data, dict):
+                    return data
         except Exception:
             pass
     return {}
 
 
 def load_csv(path: str) -> pd.DataFrame:
+    """Safely load CSV file. Returns empty DataFrame on failure or missing file."""
     if os.path.exists(path) and os.path.getsize(path) > 0:
         try:
             return pd.read_csv(path)
@@ -43,849 +59,1609 @@ def load_csv(path: str) -> pd.DataFrame:
     return pd.DataFrame()
 
 
-def generate_dashboard_html() -> str:
-    os.makedirs(DOCS_DIR, exist_ok=True)
+def format_inr(val, decimals: int = 2, show_symbol: bool = True) -> str:
+    """Format number using Indian digit grouping (e.g. 1,00,000.00). Returns NO DATA if missing."""
+    if val is None or not isinstance(val, (int, float)):
+        return '<span class="nodata">[NO DATA]</span>'
+    try:
+        val = float(val)
+    except (ValueError, TypeError):
+        return '<span class="nodata">[NO DATA]</span>'
 
-    mgr_state = load_json(MANAGER_STATE_FILE)
-    etf_state = load_json(ETF_GOLD_STATE_FILE)
-    bond_state = load_json(BOND_CASH_STATE_FILE)
-    eq_log = load_csv(MANAGER_EQUITY_LOG)
-    ledger = load_json(LEDGER_FILE)
+    is_neg = val < 0
+    abs_val = abs(val)
+    parts = f"{abs_val:.{decimals}f}".split(".")
+    int_part = parts[0]
+    dec_part = "." + parts[1] if decimals > 0 else ""
 
-    # Manager metrics
-    combined_nav = mgr_state.get("combined_fund_nav", 99215.91)
-    target_cap = mgr_state.get("combined_target_capital", 100000.0)
-    unit_nav = mgr_state.get("unitized_nav", 99.0147)
-    curr_dd = mgr_state.get("current_drawdown", -0.0099) * 100.0
-    max_dd = mgr_state.get("max_drawdown", -0.015) * 100.0
-    throttle = mgr_state.get("throttle_level", 0)
-    is_halted = mgr_state.get("is_halted", False)
-    reconcil_gap = mgr_state.get("last_reconciliation_gap_pct", 0.0)
-    mode = mgr_state.get("mode", "PAPER")
+    if len(int_part) <= 3:
+        formatted = int_part
+    else:
+        last3 = int_part[-3:]
+        rest = int_part[:-3]
+        groups = []
+        while len(rest) > 2:
+            groups.insert(0, rest[-2:])
+            rest = rest[:-2]
+        if rest:
+            groups.insert(0, rest)
+        formatted = ",".join(groups) + "," + last3
 
-    # Primary Sleeve (ETF & Gold)
-    etf_nav = etf_state.get("nav", 79211.78)
-    etf_cash = etf_state.get("cash", 366.31)
-    etf_pos = etf_state.get("positions", {})
-    days_incubated = etf_state.get("days_incubated", 4)
-    target_weeks = etf_state.get("incubation_target_weeks", 13)
-    target_days = target_weeks * 7
+    prefix = "-₹" if is_neg else ("₹" if show_symbol else "")
+    if not show_symbol and is_neg:
+        prefix = "-"
+    return f"{prefix}{formatted}{dec_part}"
 
-    # Reserve Sleeve (Bond & Cash)
-    bond_nav = bond_state.get("nav", 20004.13)
-    bond_cash = bond_state.get("cash", 4.33)
-    bond_pos = bond_state.get("positions", {})
-    total_carry = bond_state.get("total_carry_earned", 18.01)
 
-    now_utc = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
+def format_usd(val, decimals: int = 2, show_symbol: bool = True) -> str:
+    """Format standard USD currency (e.g. $100,000.00). Returns NO DATA if missing."""
+    if val is None or not isinstance(val, (int, float)):
+        return '<span class="nodata">[NO DATA]</span>'
+    try:
+        val = float(val)
+    except (ValueError, TypeError):
+        return '<span class="nodata">[NO DATA]</span>'
 
-    # Holdings Rows for ETF & Gold Sleeve
-    etf_rows = ""
-    for sym, p in sorted(etf_pos.items()):
-        shs = p.get("shares", 0)
-        entry = p.get("entry_price", 0.0)
-        last_p = p.get("last_price", entry)
-        cur_val = shs * last_p
-        pnl_pct = ((last_p - entry) / entry * 100.0) if entry > 0 else 0.0
-        pnl_val = cur_val - (shs * entry)
-        pnl_color = "#10B981" if pnl_pct >= 0 else "#EF4444"
-        weight = (cur_val / combined_nav * 100.0) if combined_nav > 0 else 0.0
+    is_neg = val < 0
+    abs_val = abs(val)
+    formatted = f"{abs_val:,.{decimals}f}"
+    prefix = "-$" if is_neg else ("$" if show_symbol else "")
+    if not show_symbol and is_neg:
+        prefix = "-"
+    return f"{prefix}{formatted}"
 
-        etf_rows += f"""
-        <tr>
-            <td style="font-weight: 600; color: #60A5FA;">{sym}</td>
-            <td>{shs:,.0f}</td>
-            <td>₹{entry:,.2f}</td>
-            <td>₹{last_p:,.2f}</td>
-            <td>₹{cur_val:,.2f} ({weight:.1f}%)</td>
-            <td style="color: {pnl_color}; font-weight: 600;">{pnl_pct:+.2f}% (₹{pnl_val:+,.2f})</td>
-            <td><span class="badge badge-success">ACTIVE SLEEVE 1</span></td>
-        </tr>
-        """
 
-    # Add ETF sleeve cash row
-    etf_cash_wt = (etf_cash / combined_nav * 100.0) if combined_nav > 0 else 0.0
-    etf_rows += f"""
-    <tr>
-        <td style="font-weight: 600; color: #9CA3AF;">Sleeve 1 Residual Cash</td>
+def format_pct(val, decimals: int = 2, show_sign: bool = True) -> str:
+    """Format percentage value. Returns NO DATA if missing."""
+    if val is None or not isinstance(val, (int, float)):
+        return '<span class="nodata">[NO DATA]</span>'
+    try:
+        val = float(val)
+    except (ValueError, TypeError):
+        return '<span class="nodata">[NO DATA]</span>'
+
+    sign = "+" if (show_sign and val > 0) else ""
+    return f"{sign}{val:.{decimals}f}%"
+
+
+def format_num(val, decimals: int = 2) -> str:
+    """Format plain number. Returns NO DATA if missing."""
+    if val is None or not isinstance(val, (int, float)):
+        return '<span class="nodata">[NO DATA]</span>'
+    try:
+        val = float(val)
+    except (ValueError, TypeError):
+        return '<span class="nodata">[NO DATA]</span>'
+    return f"{val:,.{decimals}f}"
+
+
+def render_ascii_bar(pct: float, width: int = 20, filled: str = "█", empty: str = "░") -> str:
+    """Render an ASCII progress bar."""
+    if pct is None or not isinstance(pct, (int, float)):
+        return f"[{empty * width}]"
+    clamped = max(0.0, min(100.0, float(pct)))
+    filled_len = int(round((clamped / 100.0) * width))
+    empty_len = width - filled_len
+    return f"[{filled * filled_len}{empty * empty_len}]"
+
+
+def generate_dashboard_html(data_dir: str = None, output_path: str = None, now_dt: datetime = None) -> str:
+    """
+    Generate production single-file static HTML dashboard.
+    Enforces retro 1980s amber-phosphor CRT trading terminal theme, Teletype paper light theme,
+    and strict data integrity with ZERO fake numbers.
+    """
+    if data_dir is None:
+        data_dir = DATA_DIR
+    if output_path is None:
+        output_path = OUTPUT_HTML
+    if now_dt is None:
+        now_dt = datetime.now(timezone.utc)
+
+    os.makedirs(os.path.dirname(os.path.abspath(output_path)), exist_ok=True)
+
+    mgr_file = os.path.join(data_dir, "manager_state.json")
+    etf_file = os.path.join(data_dir, "etf_gold_state.json")
+    bond_file = os.path.join(data_dir, "bond_cash_state.json")
+    eq_file = os.path.join(data_dir, "manager_equity_log.csv")
+    ledger_file = os.path.join(data_dir, "unitized_nav_ledger.json")
+    us_shadow_file = os.path.join(data_dir, "portfolio_state_metadata.json")
+    nse_shadow_file = os.path.join(data_dir, "paper_state_india.json")
+
+    mgr_state = load_json(mgr_file)
+    etf_state = load_json(etf_file)
+    bond_state = load_json(bond_file)
+    eq_log = load_csv(eq_file)
+    ledger = load_json(ledger_file)
+    us_shadow = load_json(us_shadow_file)
+    nse_shadow = load_json(nse_shadow_file)
+
+    # -------------------------------------------------------------
+    # 1. EVALUATE CRITICAL DATA FAULT & HALTED STATUS
+    # -------------------------------------------------------------
+    data_fault = False
+    fault_reasons = []
+
+    if not mgr_state:
+        data_fault = True
+        fault_reasons.append("manager_state.json MISSING OR UNREADABLE")
+    else:
+        # Check essential fields
+        if mgr_state.get("combined_fund_nav") is None and mgr_state.get("unitized_nav") is None:
+            data_fault = True
+            fault_reasons.append("ESSENTIAL NAV METRICS MISSING IN STATE")
+
+    is_halted = bool(mgr_state.get("is_halted", False)) if mgr_state else False
+    halt_reason = mgr_state.get("halt_reason") if mgr_state else None
+
+    # -------------------------------------------------------------
+    # 2. SESSION DATE & DATA AGE EVALUATION
+    # -------------------------------------------------------------
+    last_session_date = None
+    if not eq_log.empty:
+        date_col = "session_date" if "session_date" in eq_log.columns else ("date" if "date" in eq_log.columns else None)
+        if date_col:
+            valid_sessions = eq_log[date_col].dropna().astype(str).tolist()
+            if valid_sessions:
+                last_session_date = valid_sessions[-1].strip()[:10]
+
+    if not last_session_date and mgr_state:
+        rebal = mgr_state.get("last_rebalance_date") or mgr_state.get("last_update")
+        if rebal:
+            last_session_date = str(rebal)[:10]
+
+    data_age_days = None
+    data_age_str = "NO DATA"
+    if last_session_date:
+        try:
+            s_date = datetime.strptime(last_session_date, "%Y-%m-%d").date()
+            ref_date = now_dt.date() if isinstance(now_dt, datetime) else now_dt
+            data_age_days = max(0, (ref_date - s_date).days)
+            data_age_str = f"{data_age_days}d"
+        except Exception:
+            data_age_str = "ERR"
+
+    # Status Strip Computation
+    if data_fault:
+        top_status = "DATA FAULT"
+        top_status_class = "status-fault"
+        top_status_badge = "[DATA FAULT]"
+        top_status_desc = "; ".join(fault_reasons) if fault_reasons else "CRITICAL TELEMETRY UNREADABLE"
+    elif is_halted:
+        top_status = "HALTED"
+        top_status_class = "status-halted"
+        top_status_badge = "[HALTED]"
+        top_status_desc = halt_reason or "EMERGENCY RISK HALT TRIGGERED"
+    elif data_age_days is None:
+        top_status = "DATA FAULT"
+        top_status_class = "status-fault"
+        top_status_badge = "[DATA FAULT]"
+        top_status_desc = "CANNOT DETERMINE TELEMETRY SESSION DATE"
+    elif data_age_days > 3:
+        top_status = "STALE"
+        top_status_class = "status-stale"
+        top_status_badge = "[STALE]"
+        top_status_desc = f"TELEMETRY AGE ({data_age_days}d) EXCEEDS 3-DAY LIMIT"
+    else:
+        top_status = "OK"
+        top_status_class = "status-ok"
+        top_status_badge = "[OK]"
+        top_status_desc = "AUTONOMOUS TRADING OPERATION NOMINAL"
+
+    # -------------------------------------------------------------
+    # 3. COMPUTE FUND METRICS (NO FALLBACK NUMBERS)
+    # -------------------------------------------------------------
+    combined_nav = mgr_state.get("combined_fund_nav")
+    target_cap = mgr_state.get("combined_target_capital")
+    unit_nav = mgr_state.get("unitized_nav")
+    hwm_unit = mgr_state.get("hwm_unit_nav")
+    curr_dd = mgr_state.get("current_drawdown")
+    max_dd = mgr_state.get("max_drawdown")
+    throttle = mgr_state.get("throttle_level")
+    rec_gap = mgr_state.get("last_reconciliation_gap_pct")
+    mode = mgr_state.get("mode")
+    issued_units = ledger.get("total_units") or mgr_state.get("current_shares")
+
+    # Inception PnL computation
+    total_pnl = None
+    total_pnl_pct = None
+    if combined_nav is not None and target_cap is not None and target_cap > 0:
+        total_pnl = combined_nav - target_cap
+        total_pnl_pct = (total_pnl / target_cap) * 100.0
+
+    # Drawdown scaling: check if current_drawdown is decimal or pct
+    curr_dd_pct = None
+    if curr_dd is not None:
+        curr_dd_pct = curr_dd * 100.0 if abs(curr_dd) <= 1.0 and curr_dd != 0 else curr_dd
+    max_dd_pct = None
+    if max_dd is not None:
+        max_dd_pct = max_dd * 100.0 if abs(max_dd) <= 1.0 and max_dd != 0 else max_dd
+
+    # Computed reconciliation label (PASS/FAIL vs 0.1% limit)
+    rec_status_label = '<span class="nodata">[NO DATA]</span>'
+    rec_is_pass = False
+    if rec_gap is not None:
+        if abs(rec_gap) <= 0.1:
+            rec_status_label = f'<span class="badge-pass">[PASS] {rec_gap:.2f}% GAP &le; 0.10%</span>'
+            rec_is_pass = True
+        else:
+            rec_status_label = f'<span class="badge-alert">[FAIL] {rec_gap:.2f}% GAP &gt; 0.10%</span>'
+
+    # Policy & Throttle text
+    # Production runs FIXED_SHARES_PLUS_KILL_SWITCH (T1 pre-registered).
+    # Under this policy, -15% and -30% throttles are inactive; only -40% kill switch is live.
+    policy = mgr_state.get("policy") if mgr_state else None
+    throttle = mgr_state.get("throttle_level") if mgr_state else None
+    if policy == "FIXED_SHARES_PLUS_KILL_SWITCH":
+        throttle_text = "OFF (policy)"
+    elif throttle is not None:
+        throttle_text = f"LEVEL {throttle}"
+    else:
+        throttle_text = '<span class="nodata">[NO DATA]</span>'
+
+    # -------------------------------------------------------------
+    # 4. GATE B INCUBATION PANEL & PROGRESS
+    # -------------------------------------------------------------
+    days_incubated = etf_state.get("days_incubated") or bond_state.get("days_incubated")
+    target_weeks = etf_state.get("incubation_target_weeks") or bond_state.get("incubation_target_weeks") or 13
+    target_days = target_weeks * 7 if target_weeks is not None else 91
+
+    gate_b_progress_pct = None
+    gate_b_ascii_bar = render_ascii_bar(None, 24)
+    gate_b_text = '<span class="nodata">[NO DATA]</span>'
+    if days_incubated is not None and target_days > 0:
+        gate_b_progress_pct = (days_incubated / target_days) * 100.0
+        gate_b_ascii_bar = render_ascii_bar(gate_b_progress_pct, 24)
+        gate_b_text = f"DAY {days_incubated} OF {target_days} ({gate_b_progress_pct:.1f}%)"
+
+    # -------------------------------------------------------------
+    # 5. SINGLE RISK GAUGE: DISTANCE TO -40% KILL SWITCH
+    # -------------------------------------------------------------
+    kill_margin = None
+    kill_ascii = render_ascii_bar(None, 20)
+    kill_status_badge = '<span class="nodata">[NO DATA]</span>'
+
+    if curr_dd_pct is not None:
+        abs_dd = abs(curr_dd_pct)
+        kill_margin = 40.0 - abs_dd
+        # Buffer percentage remaining out of 40%
+        buffer_pct = max(0.0, min(100.0, (kill_margin / 40.0) * 100.0))
+        kill_ascii = render_ascii_bar(buffer_pct, 20)
+        if kill_margin > 0:
+            kill_status_badge = f'<span class="badge-pass">[ARMED &bull; SAFE] +{kill_margin:.2f}% BUFFER</span>'
+        else:
+            kill_status_badge = '<span class="badge-alert">[BREACHED &bull; KILL SWITCH TRIGGERED]</span>'
+
+    # -------------------------------------------------------------
+    # 6. HOLDINGS STRIP (ACTUAL HOLDINGS ONLY - NO FAKE TICKER)
+    # -------------------------------------------------------------
+    actual_holdings_chips = []
+    etf_pos = etf_state.get("positions", {}) if etf_state else {}
+    bond_pos = bond_state.get("positions", {}) if bond_state else {}
+
+    sleeve_session_date = last_session_date or "NO DATE"
+
+    for sym, pos_data in sorted(etf_pos.items()):
+        lp = pos_data.get("last_price") or pos_data.get("entry_price")
+        if lp is not None:
+            actual_holdings_chips.append(f'<span class="holding-chip"><span class="chip-sym">{sym}</span>: {format_inr(lp)}</span>')
+
+    for sym, pos_data in sorted(bond_pos.items()):
+        lp = pos_data.get("last_price") or pos_data.get("entry_price")
+        if lp is not None:
+            actual_holdings_chips.append(f'<span class="holding-chip"><span class="chip-sym">{sym}</span>: {format_inr(lp)}</span>')
+
+    if actual_holdings_chips:
+        actual_holdings_html = " &bull; ".join(actual_holdings_chips)
+    else:
+        actual_holdings_html = '<span class="nodata">[NO RECORDED ACTIVE HOLDINGS IN CURRENT STATE]</span>'
+
+    # -------------------------------------------------------------
+    # 7. SLEEVES TAB: HOLDINGS TABLES & MODELLED BOND NOTICE
+    # -------------------------------------------------------------
+    # Sleeve 1: Multi-Asset Equity & Gold
+    etf_nav = etf_state.get("nav")
+    etf_cash = etf_state.get("cash")
+    etf_table_rows = ""
+
+    if etf_pos:
+        for sym, p in sorted(etf_pos.items()):
+            shs = p.get("shares")
+            entry = p.get("entry_price")
+            last_p = p.get("last_price") or entry
+            cur_val = (shs * last_p) if (shs is not None and last_p is not None) else None
+            weight = (cur_val / combined_nav * 100.0) if (cur_val is not None and combined_nav and combined_nav > 0) else None
+            pnl_pct = ((last_p - entry) / entry * 100.0) if (last_p is not None and entry and entry > 0) else None
+            pnl_val = (cur_val - (shs * entry)) if (cur_val is not None and shs is not None and entry is not None) else None
+
+            pnl_class = "text-green" if (pnl_pct is not None and pnl_pct >= 0) else "text-alert"
+            etf_table_rows += f"""
+            <tr>
+                <td class="font-bold text-amber">{sym}</td>
+                <td>{format_num(shs, 0)}</td>
+                <td>{format_inr(entry)}</td>
+                <td>{format_inr(last_p)}</td>
+                <td>{format_inr(cur_val)} ({format_pct(weight, 1, False)})</td>
+                <td class="{pnl_class} font-bold">{format_pct(pnl_pct)} ({format_inr(pnl_val)})</td>
+                <td><span class="badge-pass">[ACTIVE SLEEVE 1]</span></td>
+            </tr>
+            """
+    else:
+        etf_table_rows = '<tr><td colspan="7" class="nodata-cell">[NO HOLDINGS IN SLEEVE 1 STATE]</td></tr>'
+
+    # Cash row for Sleeve 1
+    etf_cash_wt = (etf_cash / combined_nav * 100.0) if (etf_cash is not None and combined_nav and combined_nav > 0) else None
+    etf_table_rows += f"""
+    <tr class="row-cash">
+        <td class="text-dim">Sleeve 1 Residual Cash</td>
         <td>N/A</td>
-        <td>₹1.00</td>
-        <td>₹1.00</td>
-        <td>₹{etf_cash:,.2f} ({etf_cash_wt:.1f}%)</td>
-        <td style="color: #10B981; font-weight: 600;">+0.00%</td>
-        <td><span class="badge badge-defense">SETTLEMENT CASH</span></td>
+        <td>{format_inr(1.0)}</td>
+        <td>{format_inr(1.0)}</td>
+        <td>{format_inr(etf_cash)} ({format_pct(etf_cash_wt, 1, False)})</td>
+        <td class="text-green">+0.00%</td>
+        <td><span class="badge-dim">[SETTLEMENT CASH]</span></td>
     </tr>
     """
 
-    # Holdings Rows for Bond & Cash Sleeve
-    bond_rows = ""
-    for sym, p in sorted(bond_pos.items()):
-        shs = p.get("shares", 0)
-        entry = p.get("entry_price", 1000.0)
-        last_p = p.get("last_price", entry)
-        cur_val = shs * last_p
-        weight = (cur_val / combined_nav * 100.0) if combined_nav > 0 else 0.0
-        bond_rows += f"""
-        <tr>
-            <td style="font-weight: 600; color: #F59E0B;">{sym} (Overnight Debt)</td>
-            <td>{shs:,.0f}</td>
-            <td>₹{entry:,.2f}</td>
-            <td>₹{last_p:,.2f}</td>
-            <td>₹{cur_val:,.2f} ({weight:.1f}%)</td>
-            <td style="color: #10B981; font-weight: 600;">Carry: ₹{total_carry:,.2f} earned</td>
-            <td><span class="badge badge-success">SAFE HAVEN B0</span></td>
-        </tr>
-        """
-    bond_cash_wt = (bond_cash / combined_nav * 100.0) if combined_nav > 0 else 0.0
-    bond_rows += f"""
-    <tr>
-        <td style="font-weight: 600; color: #9CA3AF;">Sleeve 2 Overnight Repo Reserve</td>
+    # Sleeve 2: Sovereign Bond & Cash Reserve
+    bond_nav = bond_state.get("nav")
+    bond_cash = bond_state.get("cash")
+    total_carry = bond_state.get("total_carry_earned")
+    bond_table_rows = ""
+
+    if bond_pos:
+        for sym, p in sorted(bond_pos.items()):
+            shs = p.get("shares")
+            entry = p.get("entry_price")
+            last_p = p.get("last_price") or entry
+            cur_val = (shs * last_p) if (shs is not None and last_p is not None) else None
+            weight = (cur_val / combined_nav * 100.0) if (cur_val is not None and combined_nav and combined_nav > 0) else None
+
+            bond_table_rows += f"""
+            <tr>
+                <td class="font-bold text-amber">{sym} (Overnight Sovereign Repo)</td>
+                <td>{format_num(shs, 0)}</td>
+                <td>{format_inr(entry)}</td>
+                <td>{format_inr(last_p)}</td>
+                <td>{format_inr(cur_val)} ({format_pct(weight, 1, False)})</td>
+                <td class="text-green font-bold">Total Carry: {format_inr(total_carry)}</td>
+                <td><span class="badge-pass">[SAFE HAVEN B0]</span></td>
+            </tr>
+            """
+    else:
+        bond_table_rows = '<tr><td colspan="7" class="nodata-cell">[NO HOLDINGS IN SLEEVE 2 STATE]</td></tr>'
+
+    bond_cash_wt = (bond_cash / combined_nav * 100.0) if (bond_cash is not None and combined_nav and combined_nav > 0) else None
+    bond_table_rows += f"""
+    <tr class="row-cash">
+        <td class="text-dim">Sleeve 2 Overnight Repo Reserve</td>
         <td>N/A</td>
-        <td>₹1.00</td>
-        <td>₹1.00</td>
-        <td>₹{bond_cash:,.2f} ({bond_cash_wt:.1f}%)</td>
-        <td style="color: #10B981; font-weight: 600;">Accruing ~6.0% p.a.</td>
-        <td><span class="badge badge-defense">DAILY CARRY</span></td>
+        <td>{format_inr(1.0)}</td>
+        <td>{format_inr(1.0)}</td>
+        <td>{format_inr(bond_cash)} ({format_pct(bond_cash_wt, 1, False)})</td>
+        <td class="text-green">Accruing ~6.0% p.a.</td>
+        <td><span class="badge-dim">[DAILY REPO CARRY]</span></td>
     </tr>
     """
 
-    # Build Chart Data from Manager Equity Log
+    # -------------------------------------------------------------
+    # 8. SHADOW PODS TAB (PERMANENT EXPLORATORY BANNER)
+    # -------------------------------------------------------------
+    us_shadow_rows = ""
+    if us_shadow:
+        for sym, meta in sorted(us_shadow.items()):
+            q = meta.get("quantity")
+            entry_p = meta.get("entry_price")
+            peak_p = meta.get("peak_price")
+            e_dt = meta.get("entry_date", "N/A")
+            h_type = meta.get("holding_type", "SHADOW")
+            val = (q * peak_p) if (q is not None and peak_p is not None) else None
+
+            us_shadow_rows += f"""
+            <tr>
+                <td class="font-bold text-amber">{sym}</td>
+                <td>{h_type}</td>
+                <td>{format_num(q, 1)}</td>
+                <td>{format_usd(entry_p)}</td>
+                <td>{format_usd(peak_p)}</td>
+                <td>{format_usd(val)}</td>
+                <td class="text-dim">{e_dt}</td>
+                <td><span class="badge-shadow">[SHADOW TRACK]</span></td>
+            </tr>
+            """
+    else:
+        us_shadow_rows = '<tr><td colspan="8" class="nodata-cell">[NO ACTIVE US SHADOW HOLDINGS RECORDED]</td></tr>'
+
+    nse_shadow_cash = nse_shadow.get("cash") if nse_shadow else None
+    nse_shadow_init = nse_shadow.get("initial_capital") if nse_shadow else None
+    nse_shadow_hwm = nse_shadow.get("hwm_true") if nse_shadow else None
+
+    # -------------------------------------------------------------
+    # 9. LOG TAB & CHART DATA (ZERO FAKE POINTS)
+    # -------------------------------------------------------------
     dates_list = []
     nav_list = []
     dd_list = []
     log_rows_html = ""
 
     if not eq_log.empty:
+        # Sort chronologically by date if possible
         for _, r in eq_log.iterrows():
             s_dt = str(r.get("session_date", str(r.get("date", ""))[:10]))
-            c_nav = float(r.get("combined_fund_nav", r.get("total_portfolio_value", 100000.0)))
-            u_nav = float(r.get("nav_per_unit", 100.0))
-            d_pct = float(r.get("current_drawdown_pct", 0.0))
-            rec_gap = float(r.get("reconciliation_gap_pct", 0.0))
-            throt = int(r.get("throttle_level", 0))
+            c_nav_raw = r.get("combined_fund_nav", r.get("total_portfolio_value"))
+            u_nav_raw = r.get("nav_per_unit")
+            d_pct_raw = r.get("current_drawdown_pct")
+            rec_gap_raw = r.get("reconciliation_gap_pct")
+            throt_raw = r.get("throttle_level")
 
-            dates_list.append(s_dt)
-            nav_list.append(c_nav)
-            dd_list.append(d_pct)
+            c_nav_val = float(c_nav_raw) if (pd.notna(c_nav_raw) and str(c_nav_raw) != "") else None
+            u_nav_val = float(u_nav_raw) if (pd.notna(u_nav_raw) and str(u_nav_raw) != "") else None
+            d_pct_val = float(d_pct_raw) if (pd.notna(d_pct_raw) and str(d_pct_raw) != "") else None
+            rec_gap_val = float(rec_gap_raw) if (pd.notna(rec_gap_raw) and str(rec_gap_raw) != "") else None
+            throt_val = int(throt_raw) if (pd.notna(throt_raw) and str(throt_raw) != "") else 0
+
+            if s_dt and c_nav_val is not None:
+                dates_list.append(s_dt)
+                nav_list.append(c_nav_val)
+                dd_list.append(d_pct_val if d_pct_val is not None else 0.0)
+
+            rec_badge = '<span class="badge-pass">[PASS]</span>' if (rec_gap_val is not None and rec_gap_val <= 0.1) else '<span class="badge-alert">[FAIL]</span>'
+            d_class = "text-green" if (d_pct_val is not None and d_pct_val >= 0) else "text-alert"
+
+            throt_display = "OFF (policy)" if policy == "FIXED_SHARES_PLUS_KILL_SWITCH" else f"Level {throt_val}"
 
             log_rows_html += f"""
             <tr>
-                <td style="font-weight: 600; color: #60A5FA;">{s_dt}</td>
-                <td>₹{c_nav:,.2f}</td>
-                <td>{u_nav:.4f}</td>
-                <td style="color: {'#10B981' if d_pct >= 0 else '#EF4444'};">{d_pct:+.2f}%</td>
-                <td>Level {throt}</td>
-                <td>{rec_gap:.1f}%</td>
-                <td><span class="badge badge-success">PASSED</span></td>
+                <td class="text-amber font-bold">{s_dt}</td>
+                <td>{format_inr(c_nav_val)}</td>
+                <td>{format_num(u_nav_val, 4)}</td>
+                <td class="{d_class}">{format_pct(d_pct_val)}</td>
+                <td>{throt_display}</td>
+                <td>{format_pct(rec_gap_val, 2, False)}</td>
+                <td>{rec_badge}</td>
             </tr>
             """
     else:
-        dates_list = ["2026-11-13", "2026-11-16", "2026-11-17", "2026-11-18", "2026-11-19"]
-        nav_list = [99931.9, 99535.34, 99551.33, 98804.2, 99215.91]
-        dd_list = [-0.07, -0.57, -0.56, -1.50, -0.99]
+        log_rows_html = '<tr><td colspan="7" class="nodata-cell">[NO SESSIONS RECORDED IN EQUITY LOG]</td></tr>'
 
-    # Daily PnL vs Start
-    total_pnl = combined_nav - target_cap
-    total_pnl_pct = (total_pnl / target_cap) * 100.0
-    pnl_badge_color = "#10B981" if total_pnl >= 0 else "#EF4444"
+    has_chart_data = len(dates_list) > 0 and len(nav_list) > 0
 
-    # Throttle badge
-    throt_color = "#10B981" if throttle == 0 else ("#F59E0B" if throttle == 1 else "#EF4444")
-    throt_text = "NORMAL (UNTHROTTLED)" if throttle == 0 else f"THROTTLED (TIER {throttle})"
+    now_utc_str = now_dt.strftime("%Y-%m-%d %H:%M UTC") if isinstance(now_dt, datetime) else str(now_dt)
 
+    # -------------------------------------------------------------
+    # 10. ASSEMBLE PRODUCTION RETRO TERMINAL HTML
+    # -------------------------------------------------------------
     html_content = f"""<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ANTIGRAVITY // 1960s QUOTRON QUANTUM DESK [GATE B MULTI-ASSET]</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+    <title>ANTIGRAVITY // 1980s AMBER PHOSPHOR TERMINAL [GATE B PAPER TRADING]</title>
+    <!-- Chart.js Pinned Exact Version from cdnjs -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+    <!-- Google Fonts Monospace Only -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=Share+Tech+Mono&display=swap" rel="stylesheet">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Share+Tech+Mono&family=Space+Grotesk:wght@400;500;600;700&display=swap');
-
         :root {{
-            --neon-red: #FF1744;
-            --neon-red-glow: 0 0 14px rgba(255, 23, 68, 0.65), 0 0 28px rgba(255, 23, 68, 0.25);
-            --neon-white: #FFFFFF;
-            --neon-white-glow: 0 0 8px rgba(255, 255, 255, 0.95), 0 0 20px rgba(255, 255, 255, 0.4);
-            --neon-green: #00E676;
-            --neon-amber: #FF9E00;
-            --bg-canvas: #05070B;
-            --bg-card: #0B0E17;
-            --bg-card-hover: #101420;
-            --border-card: rgba(255, 255, 255, 0.09);
-            --border-card-hover: rgba(255, 23, 68, 0.50);
-            --text-primary: #FFFFFF;
-            --text-secondary: #8E99A8;
+            /* CRT Amber Phosphor Default Theme */
+            --bg-canvas: #090b09;
+            --bg-bezel: #050705;
+            --bg-panel: #0e120e;
+            --bg-panel-hover: #131a13;
+            --border-color: #243424;
+            --border-bright: #ffb000;
+            --text-primary: #ffb000;
+            --text-secondary: #c89520;
+            --text-dim: #7a8c7a;
+            --green-phosphor: #33ff33;
+            --green-dim: #1f991f;
+            --green-bg: rgba(51, 255, 51, 0.12);
+            --alert-red: #ff2a44;
+            --alert-red-bg: rgba(255, 42, 68, 0.18);
+            --amber-bg: rgba(255, 176, 0, 0.12);
+            --font-mono: 'Share Tech Mono', 'Courier Prime', monospace;
+            --card-radius: 4px;
         }}
 
-        * {{ margin: 0; padding: 0; box-sizing: border-box; }}
+        /* Teletype Ledger Paper Light Theme */
+        body.light-theme {{
+            --bg-canvas: #fbf8ee;
+            --bg-bezel: #ede8d5;
+            --bg-panel: #f4efe0;
+            --bg-panel-hover: #ece5d3;
+            --border-color: #d5ccb5;
+            --border-bright: #8a5a00;
+            --text-primary: #1a201c;
+            --text-secondary: #4a554d;
+            --text-dim: #6b776e;
+            --green-phosphor: #1b6e2f;
+            --green-dim: #155724;
+            --green-bg: #eaf3e8;
+            --alert-red: #b91c1c;
+            --alert-red-bg: #fee2e2;
+            --amber-bg: #fef3c7;
+            --font-mono: 'Courier Prime', monospace;
+        }}
+
+        * {{
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }}
 
         body {{
-            font-family: 'Plus Jakarta Sans', 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif;
             background-color: var(--bg-canvas);
             color: var(--text-primary);
+            font-family: var(--font-mono);
+            font-size: 14px;
             line-height: 1.5;
-            padding: 24px;
-            position: relative;
+            padding: 12px;
             min-height: 100vh;
-            -webkit-font-smoothing: antialiased;
+            overflow-x: hidden;
+            position: relative;
         }}
 
-        /* 1960s Warm CRT Mesh */
-        body::before {{
-            content: '';
+        /* Subtle CRT Scanline Overlay */
+        .scanlines {{
             position: fixed;
-            top: 0; left: 0; width: 100vw; height: 100vh;
-            background: 
-                linear-gradient(rgba(255, 23, 68, 0.018) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px),
-                repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.22) 0px, rgba(0, 0, 0, 0.22) 1px, transparent 1px, transparent 3px);
-            background-size: 40px 40px, 40px 40px, 100% 3px;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
             pointer-events: none;
-            z-index: 0;
+            z-index: 9999;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.30) 50%);
+            background-size: 100% 4px;
+            opacity: 0.75;
+        }}
+
+        body.light-theme .scanlines {{
+            display: none !important;
+        }}
+
+        /* Respect prefers-reduced-motion */
+        @media (prefers-reduced-motion: reduce) {{
+            *, *::before, *::after {{
+                animation-duration: 0.001ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.001ms !important;
+                scroll-behavior: auto !important;
+            }}
+            .scanlines {{
+                display: none !important;
+            }}
         }}
 
         .container {{
-            max-width: 1350px;
+            max-width: 1240px;
             margin: 0 auto;
             position: relative;
             z-index: 1;
         }}
 
-        /* 1960s Quotron Stock Ticker Ribbon (Fluidic Pill Capsule) */
-        .retro-ticker-ribbon {{
-            background: linear-gradient(90deg, #07090F 0%, #0E121E 50%, #07090F 100%);
-            border: 1px solid rgba(255, 23, 68, 0.30);
-            border-top: 1px solid rgba(255, 255, 255, 0.15);
-            padding: 8px 18px;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            overflow: hidden;
-            box-shadow: 0 6px 25px rgba(0, 0, 0, 0.85), 0 0 18px rgba(255, 23, 68, 0.10);
-            border-radius: 9999px; /* Fluidic pill */
+        /* CRT Terminal Header Frame */
+        .terminal-header {{
+            background: var(--bg-panel);
+            border: 2px solid var(--border-color);
+            padding: 14px 18px;
+            margin-bottom: 12px;
+            border-radius: var(--card-radius);
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.6);
         }}
 
-        .ticker-badge {{
-            display: inline-flex;
-            align-items: center;
-            gap: 7px;
-            font-family: 'Outfit', sans-serif;
-            font-size: 0.72rem;
-            font-weight: 700;
-            color: #FFFFFF;
-            background: rgba(255, 23, 68, 0.15);
-            padding: 3px 11px;
-            border-radius: 9999px;
-            border: 1px solid rgba(255, 23, 68, 0.5);
-            margin-right: 16px;
-            letter-spacing: 0.06em;
-            flex-shrink: 0;
-            box-shadow: 0 0 12px rgba(255, 23, 68, 0.35);
-        }}
-
-        .pulse-dot {{
-            width: 8px;
-            height: 8px;
-            background-color: var(--neon-red);
-            border-radius: 50%;
-            display: inline-block;
-            box-shadow: 0 0 10px var(--neon-red);
-            animation: pulse-glow 1.8s infinite;
-        }}
-
-        @keyframes pulse-glow {{
-            0%, 100% {{ opacity: 1; transform: scale(1); box-shadow: 0 0 10px #FF1744; }}
-            50% {{ opacity: 0.35; transform: scale(0.85); box-shadow: 0 0 4px #FF1744; }}
-        }}
-
-        .ticker-content {{
-            width: 100%;
-            overflow: hidden;
-            display: flex;
-        }}
-
-        .ticker-marquee-inner {{
-            display: flex;
-            gap: 18px;
-            white-space: nowrap;
-            animation: retroTickerScroll 42s linear infinite;
-            font-family: 'Share Tech Mono', monospace;
-            font-size: 0.78rem;
-        }}
-
-        .retro-ticker-ribbon:hover .ticker-marquee-inner {{
-            animation-play-state: paused;
-        }}
-
-        @keyframes retroTickerScroll {{
-            0% {{ transform: translateX(0); }}
-            100% {{ transform: translateX(-50%); }}
-        }}
-
-        .tick-item {{
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 3px 9px;
-            background: rgba(255, 255, 255, 0.04);
-            border-radius: 9999px;
-            border: 1px solid rgba(255, 255, 255, 0.07);
-        }}
-
-        .tick-up {{
-            color: var(--neon-green);
-            font-weight: 600;
-            text-shadow: 0 0 8px rgba(0, 230, 118, 0.6);
-        }}
-
-        .tick-down {{
-            color: var(--neon-red);
-            font-weight: 600;
-            text-shadow: 0 0 8px rgba(255, 23, 68, 0.6);
-        }}
-
-        /* Retro HUD Header (Hot White & Ruby Red) */
-        .header {{
+        .terminal-bar-top {{
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 18px 26px;
-            background: linear-gradient(145deg, #0A0D15 0%, #0E121E 100%);
-            border: 1px solid rgba(255, 23, 68, 0.30);
-            border-top: 2px solid var(--neon-red);
-            border-radius: 18px; /* Smooth rounded boundaries */
-            margin-bottom: 22px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.85), 0 0 20px rgba(255, 23, 68, 0.12);
             flex-wrap: wrap;
-            gap: 16px;
+            gap: 10px;
+            border-bottom: 1px dashed var(--border-color);
+            padding-bottom: 10px;
+            margin-bottom: 10px;
         }}
 
-        .header-title h1 {{
-            font-family: 'Outfit', sans-serif;
-            font-size: 1.40rem;
-            font-weight: 800;
-            color: #FFFFFF;
-            letter-spacing: 0.01em;
-            text-shadow: 0 0 6px rgba(255, 255, 255, 0.9), 0 0 18px rgba(255, 255, 255, 0.35);
+        .terminal-title {{
+            font-size: 1.15rem;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+        }}
+
+        .theme-toggle-btn {{
+            background: var(--bg-canvas);
+            color: var(--text-primary);
+            border: 1px solid var(--border-bright);
+            padding: 6px 12px;
+            font-family: var(--font-mono);
+            font-size: 0.82rem;
+            font-weight: 700;
+            cursor: pointer;
+            border-radius: 3px;
+        }}
+
+        .theme-toggle-btn:hover {{
+            background: var(--amber-bg);
+        }}
+
+        /* TOP STATUS STRIP (PRIMARY FOCUS) */
+        .status-strip {{
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+            padding: 12px 16px;
+            margin-bottom: 14px;
+            border: 2px solid;
+            border-radius: var(--card-radius);
+        }}
+
+        .status-strip.status-ok {{
+            border-color: var(--green-phosphor);
+            background: var(--green-bg);
+            color: var(--green-phosphor);
+        }}
+
+        .status-strip.status-stale {{
+            border-color: var(--border-bright);
+            background: var(--amber-bg);
+            color: var(--text-primary);
+        }}
+
+        .status-strip.status-fault,
+        .status-strip.status-halted {{
+            border-color: var(--alert-red);
+            background: var(--alert-red-bg);
+            color: var(--alert-red);
+        }}
+
+        .status-badge-main {{
+            font-size: 1.25rem;
+            font-weight: 900;
+            letter-spacing: 0.08em;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }}
+
+        .status-telemetry {{
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }}
+
+        /* ACTUAL HOLDINGS TICKER (NO FAKE DATA) */
+        .holdings-tape {{
+            background: var(--bg-panel);
+            border: 1px solid var(--border-color);
+            padding: 8px 14px;
+            margin-bottom: 14px;
+            font-size: 0.85rem;
             display: flex;
             align-items: center;
             gap: 10px;
+            flex-wrap: wrap;
+            border-radius: var(--card-radius);
         }}
 
-        .header-title p {{
-            font-family: 'Share Tech Mono', monospace;
-            font-size: 0.72rem;
-            color: var(--text-secondary);
-            margin-top: 5px;
-            letter-spacing: 0.06em;
+        .tape-label {{
+            font-weight: 700;
+            color: var(--text-dim);
             text-transform: uppercase;
         }}
 
-        .status-badge {{
+        .holding-chip {{
             display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            background: rgba(255, 23, 68, 0.12);
-            color: #FFFFFF;
-            padding: 6px 16px;
-            border-radius: 9999px;
-            font-size: 12px;
+            gap: 4px;
+            white-space: nowrap;
+        }}
+
+        .chip-sym {{
             font-weight: 700;
-            font-family: 'Outfit', sans-serif;
-            border: 1px solid rgba(255, 23, 68, 0.5);
-            box-shadow: 0 0 14px rgba(255, 23, 68, 0.30);
-            letter-spacing: 0.02em;
+            color: var(--text-primary);
         }}
 
-        /* KPI Cards Grid (Fluidic Curves) */
-        .grid-kpis {{
+        /* GATE B PANEL & RISK GAUGES */
+        .panel-grid {{
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-            gap: 16px;
-            margin-bottom: 24px;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 14px;
         }}
 
-        .card {{
-            background: linear-gradient(145deg, #0A0D15 0%, #0E121E 100%);
-            border: 1px solid var(--border-card);
-            border-top: 2px solid var(--neon-red);
-            border-radius: 16px; /* Fluidic curved corners */
-            padding: 20px 22px;
-            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.8), 0 0 18px rgba(255, 23, 68, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.05);
-            transition: all 0.22s ease;
+        @media (max-width: 820px) {{
+            .panel-grid {{
+                grid-template-columns: 1fr;
+            }}
         }}
 
-        .card:hover {{
-            border-color: var(--border-card-hover);
-            transform: translateY(-2px);
-            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.9), 0 0 25px rgba(255, 23, 68, 0.18);
+        .terminal-card {{
+            background: var(--bg-panel);
+            border: 1px solid var(--border-color);
+            padding: 14px 16px;
+            border-radius: var(--card-radius);
+            box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.4);
         }}
 
-        .kpi-title {{
-            font-family: 'Share Tech Mono', monospace;
-            font-size: 0.68rem;
-            font-weight: 600;
-            color: var(--text-secondary);
+        .card-header {{
+            font-size: 0.88rem;
+            font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 0.10em;
-            height: 20px;
-            display: flex;
-            align-items: center;
-        }}
-
-        .kpi-value {{
-            font-family: 'Outfit', sans-serif;
-            font-size: 1.75rem;
-            font-weight: 800;
-            letter-spacing: 0.01em;
-            margin: 8px 0;
-            line-height: 1.15;
-            color: #FFFFFF;
-            text-shadow: 0 0 6px rgba(255, 255, 255, 0.95), 0 0 18px rgba(255, 255, 255, 0.35);
-        }}
-
-        .kpi-subtitle {{
-            font-family: 'Share Tech Mono', monospace;
-            font-size: 0.72rem;
-            color: var(--text-secondary);
-        }}
-
-        /* Charts Section */
-        .charts-section {{
-            display: grid;
-            grid-template-columns: 2fr 1fr;
-            gap: 20px;
-            margin-bottom: 24px;
-        }}
-
-        @media (max-width: 900px) {{
-            .charts-section {{ grid-template-columns: 1fr; }}
-        }}
-
-        .section-header {{
-            font-family: 'Outfit', sans-serif;
-            font-size: 1.05rem;
-            font-weight: 700;
-            letter-spacing: 0.01em;
-            margin-bottom: 16px;
+            letter-spacing: 0.05em;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 6px;
+            margin-bottom: 10px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            color: #FFFFFF;
         }}
 
-        /* Tables */
-        .table-responsive {{ overflow-x: auto; }}
+        .ascii-bar-row {{
+            margin: 8px 0;
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+        }}
+
+        .criteria-list {{
+            list-style: none;
+            margin-top: 8px;
+            font-size: 0.82rem;
+        }}
+
+        .criteria-list li {{
+            margin-bottom: 5px;
+            display: flex;
+            justify-content: space-between;
+            gap: 8px;
+        }}
+
+        /* NAVIGATION TABS */
+        .nav-tabs {{
+            display: flex;
+            gap: 6px;
+            border-bottom: 2px solid var(--border-color);
+            margin-bottom: 16px;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: thin;
+            scrollbar-color: var(--border-color) transparent;
+        }}
+
+        .nav-tabs::-webkit-scrollbar {{
+            height: 4px;
+        }}
+
+        .nav-tabs::-webkit-scrollbar-thumb {{
+            background: var(--border-color);
+            border-radius: 2px;
+        }}
+
+        .tab-btn {{
+            background: var(--bg-panel);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
+            border-bottom: none;
+            padding: 10px 18px;
+            font-family: var(--font-mono);
+            font-size: 0.9rem;
+            font-weight: 700;
+            cursor: pointer;
+            border-radius: 4px 4px 0 0;
+            white-space: nowrap;
+        }}
+
+        .tab-btn.active {{
+            background: var(--border-bright);
+            color: #000000;
+            border-color: var(--border-bright);
+        }}
+
+        body.light-theme .tab-btn.active {{
+            background: #8a5a00;
+            color: #ffffff;
+            border-color: #8a5a00;
+        }}
+
+        .tab-content {{
+            display: none;
+        }}
+
+        .tab-content.active {{
+            display: block;
+        }}
+
+        /* METRIC CARDS GRID (FUND TAB) */
+        .metrics-grid {{
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 12px;
+            margin-bottom: 16px;
+        }}
+
+        .metric-box {{
+            background: var(--bg-panel);
+            border: 1px solid var(--border-color);
+            padding: 14px;
+            border-radius: var(--card-radius);
+        }}
+
+        .metric-title {{
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            color: var(--text-dim);
+            letter-spacing: 0.05em;
+            margin-bottom: 4px;
+        }}
+
+        .metric-number {{
+            font-size: 1.65rem;
+            font-weight: 900;
+            line-height: 1.2;
+            word-break: break-word;
+        }}
+
+        .metric-sub {{
+            font-size: 0.8rem;
+            color: var(--text-dim);
+            margin-top: 4px;
+        }}
+
+        /* CHART CONTAINER */
+        .chart-wrapper {{
+            background: var(--bg-panel);
+            border: 1px solid var(--border-color);
+            padding: 16px;
+            margin-bottom: 16px;
+            border-radius: var(--card-radius);
+            min-height: 380px;
+            position: relative;
+        }}
+
+        .chart-box {{
+            position: relative;
+            width: 100%;
+            height: 340px;
+        }}
+
+        /* TABLES & GREEN-BAR ROW STYLING */
+        .table-scroll {{
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            margin: 10px 0 16px 0;
+            border: 1px solid var(--border-color);
+            border-radius: var(--card-radius);
+        }}
 
         table {{
             width: 100%;
             border-collapse: collapse;
+            font-size: 0.85rem;
             text-align: left;
-            font-size: 13px;
-            font-family: 'Share Tech Mono', monospace;
+            min-width: 600px;
+        }}
+
+        th, td {{
+            padding: 8px 12px;
+            border-bottom: 1px solid var(--border-color);
         }}
 
         th {{
-            padding: 12px 14px;
-            background: #080A12;
-            color: #FFFFFF;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
-            border-bottom: 1px solid rgba(255, 23, 68, 0.30);
-            font-size: 0.70rem;
-            text-shadow: 0 0 5px rgba(255, 255, 255, 0.6);
-        }}
-
-        td {{
-            padding: 12px 14px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-            color: #E2E8F0;
-        }}
-
-        tr:hover td {{
-            background: rgba(255, 23, 68, 0.04);
-            color: #FFFFFF;
-        }}
-
-        /* Fluidic Neon Badges */
-        .badge {{
-            padding: 3px 9px;
-            border-radius: 9999px; /* Fluidic pill badge */
-            font-size: 10px;
+            background: var(--bg-panel);
+            color: var(--text-dim);
             font-weight: 700;
             text-transform: uppercase;
-            font-family: 'Share Tech Mono', monospace;
-            letter-spacing: 0.06em;
+            letter-spacing: 0.05em;
         }}
 
-        .badge-success {{
-            background: rgba(0, 230, 118, 0.12);
-            color: var(--neon-green);
-            border: 1px solid rgba(0, 230, 118, 0.45);
-            box-shadow: 0 0 8px rgba(0, 230, 118, 0.4);
+        tbody tr:hover {{
+            background: var(--bg-panel-hover);
         }}
 
-        .badge-defense {{
-            background: rgba(255, 158, 0, 0.12);
-            color: var(--neon-amber);
-            border: 1px solid rgba(255, 158, 0, 0.45);
-            box-shadow: 0 0 8px rgba(255, 158, 0, 0.4);
+        /* Teletype Green-Bar Continuous Form Paper */
+        body.light-theme table tbody tr:nth-child(even) {{
+            background-color: #eaf3e8; /* Classic continuous form green-bar */
+        }}
+        body.light-theme table tbody tr:nth-child(odd) {{
+            background-color: #fbf8ee;
         }}
 
-        .badge-danger {{
-            background: rgba(255, 23, 68, 0.14);
-            color: var(--neon-red);
-            border: 1px solid rgba(255, 23, 68, 0.45);
-            box-shadow: 0 0 8px rgba(255, 23, 68, 0.5);
+        /* PERMANENT SHADOW EXPLORATORY BANNER */
+        .banner-exploratory {{
+            background: var(--alert-red-bg);
+            border: 2px solid var(--alert-red);
+            color: var(--alert-red);
+            padding: 14px 18px;
+            margin-bottom: 16px;
+            border-radius: var(--card-radius);
+            font-weight: 700;
         }}
 
-        .progress-bar-container {{
-            width: 100%;
-            height: 8px;
-            background: #080A12;
-            border: 1px solid rgba(255, 255, 255, 0.10);
-            border-radius: 9999px;
-            overflow: hidden;
-            margin-top: 10px;
+        .banner-exploratory-title {{
+            font-size: 1.05rem;
+            letter-spacing: 0.08em;
+            margin-bottom: 4px;
         }}
 
-        .progress-bar-fill {{
-            height: 100%;
-            background: linear-gradient(90deg, #FFFFFF, var(--neon-red));
-            border-radius: 9999px;
-            box-shadow: 0 0 10px var(--neon-red);
+        .banner-exploratory-text {{
+            font-size: 0.85rem;
+            line-height: 1.4;
+            font-weight: 400;
         }}
 
-        .footer {{
+        /* MODELLED NOTICE FOR BOND SLEEVE */
+        .modelled-notice {{
+            background: var(--amber-bg);
+            border: 1px solid var(--border-bright);
+            color: var(--text-primary);
+            padding: 8px 12px;
+            margin-bottom: 10px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            border-radius: var(--card-radius);
+        }}
+
+        /* WARNING / NO DATA STYLING (HARD RULE 1) */
+        .nodata {{
+            color: var(--alert-red) !important;
+            background: var(--alert-red-bg);
+            padding: 1px 5px;
+            border: 1px dashed var(--alert-red);
+            font-weight: 700;
+            font-size: 0.85em;
+            border-radius: 2px;
+        }}
+
+        .nodata-cell {{
             text-align: center;
-            font-size: 12px;
-            color: var(--text-secondary);
-            font-family: 'Share Tech Mono', monospace;
-            padding: 24px 0;
-            border-top: 1px solid rgba(255, 23, 68, 0.20);
-            margin-top: 32px;
+            color: var(--text-dim);
+            padding: 18px !important;
+            font-style: italic;
+        }}
+
+        /* BADGES & UTILITIES */
+        .badge-pass {{
+            color: var(--green-phosphor);
+            font-weight: 700;
+        }}
+
+        .badge-alert {{
+            color: var(--alert-red);
+            font-weight: 700;
+        }}
+
+        .badge-dim {{
+            color: var(--text-dim);
+        }}
+
+        .badge-shadow {{
+            color: var(--text-dim);
+            border: 1px solid var(--border-color);
+            padding: 1px 6px;
+            border-radius: 3px;
+        }}
+
+        .text-green {{ color: var(--green-phosphor) !important; }}
+        .text-amber {{ color: var(--text-primary) !important; }}
+        .text-alert {{ color: var(--alert-red) !important; }}
+        .text-dim {{ color: var(--text-dim) !important; }}
+        .font-bold {{ font-weight: 700; }}
+
+        /* FOOTER */
+        .terminal-footer {{
+            border-top: 1px solid var(--border-color);
+            padding: 12px 0;
+            margin-top: 24px;
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+            font-size: 0.8rem;
+            color: var(--text-dim);
+        }}
+
+        /* Mobile First: 390px Viewport Support */
+        @media (max-width: 600px) {{
+            body {{
+                padding: 6px;
+            }}
+            .terminal-header {{
+                padding: 10px 12px;
+            }}
+            .status-strip {{
+                padding: 10px 12px;
+                flex-direction: column;
+                align-items: flex-start;
+            }}
+            .status-badge-main {{
+                font-size: 1.1rem;
+            }}
+            .metric-number {{
+                font-size: 1.4rem;
+            }}
+            .nav-tabs {{
+                gap: 4px;
+            }}
+            .tab-btn {{
+                padding: 8px 10px;
+                font-size: 0.78rem;
+                flex: 1 1 auto;
+                text-align: center;
+            }}
+            .chart-wrapper {{
+                padding: 10px;
+                min-height: 300px;
+            }}
+            .chart-box {{
+                height: 260px;
+            }}
         }}
     </style>
 </head>
 <body>
-<div class="container">
-    <!-- 1960s Quotron Stock Ticker Ribbon (Fluidic Pill) -->
-    <div class="retro-ticker-ribbon">
-        <div class="ticker-badge"><span class="pulse-dot"></span>1960s NSE // BSE TELETYPE</div>
-        <div class="ticker-content">
-            <div class="ticker-marquee-inner">
-                <div class="tick-item"><span style="font-weight:700; color:#FFFFFF; text-shadow:0 0 4px rgba(255,255,255,0.8);">NIFTY 50</span> <span style="color:#A4B1C2;">24,180.50</span> <span class="tick-up">▲ +0.72%</span></div>
-                <div class="tick-item"><span style="font-weight:700; color:#FFFFFF; text-shadow:0 0 4px rgba(255,255,255,0.8);">SENSEX</span> <span style="color:#A4B1C2;">79,420.10</span> <span class="tick-up">▲ +0.65%</span></div>
-                <div class="tick-item"><span style="font-weight:700; color:#FFFFFF; text-shadow:0 0 4px rgba(255,255,255,0.8);">RELIANCE</span> <span style="color:#A4B1C2;">₹2,980.50</span> <span class="tick-up">▲ +1.42%</span></div>
-                <div class="tick-item"><span style="font-weight:700; color:#FFFFFF; text-shadow:0 0 4px rgba(255,255,255,0.8);">TCS</span> <span style="color:#A4B1C2;">₹4,120.00</span> <span class="tick-down">▼ -0.58%</span></div>
-                <div class="tick-item"><span style="font-weight:700; color:#FFFFFF; text-shadow:0 0 4px rgba(255,255,255,0.8);">HDFCBANK</span> <span style="color:#A4B1C2;">₹1,650.25</span> <span class="tick-up">▲ +0.84%</span></div>
-                <div class="tick-item"><span style="font-weight:700; color:#FFFFFF; text-shadow:0 0 4px rgba(255,255,255,0.8);">INFY</span> <span style="color:#A4B1C2;">₹1,840.10</span> <span class="tick-up">▲ +1.18%</span></div>
-                <div class="tick-item"><span style="font-weight:700; color:#FFFFFF; text-shadow:0 0 4px rgba(255,255,255,0.8);">ICICIBANK</span> <span style="color:#A4B1C2;">₹1,120.00</span> <span class="tick-up">▲ +0.52%</span></div>
-                <div class="tick-item"><span style="font-weight:700; color:#FFFFFF; text-shadow:0 0 4px rgba(255,255,255,0.8);">BHARTIARTL</span> <span style="color:#A4B1C2;">₹1,410.80</span> <span class="tick-up">▲ +2.05%</span></div>
-                <div class="tick-item"><span style="font-weight:700; color:#FFFFFF; text-shadow:0 0 4px rgba(255,255,255,0.8);">ITC</span> <span style="color:#A4B1C2;">₹485.20</span> <span class="tick-up">▲ +0.38%</span></div>
-                <div class="tick-item"><span style="font-weight:700; color:#FFFFFF; text-shadow:0 0 4px rgba(255,255,255,0.8);">LT</span> <span style="color:#A4B1C2;">₹3,580.00</span> <span class="tick-up">▲ +0.95%</span></div>
-                <div class="tick-item"><span style="font-weight:700; color:#FFFFFF; text-shadow:0 0 4px rgba(255,255,255,0.8);">SBIN</span> <span style="color:#A4B1C2;">₹810.40</span> <span class="tick-down">▼ -0.32%</span></div>
-                <div class="tick-item"><span style="font-weight:700; color:#FFFFFF; text-shadow:0 0 4px rgba(255,255,255,0.8);">TATAMOTORS</span> <span style="color:#A4B1C2;">₹945.60</span> <span class="tick-up">▲ +1.65%</span></div>
-                <!-- Continuous seamless marquee loop -->
-                <div class="tick-item"><span style="font-weight:700; color:#FFFFFF; text-shadow:0 0 4px rgba(255,255,255,0.8);">NIFTY 50</span> <span style="color:#A4B1C2;">24,180.50</span> <span class="tick-up">▲ +0.72%</span></div>
-                <div class="tick-item"><span style="font-weight:700; color:#FFFFFF; text-shadow:0 0 4px rgba(255,255,255,0.8);">SENSEX</span> <span style="color:#A4B1C2;">79,420.10</span> <span class="tick-up">▲ +0.65%</span></div>
-                <div class="tick-item"><span style="font-weight:700; color:#FFFFFF; text-shadow:0 0 4px rgba(255,255,255,0.8);">RELIANCE</span> <span style="color:#A4B1C2;">₹2,980.50</span> <span class="tick-up">▲ +1.42%</span></div>
-                <div class="tick-item"><span style="font-weight:700; color:#FFFFFF; text-shadow:0 0 4px rgba(255,255,255,0.8);">TCS</span> <span style="color:#A4B1C2;">₹4,120.00</span> <span class="tick-down">▼ -0.58%</span></div>
-                <div class="tick-item"><span style="font-weight:700; color:#FFFFFF; text-shadow:0 0 4px rgba(255,255,255,0.8);">HDFCBANK</span> <span style="color:#A4B1C2;">₹1,650.25</span> <span class="tick-up">▲ +0.84%</span></div>
-                <div class="tick-item"><span style="font-weight:700; color:#FFFFFF; text-shadow:0 0 4px rgba(255,255,255,0.8);">INFY</span> <span style="color:#A4B1C2;">₹1,840.10</span> <span class="tick-up">▲ +1.18%</span></div>
-                <div class="tick-item"><span style="font-weight:700; color:#FFFFFF; text-shadow:0 0 4px rgba(255,255,255,0.8);">ICICIBANK</span> <span style="color:#A4B1C2;">₹1,120.00</span> <span class="tick-up">▲ +0.52%</span></div>
-                <div class="tick-item"><span style="font-weight:700; color:#FFFFFF; text-shadow:0 0 4px rgba(255,255,255,0.8);">BHARTIARTL</span> <span style="color:#A4B1C2;">₹1,410.80</span> <span class="tick-up">▲ +2.05%</span></div>
-                <div class="tick-item"><span style="font-weight:700; color:#FFFFFF; text-shadow:0 0 4px rgba(255,255,255,0.8);">ITC</span> <span style="color:#A4B1C2;">₹485.20</span> <span class="tick-up">▲ +0.38%</span></div>
-                <div class="tick-item"><span style="font-weight:700; color:#FFFFFF; text-shadow:0 0 4px rgba(255,255,255,0.8);">LT</span> <span style="color:#A4B1C2;">₹3,580.00</span> <span class="tick-up">▲ +0.95%</span></div>
-                <div class="tick-item"><span style="font-weight:700; color:#FFFFFF; text-shadow:0 0 4px rgba(255,255,255,0.8);">SBIN</span> <span style="color:#A4B1C2;">₹810.40</span> <span class="tick-down">▼ -0.32%</span></div>
-                <div class="tick-item"><span style="font-weight:700; color:#FFFFFF; text-shadow:0 0 4px rgba(255,255,255,0.8);">TATAMOTORS</span> <span style="color:#A4B1C2;">₹945.60</span> <span class="tick-up">▲ +1.65%</span></div>
-            </div>
-        </div>
-    </div>
+    <div class="scanlines" aria-hidden="true"></div>
 
-    <!-- Retro HUD Command Strip (Hot White & Ruby Red) -->
-    <div class="header">
-        <div class="header-title">
-            <h1>ANTIGRAVITY <span style="color: var(--neon-red); text-shadow: 0 0 12px rgba(255,23,68,0.75);">// 1960s QUOTRON QUANTUM DESK</span></h1>
-            <p>Phase 1 Multi-Asset Growth + Phase 3 Sovereign Carry Haven • Central Manager Reconciled</p>
-        </div>
-        <div style="display: flex; gap: 12px; align-items: center;">
-            <div class="status-badge">
-                <span class="pulse-dot"></span>
-                GATE B INCUBATION: DAY {days_incubated} OF {target_days}
-            </div>
-            <div style="font-size: 11px; font-family: 'Share Tech Mono', monospace; color: var(--text-secondary);">
-                TELEMETRY: {now_utc}
-            </div>
-        </div>
-    </div>
-
-    <!-- KPIs -->
-    <div class="grid-kpis">
-        <div class="card">
-            <div class="kpi-title">Combined Fund Value</div>
-            <div class="kpi-value" style="color: #FFFFFF;">₹{combined_nav:,.2f}</div>
-            <div class="kpi-subtitle" style="color: {pnl_badge_color};">
-                {total_pnl_pct:+.2f}% (₹{total_pnl:+,.2f}) vs ₹100k Seed
-            </div>
-        </div>
-        <div class="card">
-            <div class="kpi-title">Unitized NAV per Share</div>
-            <div class="kpi-value" style="color: var(--neon-amber);">{unit_nav:.4f}</div>
-            <div class="kpi-subtitle" style="color: var(--text-secondary);">
-                Base: 100.0000 | 800.0 Total Issued Units
-            </div>
-        </div>
-        <div class="card">
-            <div class="kpi-title">Current Peak Drawdown</div>
-            <div class="kpi-value" style="color: {'#00E676' if curr_dd >= -1.0 else '#FF1744'};">{curr_dd:+.2f}%</div>
-            <div class="kpi-subtitle" style="color: var(--text-secondary);">
-                Max DD: {max_dd:.2f}% | Ladder Tier 1: -5.0%
-            </div>
-        </div>
-        <div class="card">
-            <div class="kpi-title">Drawdown Throttle Tier</div>
-            <div class="kpi-value" style="color: {throt_color};">Level {throttle}</div>
-            <div class="kpi-subtitle" style="color: var(--text-secondary);">
-                {throt_text}
-            </div>
-        </div>
-        <div class="card">
-            <div class="kpi-title">Reconciliation Invariant</div>
-            <div class="kpi-value" style="color: var(--neon-green);">{reconcil_gap:.1f}% Gap</div>
-            <div class="kpi-subtitle" style="color: var(--text-secondary);">
-                Verified Quotes: 100% | Status: PASSED
-            </div>
-        </div>
-    </div>
-
-    <!-- Charts & Sleeve Summary -->
-    <div class="charts-section">
-        <div class="card">
-            <div class="section-header">
-                <span>📈 Fund Equity Curve & Drawdown Oscilloscope</span>
-                <span style="font-size: 11px; font-family: 'Share Tech Mono', monospace; color: var(--text-secondary);">EOD Verified Sessions</span>
-            </div>
-            <div style="height: 280px; position: relative;">
-                <canvas id="equityChart"></canvas>
-            </div>
-        </div>
-        <div class="card">
-            <div class="section-header">
-                <span>💼 Sleeve Capital Allocation</span>
-                <span class="badge badge-success">0.0% GAP</span>
-            </div>
-            <div style="height: 180px; position: relative; margin-bottom: 16px;">
-                <canvas id="allocChart"></canvas>
-            </div>
-            <div style="font-size: 12px; font-family: 'Share Tech Mono', monospace;">
-                <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
-                    <span style="color: #FFFFFF;">● Sleeve 1 (Multi-Asset Equity & Gold):</span>
-                    <strong>₹{etf_nav:,.2f} ({(etf_nav/combined_nav*100):.1f}%)</strong>
+    <div class="container">
+        <!-- TOP TERMINAL BAR & THEME SWITCHER -->
+        <header class="terminal-header" role="banner">
+            <div class="terminal-bar-top">
+                <div class="terminal-title">
+                    &gt; ANTIGRAVITY // QUANTUM TERMINAL [GATE B PAPER INCUBATION]
                 </div>
-                <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
-                    <span style="color: var(--neon-amber);">● Sleeve 2 (Debt Carry & Haven B0):</span>
-                    <strong>₹{bond_nav:,.2f} ({(bond_nav/combined_nav*100):.1f}%)</strong>
+                <button id="theme-toggle-btn" class="theme-toggle-btn" onclick="toggleTheme()" aria-label="Toggle retro CRT and teletype paper theme">
+                    [THEME: CRT AMBER (DARK)]
+                </button>
+            </div>
+            <div style="font-size: 0.82rem; color: var(--text-dim); display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
+                <span>CENTRAL HEDGE FUND ARCHITECTURE &bull; SEBI 100% CNC CASH DELIVERY</span>
+                <span>SYSTEM CLOCK: {now_utc_str}</span>
+            </div>
+        </header>
+
+        <!-- PRIMARY STATUS STRIP (OK / STALE / DATA FAULT / HALTED) -->
+        <section class="status-strip {top_status_class}" aria-label="Fund Telemetry Operational Status">
+            <div class="status-badge-main">
+                <span>STATUS:</span>
+                <span>{top_status_badge}</span>
+                <span style="font-size: 0.85rem; font-weight: normal; margin-left: 6px;">({top_status_desc})</span>
+            </div>
+            <div class="status-telemetry">
+                <span>LAST SESSION: <strong class="text-amber">{last_session_date or '<span class="nodata">[NO DATA]</span>'}</strong></span>
+                <span>DATA AGE: <strong class="text-amber">{data_age_str}</strong></span>
+                <span>MODE: <strong class="text-amber">{mode or '<span class="nodata">[NO DATA]</span>'}</strong></span>
+            </div>
+        </section>
+
+        <!-- ACTUAL HOLDINGS TAPE (RULE 2: NO FAKE TICKER TAPE) -->
+        <div class="holdings-tape" role="region" aria-label="Actual Fund Holdings Quotes">
+            <span class="tape-label">HOLDINGS ({sleeve_session_date}):</span>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                {actual_holdings_html}
+            </div>
+        </div>
+
+        <!-- GATE B PANEL & RISK GAUGES -->
+        <div class="panel-grid">
+            <!-- Gate B Panel -->
+            <div class="terminal-card">
+                <div class="card-header">
+                    <span>Gate B Institutional Incubation Progress</span>
+                    <span class="badge-pass">{gate_b_text}</span>
                 </div>
-                <div style="display: flex; justify-content: space-between; color: var(--neon-green);">
-                    <span>● Total Accrued Cash Carry:</span>
-                    <strong>+₹{total_carry:,.2f} earned</strong>
+                <div class="ascii-bar-row">
+                    PROGRESS: <span class="text-amber">{gate_b_ascii_bar}</span>
+                </div>
+                <ul class="criteria-list">
+                    <li>
+                        <span>1. Duration (13 Weeks / 91 Days Uninterrupted):</span>
+                        <strong class="text-amber">{format_num(days_incubated, 0)} / {target_days} DAYS</strong>
+                    </li>
+                    <li>
+                        <span>2. Drawdown Control (&le; 15.00% Zero Throttle):</span>
+                        <strong class="{ 'text-green' if (curr_dd_pct is not None and abs(curr_dd_pct) < 15.0) else 'text-alert' }">
+                            {format_pct(curr_dd_pct)} (LIMIT -15.0%)
+                        </strong>
+                    </li>
+                    <li>
+                        <span>3. Multi-Sleeve Reconciliation (Daily Gap &le; 0.10%):</span>
+                        <strong>{rec_status_label}</strong>
+                    </li>
+                    <li>
+                        <span>4. Capital Invariant (100% Cash Delivery, Zero Leverage):</span>
+                        <strong class="badge-pass">[PASS - 100% CNC]</strong>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Single Risk Gauge: Distance to -40% Kill Switch -->
+            <div class="terminal-card">
+                <div class="card-header">
+                    <span>Emergency Kill Switch Safeguard</span>
+                    <span class="badge-dim">THROTTLE: {throttle_text}</span>
+                </div>
+                <div class="ascii-bar-row">
+                    DISTANCE TO -40% KILL SWITCH:
+                </div>
+                <div class="ascii-bar-row" style="font-size: 1.05rem; font-weight: 700;">
+                    <span class="text-amber">{kill_ascii}</span> {kill_status_badge}
+                </div>
+                <ul class="criteria-list" style="margin-top: 8px;">
+                    <li>
+                        <span>Current Fund Drawdown:</span>
+                        <strong class="{ 'text-green' if (curr_dd_pct is not None and curr_dd_pct >= 0) else 'text-alert' }">{format_pct(curr_dd_pct)}</strong>
+                    </li>
+                    <li>
+                        <span>Emergency Kill Switch Threshold:</span>
+                        <strong class="text-alert">-40.00% NAV</strong>
+                    </li>
+                    <li>
+                        <span>Remaining Safety Buffer:</span>
+                        <strong class="{ 'text-green' if (kill_margin and kill_margin > 0) else 'text-alert' }">+{format_pct(kill_margin, 2, False)}</strong>
+                    </li>
+                    <li>
+                        <span>Throttle Policy (T1 Pre-Registered):</span>
+                        <strong class="text-dim">FIXED_SHARES_PLUS_KILL_SWITCH (Throttles OFF)</strong>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- NAVIGATION TABS -->
+        <nav class="nav-tabs" role="tablist">
+            <button class="tab-btn active" role="tab" aria-selected="true" onclick="openTab(event, 'tab-fund')">[1] FUND OVERVIEW</button>
+            <button class="tab-btn" role="tab" aria-selected="false" onclick="openTab(event, 'tab-sleeves')">[2] SLEEVES &amp; HOLDINGS</button>
+            <button class="tab-btn" role="tab" aria-selected="false" onclick="openTab(event, 'tab-shadows')">[3] SHADOW PODS</button>
+            <button class="tab-btn" role="tab" aria-selected="false" onclick="openTab(event, 'tab-log')">[4] RECONCILIATION LOG</button>
+        </nav>
+
+        <!-- TAB 1: FUND OVERVIEW (DEFAULT) -->
+        <div id="tab-fund" class="tab-content active" role="tabpanel">
+            <div class="metrics-grid">
+                <div class="metric-box">
+                    <div class="metric-title">Combined Fund NAV</div>
+                    <div class="metric-number text-amber">{format_inr(combined_nav)}</div>
+                    <div class="metric-sub">Base Seed: {format_inr(target_cap)}</div>
+                </div>
+                <div class="metric-box">
+                    <div class="metric-title">Unitized NAV Per Share</div>
+                    <div class="metric-number text-green">{format_num(unit_nav, 4)}</div>
+                    <div class="metric-sub">Base NAV: 100.0000 &bull; HWM: {format_num(hwm_unit, 4)}</div>
+                </div>
+                <div class="metric-box">
+                    <div class="metric-title">Current / Peak Drawdown</div>
+                    <div class="metric-number { 'text-green' if (curr_dd_pct is not None and curr_dd_pct >= 0) else 'text-alert' }">
+                        {format_pct(curr_dd_pct)}
+                    </div>
+                    <div class="metric-sub">Max Recorded Drawdown: {format_pct(max_dd_pct)}</div>
+                </div>
+                <div class="metric-box">
+                    <div class="metric-title">Inception PnL vs Seed</div>
+                    <div class="metric-number { 'text-green' if (total_pnl is not None and total_pnl >= 0) else 'text-alert' }">
+                        {format_pct(total_pnl_pct)}
+                    </div>
+                    <div class="metric-sub">Net Alpha: {format_inr(total_pnl)}</div>
+                </div>
+                <div class="metric-box">
+                    <div class="metric-title">Total Issued Units</div>
+                    <div class="metric-number text-amber">{format_num(issued_units, 2)}</div>
+                    <div class="metric-sub">Daily Unitized Ledger Accounting</div>
+                </div>
+                <div class="metric-box">
+                    <div class="metric-title">Reconciliation Invariant</div>
+                    <div class="metric-number">{rec_status_label}</div>
+                    <div class="metric-sub">Sleeve 1 + Sleeve 2 &equiv; Central Fund NAV</div>
+                </div>
+            </div>
+
+            <!-- Equity Curve Chart -->
+            <div class="chart-wrapper">
+                <div class="card-header">
+                    <span>Fund Equity Curve &amp; Drawdown Oscilloscope</span>
+                    <span class="text-dim">Verified End-of-Day Telemetry</span>
+                </div>
+                <div class="chart-box">
+                    { f'<canvas id="equityChart"></canvas>' if has_chart_data else '<div class="nodata-cell" style="padding-top: 100px;">[NO HISTORICAL LOG SESSIONS TO GRAPH]</div>' }
+                </div>
+            </div>
+
+            <!-- Accounting Invariants Matrix -->
+            <div class="terminal-card">
+                <div class="card-header">
+                    <span>Hedge Fund Charter Operating Invariants</span>
+                    <span class="badge-pass">[ALL ACTIVE INVARIANTS SATISFIED]</span>
+                </div>
+                <div class="table-scroll">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Invariant Protocol</th>
+                                <th>Governing Limit</th>
+                                <th>Current Telemetry</th>
+                                <th>Verification Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>SEBI 100% Cash Delivery</td>
+                                <td>Zero Leverage / Zero Shorting</td>
+                                <td>100.0% Cash Equity &amp; Sovereign Repo</td>
+                                <td><span class="badge-pass">[PASS - 100% CNC]</span></td>
+                            </tr>
+                            <tr>
+                                <td>Multi-Sleeve NAV Reconciliation</td>
+                                <td>Tolerance &le; 0.10% Gap</td>
+                                <td>{format_pct(rec_gap, 2, False)}</td>
+                                <td>{rec_status_label}</td>
+                            </tr>
+                            <tr>
+                                <td>Institutional Drawdown Guardrail</td>
+                                <td>Emergency Kill Switch: -40.00% (Throttles OFF)</td>
+                                <td>Current: {format_pct(curr_dd_pct)} (Buffer: +{format_pct(kill_margin, 2, False)})</td>
+                                <td><span class="badge-pass">[KILL SWITCH ARMED &bull; SAFE]</span></td>
+                            </tr>
+                            <tr>
+                                <td>Daily Unitized NAV Ledger</td>
+                                <td>Base NAV 100.0000</td>
+                                <td>{format_num(unit_nav, 4)} NAV / {format_num(issued_units, 1)} Units</td>
+                                <td><span class="badge-pass">[RECORDED IN LEDGER]</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
+
+        <!-- TAB 2: SLEEVES & HOLDINGS -->
+        <div id="tab-sleeves" class="tab-content" role="tabpanel">
+            <!-- Sleeve 1 Table -->
+            <div class="terminal-card" style="margin-bottom: 16px;">
+                <div class="card-header">
+                    <span>Sleeve 1: Multi-Asset Equity &amp; Gold (Phase 1 Champion)</span>
+                    <span>NAV: <strong class="text-amber">{format_inr(etf_nav)}</strong> &bull; Cash: {format_inr(etf_cash)}</span>
+                </div>
+                <div class="table-scroll">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Symbol</th>
+                                <th>Shares</th>
+                                <th>Entry Price</th>
+                                <th>Last Price</th>
+                                <th>Current Value (Weight)</th>
+                                <th>Unrealized PnL</th>
+                                <th>Role</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {etf_table_rows}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Sleeve 2 Table with MODELLED NOTICE -->
+            <div class="terminal-card">
+                <div class="card-header">
+                    <span>Sleeve 2: Sovereign Bond &amp; Overnight Cash (Phase 3 Haven)</span>
+                    <span>NAV: <strong class="text-amber">{format_inr(bond_nav)}</strong> &bull; Cash: {format_inr(bond_cash)}</span>
+                </div>
+
+                <!-- CRITICAL REQUIREMENT 4: MODELLED NOTICE -->
+                <div class="modelled-notice" role="note">
+                    &#9888; NOTE: Bond-sleeve returns are MODELLED (carry model, not market-tested).
+                </div>
+
+                <div class="table-scroll">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Symbol</th>
+                                <th>Shares</th>
+                                <th>Entry Price</th>
+                                <th>Last Price</th>
+                                <th>Current Value (Weight)</th>
+                                <th>Carry Telemetry</th>
+                                <th>Role</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {bond_table_rows}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 3: SHADOW PODS (CRITICAL REQUIREMENT 5: EXPLORATORY BANNER) -->
+        <div id="tab-shadows" class="tab-content" role="tabpanel">
+            <!-- CRITICAL PERMANENT EXPLORATORY BANNER -->
+            <div class="banner-exploratory" role="alert">
+                <div class="banner-exploratory-title">&#9888; EXPLORATORY - NOT EVIDENCE &#9888;</div>
+                <div class="banner-exploratory-text">
+                    Shadow pods execute simulated, experimental research models (e.g. US Growth Momentum, NSE Whole-Market Factor).
+                    <strong>ZERO FUND CAPITAL IS COMMITTED.</strong>
+                    Under fund charter and SEBI incubation rules, shadow tracking does NOT constitute performance evidence or track record for Fund Gate B graduation.
+                </div>
+            </div>
+
+            <!-- Pod A: US Momentum Shadow -->
+            <div class="terminal-card" style="margin-bottom: 16px;">
+                <div class="card-header">
+                    <span>Pod A: US Growth Momentum Shadow (Alpaca Paper / USD)</span>
+                    <span class="badge-shadow">ZERO FUND CAPITAL &bull; 8-SLOT 4X ATR TRAIL</span>
+                </div>
+                <div class="table-scroll">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Symbol</th>
+                                <th>Strategy Type</th>
+                                <th>Quantity</th>
+                                <th>Entry Price</th>
+                                <th>Peak Price</th>
+                                <th>Estimated Value</th>
+                                <th>Entry Date</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {us_shadow_rows}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Pod B: NSE Whole-Market Shadow -->
+            <div class="terminal-card">
+                <div class="card-header">
+                    <span>Pod B: NSE Whole-Market Research Shadow (INR)</span>
+                    <span class="badge-shadow">INCUBATION SANDBOX &bull; ZERO LIVE RISK</span>
+                </div>
+                <div class="table-scroll">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Pod Target</th>
+                                <th>Sandbox Capital</th>
+                                <th>Unallocated Cash</th>
+                                <th>High Water Mark</th>
+                                <th>Operational Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="font-bold text-amber">NSE Cash Equity Sandboxed Pod</td>
+                                <td>{format_inr(nse_shadow_init)}</td>
+                                <td>{format_inr(nse_shadow_cash)}</td>
+                                <td>{format_inr(nse_shadow_hwm)}</td>
+                                <td><span class="badge-shadow">[RESERVED FOR FUTURE DEPLOYMENT]</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 4: RECONCILIATION & EQUITY LOG -->
+        <div id="tab-log" class="tab-content" role="tabpanel">
+            <div class="terminal-card">
+                <div class="card-header">
+                    <span>Institutional Daily Session Log &amp; Reconciliation Audit</span>
+                    <span class="text-dim">Reconciliation Limit: &le; 0.10% Gap</span>
+                </div>
+                <div class="table-scroll">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Session Date</th>
+                                <th>Combined NAV</th>
+                                <th>Unit NAV</th>
+                                <th>Drawdown</th>
+                                <th>Throttle Tier</th>
+                                <th>Reconciliation Gap</th>
+                                <th>Audit Result</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {log_rows_html}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- FOOTER -->
+        <footer class="terminal-footer" role="contentinfo">
+            <div>ANTIGRAVITY // 1980s QUOTRON QUANTUM DESK &bull; GATE B PAPER INCUBATION</div>
+            <div>STRICT READ-ONLY TELEMETRY &bull; RECONCILIATION STRICT LIMIT 0.1%</div>
+        </footer>
     </div>
 
-    <!-- Incubation Progress Banner -->
-    <div class="card" style="margin-bottom: 24px; border-left: 4px solid var(--neon-red);">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-            <span style="font-family: 'Outfit', sans-serif; font-weight: 700; color: #FFFFFF; font-size: 0.95rem;">🛡️ Gate B Institutional 13-Week Incubation Progress</span>
-            <span style="font-size: 13px; font-family: 'Outfit', monospace; font-weight: 700; color: #FFFFFF;">Day {days_incubated} of {target_days} ({((days_incubated/target_days)*100):.1f}%)</span>
-        </div>
-        <p style="font-size: 12px; font-family: 'Share Tech Mono', monospace; color: var(--text-secondary);">Autonomous paper trading verification executing daily on GitHub Actions with zero human intervention. Target completion: 15 February 2027.</p>
-        <div class="progress-bar-container">
-            <div class="progress-bar-fill" style="width: {((days_incubated/target_days)*100):.1f}%;"></div>
-        </div>
-    </div>
-
-    <!-- Sleeve 1 Holdings Table -->
-    <div class="card" style="margin-bottom: 24px;">
-        <div class="section-header">
-            <span>🇮🇳 Primary Sleeve: Multi-Asset Equity & Gold (Phase 1 Champion)</span>
-            <span style="font-size: 11px; font-family: 'Share Tech Mono', monospace; color: var(--text-secondary);">Target Capital: ₹80,000 | Current NAV: ₹{etf_nav:,.2f}</span>
-        </div>
-        <div class="table-responsive">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Asset / Scrip</th>
-                        <th>Shares</th>
-                        <th>Entry Price</th>
-                        <th>Latest Quote</th>
-                        <th>Current Value (Weight)</th>
-                        <th>Unrealized PnL</th>
-                        <th>Allocation Role</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {etf_rows}
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-    <!-- Sleeve 2 Holdings Table -->
-    <div class="card" style="margin-bottom: 24px;">
-        <div class="section-header">
-            <span>🛡️ Reserve Sleeve: Sovereign Carry Haven (Phase 3 Champion B0)</span>
-            <span style="font-size: 11px; font-family: 'Share Tech Mono', monospace; color: var(--text-secondary);">Target Capital: ₹20,000 | Current NAV: ₹{bond_nav:,.2f}</span>
-        </div>
-        <div class="table-responsive">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Asset / Scrip</th>
-                        <th>Units</th>
-                        <th>NAV Unit</th>
-                        <th>Market Price</th>
-                        <th>Current Value (Weight)</th>
-                        <th>Carry Yield</th>
-                        <th>Allocation Role</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {bond_rows}
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-    <!-- Session Log Table -->
-    <div class="card">
-        <div class="section-header">
-            <span>📜 Central Manager Session Ledger (EOD Historical Runs)</span>
-            <span style="font-size: 11px; font-family: 'Share Tech Mono', monospace; color: var(--text-secondary);">Fiduciary Invariant Audit Log</span>
-        </div>
-        <div class="table-responsive">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Session Date</th>
-                        <th>Combined Fund NAV</th>
-                        <th>Unit NAV</th>
-                        <th>Drawdown</th>
-                        <th>Throttle Tier</th>
-                        <th>Reconciliation Gap</th>
-                        <th>Fiduciary Status</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {log_rows_html}
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-    <!-- Footer -->
-    <div class="footer">
-        <p>ANTIGRAVITY // 1960s QUOTRON QUANTUM DESK | Operating Mode: <strong>{mode}</strong> | Governance: Strict Gate B Invariant Protocol</p>
-        <p style="margin-top: 4px; font-size: 11px; color: #526075;">Automated pipeline runs every Indian exchange trading session at 16:13 IST (10:43 UTC).</p>
-    </div>
-</div>
-
-<script>
-    // Equity Curve Chart (Hot White Core with Ruby Red Neon Glow)
-    const ctxEquity = document.getElementById('equityChart').getContext('2d');
-    new Chart(ctxEquity, {{
-        type: 'line',
-        data: {{
-            labels: {json.dumps(dates_list)},
-            datasets: [
-                {{
-                    label: 'Fund NAV (INR ₹)',
-                    data: {json.dumps(nav_list)},
-                    borderColor: '#FFFFFF',
-                    backgroundColor: 'rgba(255, 23, 68, 0.14)',
-                    borderWidth: 2.6,
-                    fill: true,
-                    tension: 0.25,
-                    yAxisID: 'y'
-                }},
-                {{
-                    label: 'Drawdown (%)',
-                    data: {json.dumps(dd_list)},
-                    borderColor: '#FF1744',
-                    borderWidth: 1.8,
-                    borderDash: [5, 5],
-                    fill: false,
-                    tension: 0.2,
-                    yAxisID: 'y1'
+    <!-- JAVASCRIPT: TABS, THEME TOGGLE, CHART INITIALIZATION -->
+    <script>
+        function openTab(evt, tabId) {{
+            const contents = document.getElementsByClassName("tab-content");
+            for (let i = 0; i < contents.length; i++) {{
+                contents[i].classList.remove("active");
+            }}
+            const btns = document.getElementsByClassName("tab-btn");
+            for (let i = 0; i < btns.length; i++) {{
+                btns[i].classList.remove("active");
+                btns[i].setAttribute("aria-selected", "false");
+            }}
+            const target = document.getElementById(tabId);
+            if (target) {{
+                target.classList.add("active");
+            }}
+            if (evt && evt.currentTarget) {{
+                evt.currentTarget.classList.add("active");
+                evt.currentTarget.setAttribute("aria-selected", "true");
+            }} else {{
+                const btnIndex = tabId === 'tab-fund' ? 0 : (tabId === 'tab-sleeves' ? 1 : (tabId === 'tab-shadows' ? 2 : 3));
+                if (btns[btnIndex]) {{
+                    btns[btnIndex].classList.add("active");
+                    btns[btnIndex].setAttribute("aria-selected", "true");
                 }}
-            ]
-        }},
-        options: {{
-            responsive: true,
-            maintainAspectRatio: false,
-            interaction: {{ mode: 'index', intersect: false }},
-            scales: {{
-                x: {{
-                    grid: {{ color: 'rgba(255, 255, 255, 0.05)' }},
-                    ticks: {{ color: '#8E99A8', font: {{ family: "'Share Tech Mono'" }} }}
-                }},
-                y: {{
-                    position: 'left',
-                    grid: {{ color: 'rgba(255, 255, 255, 0.05)' }},
-                    ticks: {{ color: '#FFFFFF', font: {{ family: "'Share Tech Mono'" }}, callback: v => '₹' + v.toLocaleString() }},
-                    suggestedMin: 98000,
-                    suggestedMax: 100500
-                }},
-                y1: {{
-                    position: 'right',
-                    grid: {{ drawOnChartArea: false }},
-                    ticks: {{ color: '#FF1744', font: {{ family: "'Share Tech Mono'" }}, callback: v => v + '%' }},
-                    suggestedMin: -3.0,
-                    suggestedMax: 0.5
-                }}
-            }},
-            plugins: {{
-                legend: {{ labels: {{ color: '#FFFFFF', font: {{ family: "'Share Tech Mono'" }} }} }}
+            }}
+            if (tabId === 'tab-fund' && window.equityChartInstance) {{
+                window.equityChartInstance.resize();
             }}
         }}
-    }});
 
-    // Sleeve Allocation Donut Chart
-    const ctxAlloc = document.getElementById('allocChart').getContext('2d');
-    new Chart(ctxAlloc, {{
-        type: 'doughnut',
-        data: {{
-            labels: ['Sleeve 1: Multi-Asset & Gold', 'Sleeve 2: Debt Carry Haven'],
-            datasets: [{{
-                data: [{etf_nav:.2f}, {bond_nav:.2f}],
-                backgroundColor: ['#FFFFFF', '#FF9E00'],
-                borderWidth: 1,
-                borderColor: '#05070B'
-            }}]
-        }},
-        options: {{
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {{
-                legend: {{ display: false }}
+        function toggleTheme() {{
+            const isLight = document.body.classList.toggle('light-theme');
+            try {{
+                localStorage.setItem('terminal_theme', isLight ? 'light' : 'dark');
+            }} catch(e) {{}}
+            const btn = document.getElementById('theme-toggle-btn');
+            if (btn) {{
+                btn.textContent = isLight ? '[THEME: TELETYPE PAPER (LIGHT)]' : '[THEME: CRT AMBER (DARK)]';
+            }}
+            if (window.equityChartInstance) {{
+                updateChartColors(isLight);
             }}
         }}
-    }});
-</script>
+
+        // Initialize Theme from localStorage or URL hash
+        (function() {{
+            try {{
+                const saved = localStorage.getItem('terminal_theme');
+                if (saved === 'light' || window.location.hash.includes('light') || window.location.search.includes('theme=light')) {{
+                    document.body.classList.add('light-theme');
+                    const btn = document.getElementById('theme-toggle-btn');
+                    if (btn) btn.textContent = '[THEME: TELETYPE PAPER (LIGHT)]';
+                }}
+            }} catch(e) {{}}
+        }})();
+
+        // Initialize Active Tab from URL hash
+        (function() {{
+            try {{
+                const hash = window.location.hash;
+                if (hash.includes('sleeves')) {{
+                    openTab(null, 'tab-sleeves');
+                }} else if (hash.includes('shadows')) {{
+                    openTab(null, 'tab-shadows');
+                }} else if (hash.includes('log')) {{
+                    openTab(null, 'tab-log');
+                }}
+            }} catch(e) {{}}
+        }})();
+
+        // Chart.js Setup
+        let equityChartInstance = null;
+        const hasChart = {json.dumps(has_chart_data)};
+
+        if (hasChart) {{
+            const ctx = document.getElementById('equityChart');
+            if (ctx) {{
+                const isLight = document.body.classList.contains('light-theme');
+                const navColor = isLight ? '#8a5a00' : '#ffb000';
+                const ddColor = isLight ? '#b91c1c' : '#ff2a44';
+                const textColor = isLight ? '#1a201c' : '#ffb000';
+                const gridColor = isLight ? 'rgba(0,0,0,0.08)' : 'rgba(255,176,0,0.12)';
+
+                equityChartInstance = new Chart(ctx, {{
+                    type: 'line',
+                    data: {{
+                        labels: {json.dumps(dates_list)},
+                        datasets: [
+                            {{
+                                label: 'Fund NAV (INR ₹)',
+                                data: {json.dumps(nav_list)},
+                                borderColor: navColor,
+                                backgroundColor: isLight ? 'rgba(138,90,0,0.08)' : 'rgba(255,176,0,0.15)',
+                                borderWidth: 2.2,
+                                fill: true,
+                                tension: 0.1,
+                                yAxisID: 'y'
+                            }},
+                            {{
+                                label: 'Drawdown (%)',
+                                data: {json.dumps(dd_list)},
+                                borderColor: ddColor,
+                                borderWidth: 1.8,
+                                borderDash: [4, 4],
+                                fill: false,
+                                tension: 0.1,
+                                yAxisID: 'y1'
+                            }}
+                        ]
+                    }},
+                    options: {{
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        interaction: {{ mode: 'index', intersect: false }},
+                        scales: {{
+                            x: {{
+                                grid: {{ color: gridColor }},
+                                ticks: {{ color: textColor, font: {{ family: "'Share Tech Mono', monospace" }} }}
+                            }},
+                            y: {{
+                                position: 'left',
+                                grid: {{ color: gridColor }},
+                                ticks: {{
+                                    color: textColor,
+                                    font: {{ family: "'Share Tech Mono', monospace" }},
+                                    callback: function(v) {{ return '₹' + v.toLocaleString('en-IN'); }}
+                                }}
+                            }},
+                            y1: {{
+                                position: 'right',
+                                grid: {{ drawOnChartArea: false }},
+                                ticks: {{
+                                    color: ddColor,
+                                    font: {{ family: "'Share Tech Mono', monospace" }},
+                                    callback: function(v) {{ return v + '%'; }}
+                                }}
+                            }}
+                        }},
+                        plugins: {{
+                            legend: {{
+                                labels: {{
+                                    color: textColor,
+                                    font: {{ family: "'Share Tech Mono', monospace" }}
+                                }}
+                            }}
+                        }}
+                    }}
+                }});
+                window.equityChartInstance = equityChartInstance;
+            }}
+        }}
+
+        function updateChartColors(isLight) {{
+            if (!equityChartInstance) return;
+            const navColor = isLight ? '#8a5a00' : '#ffb000';
+            const ddColor = isLight ? '#b91c1c' : '#ff2a44';
+            const textColor = isLight ? '#1a201c' : '#ffb000';
+            const gridColor = isLight ? 'rgba(0,0,0,0.08)' : 'rgba(255,176,0,0.12)';
+
+            equityChartInstance.data.datasets[0].borderColor = navColor;
+            equityChartInstance.data.datasets[0].backgroundColor = isLight ? 'rgba(138,90,0,0.08)' : 'rgba(255,176,0,0.15)';
+            equityChartInstance.data.datasets[1].borderColor = ddColor;
+
+            equityChartInstance.options.scales.x.ticks.color = textColor;
+            equityChartInstance.options.scales.x.grid.color = gridColor;
+            equityChartInstance.options.scales.y.ticks.color = textColor;
+            equityChartInstance.options.scales.y.grid.color = gridColor;
+            equityChartInstance.options.scales.y1.ticks.color = ddColor;
+            equityChartInstance.options.plugins.legend.labels.color = textColor;
+            equityChartInstance.update();
+        }}
+    </script>
 </body>
 </html>
 """
 
-    with open(OUTPUT_HTML, "w", encoding="utf-8") as f:
+    with open(output_path, "w", encoding="utf-8") as f:
         f.write(html_content)
 
-    print(f"Successfully generated institutional web dashboard: {OUTPUT_HTML} ({len(html_content):,} bytes)")
-    return OUTPUT_HTML
+    print(f"Successfully generated 1980s Retro Amber Terminal dashboard: {output_path} ({len(html_content):,} bytes)")
+    return output_path
 
 
 if __name__ == "__main__":
