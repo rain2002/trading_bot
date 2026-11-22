@@ -641,26 +641,26 @@ def generate_dashboard_html(data_dir: str = None, output_path: str = None, now_d
     <!-- Google Fonts Monospace Only -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=IBM+Plex+Mono:ital,wght@0,400;0,600;0,700;1,400&family=Share+Tech+Mono&display=swap" rel="stylesheet">
     <style>
         :root {{
-            /* CRT Amber Phosphor Default Theme - Strictly 0px Square Corners & Monospace */
-            --bg-canvas: #090b09;
-            --bg-bezel: #050705;
-            --bg-panel: #0e120e;
-            --bg-panel-hover: #131a13;
-            --border-color: #243424;
-            --border-bright: #ffb000;
-            --text-primary: #ffb000;
-            --text-secondary: #c89520;
-            --text-dim: #7a8c7a;
-            --green-phosphor: #33ff33;
-            --green-dim: #1f991f;
-            --green-bg: rgba(51, 255, 51, 0.12);
-            --alert-red: #ff4455;
-            --alert-red-bg: rgba(255, 68, 85, 0.18);
-            --amber-bg: rgba(255, 176, 0, 0.12);
-            --font-mono: 'Share Tech Mono', 'Courier Prime', monospace;
+            /* 1980s CRT Workstation Default Theme - Strictly 0px Square Corners & Monospace */
+            --bg-canvas: #101310;
+            --bg-bezel: #0d100d;
+            --bg-panel: #1B211C;
+            --bg-panel-hover: #171C18;
+            --border-color: #343D34;
+            --border-bright: #D2AC70;
+            --text-primary: #D6D9CD;
+            --text-secondary: #92998D;
+            --text-dim: #7A8C7A;
+            --green-phosphor: #9BBF91;
+            --green-dim: #91B99A;
+            --green-bg: rgba(155, 191, 145, 0.12);
+            --alert-red: #C77F78;
+            --alert-red-bg: rgba(199, 127, 120, 0.18);
+            --amber-bg: rgba(210, 172, 112, 0.12);
+            --font-mono: 'IBM Plex Mono', 'Share Tech Mono', monospace;
             --card-radius: 0px; /* Square corners everywhere */
         }}
 
