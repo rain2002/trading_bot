@@ -1,2 +1,2 @@
-date,pod,currency,total_equity,cash,portfolio_equity,hwm_true,drawdown_pct,open_positions_count,code_commit,universe_spec,classification,status,delay_mins,notes
-2026-11-22,US,USD,100000.0,100000.0,0.0,100000.0,0.0,0,de7ba13,trading_system/data/us_growth_tickers.txt,exploratory_shadow,DAY_0_RESET,0,Clean Day 0 Shadow Incubation Reset ($100k USD Cash; 0 Positions; Freeze Clause Active)
+date,pod,currency,total_equity,cash,portfolio_equity,hwm_true,drawdown_pct,open_positions_count,code_commit,script_hash,universe_hash,universe_spec,classification,status,delay_mins,notes
+2026-11-22,US,USD,100000.0,100000.0,0.0,100000.0,0.0,0,dd4958d,2e3eacb01245372563f6a413cbde69d006f2f1365e1630539dac7cc96f0338bd,c244d2d1680e1251003b3f1b3ead6d4d6af57274fe8a21d0f8a597d83bfb950e,trading_system/data/us_growth_tickers.txt,exploratory_shadow,DAY_0_RESET,0,Clean Day 0 Shadow Incubation Reset (100k USD Cash; 0 Positions; Freeze Clause Active)
