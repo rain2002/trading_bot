@@ -730,3 +730,56 @@ def test_skip_row_uses_last_close_not_peak_price(tmp_path, monkeypatch):
     assert row["total_equity"] == 92000.0  # $80k cash + $12k port
 
 
+def test_day0_alpaca_integrity_guard_and_sha256_provenance(tmp_path, monkeypatch):
+    """
+    Verifies that:
+    1. Day 0 sync halts with RuntimeError if Alpaca has foreign positions or cash != $100k.
+    2. Daily equity log captures full script SHA-256 and universe SHA-256 cryptographic provenance.
+    """
+    state_file = str(tmp_path / "test_day0_state.json")
+    trades_file = str(tmp_path / "test_day0_trades.csv")
+    dummy_log = str(tmp_path / "test_day0_equity_log.csv")
+    monkeypatch.setattr("trading_system.scripts.run_dual_pod_paper.EQUITY_LOG_CSV", dummy_log)
+
+    class ContaminatedAlpacaBroker:
+        def __init__(self, *args, **kwargs):
+            pass
+        def is_connected(self):
+            return True
+        def get_account_details(self):
+            return {"equity": 95000.0, "cash": 45000.0}
+        def get_positions_detailed(self):
+            return [{"symbol": "OLD_LEGACY", "qty": 10.0, "avg_entry_price": 50.0, "current_price": 50.0}]
+
+    monkeypatch.setattr("trading_system.app.broker.alpaca.AlpacaBrokerAdapter", ContaminatedAlpacaBroker)
+    from trading_system.app.config.settings import settings
+    monkeypatch.setattr(settings, "PAPER_API_KEY", "mock_key")
+    monkeypatch.setattr(settings, "PAPER_API_SECRET", "mock_secret")
+
+    # Day 0 engine ($100k capital, 0 positions)
+    engine = PodPaperEngine(
+        pod_name="US",
+        currency="USD",
+        initial_capital=100000.0,
+        state_file=state_file,
+        trades_file=trades_file,
+        live_broker=True
+    )
+
+    import pytest
+    with pytest.raises(RuntimeError) as exc_info:
+        engine.sync_alpaca_live()
+    assert "CRITICAL DAY 0 INTEGRITY GUARD" in str(exc_info.value)
+
+    # Test SHA-256 provenance logging
+    engine.log_daily_equity(status="DAY_0_RESET", delay_mins=0, notes="Clean reset verification")
+    df_log = pd.read_csv(dummy_log)
+    assert len(df_log) == 1
+    row = df_log.iloc[0]
+    assert "script_hash" in row
+    assert "universe_hash" in row
+    assert len(str(row["script_hash"])) == 64
+    assert len(str(row["universe_hash"])) == 64
+
+
+

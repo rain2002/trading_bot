@@ -48,13 +48,15 @@ Retrospective simulation run across 2007–2024 (18.0 years, 4,530 sessions) on 
 | **GitHub Actions Runner** | [`.github/workflows/shadow_us_alpaca.yml`](file:///d:/paper_trading_bot/.github/workflows/shadow_us_alpaca.yml) | Scheduled via cron + manual `workflow_dispatch`. |
 | **Concurrency Group** | `shadow-us-alpaca` | Fully isolated; zero collision with Indian Gate B pipeline (`trading-state`). |
 | **State Persistence Branch** | `state-shadow-us` | Zero write permissions to `main` or production `state`. |
-| **Logged Provenance** | Short commit hash recorded per row | Every equity log row in `paper_equity_log.csv` records exact git commit hash. |
+| **Logged Provenance** | Commit + Script SHA-256 + Universe SHA-256 | Every equity log row in `paper_equity_log.csv` records exact git commit, script SHA-256, and universe SHA-256. |
 
 ---
 
 ## 4. Mandatory Invalidation & Restart Clause
 - **Frozen Rule**: The strategy logic in [`trading_system/scripts/run_dual_pod_paper.py`](file:///d:/paper_trading_bot/trading_system/scripts/run_dual_pod_paper.py), the universe in [`trading_system/data/us_growth_tickers.txt`](file:///d:/paper_trading_bot/trading_system/data/us_growth_tickers.txt), and the risk parameters (8 slots, 4.0x ATR trailing stop, -12% hard stop, 150-SMA trend exit, 200-SMA macro filter) are strictly frozen.
-- **Strict Parameter Freeze Contract**: **No parameter changes during the 12-month window; any change restarts the clock.**
+- **Strict Parameter Freeze Contract**: **No parameter changes during the 12-month window; any change restarts the clock.** (Freeze clause introduced in commit `91e7253` and codified in Master Plan commit `8c1da43`).
+- **Broker Account Initialization Baseline**: On 2026-11-22, Alpaca Paper Trading desk reset confirmed; all open orders cancelled, legacy positions closed, and account initialized to clean $100,000.00 USD cash with zero open positions for Day 0 incubation.
+- **Fail-Closed Day 0 Sync Guard**: If `sync_alpaca_live()` detects any open positions or a cash balance differing from $100,000.00 at Day 0, execution immediately halts with `RuntimeError` rather than adopting foreign scrips.
 - **Restart Condition**: Any code change, universe adjustment, or model modification invalidates the current incubation track, requiring an explicit new shadow sequence, labelled and restarted from Day 0.
 
 ---

@@ -23,6 +23,7 @@ import time
 import math
 import json
 import argparse
+import hashlib
 from datetime import datetime, timezone
 from typing import Dict, Any, List, Optional, Tuple, Set
 
@@ -154,6 +155,19 @@ def get_git_commit_hash() -> str:
         return "UNKNOWN"
 
 
+def compute_file_sha256(filepath: str) -> str:
+    """Computes SHA-256 hash of a file with normalized newlines for cryptographic provenance."""
+    if not filepath or not os.path.exists(filepath):
+        return "UNKNOWN_HASH"
+    try:
+        h = hashlib.sha256()
+        with open(filepath, "rb") as f:
+            h.update(f.read().replace(b"\r\n", b"\n"))
+        return h.hexdigest()
+    except Exception:
+        return "ERROR_HASH"
+
+
 
 def get_active_pit_universe(pod_name: str, as_of_date: Optional[pd.Timestamp] = None) -> List[str]:
     """
@@ -235,6 +249,18 @@ class PodPaperEngine:
             acc = adapter.get_account_details()
             positions = adapter.get_positions_detailed()
 
+            # Strict Day 0 & State Provenance Integrity Guard
+            acc_cash = float(acc["cash"])
+            logged_pos_count = len(self.state.get("positions", {}))
+            if self.initial_capital == 100000.0 and logged_pos_count == 0:
+                if len(positions) > 0 or abs(acc_cash - 100000.0) > 1.0:
+                    raise RuntimeError(
+                        f"CRITICAL DAY 0 INTEGRITY GUARD: Alpaca account state does not match logged Day 0 baseline! "
+                        f"Expected 0 positions and $100,000.00 cash, but Alpaca returned {len(positions)} open positions "
+                        f"and ${acc_cash:,.2f} cash. Execution halted to prevent contaminating shadow incubation. "
+                        f"Please reset the Alpaca paper account to clean $100,000.00 cash with 0 positions."
+                    )
+
             self.state["cash"] = float(acc["cash"])
             total_equity = float(acc["equity"])
             self.state["equity"] = total_equity
@@ -261,6 +287,9 @@ class PodPaperEngine:
                 cur_p = float(pos["current_price"])
 
                 if sym not in self.state["positions"]:
+                    if self.initial_capital == 100000.0:
+                        print(f"[{self.pod_name}] MISMATCH GUARD: Foreign position '{sym}' ({qty} shs) detected on Alpaca desk; not adopting into shadow book.")
+                        continue
                     self.state["positions"][sym] = {
                         "shares": qty,
                         "entry_price": entry_p,
@@ -282,6 +311,8 @@ class PodPaperEngine:
 
             self._save_state()
             print(f"[{self.pod_name}] Synced with live Alpaca: Equity=${total_equity:,.2f}, Cash=${self.state['cash']:,.2f}, Positions={len(self.state['positions'])}")
+        except RuntimeError:
+            raise
         except Exception as e:
             print(f"[{self.pod_name}] Alpaca sync warning: {e}")
 
@@ -548,6 +579,10 @@ class PodPaperEngine:
             drawdown_pct = 0.0
 
         positions_count = len(self.state.get("positions", {}))
+        script_path = os.path.abspath(__file__)
+        script_hash = compute_file_sha256(script_path)
+        univ_file = "trading_system/data/us_growth_tickers.txt" if "US" in self.pod_name else ("trading_system/data/nse_tickers.txt" if "INDIA" in self.pod_name else "")
+        univ_hash = compute_file_sha256(os.path.join(PROJECT_ROOT, univ_file)) if univ_file else "STATIC_POD_C"
 
         eq_entry = {
             "date": now_str[:10],
@@ -560,6 +595,8 @@ class PodPaperEngine:
             "drawdown_pct": round(float(drawdown_pct), 2),
             "open_positions_count": int(positions_count),
             "code_commit": commit_hash,
+            "script_hash": script_hash,
+            "universe_hash": univ_hash,
             "universe_spec": "trading_system/data/us_growth_tickers.txt" if "US" in self.pod_name else ("trading_system/data/nse_tickers.txt" if "INDIA" in self.pod_name else "pod_c_etfs"),
             "classification": "exploratory_shadow" if "US" in self.pod_name else "gate_b_incubation",
             "status": str(status),
@@ -1199,6 +1236,8 @@ class MultiAssetPodPaperEngine:
         # 4. Append to Daily Equity Log (Audited Provenance Tracking)
         os.makedirs(os.path.dirname(EQUITY_LOG_CSV), exist_ok=True)
         commit_hash = get_git_commit_hash()
+        script_path = os.path.abspath(__file__)
+        script_hash = compute_file_sha256(script_path)
         eq_entry = {
             "date": now_str[:10],
             "pod": self.pod_name,
@@ -1210,6 +1249,8 @@ class MultiAssetPodPaperEngine:
             "drawdown_pct": round(current_dd * 100.0, 2) if not np.isnan(current_dd) else 0.0,
             "open_positions_count": len(self.state["positions"]),
             "code_commit": commit_hash,
+            "script_hash": script_hash,
+            "universe_hash": "STATIC_POD_C",
             "universe_spec": "pod_c_macro_etfs",
             "classification": "exploratory_shadow",
             "status": "SCAN_COMPLETE",
