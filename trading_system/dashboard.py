@@ -32,57 +32,167 @@ st.set_page_config(
 )
 
 # ==============================================================================
-# BLACKLEAD STUDIO (BL/S®) DESIGN SYSTEM & EDITORIAL ARCHITECTURE
-# STYLISH YET SIMPLE TO UNDERSTAND • SIMPLE, REFINED UX
+# ==============================================================================
+# RETRO-FUTURISM: 1960s WALL STREET QUOTRON × 2060s QUANTUM STOCK EXCHANGE
+# STYLISH YET SIMPLE TO UNDERSTAND • RETRO-FUTURE NEON DARK THEME
 # ==============================================================================
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500&family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;600;700;800;900&family=Share+Tech+Mono&family=Space+Grotesk:wght@400;500;600;700&family=DM+Mono:ital,wght@0,300;0,400;0,500&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
 
-/* Global Font & High-End Matte Obsidian Theme */
+/* ==============================================================================
+   RETRO-FUTURE COLOR VARIABLES & GLOBAL TYPOGRAPHY
+   ============================================================================== */
+:root {
+    --neon-cyan: #00F0FF;
+    --neon-cyan-glow: 0 0 12px rgba(0, 240, 255, 0.45);
+    --neon-green: #05FFA1;
+    --neon-green-glow: 0 0 12px rgba(5, 255, 161, 0.45);
+    --neon-red: #FF2A6D;
+    --neon-red-glow: 0 0 12px rgba(255, 42, 109, 0.45);
+    --neon-amber: #FFB800;
+    --neon-amber-glow: 0 0 12px rgba(255, 184, 0, 0.45);
+    --neon-purple: #B5179E;
+    --bg-canvas: #06080F;
+    --bg-card: #0C111F;
+    --bg-card-hover: #111728;
+    --border-card: rgba(0, 240, 255, 0.16);
+    --border-card-hover: rgba(0, 240, 255, 0.4);
+    --text-muted: #7A8C9E;
+}
+
+/* Global Font & High-End Retro-Future Dark Theme */
 html, body, [class*="css"] {
     font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif !important;
     color: #FFFFFF;
 }
 
-code, pre, .mono-font {
-    font-family: 'DM Mono', 'JetBrains Mono', monospace !important;
+.orbitron-font, .retro-title, h1, h2, h3, .hud-title, .page-title {
+    font-family: 'Orbitron', 'Space Grotesk', sans-serif !important;
+    letter-spacing: 0.04em !important;
 }
 
-/* Velvet Matte Obsidian Canvas - Pure Black Architectural Aesthetic */
+code, pre, .mono-font, .quotron-font, .ticker-content {
+    font-family: 'Share Tech Mono', 'DM Mono', monospace !important;
+}
+
+/* Retro-Future Midnight Vacuum Canvas */
 .stApp {
-    background: #0A0D14 !important;
+    background: #06080F !important;
     background-attachment: fixed !important;
 }
 
-/* Delicate Hairline Architectural Grid Mesh */
+/* 1960s CRT Scanline & Radar Oscilloscope Mesh */
 .stApp::before {
     content: '';
     position: fixed;
     top: 0; left: 0; width: 100vw; height: 100vh;
-    background-image: radial-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px);
-    background-size: 32px 32px;
+    background: 
+        linear-gradient(rgba(0, 240, 255, 0.028) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 240, 255, 0.028) 1px, transparent 1px),
+        repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.20) 0px, rgba(0, 0, 0, 0.20) 1px, transparent 1px, transparent 3px);
+    background-size: 36px 36px, 36px 36px, 100% 3px;
     pointer-events: none;
     z-index: 0;
 }
 
-/* Minimalist Studio Sidebar */
-section[data-testid="stSidebar"] {
-    background: #0D1017 !important;
-    border-right: 1px solid rgba(255, 255, 255, 0.07) !important;
-    box-shadow: 12px 0 40px rgba(0, 0, 0, 0.9) !important;
+/* Custom Neon Cyan Scrollbars */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+::-webkit-scrollbar-track {
+    background: #06080F;
+}
+::-webkit-scrollbar-thumb {
+    background: rgba(0, 240, 255, 0.35);
+    border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: #00F0FF;
+    box-shadow: 0 0 10px #00F0FF;
 }
 
 /* ==============================================================================
-   STANDARD MODERN WEBSITE SIDEBAR NAVIGATION (SIMPLE, CLEAN LINKS)
+   1960s QUOTRON STOCK TICKER TAPE RIBBON
    ============================================================================== */
+.retro-ticker-ribbon {
+    background: linear-gradient(90deg, #070B14 0%, #0C1222 50%, #070B14 100%) !important;
+    border-top: 1px solid rgba(0, 240, 255, 0.28) !important;
+    border-bottom: 1px solid rgba(0, 240, 255, 0.28) !important;
+    padding: 8px 16px !important;
+    margin-bottom: 16px !important;
+    display: flex !important;
+    align-items: center !important;
+    overflow: hidden !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.8), inset 0 0 15px rgba(0, 240, 255, 0.04) !important;
+    border-radius: 8px !important;
+    position: relative !important;
+}
+.ticker-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: 'Orbitron', monospace;
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: #00F0FF;
+    background: rgba(0, 240, 255, 0.1);
+    padding: 3px 8px;
+    border-radius: 4px;
+    border: 1px solid rgba(0, 240, 255, 0.35);
+    margin-right: 14px;
+    letter-spacing: 0.08em;
+    flex-shrink: 0;
+    box-shadow: 0 0 10px rgba(0, 240, 255, 0.2);
+}
+.ticker-content {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    white-space: nowrap;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.78rem;
+    color: #D1D9E6;
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+.ticker-content::-webkit-scrollbar { display: none; }
+.tick-up {
+    color: #05FFA1 !important;
+    font-weight: 600;
+    text-shadow: 0 0 8px rgba(5, 255, 161, 0.5);
+}
+.tick-down {
+    color: #FF2A6D !important;
+    font-weight: 600;
+    text-shadow: 0 0 8px rgba(255, 42, 109, 0.5);
+}
+.tick-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 2px 7px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 4px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* ==============================================================================
+   RETRO-FUTURE MAINFRAME SIDEBAR
+   ============================================================================== */
+section[data-testid="stSidebar"] {
+    background: #090D18 !important;
+    border-right: 1px solid rgba(0, 240, 255, 0.16) !important;
+    box-shadow: 12px 0 45px rgba(0, 0, 0, 0.95), 0 0 25px rgba(0, 240, 255, 0.03) !important;
+}
 
 /* Tight vertical spacing between navigation links */
 section[data-testid="stSidebar"] div[data-testid="stVerticalBlock"] > div.stButton,
 section[data-testid="stSidebar"] div.stButton {
     margin: 0 !important;
     padding: 0 !important;
-    margin-bottom: 3px !important;
+    margin-bottom: 4px !important;
     width: 100% !important;
 }
 
@@ -95,55 +205,50 @@ section[data-testid="stSidebar"] div.stButton > button {
     min-height: 40px !important;
     height: 40px !important;
     padding: 8px 14px !important;
-    border-radius: 8px !important;
+    border-radius: 6px !important;
     font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif !important;
     font-size: 0.86rem !important;
     font-weight: 500 !important;
     text-align: left !important;
-    letter-spacing: -0.01em !important;
-    transition: all 0.16s ease !important;
+    letter-spacing: 0.02em !important;
+    transition: all 0.18s ease !important;
     cursor: pointer !important;
     box-sizing: border-box !important;
-}
-
-/* Inactive Page Links (normal website nav item) */
-section[data-testid="stSidebar"] div.stButton > button[kind="secondary"],
-section[data-testid="stSidebar"] div.stButton > button[data-testid="stBaseButton-secondary"],
-section[data-testid="stSidebar"] div.stButton > button:not([kind="primary"]):not([data-testid="stBaseButton-primary"]) {
-    background: transparent !important;
-    color: #A1A1AA !important;
-    border: 1px solid transparent !important;
+    background: rgba(255, 255, 255, 0.02) !important;
+    color: #A0B0C4 !important;
+    border: 1px solid rgba(255, 255, 255, 0.05) !important;
     border-left: 3px solid transparent !important;
     box-shadow: none !important;
 }
 
-/* Hover effect on inactive links - clean minimalist studio hover */
-section[data-testid="stSidebar"] div.stButton > button[kind="secondary"]:hover,
-section[data-testid="stSidebar"] div.stButton > button[data-testid="stBaseButton-secondary"]:hover,
-section[data-testid="stSidebar"] div.stButton > button:not([kind="primary"]):not([data-testid="stBaseButton-primary"]):hover {
-    background: rgba(255, 255, 255, 0.04) !important;
-    color: #FFFFFF !important;
-    border-color: rgba(255, 255, 255, 0.08) !important;
-    border-left: 3px solid rgba(255, 255, 255, 0.4) !important;
-    transform: translateX(2px) !important;
+/* Inactive Page Links hover */
+section[data-testid="stSidebar"] div.stButton > button:hover {
+    background: rgba(0, 240, 255, 0.06) !important;
+    color: #00F0FF !important;
+    border-color: rgba(0, 240, 255, 0.25) !important;
+    border-left: 3px solid #00F0FF !important;
+    transform: translateX(3px) !important;
+    box-shadow: 0 0 15px rgba(0, 240, 255, 0.18) !important;
 }
 
-/* Active Page Link (Blacklead Mint Accent) */
+/* Active Page Link (Neon Cyan Glow) */
 section[data-testid="stSidebar"] div.stButton > button[kind="primary"],
 section[data-testid="stSidebar"] div.stButton > button[data-testid="stBaseButton-primary"] {
-    background: rgba(0, 208, 156, 0.08) !important;
-    color: #00D09C !important;
-    border: 1px solid rgba(0, 208, 156, 0.28) !important;
-    border-left: 3px solid #00D09C !important;
-    font-weight: 600 !important;
-    box-shadow: 0 2px 14px rgba(0, 208, 156, 0.12) !important;
+    background: rgba(0, 240, 255, 0.10) !important;
+    color: #00F0FF !important;
+    border: 1px solid rgba(0, 240, 255, 0.45) !important;
+    border-left: 3px solid #00F0FF !important;
+    font-weight: 700 !important;
+    box-shadow: 0 0 20px rgba(0, 240, 255, 0.25), inset 0 0 12px rgba(0, 240, 255, 0.08) !important;
+    text-shadow: 0 0 8px rgba(0, 240, 255, 0.4) !important;
 }
 
 section[data-testid="stSidebar"] div.stButton > button[kind="primary"]:hover,
 section[data-testid="stSidebar"] div.stButton > button[data-testid="stBaseButton-primary"]:hover {
-    background: rgba(0, 208, 156, 0.12) !important;
-    color: #00D09C !important;
-    border-color: rgba(0, 208, 156, 0.4) !important;
+    background: rgba(0, 240, 255, 0.15) !important;
+    color: #00F0FF !important;
+    border-color: rgba(0, 240, 255, 0.6) !important;
+    box-shadow: 0 0 24px rgba(0, 240, 255, 0.35) !important;
 }
 
 /* Align text and emojis inside the button strictly to the left */
@@ -165,43 +270,47 @@ section[data-testid="stSidebar"] div.stButton > button p {
 }
 
 /* ==============================================================================
-   TIMEFRAME SELECTOR / SEGMENTED CONTROL (MINIMALIST PILLS)
+   TIMEFRAME SELECTOR / SEGMENTED CONTROL (RETRO NEON PILLS)
    ============================================================================== */
 div[data-testid="stSegmentedControl"] {
-    background: #0E0E12 !important;
-    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    background: #0A0E18 !important;
+    border: 1px solid rgba(0, 240, 255, 0.2) !important;
     border-radius: 9999px !important;
     padding: 2px !important;
+    box-shadow: 0 0 12px rgba(0, 0, 0, 0.6) !important;
 }
 
 div[data-testid="stSegmentedControl"] button {
-    font-family: 'DM Mono', monospace !important;
+    font-family: 'Share Tech Mono', monospace !important;
     font-size: 0.74rem !important;
-    font-weight: 500 !important;
-    color: #A1A1AA !important;
+    font-weight: 600 !important;
+    color: #7A8C9E !important;
     background: transparent !important;
     border: none !important;
     border-radius: 9999px !important;
-    padding: 4px 10px !important;
+    padding: 4px 12px !important;
     cursor: pointer !important;
     transition: all 0.18s ease !important;
 }
 
 div[data-testid="stSegmentedControl"] button:hover {
-    color: #FFFFFF !important;
-    background: rgba(255, 255, 255, 0.06) !important;
+    color: #00F0FF !important;
+    background: rgba(0, 240, 255, 0.08) !important;
+    text-shadow: 0 0 8px rgba(0, 240, 255, 0.4) !important;
 }
 
 div[data-testid="stSegmentedControl"] button[aria-checked="true"],
 div[data-testid="stSegmentedControl"] button[data-checked="true"] {
-    background: rgba(255, 255, 255, 0.12) !important;
-    color: #FFFFFF !important;
-    border: 1px solid rgba(255, 255, 255, 0.22) !important;
-    font-weight: 600 !important;
+    background: rgba(0, 240, 255, 0.15) !important;
+    color: #00F0FF !important;
+    border: 1px solid rgba(0, 240, 255, 0.4) !important;
+    font-weight: 700 !important;
+    box-shadow: 0 0 12px rgba(0, 240, 255, 0.3) !important;
+    text-shadow: 0 0 8px rgba(0, 240, 255, 0.5) !important;
 }
 
 /* ==============================================================================
-   PIXEL-PERFECT UNIFORM METRIC BOXES (BLACKLEAD ARCHITECTURAL CARDS)
+   RETRO-FUTURISTIC KPI CARD BOXES (QUOTRON CARDS)
    ============================================================================== */
 [data-testid="column"] {
     display: flex !important;
@@ -214,9 +323,9 @@ div[data-testid="stSegmentedControl"] button[data-checked="true"] {
 }
 
 .cyber-kpi-card {
-    background: #121622 !important;
-    border: 1px solid rgba(255, 255, 255, 0.08) !important;
-    border-radius: 12px !important;
+    background: linear-gradient(135deg, #0C111F 0%, #111728 100%) !important;
+    border: 1px solid rgba(0, 240, 255, 0.16) !important;
+    border-radius: 10px !important;
     padding: 14px 16px !important;
     height: 124px !important;
     min-height: 124px !important;
@@ -225,24 +334,33 @@ div[data-testid="stSegmentedControl"] button[data-checked="true"] {
     display: flex !important;
     flex-direction: column !important;
     justify-content: space-between !important;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
+    box-shadow: 0 6px 25px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
     transition: all 0.22s ease !important;
     margin: 0 !important;
     width: 100% !important;
+    position: relative !important;
+    overflow: hidden !important;
+}
+.cyber-kpi-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, #00F0FF 0%, #05FFA1 100%);
+    opacity: 0.7;
 }
 .cyber-kpi-card:hover {
-    border-color: rgba(255, 255, 255, 0.20) !important;
+    border-color: rgba(0, 240, 255, 0.4) !important;
     transform: translateY(-2px) !important;
-    box-shadow: 0 8px 26px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+    box-shadow: 0 10px 32px rgba(0, 0, 0, 0.9), 0 0 18px rgba(0, 240, 255, 0.15) !important;
 }
 
 .kpi-title {
-    font-family: 'DM Mono', monospace;
+    font-family: 'Share Tech Mono', monospace;
     font-size: 0.66rem;
-    font-weight: 500;
+    font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.10em;
-    color: #71717A;
+    color: #7A8C9E;
     height: 20px;
     display: flex;
     align-items: center;
@@ -270,150 +388,185 @@ div[data-testid="stSegmentedControl"] button[data-checked="true"] {
     padding: 0;
 }
 
-/* Metric Typography - High Contrast Studio Display */
+/* Metric Typography - Retro-Future Neon Display */
 .metric-big {
+    font-family: 'Orbitron', 'Space Grotesk', sans-serif;
     font-size: 1.65rem;
     font-weight: 700;
-    letter-spacing: -0.035em;
+    letter-spacing: 0.02em;
     color: #FFFFFF;
     line-height: 1;
     margin: 0;
+    text-shadow: 0 0 8px rgba(255, 255, 255, 0.3);
 }
 
 .metric-big-green {
+    font-family: 'Orbitron', 'Space Grotesk', sans-serif;
     font-size: 1.65rem;
     font-weight: 700;
-    letter-spacing: -0.035em;
-    color: #00D09C;
+    letter-spacing: 0.02em;
+    color: #05FFA1;
     line-height: 1;
     margin: 0;
+    text-shadow: 0 0 12px rgba(5, 255, 161, 0.5);
 }
 
 .metric-big-red {
+    font-family: 'Orbitron', 'Space Grotesk', sans-serif;
     font-size: 1.65rem;
     font-weight: 700;
-    letter-spacing: -0.035em;
-    color: #EB5B56;
+    letter-spacing: 0.02em;
+    color: #FF2A6D;
     line-height: 1;
     margin: 0;
+    text-shadow: 0 0 12px rgba(255, 42, 109, 0.5);
 }
 
 .metric-badge-uniform {
     display: inline-flex;
     align-items: center;
     gap: 4px;
-    font-family: 'DM Mono', monospace;
+    font-family: 'Share Tech Mono', monospace;
     font-size: 0.68rem;
-    font-weight: 500;
+    font-weight: 600;
     padding: 2px 8px;
     border-radius: 9999px;
     margin: 0;
-    background: rgba(255, 255, 255, 0.05);
-    color: #A1A1AA;
-    border: 1px solid rgba(255, 255, 255, 0.10);
+    background: rgba(0, 240, 255, 0.06);
+    color: #00F0FF;
+    border: 1px solid rgba(0, 240, 255, 0.25);
+    box-shadow: 0 0 8px rgba(0, 240, 255, 0.15);
 }
 
 .metric-badge-mint {
     display: inline-flex;
     align-items: center;
     gap: 4px;
-    font-family: 'DM Mono', monospace;
+    font-family: 'Share Tech Mono', monospace;
     font-size: 0.68rem;
-    font-weight: 500;
+    font-weight: 600;
     padding: 2px 8px;
     border-radius: 9999px;
     margin: 0;
-    background: rgba(0, 208, 156, 0.09);
-    color: #00D09C;
-    border: 1px solid rgba(0, 208, 156, 0.25);
+    background: rgba(5, 255, 161, 0.08);
+    color: #05FFA1;
+    border: 1px solid rgba(5, 255, 161, 0.35);
+    box-shadow: 0 0 8px rgba(5, 255, 161, 0.2);
 }
 
 .metric-badge-danger {
     display: inline-flex;
     align-items: center;
     gap: 4px;
-    font-family: 'DM Mono', monospace;
+    font-family: 'Share Tech Mono', monospace;
     font-size: 0.68rem;
-    font-weight: 500;
+    font-weight: 600;
     padding: 2px 8px;
     border-radius: 9999px;
     margin: 0;
-    background: rgba(235, 91, 86, 0.09);
-    color: #EB5B56;
-    border: 1px solid rgba(235, 91, 86, 0.25);
+    background: rgba(255, 42, 109, 0.08);
+    color: #FF2A6D;
+    border: 1px solid rgba(255, 42, 109, 0.35);
+    box-shadow: 0 0 8px rgba(255, 42, 109, 0.2);
 }
 
-/* Standard Studio Card Container */
+/* Universal Studio Card Container */
 .cyber-card {
-    background: #121622 !important;
-    border: 1px solid rgba(255, 255, 255, 0.08) !important;
-    border-radius: 12px !important;
+    background: linear-gradient(135deg, #0C111F 0%, #111728 100%) !important;
+    border: 1px solid rgba(0, 240, 255, 0.16) !important;
+    border-radius: 10px !important;
     padding: 18px 22px !important;
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
     transition: all 0.22s ease !important;
     margin-bottom: 14px !important;
+    position: relative !important;
 }
 .cyber-card:hover {
-    border-color: rgba(255, 255, 255, 0.18) !important;
+    border-color: rgba(0, 240, 255, 0.38) !important;
+    box-shadow: 0 10px 35px rgba(0, 0, 0, 0.85), 0 0 20px rgba(0, 240, 255, 0.12) !important;
     transform: translateY(-2px) !important;
 }
 
-/* Top Telemetry Header (Minimalist Command Strip) */
+/* Top Telemetry Header (HUD Command Strip) */
 .hud-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 14px 20px;
-    background: #121622 !important;
-    border: 1px solid rgba(255, 255, 255, 0.08) !important;
-    border-radius: 12px !important;
+    padding: 16px 22px;
+    background: linear-gradient(135deg, #0C111F 0%, #111728 100%) !important;
+    border: 1px solid rgba(0, 240, 255, 0.20) !important;
+    border-left: 4px solid #00F0FF !important;
+    border-radius: 10px !important;
     margin-bottom: 18px;
-    box-shadow: 0 6px 25px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.8), 0 0 18px rgba(0, 240, 255, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
 }
 
 .hud-title {
-    font-size: 1.22rem;
-    font-weight: 700;
-    letter-spacing: -0.025em;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1.25rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
     color: #FFFFFF;
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
 }
 .hud-title-accent {
-    color: #00D09C;
+    color: #00F0FF;
+    text-shadow: 0 0 12px rgba(0, 240, 255, 0.6);
 }
 
 .hud-subtitle {
-    font-family: 'DM Mono', monospace;
-    font-size: 0.68rem;
-    color: #71717A;
-    letter-spacing: 0.10em;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.70rem;
+    color: #7A8C9E;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
-    margin-top: 3px;
+    margin-top: 4px;
 }
 
-/* Status Badges & Pills */
+/* Status Badges & Neon Pills */
 .status-pill {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    font-family: 'DM Mono', monospace;
+    font-family: 'Share Tech Mono', monospace;
     font-size: 0.70rem;
-    font-weight: 500;
-    padding: 4px 11px;
+    font-weight: 600;
+    padding: 4px 12px;
     border-radius: 9999px;
-    background: #141418;
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    color: #FFFFFF;
+    background: rgba(0, 240, 255, 0.06);
+    border: 1px solid rgba(0, 240, 255, 0.35);
+    color: #00F0FF;
+    box-shadow: 0 0 10px rgba(0, 240, 255, 0.18);
+    text-shadow: 0 0 6px rgba(0, 240, 255, 0.3);
 }
 
 .pulse-dot {
     width: 7px;
     height: 7px;
     border-radius: 50%;
-    background-color: #00D09C;
-    box-shadow: 0 0 8px #00D09C;
+    background-color: #00F0FF;
+    box-shadow: 0 0 8px #00F0FF;
+    animation: radar-pulse 2s infinite;
+    display: inline-block;
+}
+.pulse-dot-cyan {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background-color: #00F0FF;
+    box-shadow: 0 0 8px #00F0FF;
+    animation: radar-pulse 2s infinite;
+    display: inline-block;
+}
+.pulse-dot-green {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background-color: #05FFA1;
+    box-shadow: 0 0 8px #05FFA1;
     animation: radar-pulse 2s infinite;
     display: inline-block;
 }
@@ -426,47 +579,60 @@ div[data-testid="stSegmentedControl"] button[data-checked="true"] {
 /* Page Dedicated Header */
 .page-title-box {
     margin-bottom: 18px;
-    padding-bottom: 12px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+    padding: 14px 20px;
+    background: linear-gradient(135deg, #0C111F 0%, #111728 100%);
+    border: 1px solid rgba(0, 240, 255, 0.20);
+    border-left: 4px solid #00F0FF;
+    border-radius: 8px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6);
 }
 .page-title {
-    font-size: 1.30rem;
-    font-weight: 700;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1.25rem;
+    font-weight: 800;
     color: #FFFFFF;
-    letter-spacing: -0.02em;
+    letter-spacing: 0.04em;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
 }
 .page-subtitle {
-    font-family: 'DM Mono', monospace;
-    font-size: 0.68rem;
-    color: #71717A;
-    letter-spacing: 0.10em;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.70rem;
+    color: #7A8C9E;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
-    margin-top: 3px;
+    margin-top: 4px;
 }
 
 /* Streamlit DataFrames */
 [data-testid="stDataFrame"] {
     border-radius: 10px !important;
-    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    border: 1px solid rgba(0, 240, 255, 0.18) !important;
     overflow: hidden !important;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 6px 25px rgba(0, 0, 0, 0.7);
 }
 
 /* ==============================================================================
-   GROWW INDIA DESIGN SYSTEM ENHANCEMENTS
+   RETRO-FUTURE QUOTRON 5-METRIC HOLDINGS SUMMARY BANNER
    ============================================================================== */
-
-/* Groww Signature 5-Metric Holdings Summary Banner */
 .groww-summary-card {
-    background: #121622 !important;
-    border: 1px solid rgba(255, 255, 255, 0.08) !important;
-    border-radius: 14px !important;
-    padding: 16px 22px !important;
+    background: linear-gradient(135deg, #0C111F 0%, #111728 100%) !important;
+    border: 1px solid rgba(0, 240, 255, 0.18) !important;
+    border-radius: 12px !important;
+    padding: 18px 22px !important;
     margin-bottom: 16px !important;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.06) !important;
     display: grid !important;
     grid-template-columns: repeat(5, 1fr) !important;
     gap: 16px !important;
+    position: relative !important;
+    overflow: hidden !important;
+}
+.groww-summary-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, #00F0FF 0%, #05FFA1 50%, #FFB800 100%);
+    box-shadow: 0 0 10px rgba(0, 240, 255, 0.6);
 }
 
 .groww-summary-item {
@@ -476,165 +642,208 @@ div[data-testid="stSegmentedControl"] button[data-checked="true"] {
 }
 
 .groww-summary-item:not(:last-child) {
-    border-right: 1px solid rgba(255, 255, 255, 0.07) !important;
+    border-right: 1px solid rgba(255, 255, 255, 0.08) !important;
     padding-right: 16px !important;
 }
 
 .groww-item-label {
-    font-size: 0.72rem !important;
-    color: #8F9CAE !important;
-    font-weight: 500 !important;
+    font-size: 0.68rem !important;
+    color: #7A8C9E !important;
+    font-weight: 600 !important;
     text-transform: uppercase !important;
-    letter-spacing: 0.08em !important;
+    letter-spacing: 0.10em !important;
     margin-bottom: 5px !important;
-    font-family: 'DM Mono', monospace !important;
+    font-family: 'Share Tech Mono', monospace !important;
 }
 
 .groww-item-val {
-    font-size: 1.45rem !important;
+    font-size: 1.55rem !important;
     font-weight: 700 !important;
     color: #FFFFFF !important;
     line-height: 1.15 !important;
-    letter-spacing: -0.025em !important;
+    letter-spacing: 0.02em !important;
+    font-family: 'Orbitron', sans-serif !important;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.3) !important;
 }
 
 .groww-item-val-green {
-    font-size: 1.45rem !important;
+    font-size: 1.55rem !important;
     font-weight: 700 !important;
-    color: #00D09C !important;
+    color: #05FFA1 !important;
     line-height: 1.15 !important;
-    letter-spacing: -0.025em !important;
+    letter-spacing: 0.02em !important;
+    font-family: 'Orbitron', sans-serif !important;
+    text-shadow: 0 0 12px rgba(5, 255, 161, 0.5) !important;
 }
 
 .groww-item-val-red {
-    font-size: 1.45rem !important;
+    font-size: 1.55rem !important;
     font-weight: 700 !important;
-    color: #EB5B56 !important;
+    color: #FF2A6D !important;
     line-height: 1.15 !important;
-    letter-spacing: -0.025em !important;
+    letter-spacing: 0.02em !important;
+    font-family: 'Orbitron', sans-serif !important;
+    text-shadow: 0 0 12px rgba(255, 42, 109, 0.5) !important;
 }
 
 .groww-item-sub {
     font-size: 0.70rem !important;
-    margin-top: 4px !important;
-    color: #71717A !important;
-    font-family: 'DM Mono', monospace !important;
+    margin-top: 5px !important;
+    color: #7A8C9E !important;
+    font-family: 'Share Tech Mono', monospace !important;
 }
 
-/* Groww Holdings Card Deck (Page 2) */
+/* ==============================================================================
+   RETRO-FUTURE HOLDINGS CARD DECK & AVATAR
+   ============================================================================== */
 .groww-holding-row {
-    background: #121622;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 12px;
-    padding: 14px 18px;
-    margin-bottom: 10px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    transition: all 0.2s ease;
-    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+    background: linear-gradient(135deg, #0C111F 0%, #101626 100%) !important;
+    border: 1px solid rgba(0, 240, 255, 0.14) !important;
+    border-left: 3px solid #00F0FF !important;
+    border-radius: 10px !important;
+    padding: 14px 18px !important;
+    margin-bottom: 10px !important;
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    transition: all 0.2s ease !important;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5) !important;
 }
 
 .groww-holding-row:hover {
-    border-color: rgba(255, 255, 255, 0.18);
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
+    border-color: rgba(0, 240, 255, 0.45) !important;
+    border-left-color: #05FFA1 !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.7), 0 0 15px rgba(0, 240, 255, 0.15) !important;
 }
 
 .groww-avatar {
-    width: 38px;
-    height: 38px;
-    border-radius: 50%;
-    background: #1A202E;
-    color: #00D09C;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 700;
-    font-size: 0.82rem;
-    border: 1px solid rgba(0, 208, 156, 0.25);
-    margin-right: 12px;
-    flex-shrink: 0;
+    width: 38px !important;
+    height: 38px !important;
+    border-radius: 6px !important;
+    background: rgba(0, 240, 255, 0.1) !important;
+    color: #00F0FF !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-family: 'Orbitron', monospace !important;
+    font-weight: 700 !important;
+    font-size: 0.82rem !important;
+    border: 1px solid rgba(0, 240, 255, 0.35) !important;
+    box-shadow: 0 0 10px rgba(0, 240, 255, 0.2) !important;
+    margin-right: 12px !important;
+    flex-shrink: 0 !important;
 }
 
-/* Groww Order Placement BUY / SELL Segmented Buttons */
+/* ==============================================================================
+   RETRO LAUNCH CONTROL ORDER DESK
+   ============================================================================== */
 .groww-order-box {
-    background: #121622;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 14px;
-    padding: 20px;
-    box-shadow: 0 6px 25px rgba(0, 0, 0, 0.5);
+    background: linear-gradient(135deg, #0C111F 0%, #111728 100%) !important;
+    border: 1px solid rgba(0, 240, 255, 0.20) !important;
+    border-radius: 12px !important;
+    padding: 20px !important;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.7) !important;
 }
 
 .groww-order-summary-box {
-    background: #0B0E14;
-    border: 1px solid rgba(255, 255, 255, 0.07);
-    border-radius: 10px;
-    padding: 12px 16px;
-    margin: 14px 0;
-    font-family: 'DM Mono', monospace;
-    font-size: 0.76rem;
+    background: #080C16 !important;
+    border: 1px solid rgba(0, 240, 255, 0.22) !important;
+    border-radius: 8px !important;
+    padding: 14px 18px !important;
+    margin: 14px 0 !important;
+    font-family: 'Share Tech Mono', monospace !important;
+    font-size: 0.76rem !important;
+    box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.8) !important;
 }
 
 .groww-order-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 4px 0;
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    padding: 4px 0 !important;
 }
 
-/* Universal Groww Primary & Action Buttons */
+/* Universal Action & Primary Buttons (Neon Futuristic Switchers) */
 button[kind="primary"],
 button[data-testid="stBaseButton-primary"] {
-    background: #00D09C !important;
-    border: 1px solid #00D09C !important;
-    color: #000000 !important;
-    font-weight: 700 !important;
-    border-radius: 8px !important;
-    box-shadow: 0 3px 12px rgba(0, 208, 156, 0.25) !important;
+    background: #00F0FF !important;
+    border: 1px solid #00F0FF !important;
+    color: #05070C !important;
+    font-weight: 800 !important;
+    font-family: 'Orbitron', sans-serif !important;
+    letter-spacing: 0.05em !important;
+    border-radius: 6px !important;
+    box-shadow: 0 0 20px rgba(0, 240, 255, 0.45) !important;
+    text-shadow: none !important;
+    transition: all 0.2s ease !important;
 }
 
 button[kind="primary"]:hover,
 button[data-testid="stBaseButton-primary"]:hover {
-    background: #00E5AB !important;
-    border-color: #00E5AB !important;
-    color: #000000 !important;
+    background: #38F8FF !important;
+    box-shadow: 0 0 28px rgba(0, 240, 255, 0.75) !important;
+    transform: translateY(-1px) !important;
 }
 
-/* Groww BUY vs SELL Segmented Switcher */
+/* BUY Button: Phosphor Green */
 button[aria-label="BUY"][kind="primary"],
 button[aria-label="BUY"][data-testid="stBaseButton-primary"] {
-    background: #00D09C !important;
-    border-color: #00D09C !important;
-    color: #000000 !important;
-    font-weight: 700 !important;
-    box-shadow: 0 4px 16px rgba(0, 208, 156, 0.35) !important;
+    background: #05FFA1 !important;
+    border-color: #05FFA1 !important;
+    color: #05070C !important;
+    font-weight: 800 !important;
+    box-shadow: 0 0 22px rgba(5, 255, 161, 0.5) !important;
+}
+button[aria-label="BUY"][kind="primary"]:hover,
+button[aria-label="BUY"][data-testid="stBaseButton-primary"]:hover {
+    background: #4EFEB3 !important;
+    box-shadow: 0 0 30px rgba(5, 255, 161, 0.8) !important;
 }
 
+/* SELL Button: Laser Crimson */
 button[aria-label="SELL"][kind="primary"],
 button[aria-label="SELL"][data-testid="stBaseButton-primary"] {
-    background: #EB5B56 !important;
-    border-color: #EB5B56 !important;
+    background: #FF2A6D !important;
+    border-color: #FF2A6D !important;
     color: #FFFFFF !important;
-    font-weight: 700 !important;
-    box-shadow: 0 4px 16px rgba(235, 91, 86, 0.35) !important;
+    font-weight: 800 !important;
+    box-shadow: 0 0 22px rgba(255, 42, 109, 0.5) !important;
 }
-
 button[aria-label="SELL"][kind="primary"]:hover,
 button[aria-label="SELL"][data-testid="stBaseButton-primary"]:hover {
-    background: #F87171 !important;
-    border-color: #F87171 !important;
-    color: #FFFFFF !important;
+    background: #FF5A8F !important;
+    box-shadow: 0 0 30px rgba(255, 42, 109, 0.8) !important;
 }
 
-/* Sidebar Navigation Link Overrides (Ensure subtle sidebar active state) */
+/* Form Inputs, Selects, and Number Inputs */
+div[data-baseweb="input"] > div,
+input, select, textarea {
+    background-color: #080C16 !important;
+    border: 1px solid rgba(0, 240, 255, 0.22) !important;
+    color: #FFFFFF !important;
+    font-family: 'Share Tech Mono', monospace !important;
+    border-radius: 6px !important;
+    transition: all 0.2s ease !important;
+}
+input:focus, select:focus, textarea:focus,
+div[data-baseweb="input"]:focus-within {
+    border-color: #00F0FF !important;
+    box-shadow: 0 0 15px rgba(0, 240, 255, 0.35) !important;
+}
+div[data-testid="stSlider"] > div > div > div > div {
+    background-color: #00F0FF !important;
+    box-shadow: 0 0 10px #00F0FF !important;
+}
+
+/* Sidebar Navigation Link Overrides (Ensure vibrant neon active state) */
 section[data-testid="stSidebar"] div.stButton > button[kind="primary"],
 section[data-testid="stSidebar"] div.stButton > button[data-testid="stBaseButton-primary"] {
-    background: rgba(0, 208, 156, 0.08) !important;
-    color: #00D09C !important;
-    border: 1px solid rgba(0, 208, 156, 0.28) !important;
-    border-left: 3px solid #00D09C !important;
-    box-shadow: 0 2px 14px rgba(0, 208, 156, 0.12) !important;
+    background: rgba(0, 240, 255, 0.10) !important;
+    color: #00F0FF !important;
+    border: 1px solid rgba(0, 240, 255, 0.45) !important;
+    border-left: 3px solid #00F0FF !important;
+    box-shadow: 0 0 20px rgba(0, 240, 255, 0.25), inset 0 0 12px rgba(0, 240, 255, 0.08) !important;
 }
 
 </style>
@@ -742,14 +951,14 @@ else:
     else:
         broker = AlpacaBrokerAdapter(api_key=api_key, api_secret=api_secret)
 
-    sl_manager = StopLossManager()
+sl_manager = StopLossManager()
 
-    try:
-        acc_details = broker.get_account_details()
-    except Exception as e:
-        st.sidebar.info("☁️ **Cloud Runner Mode**: Live Alpaca credentials active in GitHub Actions. Local dashboard displaying latest shadow state.")
-        broker = AlpacaBrokerAdapter(api_key="mock", api_secret="mock")
-        acc_details = broker.get_account_details()
+try:
+    acc_details = broker.get_account_details()
+except Exception as e:
+    st.sidebar.info("☁️ **Cloud Runner Mode**: Live Alpaca credentials active in GitHub Actions. Local dashboard displaying latest shadow state.")
+    broker = AlpacaBrokerAdapter(api_key="mock", api_secret="mock")
+    acc_details = broker.get_account_details()
 equity = acc_details.get("equity", 100000.0)
 cash = acc_details.get("cash", 0.0)
 buying_power = acc_details.get("buying_power", cash)
@@ -961,17 +1170,94 @@ active_arch = "NIFTY 100 ML GATE" if is_india_mode else "PHASE 3 ML GATE"
 solvency_label = "SEBI 100% CNC CASH" if is_india_mode else "100% LONG-ONLY"
 
 st.sidebar.markdown("<div style='margin-top: 20px;'></div>", unsafe_allow_html=True)
+
+def render_retro_ticker_ribbon(is_india_mode: bool, broker=None) -> str:
+    """
+    1960s Quotron Stock Ticker Tape Ribbon with Continuous Retro-Futuristic Glow
+    """
+    if is_india_mode:
+        tickers = [
+            ("NIFTY 50", "24,180.50", "+0.72%", True),
+            ("SENSEX", "79,420.10", "+0.65%", True),
+            ("RELIANCE", "₹2,980.50", "+1.42%", True),
+            ("TCS", "₹4,120.00", "-0.58%", False),
+            ("HDFCBANK", "₹1,650.25", "+0.84%", True),
+            ("INFY", "₹1,840.10", "+1.18%", True),
+            ("ICICIBANK", "₹1,120.00", "+0.52%", True),
+            ("BHARTIARTL", "₹1,410.80", "+2.05%", True),
+            ("ITC", "₹485.20", "+0.38%", True),
+            ("LT", "₹3,580.00", "+0.95%", True),
+            ("SBIN", "₹810.40", "-0.32%", False),
+            ("TATAMOTORS", "₹945.60", "+1.65%", True),
+        ]
+        market_badge = "NSE // BSE TELETYPE 1960"
+    else:
+        tickers = [
+            ("S&P 500", "5,860.20", "+0.64%", True),
+            ("NASDAQ", "18,450.80", "+0.91%", True),
+            ("NVDA", "$138.25", "+3.42%", True),
+            ("AAPL", "$228.50", "+1.15%", True),
+            ("MSFT", "$425.10", "-0.40%", False),
+            ("GOOGL", "$178.60", "+1.78%", True),
+            ("AMZN", "$186.40", "+0.92%", True),
+            ("META", "$582.00", "+2.31%", True),
+            ("TSLA", "$218.40", "-1.45%", False),
+            ("AVGO", "$172.50", "+2.10%", True),
+            ("AMD", "$156.20", "+1.85%", True),
+            ("SPY", "$580.20", "+0.65%", True),
+        ]
+        market_badge = "NYSE // QUOTRON 1960"
+
+    items_html = ""
+    for sym, price, chg, is_up in tickers:
+        arrow = "▲" if is_up else "▼"
+        cls = "tick-up" if is_up else "tick-down"
+        items_html += (
+            f'<div class="tick-item">'
+            f'<span style="font-weight:700; color:#FFFFFF;">{sym}</span> '
+            f'<span style="color:#A1A1AA;">{price}</span> '
+            f'<span class="{cls}">{arrow} {chg}</span>'
+            f'</div>'
+        )
+
+    # 2x duplication for continuous seamless loop
+    marquee_html = items_html + items_html
+
+    return f"""
+    <style>
+    @keyframes retroTickerScroll {{
+        0% {{ transform: translateX(0); }}
+        100% {{ transform: translateX(-50%); }}
+    }}
+    .retro-ticker-ribbon:hover .ticker-marquee-inner {{
+        animation-play-state: paused;
+    }}
+    </style>
+    <div class="retro-ticker-ribbon">
+        <div class="ticker-badge"><span class="pulse-dot"></span>{market_badge}</div>
+        <div class="ticker-content" style="width: 100%; overflow: hidden; display: flex;">
+            <div class="ticker-marquee-inner" style="display: flex; gap: 18px; white-space: nowrap; animation: retroTickerScroll 40s linear infinite;">
+                {marquee_html}
+            </div>
+        </div>
+    </div>
+    """
+
 st.sidebar.markdown(f"""
-<div style="font-family: 'DM Mono', monospace; font-size: 0.68rem; color: #71717A; line-height: 1.7; padding: 10px 12px; background: #121622; border-radius: 8px; border: 1px solid rgba(255,255,255,0.06);">
-    <div>BROKER: <span style="color: #00D09C;">{broker_label}</span></div>
-    <div>EXCHANGE: <span style="color: #00D09C;">{exchange_label}</span></div>
-    <div>OPEN ORDERS: <span style="color: {'#00D09C' if open_orders_count > 0 else '#A1A1AA'};">{open_orders_count} QUEUED</span></div>
-    <div>BUYING POWER: <span style="color: #00D09C;">{CURRENCY_SYMBOL}{buying_power:,.2f}</span></div>
-    <div>ACTIVE ARCH: <span style="color: #00D09C;">{active_arch}</span></div>
+<div style="font-family: 'Share Tech Mono', monospace; font-size: 0.70rem; color: #7A8C9E; line-height: 1.75; padding: 12px 14px; background: #0C111F; border-radius: 8px; border: 1px solid rgba(0, 240, 255, 0.22); border-left: 3px solid #00F0FF; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6);">
+    <div>BROKER: <span style="color: #00F0FF; font-weight: 600;">{broker_label}</span></div>
+    <div>EXCHANGE: <span style="color: #00F0FF; font-weight: 600;">{exchange_label}</span></div>
+    <div>OPEN ORDERS: <span style="color: {'#05FFA1' if open_orders_count > 0 else '#7A8C9E'};\藉">{open_orders_count} QUEUED</span></div>
+    <div>BUYING POWER: <span style="color: #05FFA1; font-weight: 600;">{CURRENCY_SYMBOL}{buying_power:,.2f}</span></div>
+    <div>ACTIVE ARCH: <span style="color: #00F0FF;">{active_arch}</span></div>
     <div>MARKET HOURS: <span style="color: #A1A1AA;">{market_hours}</span></div>
-    <div>SOLVENCY: <span style="color: #00D09C;">{solvency_label}</span></div>
+    <div>SOLVENCY: <span style="color: #05FFA1;">{solvency_label}</span></div>
 </div>
 """, unsafe_allow_html=True)
+
+# Render continuous 1960s Quotron Stock Ticker Tape at the top of every dashboard view
+st.markdown(render_retro_ticker_ribbon(is_india_mode, broker), unsafe_allow_html=True)
+
 
 
 # ==============================================================================
@@ -1132,7 +1418,7 @@ if page == "📊 Portfolio Overview":
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;600;700;800;900&family=Share+Tech+Mono&family=Space+Grotesk:wght@400;500;600;700&display=swap');
     
     * {{
         box-sizing: border-box;
@@ -1150,21 +1436,24 @@ if page == "📊 Portfolio Overview":
         overflow: hidden;
     }}
     
-    /* Architectural Obsidian Card */
+    /* 1960s Quotron × 2060s Quantum Hero Card */
     .glass-hero-card {{
         position: relative;
-        background: #121622;
-        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: #0C111F;
+        border: 1px solid rgba(0, 240, 255, 0.22);
+        border-top: 3px solid #00F0FF;
         border-radius: 12px;
         padding: 22px 26px 18px 26px;
-        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6), 
-                    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+        box-shadow: 0 10px 35px rgba(0, 0, 0, 0.85), 
+                    0 0 20px rgba(0, 240, 255, 0.08),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.06);
         overflow: hidden;
         width: 100%;
-        transition: border-color 0.22s ease;
+        transition: all 0.22s ease;
     }}
     .glass-hero-card:hover {{
-        border-color: rgba(255, 255, 255, 0.16);
+        border-color: rgba(0, 240, 255, 0.45);
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.95), 0 0 25px rgba(0, 240, 255, 0.15);
     }}
     
     .card-content-layer {{
@@ -1195,49 +1484,60 @@ if page == "📊 Portfolio Overview":
         display: flex;
         align-items: center;
         gap: 6px;
-        font-family: 'DM Mono', monospace;
-        font-size: 0.68rem;
+        font-family: 'Share Tech Mono', monospace;
+        font-size: 0.72rem;
         font-weight: 500;
         letter-spacing: 0.10em;
         text-transform: uppercase;
-        color: #71717A;
+        color: #7A8C9E;
         height: 20px;
     }}
     
     .dot-mint {{
         width: 8px;
         height: 8px;
-        background-color: #00D09C;
+        background-color: #05FFA1;
         border-radius: 2px;
         display: inline-block;
-        box-shadow: 0 0 8px rgba(0, 208, 156, 0.4);
+        box-shadow: 0 0 10px rgba(5, 255, 161, 0.6);
     }}
     
     .dot-red {{
         width: 8px;
         height: 8px;
-        background-color: #EB5B56;
+        background-color: #FF2A6D;
         border-radius: 2px;
         display: inline-block;
-        box-shadow: 0 0 8px rgba(235, 91, 86, 0.4);
+        box-shadow: 0 0 10px rgba(255, 42, 109, 0.6);
     }}
     
-    .dot-grey {{
+    .dot-purple {{
         width: 8px;
         height: 8px;
-        background-color: #52525B;
+        background-color: #00F0FF;
         border-radius: 2px;
         display: inline-block;
+        box-shadow: 0 0 10px rgba(0, 240, 255, 0.6);
+    }}
+    
+    .dot-amber {{
+        width: 8px;
+        height: 8px;
+        background-color: #FFB800;
+        border-radius: 2px;
+        display: inline-block;
+        box-shadow: 0 0 10px rgba(255, 184, 0, 0.6);
     }}
     
     .big-number {{
-        font-size: 2.25rem;
+        font-size: 2.35rem;
         font-weight: 700;
-        letter-spacing: -0.035em;
+        letter-spacing: 0.02em;
         line-height: 1.15;
         color: #FFFFFF;
         margin: 3px 0 2px 0;
-        font-family: 'Space Grotesk', sans-serif;
+        font-family: 'Orbitron', 'Space Grotesk', sans-serif;
+        text-shadow: 0 0 12px rgba(255, 255, 255, 0.25);
     }}
     
     .return-row {{
@@ -1251,39 +1551,41 @@ if page == "📊 Portfolio Overview":
         display: inline-flex;
         align-items: center;
         gap: 5px;
-        padding: 2px 9px;
+        padding: 3px 10px;
         border-radius: 9999px;
-        font-family: 'DM Mono', monospace;
-        font-size: 0.72rem;
-        font-weight: 500;
+        font-family: 'Share Tech Mono', monospace;
+        font-size: 0.74rem;
+        font-weight: 600;
         transition: all 0.2s ease;
     }}
     
     .badge-green {{
-        background: rgba(0, 208, 156, 0.08);
-        border: 1px solid rgba(0, 208, 156, 0.28);
-        color: #00D09C;
+        background: rgba(5, 255, 161, 0.12);
+        border: 1px solid rgba(5, 255, 161, 0.45);
+        color: #05FFA1;
+        text-shadow: 0 0 8px rgba(5, 255, 161, 0.5);
     }}
     
     .badge-red {{
-        background: rgba(235, 91, 86, 0.08);
-        border: 1px solid rgba(235, 91, 86, 0.28);
-        color: #EB5B56;
+        background: rgba(255, 42, 109, 0.12);
+        border: 1px solid rgba(255, 42, 109, 0.45);
+        color: #FF2A6D;
+        text-shadow: 0 0 8px rgba(255, 42, 109, 0.5);
     }}
     
     .tf-sub {{
-        color: #71717A;
-        font-family: 'DM Mono', monospace;
-        font-size: 0.70rem;
+        color: #7A8C9E;
+        font-family: 'Share Tech Mono', monospace;
+        font-size: 0.72rem;
         margin-left: 4px;
         letter-spacing: 0.04em;
     }}
     
-    /* Studio Minimalist Currency Switcher */
+    /* Retro-Future Currency Switcher Capsules */
     .currency-pill-box {{
         display: inline-flex;
-        background: #141418;
-        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: #080C16;
+        border: 1px solid rgba(0, 240, 255, 0.22);
         border-radius: 9999px;
         padding: 2px;
         margin-bottom: 6px;
@@ -1293,8 +1595,8 @@ if page == "📊 Portfolio Overview":
         padding: 3px 10px;
         font-size: 0.68rem;
         font-weight: 500;
-        font-family: 'DM Mono', monospace;
-        color: #71717A;
+        font-family: 'Share Tech Mono', monospace;
+        color: #7A8C9E;
         border-radius: 9999px;
         border: none;
         background: transparent;
@@ -1303,12 +1605,13 @@ if page == "📊 Portfolio Overview":
     }}
     
     .curr-btn.active {{
-        background: rgba(255, 255, 255, 0.12);
-        color: #FFFFFF;
-        border: 1px solid rgba(255, 255, 255, 0.22);
+        background: rgba(0, 240, 255, 0.18);
+        color: #00F0FF;
+        border: 1px solid #00F0FF;
+        box-shadow: 0 0 10px rgba(0, 240, 255, 0.4);
     }}
     
-    /* SVG Chart Area */
+    /* Oscilloscope Chart Area */
     .chart-area {{
         position: relative;
         width: 100%;
@@ -1324,7 +1627,7 @@ if page == "📊 Portfolio Overview":
         overflow: visible;
     }}
     
-    /* Minimalist Timeframe Dock */
+    /* 1960s Quotron Timeframe Dock */
     .pills-dock-wrapper {{
         display: flex;
         justify-content: center;
@@ -1335,18 +1638,19 @@ if page == "📊 Portfolio Overview":
     .pills-glass-dock {{
         display: inline-flex;
         align-items: center;
-        gap: 4px;
-        background: #141418;
-        border: 1px solid rgba(255, 255, 255, 0.08);
+        gap: 5px;
+        background: #080C16;
+        border: 1px solid rgba(0, 240, 255, 0.22);
         border-radius: 9999px;
         padding: 3px 6px;
+        box-shadow: inset 0 0 12px rgba(0, 0, 0, 0.7);
     }}
     
     .timeframe-pill {{
         background: transparent;
         border: 1px solid transparent;
-        color: #71717A;
-        font-family: 'DM Mono', monospace;
+        color: #7A8C9E;
+        font-family: 'Share Tech Mono', monospace;
         font-size: 0.72rem;
         font-weight: 500;
         padding: 4px 12px;
@@ -1356,30 +1660,31 @@ if page == "📊 Portfolio Overview":
     }}
     
     .timeframe-pill:hover {{
-        color: #FFFFFF;
-        background: rgba(255, 255, 255, 0.05);
+        color: #00F0FF;
+        background: rgba(0, 240, 255, 0.08);
     }}
     
     .timeframe-pill.active {{
-        background: rgba(255, 255, 255, 0.12);
-        border: 1px solid rgba(255, 255, 255, 0.22);
-        color: #FFFFFF;
+        background: rgba(0, 240, 255, 0.18);
+        border: 1px solid #00F0FF;
+        color: #00F0FF;
         font-weight: 600;
+        box-shadow: 0 0 10px rgba(0, 240, 255, 0.4);
     }}
     
-    /* Studio Floating Tooltip */
+    /* Retro HUD Floating Tooltip */
     .live-tooltip {{
         position: absolute;
         display: none;
         pointer-events: none;
-        background: #111216;
-        border: 1px solid rgba(255, 255, 255, 0.14);
+        background: #080C16;
+        border: 1px solid rgba(0, 240, 255, 0.4);
         border-radius: 8px;
         padding: 8px 12px;
         font-size: 0.74rem;
         color: #FFFFFF;
-        font-family: 'DM Mono', monospace;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        font-family: 'Share Tech Mono', monospace;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.9), 0 0 15px rgba(0, 240, 255, 0.25);
         z-index: 100;
         line-height: 1.5;
     }}
@@ -1390,15 +1695,15 @@ if page == "📊 Portfolio Overview":
         <div class="card-content-layer">
             <div class="groww-header">
                 <div class="metric-left">
-                    <div class="legend-row" style="font-size: 0.88rem; color: #8F9CAE; font-weight: 500; text-transform: capitalize;">
-                        <span>Current</span> <span id="legend-dot" class="dot-purple" style="width: 8px; height: 8px; background-color: #8B5CF6; border-radius: 2px; display: inline-block; margin-left: 6px;"></span>
+                    <div class="legend-row" style="font-size: 0.88rem; color: #7A8C9E; font-weight: 500; text-transform: capitalize;">
+                        <span>Current</span> <span id="legend-dot" class="dot-mint" style="width: 8px; height: 8px; margin-left: 6px;"></span>
                     </div>
                     <div class="big-number" id="current-display">{CURRENCY_SYMBOL}{equity:,.2f}</div>
                     <div class="return-row" id="return-row" style="font-size: 0.92rem;">
                         <div id="pnl-badge" class="return-glass-badge {'badge-green' if overall_pnl >= 0 else 'badge-red'}">
                             <span id="pnl-span" style="font-weight: 600;">{format_pnl_str(overall_pnl)} ({format_pct_str(overall_pnl_pct)})</span>
                         </div>
-                        <span id="tf-tag" class="tf-sub" style="color: #717D96; margin-left: 6px;">All time</span>
+                        <span id="tf-tag" class="tf-sub" style="color: #7A8C9E; margin-left: 6px;">All time</span>
                     </div>
                 </div>
                 <div class="metric-right">
@@ -1407,62 +1712,62 @@ if page == "📊 Portfolio Overview":
                             <button class="curr-btn {'active' if not is_india_mode else ''}" id="btn-usd" onclick="setCurrency('USD')">$ USD</button>
                             <button class="curr-btn {'active' if is_india_mode else ''}" id="btn-inr" onclick="setCurrency('INR')">&#8377; INR</button>
                         </div>
-                        <div class="legend-row" style="font-size: 0.88rem; color: #8F9CAE; font-weight: 500; text-transform: capitalize;">
-                            <span class="dot-grey" style="width: 8px; height: 8px; background-color: #717D96; border-radius: 2px; display: inline-block; margin-right: 6px;"></span> <span>Invested</span>
+                        <div class="legend-row" style="font-size: 0.88rem; color: #7A8C9E; font-weight: 500; text-transform: capitalize;">
+                            <span class="dot-amber" style="width: 8px; height: 8px; margin-right: 6px;"></span> <span>Invested</span>
                         </div>
                     </div>
-                    <div class="big-number" id="invested-display" style="font-size: 2.25rem; font-weight: 700; color: #FFFFFF;">{CURRENCY_SYMBOL}{initial_capital:,.2f}</div>
+                    <div class="big-number" id="invested-display" style="font-size: 2.35rem; font-weight: 700; color: #FFFFFF;">{CURRENCY_SYMBOL}{initial_capital:,.2f}</div>
                 </div>
             </div>
 
             <div class="chart-area" id="chart-area">
                 <svg class="groww-svg" id="groww-svg" viewBox="0 0 1000 260" preserveAspectRatio="none">
                     <defs>
-                        <!-- Dynamic Studio Mint / Crimson Drop Shadow Filter -->
+                        <!-- Dynamic Oscilloscope Glow Filter -->
                         <filter id="neon-glow" x="-20%" y="-20%" width="140%" height="140%">
-                            <feDropShadow id="glow-shadow" dx="0" dy="0" stdDeviation="3.2" flood-color="#00D09C" flood-opacity="0.38" />
+                            <feDropShadow id="glow-shadow" dx="0" dy="0" stdDeviation="3.5" flood-color="#05FFA1" flood-opacity="0.45" />
                         </filter>
                         
-                        <!-- Dynamic Studio Line Stroke Gradient -->
+                        <!-- Dynamic Neon Stroke Gradient -->
                         <linearGradient id="stroke-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                            <stop id="stroke-stop-0" offset="0%" stop-color="#00D09C" />
-                            <stop id="stroke-stop-100" offset="100%" stop-color="#00D09C" />
+                            <stop id="stroke-stop-0" offset="0%" stop-color="#00F0FF" />
+                            <stop id="stroke-stop-100" offset="100%" stop-color="#05FFA1" />
                         </linearGradient>
 
-                        <!-- Subtle Volumetric Area Fill Gradient -->
+                        <!-- Dynamic Volumetric Area Fill Gradient -->
                         <linearGradient id="area-gradient" x1="0" y1="0" x2="0" y2="1">
-                            <stop id="area-stop-0" offset="0%" stop-color="#00D09C" stop-opacity="0.14" />
-                            <stop id="area-stop-70" offset="70%" stop-color="#00D09C" stop-opacity="0.02" />
-                            <stop id="area-stop-100" offset="100%" stop-color="#00D09C" stop-opacity="0.00" />
+                            <stop id="area-stop-0" offset="0%" stop-color="#05FFA1" stop-opacity="0.16" />
+                            <stop id="area-stop-70" offset="70%" stop-color="#05FFA1" stop-opacity="0.02" />
+                            <stop id="area-stop-100" offset="100%" stop-color="#05FFA1" stop-opacity="0.00" />
                         </linearGradient>
 
-                        <!-- Vertical Cursor Beam Gradient -->
+                        <!-- Vertical Laser Cursor Beam Gradient -->
                         <linearGradient id="cursor-beam" x1="0" y1="0" x2="0" y2="1">
-                            <stop id="cursor-stop-0" offset="0%" stop-color="#00D09C" stop-opacity="0.75" />
-                            <stop id="cursor-stop-75" offset="75%" stop-color="#00D09C" stop-opacity="0.2" />
-                            <stop id="cursor-stop-100" offset="100%" stop-color="#00D09C" stop-opacity="0.0" />
+                            <stop id="cursor-stop-0" offset="0%" stop-color="#00F0FF" stop-opacity="0.85" />
+                            <stop id="cursor-stop-75" offset="75%" stop-color="#00F0FF" stop-opacity="0.25" />
+                            <stop id="cursor-stop-100" offset="100%" stop-color="#00F0FF" stop-opacity="0.0" />
                         </linearGradient>
                     </defs>
 
-                    <!-- Hairline Baseline at Bottom -->
-                    <line x1="0" y1="248" x2="1000" y2="248" stroke="rgba(255,255,255,0.06)" stroke-width="1" stroke-dasharray="4,4" />
+                    <!-- Hairline Grid Baseline -->
+                    <line x1="0" y1="248" x2="1000" y2="248" stroke="rgba(0,240,255,0.10)" stroke-width="1" stroke-dasharray="4,4" />
 
-                    <!-- Invested Dotted Line -->
-                    <path id="path-invested" stroke="#52525B" stroke-width="1.5" stroke-dasharray="4,4" fill="none" d="" />
+                    <!-- Nixie Tube Amber Invested Capital Line (Dotted) -->
+                    <path id="path-invested" stroke="#FFB800" stroke-width="1.8" stroke-dasharray="5,5" fill="none" d="" />
 
-                    <!-- Area Gradient Underneath Current Curve -->
+                    <!-- Oscilloscope Area Fill -->
                     <path id="path-area" fill="url(#area-gradient)" d="" />
 
-                    <!-- Current Smooth Studio Mint Line -->
-                    <path id="path-current" stroke="url(#stroke-gradient)" filter="url(#neon-glow)" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round" fill="none" d="" />
+                    <!-- Oscilloscope Neon Current Curve -->
+                    <path id="path-current" stroke="url(#stroke-gradient)" filter="url(#neon-glow)" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round" fill="none" d="" />
 
                     <!-- Vertical Tracking Laser Line -->
-                    <line id="cursor-line" x1="0" y1="6" x2="0" y2="248" stroke="url(#cursor-beam)" stroke-width="1.2" stroke-dasharray="2,2" style="display:none;" />
+                    <line id="cursor-line" x1="0" y1="6" x2="0" y2="248" stroke="url(#cursor-beam)" stroke-width="1.4" stroke-dasharray="2,2" style="display:none;" />
 
-                    <!-- Tracking Circles -->
-                    <circle id="cursor-halo" r="9" fill="rgba(0, 208, 156, 0.18)" style="display:none;" />
-                    <circle id="cursor-dot-mint" r="4.5" fill="#0A0D14" stroke="#00D09C" stroke-width="2" style="display:none;" />
-                    <circle id="cursor-dot-grey" r="3.5" fill="#0A0D14" stroke="#71717A" stroke-width="1.5" style="display:none;" />
+                    <!-- Tracking Laser Rings & Dots -->
+                    <circle id="cursor-halo" r="10" fill="rgba(0, 240, 255, 0.22)" style="display:none;" />
+                    <circle id="cursor-dot-mint" r="4.5" fill="#06080F" stroke="#05FFA1" stroke-width="2.2" style="display:none;" />
+                    <circle id="cursor-dot-amber" r="3.5" fill="#06080F" stroke="#FFB800" stroke-width="1.8" style="display:none;" />
                 </svg>
                 <div class="live-tooltip" id="live-tooltip"></div>
             </div>
@@ -1562,9 +1867,9 @@ if page == "📊 Portfolio Overview":
         const pnlSpan = document.getElementById('pnl-span');
         const sign = pnl >= 0 ? '+' : '-';
         const isPos = pnl >= 0;
-        const themeColor = isPos ? '#00D09C' : '#EB5B56';
-        const strokeStart = isPos ? '#00D09C' : '#EB5B56';
-        const areaOp0 = isPos ? '0.14' : '0.18';
+        const themeColor = isPos ? '#05FFA1' : '#FF2A6D';
+        const strokeStart = isPos ? '#00F0FF' : '#FF2A6D';
+        const areaOp0 = isPos ? '0.16' : '0.20';
         const areaOp70 = isPos ? '0.02' : '0.03';
 
         if (pnlBadge) pnlBadge.className = 'return-glass-badge ' + (isPos ? 'badge-green' : 'badge-red');
@@ -1595,13 +1900,13 @@ if page == "📊 Portfolio Overview":
         }}
         if (areaStop100) areaStop100.setAttribute('stop-color', themeColor);
         if (glowShadow) glowShadow.setAttribute('flood-color', themeColor);
-        if (cursorStop0) cursorStop0.setAttribute('stop-color', themeColor);
-        if (cursorStop75) cursorStop75.setAttribute('stop-color', themeColor);
-        if (cursorStop100) cursorStop100.setAttribute('stop-color', themeColor);
+        if (cursorStop0) cursorStop0.setAttribute('stop-color', '#00F0FF');
+        if (cursorStop75) cursorStop75.setAttribute('stop-color', '#00F0FF');
+        if (cursorStop100) cursorStop100.setAttribute('stop-color', '#00F0FF');
         if (legendDot) legendDot.className = isPos ? 'dot-mint' : 'dot-red';
 
         dotMint.setAttribute('stroke', themeColor);
-        cursorHalo.setAttribute('fill', isPos ? 'rgba(0, 208, 156, 0.18)' : 'rgba(235, 91, 86, 0.18)');
+        cursorHalo.setAttribute('fill', isPos ? 'rgba(0, 240, 255, 0.22)' : 'rgba(255, 42, 109, 0.22)');
 
         // Scale SVG coordinate system
         const allVals = equities.concat(investedArr);
@@ -1631,7 +1936,7 @@ if page == "📊 Portfolio Overview":
         const smoothCurveD = getSmoothPath(curPoints);
         document.getElementById('path-current').setAttribute('d', smoothCurveD);
         
-        // Ethereal Area Gradient Underneath Current Curve
+        // Oscilloscope Area Gradient Underneath Current Curve
         if (curPoints.length > 1) {{
             const baselineY = 248;
             const firstX = curPoints[0].x;
@@ -1655,7 +1960,7 @@ if page == "📊 Portfolio Overview":
     const cursorLine = document.getElementById('cursor-line');
     const cursorHalo = document.getElementById('cursor-halo');
     const dotMint = document.getElementById('cursor-dot-mint');
-    const dotGrey = document.getElementById('cursor-dot-grey');
+    const dotAmber = document.getElementById('cursor-dot-amber');
     const tooltip = document.getElementById('live-tooltip');
 
     chartArea.addEventListener('mousemove', (e) => {{
@@ -1703,9 +2008,9 @@ if page == "📊 Portfolio Overview":
         dotMint.setAttribute('cy', yCurSvg);
         dotMint.style.display = 'block';
         
-        dotGrey.setAttribute('cx', xSvg);
-        dotGrey.setAttribute('cy', yInvSvg);
-        dotGrey.style.display = 'block';
+        dotAmber.setAttribute('cx', xSvg);
+        dotAmber.setAttribute('cy', yInvSvg);
+        dotAmber.style.display = 'block';
         
         // Live header updates
         document.getElementById('current-display').innerHTML = formatCurrency(eqVal, currentCurrency);
@@ -1713,7 +2018,7 @@ if page == "📊 Portfolio Overview":
         const pnlPct = (pnl / invVal) * 100;
         const sign = pnl >= 0 ? '+' : '-';
         const isPointPos = pnl >= 0;
-        const pointColor = isPointPos ? '#00D09C' : '#EB5B56';
+        const pointColor = isPointPos ? '#05FFA1' : '#FF2A6D';
         const pnlBadge = document.getElementById('pnl-badge');
         const pnlSpan = document.getElementById('pnl-span');
         if (pnlBadge) pnlBadge.className = 'return-glass-badge ' + (isPointPos ? 'badge-green' : 'badge-red');
@@ -1721,24 +2026,24 @@ if page == "📊 Portfolio Overview":
         document.getElementById('tf-tag').innerText = dateStr;
 
         dotMint.setAttribute('stroke', pointColor);
-        cursorHalo.setAttribute('fill', isPointPos ? 'rgba(0, 208, 156, 0.18)' : 'rgba(235, 91, 86, 0.18)');
+        cursorHalo.setAttribute('fill', isPointPos ? 'rgba(0, 240, 255, 0.22)' : 'rgba(255, 42, 109, 0.22)');
         
         // Tooltip position & content
         tooltip.style.display = 'block';
-        const tooltipX = Math.min(rect.width - 195, Math.max(10, mouseX - 85));
+        const tooltipX = Math.min(rect.width - 200, Math.max(10, mouseX - 90));
         tooltip.style.left = tooltipX + 'px';
         tooltip.style.top = '10px';
-        tooltip.innerHTML = `<span style="color:#71717A; font-family:'DM Mono',monospace; font-size:0.68rem; letter-spacing:0.06em; text-transform:uppercase;">${{dateStr}}</span><br>` +
-            `<div style="margin-top:2px; font-family:'Space Grotesk',sans-serif; font-size:0.84rem;"><b style="color:${{pointColor}};">Valuation:</b> ${{formatCurrency(eqVal, currentCurrency)}}</div>` +
-            `<div style="font-family:'Space Grotesk',sans-serif; font-size:0.84rem;"><b style="color:#71717A;">Invested:</b> ${{formatCurrency(invVal, currentCurrency)}}</div>` +
-            `<div style="font-family:'Space Grotesk',sans-serif; font-size:0.84rem; margin-top:2px; border-top:1px solid rgba(255,255,255,0.08); padding-top:2px;"><b style="color:#71717A;">P&L:</b> <span style="color:${{pointColor}}; font-weight:600;">${{sign}}${{formatCurrency(Math.abs(pnl), currentCurrency)}} (${{pnlPct >= 0 ? '+' : ''}}${{pnlPct.toFixed(2)}}%)</span></div>`;
+        tooltip.innerHTML = `<span style="color:#00F0FF; font-family:'Share Tech Mono',monospace; font-size:0.72rem; letter-spacing:0.08em; text-transform:uppercase;">${{dateStr}}</span><br>` +
+            `<div style="margin-top:4px; font-family:'Space Grotesk',sans-serif; font-size:0.84rem;"><b style="color:${{pointColor}};">Valuation:</b> ${{formatCurrency(eqVal, currentCurrency)}}</div>` +
+            `<div style="font-family:'Space Grotesk',sans-serif; font-size:0.84rem;"><b style="color:#FFB800;">Invested:</b> ${{formatCurrency(invVal, currentCurrency)}}</div>` +
+            `<div style="font-family:'Space Grotesk',sans-serif; font-size:0.84rem; margin-top:3px; border-top:1px solid rgba(0,240,255,0.18); padding-top:3px;"><b style="color:#7A8C9E;">Net Alpha:</b> <span style="color:${{pointColor}}; font-weight:700;">${{sign}}${{formatCurrency(Math.abs(pnl), currentCurrency)}} (${{pnlPct >= 0 ? '+' : ''}}${{pnlPct.toFixed(2)}}%)</span></div>`;
     }});
 
     chartArea.addEventListener('mouseleave', () => {{
         cursorLine.style.display = 'none';
         cursorHalo.style.display = 'none';
         dotMint.style.display = 'none';
-        dotGrey.style.display = 'none';
+        dotAmber.style.display = 'none';
         tooltip.style.display = 'none';
         render();
     }});
