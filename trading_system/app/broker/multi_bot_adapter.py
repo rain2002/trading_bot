@@ -7,6 +7,8 @@ Seamlessly bridges the Central Portfolio Manager and specialist bots
 import os
 import json
 import logging
+import io
+import subprocess
 from typing import Dict, Any, Optional, List
 from datetime import datetime, timezone
 import pandas as pd
@@ -14,6 +16,7 @@ import pandas as pd
 from trading_system.app.common.interfaces import BrokerAdapter
 
 logger = logging.getLogger("MultiBotBrokerAdapter")
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
 
 
 class MultiBotBrokerAdapter(BrokerAdapter):
@@ -39,13 +42,37 @@ class MultiBotBrokerAdapter(BrokerAdapter):
         self.ledger_file = os.path.join(data_dir, "unitized_nav_ledger.json")
 
     def _load_json(self, path: str) -> dict:
-        if os.path.exists(path):
+        if os.path.exists(path) and os.path.getsize(path) > 0:
             try:
                 with open(path, "r", encoding="utf-8") as f:
                     return json.load(f)
             except Exception as e:
                 logger.warning(f"Error reading JSON from {path}: {e}")
+        # Git branch fallback
+        try:
+            rel_path = os.path.relpath(path, PROJECT_ROOT).replace("\\", "/")
+            res = subprocess.run(["git", "show", f"origin/state:{rel_path}"], capture_output=True, text=True, encoding="utf-8", timeout=5)
+            if res.returncode == 0 and res.stdout.strip():
+                return json.loads(res.stdout)
+        except Exception:
+            pass
         return {}
+
+    def _load_csv(self, path: str) -> pd.DataFrame:
+        if os.path.exists(path) and os.path.getsize(path) > 0:
+            try:
+                return pd.read_csv(path)
+            except Exception as e:
+                logger.warning(f"Error reading CSV from {path}: {e}")
+        # Git branch fallback
+        try:
+            rel_path = os.path.relpath(path, PROJECT_ROOT).replace("\\", "/")
+            res = subprocess.run(["git", "show", f"origin/state:{rel_path}"], capture_output=True, text=True, encoding="utf-8", timeout=5)
+            if res.returncode == 0 and res.stdout.strip():
+                return pd.read_csv(io.StringIO(res.stdout))
+        except Exception:
+            pass
+        return pd.DataFrame()
 
     def is_connected(self) -> bool:
         return True
@@ -80,9 +107,9 @@ class MultiBotBrokerAdapter(BrokerAdapter):
         # Calculate today's PnL from manager equity log
         today_pnl = 0.0
         today_pnl_pct = 0.0
-        if os.path.exists(self.manager_equity_file):
+        df_eq = self._load_csv(self.manager_equity_file)
+        if not df_eq.empty and "combined_fund_nav" in df_eq.columns:
             try:
-                df_eq = pd.read_csv(self.manager_equity_file)
                 if len(df_eq) >= 2:
                     last_val = float(df_eq["combined_fund_nav"].iloc[-1])
                     prev_val = float(df_eq["combined_fund_nav"].iloc[-2])
@@ -192,13 +219,11 @@ class MultiBotBrokerAdapter(BrokerAdapter):
         return {p["symbol"]: float(p["qty"]) for p in self.get_positions_detailed()}
 
     def get_portfolio_history(self, period: str = "13W", timeframe: str = "1D") -> Optional[pd.DataFrame]:
-        if not os.path.exists(self.manager_equity_file):
+        df = self._load_csv(self.manager_equity_file)
+        if df.empty or "combined_fund_nav" not in df.columns:
             return None
 
         try:
-            df = pd.read_csv(self.manager_equity_file)
-            if df.empty or "combined_fund_nav" not in df.columns:
-                return None
 
             if "session_date" in df.columns and df["session_date"].notna().any():
                 date_series = df["session_date"]

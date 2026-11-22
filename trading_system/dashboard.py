@@ -8,7 +8,7 @@ load_dotenv(os.path.join(ROOT_DIR, ".env"))
 load_dotenv()
 
 import json
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import streamlit as st
 import streamlit.components.v1 as components
 import pandas as pd
@@ -719,48 +719,18 @@ with col_tog_in:
 
 if is_india_mode:
     data_dir = os.path.join(os.path.dirname(__file__), "data")
-    manager_state_file = os.path.join(data_dir, "manager_state.json")
-
-    if os.path.exists(manager_state_file):
-        broker = MultiBotBrokerAdapter(data_dir=data_dir, initial_capital=100000.0)
-        acc_quick = broker.get_account_details()
-        d_inc = acc_quick.get("days_incubated", 5)
-        u_nav = acc_quick.get("unitized_nav", 98.0828)
-        g_pct = acc_quick.get("reconciliation_gap_pct", 0.0)
-        st.sidebar.markdown(f"""
-        <div style='background:#131822; border:1px solid #212C3B; border-left:3px solid #00E599; border-radius:2px; padding:10px 12px; margin-bottom:14px; font-family:"IBM Plex Mono",monospace;'>
-            <div style='color:#00E599; font-weight:700; font-size:0.75rem; letter-spacing:0.05em;'>🇮🇳 GATE B INCUBATION // DAY {d_inc} OF 91</div>
-            <div style='color:#94A3B8; font-size:0.68rem; margin-top:2px;'>Multi-Asset ETF & Gold (79.8%) + Debt Carry (20.2%)</div>
-            <div style='color:#00D8F6; font-size:0.66rem; margin-top:3px;'>Central Portfolio Manager • Unit NAV {u_nav:.4f} • Gap {g_pct:.1f}%</div>
-        </div>
-        """, unsafe_allow_html=True)
-    else:
-        st.sidebar.markdown("""
-        <div style='background:#131822; border:1px solid #212C3B; border-left:3px solid #FFB020; border-radius:2px; padding:10px 12px; margin-bottom:14px; font-family:"IBM Plex Mono",monospace;'>
-            <div style='color:#FFB020; font-weight:700; font-size:0.75rem; letter-spacing:0.05em;'>🇮🇳 INDIA GROWTH POD // VARIANT 2</div>
-            <div style='color:#94A3B8; font-size:0.68rem; margin-top:2px;'>116 Growth Leaders • 17.96% Post-Tax CAGR • 17.3Y Horizon</div>
-            <div style='color:#FF3B56; font-size:0.66rem; margin-top:3px;'>⚠️ Exploratory Shadow Tracking (Failed Gate A on Drawdown: -27.6% vs -25.0% Limit | ₹80K Scale)</div>
-        </div>
-        """, unsafe_allow_html=True)
-
-        india_key = settings.INDIA_API_KEY
-        india_sec = settings.INDIA_API_SECRET
-        india_totp = settings.INDIA_TOTP_SECRET
-        india_cap = getattr(settings, "INDIA_INITIAL_CAPITAL", 80000.0)
-
-        india_state_file = os.path.join(data_dir, "paper_state_india.json")
-        india_trades_file = os.path.join(data_dir, "paper_trades_india.csv")
-        india_equity_file = os.path.join(data_dir, "paper_equity_log.csv")
-
-        broker = GrowwBrokerAdapter(
-            api_key=india_key,
-            api_secret=india_sec,
-            totp_secret=india_totp,
-            initial_capital=india_cap,
-            state_file=india_state_file,
-            trades_file=india_trades_file,
-            equity_log_file=india_equity_file
-        )
+    broker = MultiBotBrokerAdapter(data_dir=data_dir, initial_capital=100000.0)
+    acc_quick = broker.get_account_details()
+    d_inc = acc_quick.get("days_incubated", 5)
+    u_nav = acc_quick.get("unitized_nav", 98.0828)
+    g_pct = acc_quick.get("reconciliation_gap_pct", 0.0)
+    st.sidebar.markdown(f"""
+    <div style='background:#131822; border:1px solid #212C3B; border-left:3px solid #00E599; border-radius:2px; padding:10px 12px; margin-bottom:14px; font-family:"IBM Plex Mono",monospace;'>
+        <div style='color:#00E599; font-weight:700; font-size:0.75rem; letter-spacing:0.05em;'>🇮🇳 GATE B INCUBATION // DAY {d_inc} OF 91</div>
+        <div style='color:#94A3B8; font-size:0.68rem; margin-top:2px;'>Multi-Asset ETF & Gold (79.8%) + Debt Carry (20.2%)</div>
+        <div style='color:#00D8F6; font-size:0.66rem; margin-top:3px;'>Central Portfolio Manager • Unit NAV {u_nav:.4f} • Gap {g_pct:.1f}%</div>
+    </div>
+    """, unsafe_allow_html=True)
 else:
     st.sidebar.markdown("""
     <div style='background:#131822; border:1px solid #212C3B; border-left:3px solid #00D8F6; border-radius:2px; padding:10px 12px; margin-bottom:14px; font-family:"IBM Plex Mono",monospace;'>
@@ -784,9 +754,13 @@ sl_manager = StopLossManager()
 try:
     acc_details = broker.get_account_details()
 except Exception as e:
-    st.sidebar.info("☁️ **Cloud Runner Mode**: Live Alpaca credentials active in GitHub Actions. Local dashboard displaying latest shadow state.")
-    broker = AlpacaBrokerAdapter(api_key="mock", api_secret="mock")
-    acc_details = broker.get_account_details()
+    if is_india_mode:
+        broker = MultiBotBrokerAdapter(data_dir=data_dir, initial_capital=100000.0)
+        acc_details = broker.get_account_details()
+    else:
+        st.sidebar.info("☁️ **Cloud Runner Mode**: Live Alpaca credentials active in GitHub Actions. Local dashboard displaying latest shadow state.")
+        broker = AlpacaBrokerAdapter(api_key="mock", api_secret="mock")
+        acc_details = broker.get_account_details()
 equity = acc_details.get("equity", 100000.0)
 cash = acc_details.get("cash", 0.0)
 buying_power = acc_details.get("buying_power", cash)
