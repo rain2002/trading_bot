@@ -586,7 +586,7 @@ def evaluate_gate_a():
         "null_test_p95_sharpe": round(p95_null, 4),
         "candidates": results,
         "hurdles_verification": hurdles_check,
-        "champion_selected": winner_cid if passed_candidates else None,
+        "champion_selected": champion_cid,
         "gate_a_cleared": len(passed_candidates) > 0,
         "diagnostics": diagnostics,
         "holdout_results": m_ho,

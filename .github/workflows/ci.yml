@@ -1,19 +1,69 @@
-name: Continuous Integration & Security Guard
+name: Institutional CI/CD & Automated Governance Pipeline
 
 on:
   push:
     branches: [ main, master, feat/*, fix/* ]
   pull_request:
     branches: [ main, master ]
+  workflow_dispatch:
 
 concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  security-and-tests:
+  # =========================================================================
+  # STAGE 1: Code Quality, Linting & Syntax Gate
+  # =========================================================================
+  lint-and-syntax:
+    name: Code Quality & Syntax Guard
     runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Codebase
+        uses: actions/checkout@v4
 
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Ruff Static Analyzer
+        run: pip install ruff
+
+      - name: Enforce Syntax & Undefined Variables Check
+        run: |
+          ruff check trading_system/app trading_system/scripts --select=E9,F821,F822,F823
+
+  # =========================================================================
+  # STAGE 2: Fiduciary Security & Data Integrity Gate
+  # =========================================================================
+  security-and-integrity:
+    name: Fiduciary Security & Data Integrity
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Codebase
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Run Credential & Account ID Guard
+        run: |
+          python trading_system/scripts/check_no_real_credentials_or_accounts.py --all
+
+      - name: Run Data & Trial Ledger Integrity Audit
+        run: |
+          python trading_system/scripts/check_data_integrity.py
+
+  # =========================================================================
+  # STAGE 3: Automated Test Suite & Coverage
+  # =========================================================================
+  unit-tests:
+    name: Automated Unit Tests (256 Suite)
+    needs: [lint-and-syntax, security-and-integrity]
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout Codebase
         uses: actions/checkout@v4
@@ -30,12 +80,45 @@ jobs:
           pip install -r requirements.txt
           pip install pytest pytest-cov pytest-asyncio pytest-mock
 
-      - name: Run Credential & Account ID Guard
-        run: |
-          python trading_system/scripts/check_no_real_credentials_or_accounts.py --all
-
       - name: Run Unit Test Suite
         env:
           GATE_A_SIGNING_KEY: ${{ secrets.GATE_A_SIGNING_KEY || 'CI_RUNNER_EPHEMERAL_TEST_KEY_2026' }}
         run: |
           pytest trading_system/tests/unit/ -v --tb=short
+
+  # =========================================================================
+  # STAGE 4: Package Build & Continuous Delivery (Dashboard Artifact)
+  # =========================================================================
+  build-and-delivery:
+    name: Application Packaging & Web Dashboard CD
+    needs: [unit-tests]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Codebase
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Verify Application Package Build
+        run: |
+          pip install -e . --no-deps
+
+      - name: Generate Production Web Dashboard
+        run: |
+          python trading_system/scripts/generate_web_dashboard.py
+
+      - name: Upload Dashboard Build Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: hedge-fund-web-dashboard
+          path: docs/index.html
+          retention-days: 14

@@ -1,3 +1,4 @@
+import pandas as pd
 from typing import Dict, Optional
 from trading_system.app.common.logger import get_logger
 

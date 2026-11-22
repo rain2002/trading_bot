@@ -1,3 +1,4 @@
+import sys
 from datetime import datetime
 import pandas as pd
 from trading_system.app.config.settings import settings

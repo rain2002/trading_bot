@@ -18,6 +18,7 @@ import os
 import sys
 import csv
 import json
+import math
 import argparse
 import logging
 from datetime import datetime, timezone, timedelta
@@ -335,7 +336,6 @@ def execute_manager_cycle(
     # Sanity checks for DATA_FAULT (Reviewer Requirement 2 & 3):
     # - If ETF step fails (FAIL_CLOSED, FAILED, ERROR)
     # - If independent NAV is NaN, non-positive (<=0), or moves > 25% in a single day
-    import math
     is_data_fault = False
     data_fault_reasons = []
 
