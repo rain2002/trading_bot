@@ -33,119 +33,124 @@ st.set_page_config(
 
 # ==============================================================================
 # ==============================================================================
-# RETRO-FUTURISM: 1960s WALL STREET QUOTRON × 2060s QUANTUM STOCK EXCHANGE
-# STYLISH YET SIMPLE TO UNDERSTAND • RETRO-FUTURE NEON DARK THEME
+# RETRO-FUTURISM: 1960s RETRO NEON (HOT WHITE & RUBY RED NEON GAS)
+# FLUIDIC TYPOGRAPHY (OUTFIT & PLUS JAKARTA SANS) • ORGANIC GLASS BOUNDARIES
 # ==============================================================================
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;600;700;800;900&family=Share+Tech+Mono&family=Space+Grotesk:wght@400;500;600;700&family=DM+Mono:ital,wght@0,300;0,400;0,500&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Share+Tech+Mono&family=Space+Grotesk:wght@400;500;600;700&family=DM+Mono:ital,wght@0,300;0,400;0,500&display=swap');
 
 /* ==============================================================================
-   RETRO-FUTURE COLOR VARIABLES & GLOBAL TYPOGRAPHY
+   1960s RETRO NEON COLOR VARIABLES & FLUIDIC TYPOGRAPHY
    ============================================================================== */
 :root {
-    --neon-cyan: #00F0FF;
-    --neon-cyan-glow: 0 0 12px rgba(0, 240, 255, 0.45);
-    --neon-green: #05FFA1;
-    --neon-green-glow: 0 0 12px rgba(5, 255, 161, 0.45);
-    --neon-red: #FF2A6D;
-    --neon-red-glow: 0 0 12px rgba(255, 42, 109, 0.45);
-    --neon-amber: #FFB800;
-    --neon-amber-glow: 0 0 12px rgba(255, 184, 0, 0.45);
-    --neon-purple: #B5179E;
-    --bg-canvas: #06080F;
-    --bg-card: #0C111F;
-    --bg-card-hover: #111728;
-    --border-card: rgba(0, 240, 255, 0.16);
-    --border-card-hover: rgba(0, 240, 255, 0.4);
-    --text-muted: #7A8C9E;
+    --neon-red: #FF1744;           /* Authentic 1960s Pure Ruby Neon Gas */
+    --neon-red-hot: #FF2E56;       /* Hot Neon Red */
+    --neon-red-glow: 0 0 14px rgba(255, 23, 68, 0.65), 0 0 28px rgba(255, 23, 68, 0.25);
+    --neon-white: #FFFFFF;         /* Hot White Glass Core */
+    --neon-white-glow: 0 0 8px rgba(255, 255, 255, 0.95), 0 0 20px rgba(255, 255, 255, 0.4);
+    --neon-amber: #FF9E00;         /* 1960s Vacuum Tube Warm Amber */
+    --neon-amber-glow: 0 0 12px rgba(255, 158, 0, 0.5);
+    --neon-green: #00E676;         /* Vintage Emerald Phosphor Tube (Bull Gains) */
+    --neon-green-glow: 0 0 12px rgba(0, 230, 118, 0.5);
+    --bg-canvas: #05070B;          /* Midnight Velvet Dark Room */
+    --bg-card: #0B0E17;            /* Smoked Glass Fluidic Card */
+    --bg-card-hover: #101420;
+    --border-card: rgba(255, 255, 255, 0.08);
+    --border-card-hover: rgba(255, 23, 68, 0.50);
+    --text-muted: #8E99A8;
 }
 
-/* Global Font & High-End Retro-Future Dark Theme */
+/* Global Font & Fluidic Retro-Future Dark Theme */
 html, body, [class*="css"] {
-    font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif !important;
+    font-family: 'Plus Jakarta Sans', 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif !important;
     color: #FFFFFF;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
-.orbitron-font, .retro-title, h1, h2, h3, .hud-title, .page-title {
-    font-family: 'Orbitron', 'Space Grotesk', sans-serif !important;
-    letter-spacing: 0.04em !important;
+/* Fluidic Curved Display Typography (Outfit: Organic, Circular, Zero Blockiness) */
+.outfit-font, .retro-title, h1, h2, h3, .hud-title, .page-title, .big-number, .kpi-value, .groww-item-val {
+    font-family: 'Outfit', 'Plus Jakarta Sans', sans-serif !important;
+    letter-spacing: 0.01em !important;
 }
 
 code, pre, .mono-font, .quotron-font, .ticker-content {
     font-family: 'Share Tech Mono', 'DM Mono', monospace !important;
 }
 
-/* Retro-Future Midnight Vacuum Canvas */
+/* Midnight Velvet Canvas */
 .stApp {
-    background: #06080F !important;
+    background: #05070B !important;
     background-attachment: fixed !important;
 }
 
-/* 1960s CRT Scanline & Radar Oscilloscope Mesh */
+/* 1960s Warm CRT Scanline Mesh (Organic & Atmospheric) */
 .stApp::before {
     content: '';
     position: fixed;
     top: 0; left: 0; width: 100vw; height: 100vh;
     background: 
-        linear-gradient(rgba(0, 240, 255, 0.028) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(0, 240, 255, 0.028) 1px, transparent 1px),
-        repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.20) 0px, rgba(0, 0, 0, 0.20) 1px, transparent 1px, transparent 3px);
-    background-size: 36px 36px, 36px 36px, 100% 3px;
+        linear-gradient(rgba(255, 23, 68, 0.018) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px),
+        repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.22) 0px, rgba(0, 0, 0, 0.22) 1px, transparent 1px, transparent 3px);
+    background-size: 40px 40px, 40px 40px, 100% 3px;
     pointer-events: none;
     z-index: 0;
 }
 
-/* Custom Neon Cyan Scrollbars */
+/* Fluidic Ruby Red Neon Scrollbars */
 ::-webkit-scrollbar {
     width: 6px;
     height: 6px;
 }
 ::-webkit-scrollbar-track {
-    background: #06080F;
+    background: #05070B;
 }
 ::-webkit-scrollbar-thumb {
-    background: rgba(0, 240, 255, 0.35);
-    border-radius: 4px;
+    background: rgba(255, 23, 68, 0.35);
+    border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-    background: #00F0FF;
-    box-shadow: 0 0 10px #00F0FF;
+    background: #FF1744;
+    box-shadow: 0 0 10px #FF1744;
 }
 
 /* ==============================================================================
-   1960s QUOTRON STOCK TICKER TAPE RIBBON
+   1960s QUOTRON STOCK TICKER TAPE RIBBON (FLUIDIC CAPSULE)
    ============================================================================== */
 .retro-ticker-ribbon {
-    background: linear-gradient(90deg, #070B14 0%, #0C1222 50%, #070B14 100%) !important;
-    border-top: 1px solid rgba(0, 240, 255, 0.28) !important;
-    border-bottom: 1px solid rgba(0, 240, 255, 0.28) !important;
-    padding: 8px 16px !important;
-    margin-bottom: 16px !important;
+    background: linear-gradient(90deg, #07090F 0%, #0E121E 50%, #07090F 100%) !important;
+    border: 1px solid rgba(255, 23, 68, 0.30) !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.15) !important;
+    padding: 8px 18px !important;
+    margin-bottom: 18px !important;
     display: flex !important;
     align-items: center !important;
     overflow: hidden !important;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.8), inset 0 0 15px rgba(0, 240, 255, 0.04) !important;
-    border-radius: 8px !important;
+    box-shadow: 0 6px 25px rgba(0, 0, 0, 0.85), 0 0 18px rgba(255, 23, 68, 0.10) !important;
+    border-radius: 9999px !important; /* Fluidic pill ribbon */
     position: relative !important;
 }
+
 .ticker-badge {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    font-family: 'Orbitron', monospace;
-    font-size: 0.68rem;
+    gap: 7px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.72rem;
     font-weight: 700;
-    color: #00F0FF;
-    background: rgba(0, 240, 255, 0.1);
-    padding: 3px 8px;
-    border-radius: 4px;
-    border: 1px solid rgba(0, 240, 255, 0.35);
-    margin-right: 14px;
-    letter-spacing: 0.08em;
+    color: #FFFFFF;
+    background: rgba(255, 23, 68, 0.15);
+    padding: 3px 10px;
+    border-radius: 9999px;
+    border: 1px solid rgba(255, 23, 68, 0.5);
+    margin-right: 16px;
+    letter-spacing: 0.06em;
     flex-shrink: 0;
-    box-shadow: 0 0 10px rgba(0, 240, 255, 0.2);
+    box-shadow: 0 0 12px rgba(255, 23, 68, 0.35);
 }
+
 .ticker-content {
     display: flex;
     align-items: center;
@@ -154,45 +159,45 @@ code, pre, .mono-font, .quotron-font, .ticker-content {
     font-family: 'Share Tech Mono', monospace;
     font-size: 0.78rem;
     color: #D1D9E6;
-    overflow-x: auto;
-    scrollbar-width: none;
+    overflow: hidden;
 }
-.ticker-content::-webkit-scrollbar { display: none; }
+
 .tick-up {
-    color: #05FFA1 !important;
+    color: #00E676 !important;
     font-weight: 600;
-    text-shadow: 0 0 8px rgba(5, 255, 161, 0.5);
+    text-shadow: 0 0 8px rgba(0, 230, 118, 0.6);
 }
+
 .tick-down {
-    color: #FF2A6D !important;
+    color: #FF1744 !important;
     font-weight: 600;
-    text-shadow: 0 0 8px rgba(255, 42, 109, 0.5);
+    text-shadow: 0 0 8px rgba(255, 23, 68, 0.6);
 }
+
 .tick-item {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    padding: 2px 7px;
-    background: rgba(255, 255, 255, 0.03);
-    border-radius: 4px;
-    border: 1px solid rgba(255, 255, 255, 0.05);
+    padding: 3px 9px;
+    background: rgba(255, 255, 255, 0.04);
+    border-radius: 9999px; /* Fluidic pill items */
+    border: 1px solid rgba(255, 255, 255, 0.07);
 }
 
 /* ==============================================================================
-   RETRO-FUTURE MAINFRAME SIDEBAR
+   RETRO-FUTURE VELVET SIDEBAR
    ============================================================================== */
 section[data-testid="stSidebar"] {
-    background: #090D18 !important;
-    border-right: 1px solid rgba(0, 240, 255, 0.16) !important;
-    box-shadow: 12px 0 45px rgba(0, 0, 0, 0.95), 0 0 25px rgba(0, 240, 255, 0.03) !important;
+    background: #070911 !important;
+    border-right: 1px solid rgba(255, 255, 255, 0.08) !important;
+    box-shadow: 12px 0 45px rgba(0, 0, 0, 0.95), 0 0 25px rgba(255, 23, 68, 0.04) !important;
 }
 
-/* Tight vertical spacing between navigation links */
 section[data-testid="stSidebar"] div[data-testid="stVerticalBlock"] > div.stButton,
 section[data-testid="stSidebar"] div.stButton {
     margin: 0 !important;
     padding: 0 !important;
-    margin-bottom: 4px !important;
+    margin-bottom: 5px !important;
     width: 100% !important;
 }
 
@@ -201,132 +206,51 @@ section[data-testid="stSidebar"] div.stButton > button {
     display: flex !important;
     align-items: center !important;
     justify-content: flex-start !important;
-    width: 100% !important;
-    min-height: 40px !important;
-    height: 40px !important;
-    padding: 8px 14px !important;
-    border-radius: 6px !important;
-    font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif !important;
-    font-size: 0.86rem !important;
-    font-weight: 500 !important;
     text-align: left !important;
-    letter-spacing: 0.02em !important;
-    transition: all 0.18s ease !important;
-    cursor: pointer !important;
+    width: 100% !important;
+    min-height: 42px !important;
+    height: 42px !important;
+    padding: 0 16px !important;
+    font-family: 'Plus Jakarta Sans', sans-serif !important;
+    font-size: 0.82rem !important;
+    font-weight: 500 !important;
+    letter-spacing: 0.01em !important;
+    background: transparent !important;
+    color: #8E99A8 !important;
+    border: 1px solid transparent !important;
+    border-radius: 12px !important; /* Smooth rounded navigation links */
+    transition: all 0.20s ease !important;
     box-sizing: border-box !important;
-    background: rgba(255, 255, 255, 0.02) !important;
-    color: #A0B0C4 !important;
-    border: 1px solid rgba(255, 255, 255, 0.05) !important;
-    border-left: 3px solid transparent !important;
-    box-shadow: none !important;
 }
 
-/* Inactive Page Links hover */
 section[data-testid="stSidebar"] div.stButton > button:hover {
-    background: rgba(0, 240, 255, 0.06) !important;
-    color: #00F0FF !important;
-    border-color: rgba(0, 240, 255, 0.25) !important;
-    border-left: 3px solid #00F0FF !important;
+    background: rgba(255, 255, 255, 0.04) !important;
+    color: #FFFFFF !important;
+    border-color: rgba(255, 23, 68, 0.3) !important;
     transform: translateX(3px) !important;
-    box-shadow: 0 0 15px rgba(0, 240, 255, 0.18) !important;
 }
 
-/* Active Page Link (Neon Cyan Glow) */
+/* Sidebar Active State - Radiant Hot White & Ruby Red */
 section[data-testid="stSidebar"] div.stButton > button[kind="primary"],
 section[data-testid="stSidebar"] div.stButton > button[data-testid="stBaseButton-primary"] {
-    background: rgba(0, 240, 255, 0.10) !important;
-    color: #00F0FF !important;
-    border: 1px solid rgba(0, 240, 255, 0.45) !important;
-    border-left: 3px solid #00F0FF !important;
+    background: rgba(255, 23, 68, 0.14) !important;
+    color: #FFFFFF !important;
+    border: 1px solid rgba(255, 23, 68, 0.50) !important;
+    border-left: 3px solid #FF1744 !important;
+    box-shadow: 0 0 20px rgba(255, 23, 68, 0.28), inset 0 0 12px rgba(255, 23, 68, 0.08) !important;
     font-weight: 700 !important;
-    box-shadow: 0 0 20px rgba(0, 240, 255, 0.25), inset 0 0 12px rgba(0, 240, 255, 0.08) !important;
-    text-shadow: 0 0 8px rgba(0, 240, 255, 0.4) !important;
-}
-
-section[data-testid="stSidebar"] div.stButton > button[kind="primary"]:hover,
-section[data-testid="stSidebar"] div.stButton > button[data-testid="stBaseButton-primary"]:hover {
-    background: rgba(0, 240, 255, 0.15) !important;
-    color: #00F0FF !important;
-    border-color: rgba(0, 240, 255, 0.6) !important;
-    box-shadow: 0 0 24px rgba(0, 240, 255, 0.35) !important;
-}
-
-/* Align text and emojis inside the button strictly to the left */
-section[data-testid="stSidebar"] div.stButton > button > div,
-section[data-testid="stSidebar"] div.stButton > button span,
-section[data-testid="stSidebar"] div.stButton > button div[data-testid="stMarkdownContainer"],
-section[data-testid="stSidebar"] div.stButton > button p {
-    font-family: inherit !important;
-    font-size: inherit !important;
-    font-weight: inherit !important;
-    color: inherit !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    text-align: left !important;
-    display: flex !important;
-    justify-content: flex-start !important;
-    align-items: center !important;
-    width: 100% !important;
+    text-shadow: 0 0 8px rgba(255, 255, 255, 0.6) !important;
 }
 
 /* ==============================================================================
-   TIMEFRAME SELECTOR / SEGMENTED CONTROL (RETRO NEON PILLS)
+   FLUIDIC CARDS & KPI TELEMETRY TILES
    ============================================================================== */
-div[data-testid="stSegmentedControl"] {
-    background: #0A0E18 !important;
-    border: 1px solid rgba(0, 240, 255, 0.2) !important;
-    border-radius: 9999px !important;
-    padding: 2px !important;
-    box-shadow: 0 0 12px rgba(0, 0, 0, 0.6) !important;
-}
-
-div[data-testid="stSegmentedControl"] button {
-    font-family: 'Share Tech Mono', monospace !important;
-    font-size: 0.74rem !important;
-    font-weight: 600 !important;
-    color: #7A8C9E !important;
-    background: transparent !important;
-    border: none !important;
-    border-radius: 9999px !important;
-    padding: 4px 12px !important;
-    cursor: pointer !important;
-    transition: all 0.18s ease !important;
-}
-
-div[data-testid="stSegmentedControl"] button:hover {
-    color: #00F0FF !important;
-    background: rgba(0, 240, 255, 0.08) !important;
-    text-shadow: 0 0 8px rgba(0, 240, 255, 0.4) !important;
-}
-
-div[data-testid="stSegmentedControl"] button[aria-checked="true"],
-div[data-testid="stSegmentedControl"] button[data-checked="true"] {
-    background: rgba(0, 240, 255, 0.15) !important;
-    color: #00F0FF !important;
-    border: 1px solid rgba(0, 240, 255, 0.4) !important;
-    font-weight: 700 !important;
-    box-shadow: 0 0 12px rgba(0, 240, 255, 0.3) !important;
-    text-shadow: 0 0 8px rgba(0, 240, 255, 0.5) !important;
-}
-
-/* ==============================================================================
-   RETRO-FUTURISTIC KPI CARD BOXES (QUOTRON CARDS)
-   ============================================================================== */
-[data-testid="column"] {
-    display: flex !important;
-    flex-direction: column !important;
-}
-[data-testid="column"] > div {
-    flex: 1 1 auto !important;
-    display: flex !important;
-    flex-direction: column !important;
-}
-
 .cyber-kpi-card {
-    background: linear-gradient(135deg, #0C111F 0%, #111728 100%) !important;
-    border: 1px solid rgba(0, 240, 255, 0.16) !important;
-    border-radius: 10px !important;
-    padding: 14px 16px !important;
+    background: linear-gradient(145deg, #0A0D15 0%, #0E121E 100%) !important;
+    border: 1px solid var(--border-card) !important;
+    border-top: 2px solid #FF1744 !important;
+    border-radius: 16px !important; /* Fluidic curved corners */
+    padding: 16px 18px !important;
     height: 124px !important;
     min-height: 124px !important;
     max-height: 124px !important;
@@ -334,516 +258,430 @@ div[data-testid="stSegmentedControl"] button[data-checked="true"] {
     display: flex !important;
     flex-direction: column !important;
     justify-content: space-between !important;
-    box-shadow: 0 6px 25px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.8), 0 0 18px rgba(255, 23, 68, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.06) !important;
     transition: all 0.22s ease !important;
     margin: 0 !important;
     width: 100% !important;
-    position: relative !important;
-    overflow: hidden !important;
 }
-.cyber-kpi-card::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0; height: 2px;
-    background: linear-gradient(90deg, #00F0FF 0%, #05FFA1 100%);
-    opacity: 0.7;
-}
+
 .cyber-kpi-card:hover {
-    border-color: rgba(0, 240, 255, 0.4) !important;
+    border-color: rgba(255, 23, 68, 0.55) !important;
     transform: translateY(-2px) !important;
-    box-shadow: 0 10px 32px rgba(0, 0, 0, 0.9), 0 0 18px rgba(0, 240, 255, 0.15) !important;
+    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.9), 0 0 25px rgba(255, 23, 68, 0.20) !important;
 }
 
 .kpi-title {
     font-family: 'Share Tech Mono', monospace;
-    font-size: 0.66rem;
+    font-size: 0.68rem;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.10em;
-    color: #7A8C9E;
+    color: #8E99A8;
     height: 20px;
     display: flex;
     align-items: center;
-    line-height: 1.1;
-    margin: 0;
-    padding: 0;
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
 }
 
 .kpi-value {
-    height: 36px;
+    font-family: 'Outfit', sans-serif !important;
+    font-weight: 700 !important;
+    color: #FFFFFF !important;
+    text-shadow: 0 0 6px rgba(255, 255, 255, 0.85), 0 0 18px rgba(255, 255, 255, 0.35);
+    height: 48px;
     display: flex;
     align-items: center;
-    margin: 0;
-    padding: 0;
 }
 
-.kpi-badge-row {
-    height: 22px;
-    display: flex;
-    align-items: center;
-    margin: 0;
-    padding: 0;
-}
-
-/* Metric Typography - Retro-Future Neon Display */
 .metric-big {
-    font-family: 'Orbitron', 'Space Grotesk', sans-serif;
-    font-size: 1.65rem;
-    font-weight: 700;
-    letter-spacing: 0.02em;
-    color: #FFFFFF;
-    line-height: 1;
-    margin: 0;
-    text-shadow: 0 0 8px rgba(255, 255, 255, 0.3);
+    font-size: 1.65rem !important;
+    font-weight: 700 !important;
+    line-height: 1.1 !important;
+    color: #FFFFFF !important;
+    font-family: 'Outfit', sans-serif !important;
+    text-shadow: 0 0 6px rgba(255, 255, 255, 0.85);
 }
 
 .metric-big-green {
-    font-family: 'Orbitron', 'Space Grotesk', sans-serif;
-    font-size: 1.65rem;
-    font-weight: 700;
-    letter-spacing: 0.02em;
-    color: #05FFA1;
-    line-height: 1;
-    margin: 0;
-    text-shadow: 0 0 12px rgba(5, 255, 161, 0.5);
+    font-size: 1.65rem !important;
+    font-weight: 700 !important;
+    line-height: 1.1 !important;
+    color: #00E676 !important;
+    font-family: 'Outfit', sans-serif !important;
+    text-shadow: 0 0 10px rgba(0, 230, 118, 0.6);
 }
 
 .metric-big-red {
-    font-family: 'Orbitron', 'Space Grotesk', sans-serif;
-    font-size: 1.65rem;
-    font-weight: 700;
-    letter-spacing: 0.02em;
-    color: #FF2A6D;
-    line-height: 1;
-    margin: 0;
-    text-shadow: 0 0 12px rgba(255, 42, 109, 0.5);
+    font-size: 1.65rem !important;
+    font-weight: 700 !important;
+    line-height: 1.1 !important;
+    color: #FF1744 !important;
+    font-family: 'Outfit', sans-serif !important;
+    text-shadow: 0 0 12px rgba(255, 23, 68, 0.7);
+}
+
+.kpi-badge-row {
+    height: 24px;
+    display: flex;
+    align-items: center;
 }
 
 .metric-badge-uniform {
     display: inline-flex;
     align-items: center;
-    gap: 4px;
-    font-family: 'Share Tech Mono', monospace;
+    padding: 2px 10px;
+    border-radius: 9999px; /* Fluidic pill badge */
     font-size: 0.68rem;
     font-weight: 600;
-    padding: 2px 8px;
-    border-radius: 9999px;
-    margin: 0;
-    background: rgba(0, 240, 255, 0.06);
-    color: #00F0FF;
-    border: 1px solid rgba(0, 240, 255, 0.25);
-    box-shadow: 0 0 8px rgba(0, 240, 255, 0.15);
+    font-family: 'Share Tech Mono', monospace;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: #FFFFFF;
 }
 
 .metric-badge-mint {
     display: inline-flex;
     align-items: center;
-    gap: 4px;
-    font-family: 'Share Tech Mono', monospace;
+    padding: 2px 10px;
+    border-radius: 9999px;
     font-size: 0.68rem;
     font-weight: 600;
-    padding: 2px 8px;
-    border-radius: 9999px;
-    margin: 0;
-    background: rgba(5, 255, 161, 0.08);
-    color: #05FFA1;
-    border: 1px solid rgba(5, 255, 161, 0.35);
-    box-shadow: 0 0 8px rgba(5, 255, 161, 0.2);
+    font-family: 'Share Tech Mono', monospace;
+    background: rgba(0, 230, 118, 0.12);
+    border: 1px solid rgba(0, 230, 118, 0.45);
+    color: #00E676;
+    text-shadow: 0 0 8px rgba(0, 230, 118, 0.5);
 }
 
 .metric-badge-danger {
     display: inline-flex;
     align-items: center;
-    gap: 4px;
-    font-family: 'Share Tech Mono', monospace;
+    padding: 2px 10px;
+    border-radius: 9999px;
     font-size: 0.68rem;
     font-weight: 600;
-    padding: 2px 8px;
-    border-radius: 9999px;
-    margin: 0;
-    background: rgba(255, 42, 109, 0.08);
-    color: #FF2A6D;
-    border: 1px solid rgba(255, 42, 109, 0.35);
-    box-shadow: 0 0 8px rgba(255, 42, 109, 0.2);
+    font-family: 'Share Tech Mono', monospace;
+    background: rgba(255, 23, 68, 0.14);
+    border: 1px solid rgba(255, 23, 68, 0.45);
+    color: #FF1744;
+    text-shadow: 0 0 8px rgba(255, 23, 68, 0.5);
 }
 
-/* Universal Studio Card Container */
+/* Fluidic General Container Card */
 .cyber-card {
-    background: linear-gradient(135deg, #0C111F 0%, #111728 100%) !important;
-    border: 1px solid rgba(0, 240, 255, 0.16) !important;
-    border-radius: 10px !important;
-    padding: 18px 22px !important;
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
+    background: linear-gradient(145deg, #0A0D15 0%, #0E121E 100%) !important;
+    border: 1px solid var(--border-card) !important;
+    border-top: 2px solid #FF1744 !important;
+    border-radius: 16px !important;
+    padding: 22px !important;
+    margin-bottom: 16px !important;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.8), 0 0 18px rgba(255, 23, 68, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
     transition: all 0.22s ease !important;
-    margin-bottom: 14px !important;
-    position: relative !important;
-}
-.cyber-card:hover {
-    border-color: rgba(0, 240, 255, 0.38) !important;
-    box-shadow: 0 10px 35px rgba(0, 0, 0, 0.85), 0 0 20px rgba(0, 240, 255, 0.12) !important;
-    transform: translateY(-2px) !important;
 }
 
-/* Top Telemetry Header (HUD Command Strip) */
+.cyber-card:hover {
+    border-color: rgba(255, 23, 68, 0.45) !important;
+    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.9), 0 0 25px rgba(255, 23, 68, 0.15) !important;
+}
+
+/* ==============================================================================
+   TOP HUD TELEMETRY HEADER (HOT WHITE & RUBY RED)
+   ============================================================================== */
 .hud-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 16px 22px;
-    background: linear-gradient(135deg, #0C111F 0%, #111728 100%) !important;
-    border: 1px solid rgba(0, 240, 255, 0.20) !important;
-    border-left: 4px solid #00F0FF !important;
-    border-radius: 10px !important;
-    margin-bottom: 18px;
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.8), 0 0 18px rgba(0, 240, 255, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
+    padding: 16px 24px;
+    background: linear-gradient(145deg, #0A0D15 0%, #0E121E 100%) !important;
+    border: 1px solid rgba(255, 23, 68, 0.30) !important;
+    border-top: 2px solid #FF1744 !important;
+    border-radius: 16px !important; /* Smooth organic corners */
+    margin-bottom: 20px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.85), 0 0 20px rgba(255, 23, 68, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.06) !important;
 }
 
 .hud-title {
-    font-family: 'Orbitron', sans-serif;
-    font-size: 1.25rem;
+    font-family: 'Outfit', sans-serif !important;
+    font-size: 1.35rem;
     font-weight: 800;
-    letter-spacing: 0.04em;
+    letter-spacing: 0.02em;
     color: #FFFFFF;
     display: flex;
     align-items: center;
     gap: 10px;
-    text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+    text-shadow: 0 0 6px rgba(255, 255, 255, 0.9), 0 0 18px rgba(255, 255, 255, 0.35);
 }
+
 .hud-title-accent {
-    color: #00F0FF;
-    text-shadow: 0 0 12px rgba(0, 240, 255, 0.6);
+    color: #FF1744 !important;
+    text-shadow: 0 0 10px #FF1744, 0 0 25px rgba(255, 23, 68, 0.65) !important;
 }
 
 .hud-subtitle {
     font-family: 'Share Tech Mono', monospace;
-    font-size: 0.70rem;
-    color: #7A8C9E;
-    letter-spacing: 0.08em;
+    font-size: 0.72rem;
+    color: #8E99A8;
+    letter-spacing: 0.06em;
     text-transform: uppercase;
-    margin-top: 4px;
+    margin-top: 5px;
 }
 
-/* Status Badges & Neon Pills */
+/* Status Badges & Fluidic Neon Pills */
 .status-pill {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
+    gap: 7px;
+    padding: 5px 14px;
+    border-radius: 9999px; /* Fluidic pill */
     font-family: 'Share Tech Mono', monospace;
-    font-size: 0.70rem;
+    font-size: 0.72rem;
     font-weight: 600;
-    padding: 4px 12px;
-    border-radius: 9999px;
-    background: rgba(0, 240, 255, 0.06);
-    border: 1px solid rgba(0, 240, 255, 0.35);
-    color: #00F0FF;
-    box-shadow: 0 0 10px rgba(0, 240, 255, 0.18);
-    text-shadow: 0 0 6px rgba(0, 240, 255, 0.3);
+    letter-spacing: 0.05em;
+    background: rgba(255, 23, 68, 0.10);
+    border: 1px solid rgba(255, 23, 68, 0.45);
+    color: #FFFFFF;
+    box-shadow: 0 0 14px rgba(255, 23, 68, 0.25);
+    text-transform: uppercase;
 }
 
 .pulse-dot {
-    width: 7px;
-    height: 7px;
+    width: 8px;
+    height: 8px;
+    background-color: #FF1744;
     border-radius: 50%;
-    background-color: #00F0FF;
-    box-shadow: 0 0 8px #00F0FF;
-    animation: radar-pulse 2s infinite;
     display: inline-block;
-}
-.pulse-dot-cyan {
-    width: 7px;
-    height: 7px;
-    border-radius: 50%;
-    background-color: #00F0FF;
-    box-shadow: 0 0 8px #00F0FF;
-    animation: radar-pulse 2s infinite;
-    display: inline-block;
-}
-.pulse-dot-green {
-    width: 7px;
-    height: 7px;
-    border-radius: 50%;
-    background-color: #05FFA1;
-    box-shadow: 0 0 8px #05FFA1;
-    animation: radar-pulse 2s infinite;
-    display: inline-block;
-}
-@keyframes radar-pulse {
-    0% { transform: scale(0.95); opacity: 0.8; }
-    70% { transform: scale(1.2); opacity: 1; }
-    100% { transform: scale(0.95); opacity: 0.8; }
+    box-shadow: 0 0 10px #FF1744;
+    animation: neon-pulse 1.8s infinite;
 }
 
-/* Page Dedicated Header */
+@keyframes neon-pulse {
+    0%, 100% { opacity: 1; transform: scale(1); box-shadow: 0 0 10px #FF1744; }
+    50% { opacity: 0.35; transform: scale(0.85); box-shadow: 0 0 4px #FF1744; }
+}
+
+/* Fluidic Page Title Box */
 .page-title-box {
-    margin-bottom: 18px;
-    padding: 14px 20px;
-    background: linear-gradient(135deg, #0C111F 0%, #111728 100%);
-    border: 1px solid rgba(0, 240, 255, 0.20);
-    border-left: 4px solid #00F0FF;
-    border-radius: 8px;
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6);
+    margin-bottom: 20px;
+    padding: 16px 22px;
+    background: linear-gradient(145deg, #0A0D15 0%, #0E121E 100%);
+    border: 1px solid rgba(255, 23, 68, 0.30);
+    border-top: 2px solid #FF1744;
+    border-radius: 16px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.8), 0 0 18px rgba(255, 23, 68, 0.10);
 }
 .page-title {
-    font-family: 'Orbitron', sans-serif;
-    font-size: 1.25rem;
+    font-family: 'Outfit', sans-serif !important;
+    font-size: 1.30rem;
     font-weight: 800;
     color: #FFFFFF;
-    letter-spacing: 0.04em;
-    text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+    letter-spacing: 0.02em;
+    text-shadow: 0 0 6px rgba(255, 255, 255, 0.9), 0 0 18px rgba(255, 255, 255, 0.35);
 }
 .page-subtitle {
     font-family: 'Share Tech Mono', monospace;
-    font-size: 0.70rem;
-    color: #7A8C9E;
-    letter-spacing: 0.08em;
+    font-size: 0.72rem;
+    color: #8E99A8;
+    letter-spacing: 0.06em;
     text-transform: uppercase;
-    margin-top: 4px;
-}
-
-/* Streamlit DataFrames */
-[data-testid="stDataFrame"] {
-    border-radius: 10px !important;
-    border: 1px solid rgba(0, 240, 255, 0.18) !important;
-    overflow: hidden !important;
-    box-shadow: 0 6px 25px rgba(0, 0, 0, 0.7);
+    margin-top: 5px;
 }
 
 /* ==============================================================================
-   RETRO-FUTURE QUOTRON 5-METRIC HOLDINGS SUMMARY BANNER
+   GROWW INDIA SIGNATURE 5-METRIC SUMMARY CARDS (HOT WHITE & RUBY RED)
    ============================================================================== */
 .groww-summary-card {
-    background: linear-gradient(135deg, #0C111F 0%, #111728 100%) !important;
-    border: 1px solid rgba(0, 240, 255, 0.18) !important;
-    border-radius: 12px !important;
-    padding: 18px 22px !important;
-    margin-bottom: 16px !important;
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.06) !important;
-    display: grid !important;
-    grid-template-columns: repeat(5, 1fr) !important;
-    gap: 16px !important;
-    position: relative !important;
-    overflow: hidden !important;
-}
-.groww-summary-card::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0; height: 2px;
-    background: linear-gradient(90deg, #00F0FF 0%, #05FFA1 50%, #FFB800 100%);
-    box-shadow: 0 0 10px rgba(0, 240, 255, 0.6);
+    background: linear-gradient(145deg, #0A0D15 0%, #0E121E 100%) !important;
+    border: 1px solid var(--border-card) !important;
+    border-top: 2px solid #FF1744 !important;
+    border-radius: 16px !important; /* Smooth organic corners */
+    padding: 18px 24px !important;
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.85), 0 0 20px rgba(255, 23, 68, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
+    margin-bottom: 18px !important;
 }
 
 .groww-summary-item {
+    flex: 1 !important;
     display: flex !important;
     flex-direction: column !important;
     justify-content: center !important;
 }
 
 .groww-summary-item:not(:last-child) {
-    border-right: 1px solid rgba(255, 255, 255, 0.08) !important;
-    padding-right: 16px !important;
+    border-right: 1px solid rgba(255, 255, 255, 0.07) !important;
+    padding-right: 20px !important;
+    margin-right: 20px !important;
 }
 
 .groww-item-label {
-    font-size: 0.68rem !important;
-    color: #7A8C9E !important;
+    font-size: 0.70rem !important;
+    color: #8E99A8 !important;
     font-weight: 600 !important;
     text-transform: uppercase !important;
-    letter-spacing: 0.10em !important;
+    letter-spacing: 0.08em !important;
     margin-bottom: 5px !important;
     font-family: 'Share Tech Mono', monospace !important;
 }
 
 .groww-item-val {
-    font-size: 1.55rem !important;
+    font-size: 1.65rem !important;
     font-weight: 700 !important;
     color: #FFFFFF !important;
     line-height: 1.15 !important;
-    letter-spacing: 0.02em !important;
-    font-family: 'Orbitron', sans-serif !important;
-    text-shadow: 0 0 10px rgba(255, 255, 255, 0.3) !important;
+    font-family: 'Outfit', sans-serif !important;
+    text-shadow: 0 0 6px rgba(255, 255, 255, 0.9), 0 0 16px rgba(255, 255, 255, 0.35) !important;
 }
 
 .groww-item-val-green {
-    font-size: 1.55rem !important;
+    font-size: 1.65rem !important;
     font-weight: 700 !important;
-    color: #05FFA1 !important;
+    color: #00E676 !important;
     line-height: 1.15 !important;
-    letter-spacing: 0.02em !important;
-    font-family: 'Orbitron', sans-serif !important;
-    text-shadow: 0 0 12px rgba(5, 255, 161, 0.5) !important;
+    font-family: 'Outfit', sans-serif !important;
+    text-shadow: 0 0 12px rgba(0, 230, 118, 0.6) !important;
 }
 
 .groww-item-val-red {
-    font-size: 1.55rem !important;
+    font-size: 1.65rem !important;
     font-weight: 700 !important;
-    color: #FF2A6D !important;
+    color: #FF1744 !important;
     line-height: 1.15 !important;
-    letter-spacing: 0.02em !important;
-    font-family: 'Orbitron', sans-serif !important;
-    text-shadow: 0 0 12px rgba(255, 42, 109, 0.5) !important;
+    font-family: 'Outfit', sans-serif !important;
+    text-shadow: 0 0 12px rgba(255, 23, 68, 0.7) !important;
 }
 
 .groww-item-sub {
-    font-size: 0.70rem !important;
+    font-size: 0.72rem !important;
     margin-top: 5px !important;
-    color: #7A8C9E !important;
+    color: #8E99A8 !important;
     font-family: 'Share Tech Mono', monospace !important;
 }
 
 /* ==============================================================================
-   RETRO-FUTURE HOLDINGS CARD DECK & AVATAR
+   FLUIDIC HOLDINGS CARD DECK & AVATAR
    ============================================================================== */
 .groww-holding-row {
-    background: linear-gradient(135deg, #0C111F 0%, #101626 100%) !important;
-    border: 1px solid rgba(0, 240, 255, 0.14) !important;
-    border-left: 3px solid #00F0FF !important;
-    border-radius: 10px !important;
-    padding: 14px 18px !important;
+    background: linear-gradient(145deg, #0A0D15 0%, #0E121E 100%) !important;
+    border: 1px solid var(--border-card) !important;
+    border-left: 3px solid #FF1744 !important;
+    border-radius: 14px !important;
+    padding: 16px 20px !important;
     margin-bottom: 10px !important;
     display: flex !important;
     justify-content: space-between !important;
     align-items: center !important;
-    transition: all 0.2s ease !important;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5) !important;
+    transition: all 0.20s ease !important;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.7) !important;
 }
 
 .groww-holding-row:hover {
-    border-color: rgba(0, 240, 255, 0.45) !important;
-    border-left-color: #05FFA1 !important;
+    border-color: rgba(255, 23, 68, 0.5) !important;
     transform: translateY(-2px) !important;
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.7), 0 0 15px rgba(0, 240, 255, 0.15) !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.85), 0 0 20px rgba(255, 23, 68, 0.15) !important;
 }
 
 .groww-avatar {
-    width: 38px !important;
-    height: 38px !important;
-    border-radius: 6px !important;
-    background: rgba(0, 240, 255, 0.1) !important;
-    color: #00F0FF !important;
+    width: 40px !important;
+    height: 40px !important;
+    border-radius: 10px !important; /* Smooth curved avatar */
+    background: rgba(255, 23, 68, 0.12) !important;
+    color: #FFFFFF !important;
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
-    font-family: 'Orbitron', monospace !important;
+    font-family: 'Outfit', sans-serif !important;
     font-weight: 700 !important;
-    font-size: 0.82rem !important;
-    border: 1px solid rgba(0, 240, 255, 0.35) !important;
-    box-shadow: 0 0 10px rgba(0, 240, 255, 0.2) !important;
-    margin-right: 12px !important;
+    font-size: 0.86rem !important;
+    border: 1px solid rgba(255, 23, 68, 0.45) !important;
+    box-shadow: 0 0 12px rgba(255, 23, 68, 0.25) !important;
+    margin-right: 14px !important;
     flex-shrink: 0 !important;
 }
 
 /* ==============================================================================
-   RETRO LAUNCH CONTROL ORDER DESK
+   RETRO LAUNCH CONTROL ORDER DESK (HOT WHITE & RUBY RED)
    ============================================================================== */
 .groww-order-box {
-    background: linear-gradient(135deg, #0C111F 0%, #111728 100%) !important;
-    border: 1px solid rgba(0, 240, 255, 0.20) !important;
-    border-radius: 12px !important;
-    padding: 20px !important;
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.7) !important;
+    background: linear-gradient(145deg, #0A0D15 0%, #0E121E 100%) !important;
+    border: 1px solid rgba(255, 23, 68, 0.30) !important;
+    border-top: 2px solid #FF1744 !important;
+    border-radius: 16px !important;
+    padding: 22px !important;
+    box-shadow: 0 10px 35px rgba(0, 0, 0, 0.85), 0 0 20px rgba(255, 23, 68, 0.10) !important;
 }
 
 .groww-order-summary-box {
-    background: #080C16 !important;
-    border: 1px solid rgba(0, 240, 255, 0.22) !important;
-    border-radius: 8px !important;
-    padding: 14px 18px !important;
-    margin: 14px 0 !important;
+    background: #080A12 !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    border-radius: 12px !important;
+    padding: 16px !important;
+    margin-top: 16px !important;
     font-family: 'Share Tech Mono', monospace !important;
-    font-size: 0.76rem !important;
-    box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.8) !important;
+    font-size: 0.82rem !important;
 }
 
 .groww-order-row {
     display: flex !important;
     justify-content: space-between !important;
-    align-items: center !important;
-    padding: 4px 0 !important;
+    padding: 6px 0 !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+    color: #8E99A8 !important;
 }
 
-/* Universal Action & Primary Buttons (Neon Futuristic Switchers) */
-button[kind="primary"],
-button[data-testid="stBaseButton-primary"] {
-    background: #00F0FF !important;
-    border: 1px solid #00F0FF !important;
-    color: #05070C !important;
-    font-weight: 800 !important;
-    font-family: 'Orbitron', sans-serif !important;
-    letter-spacing: 0.05em !important;
-    border-radius: 6px !important;
-    box-shadow: 0 0 20px rgba(0, 240, 255, 0.45) !important;
-    text-shadow: none !important;
-    transition: all 0.2s ease !important;
-}
-
-button[kind="primary"]:hover,
-button[data-testid="stBaseButton-primary"]:hover {
-    background: #38F8FF !important;
-    box-shadow: 0 0 28px rgba(0, 240, 255, 0.75) !important;
-    transform: translateY(-1px) !important;
-}
-
-/* BUY Button: Phosphor Green */
-button[aria-label="BUY"][kind="primary"],
+/* Order Execution Buttons: Hot White BUY / Ruby Red SELL */
+button[aria-label="BUY"],
 button[aria-label="BUY"][data-testid="stBaseButton-primary"] {
-    background: #05FFA1 !important;
-    border-color: #05FFA1 !important;
-    color: #05070C !important;
+    background: #00E676 !important;
+    color: #05070B !important;
+    font-family: 'Outfit', sans-serif !important;
     font-weight: 800 !important;
-    box-shadow: 0 0 22px rgba(5, 255, 161, 0.5) !important;
+    font-size: 1.05rem !important;
+    border-radius: 9999px !important; /* Fluidic pill button */
+    border: none !important;
+    box-shadow: 0 0 20px rgba(0, 230, 118, 0.5) !important;
+    transition: all 0.20s ease !important;
 }
-button[aria-label="BUY"][kind="primary"]:hover,
-button[aria-label="BUY"][data-testid="stBaseButton-primary"]:hover {
-    background: #4EFEB3 !important;
-    box-shadow: 0 0 30px rgba(5, 255, 161, 0.8) !important;
+button[aria-label="BUY"]:hover {
+    background: #1BFF8A !important;
+    box-shadow: 0 0 30px rgba(0, 230, 118, 0.8) !important;
 }
 
-/* SELL Button: Laser Crimson */
-button[aria-label="SELL"][kind="primary"],
+button[aria-label="SELL"],
 button[aria-label="SELL"][data-testid="stBaseButton-primary"] {
-    background: #FF2A6D !important;
-    border-color: #FF2A6D !important;
+    background: #FF1744 !important;
     color: #FFFFFF !important;
+    font-family: 'Outfit', sans-serif !important;
     font-weight: 800 !important;
-    box-shadow: 0 0 22px rgba(255, 42, 109, 0.5) !important;
+    font-size: 1.05rem !important;
+    border-radius: 9999px !important;
+    border: none !important;
+    box-shadow: 0 0 20px rgba(255, 23, 68, 0.6) !important;
+    transition: all 0.20s ease !important;
 }
-button[aria-label="SELL"][kind="primary"]:hover,
-button[aria-label="SELL"][data-testid="stBaseButton-primary"]:hover {
-    background: #FF5A8F !important;
-    box-shadow: 0 0 30px rgba(255, 42, 109, 0.8) !important;
+button[aria-label="SELL"]:hover {
+    background: #FF3B62 !important;
+    box-shadow: 0 0 30px rgba(255, 23, 68, 0.9) !important;
 }
 
 /* Form Inputs, Selects, and Number Inputs */
 div[data-baseweb="input"] > div,
 input, select, textarea {
-    background-color: #080C16 !important;
-    border: 1px solid rgba(0, 240, 255, 0.22) !important;
+    background-color: #070911 !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
     color: #FFFFFF !important;
     font-family: 'Share Tech Mono', monospace !important;
-    border-radius: 6px !important;
+    border-radius: 10px !important;
     transition: all 0.2s ease !important;
 }
 input:focus, select:focus, textarea:focus,
 div[data-baseweb="input"]:focus-within {
-    border-color: #00F0FF !important;
-    box-shadow: 0 0 15px rgba(0, 240, 255, 0.35) !important;
+    border-color: #FF1744 !important;
+    box-shadow: 0 0 15px rgba(255, 23, 68, 0.35) !important;
 }
 div[data-testid="stSlider"] > div > div > div > div {
-    background-color: #00F0FF !important;
-    box-shadow: 0 0 10px #00F0FF !important;
-}
-
-/* Sidebar Navigation Link Overrides (Ensure vibrant neon active state) */
-section[data-testid="stSidebar"] div.stButton > button[kind="primary"],
-section[data-testid="stSidebar"] div.stButton > button[data-testid="stBaseButton-primary"] {
-    background: rgba(0, 240, 255, 0.10) !important;
-    color: #00F0FF !important;
-    border: 1px solid rgba(0, 240, 255, 0.45) !important;
-    border-left: 3px solid #00F0FF !important;
-    box-shadow: 0 0 20px rgba(0, 240, 255, 0.25), inset 0 0 12px rgba(0, 240, 255, 0.08) !important;
+    background-color: #FF1744 !important;
+    box-shadow: 0 0 10px #FF1744 !important;
 }
 
 </style>
@@ -1073,14 +911,13 @@ def create_donut_chart(
         )]
     )
     return fig
-
 # ==========================================
 # SIDEBAR NAVIGATION MENU (BL/S® EDITORIAL STYLE)
 # ==========================================
 st.sidebar.markdown("""
 <div style="padding: 12px 0 16px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.08); margin-bottom: 16px;">
-    <div style="font-size: 1.18rem; font-weight: 700; letter-spacing: -0.03em; color: #FFFFFF; display: flex; align-items: center; gap: 8px;">
-        ANTIGRAVITY <span style="color: #00D09C;">// QUANTUM</span>
+    <div style="font-size: 1.22rem; font-weight: 800; letter-spacing: 0.01em; color: #FFFFFF; font-family: 'Outfit', sans-serif; display: flex; align-items: center; gap: 8px; text-shadow: 0 0 6px rgba(255,255,255,0.9);">
+        ANTIGRAVITY <span style="color: #FF1744; text-shadow: 0 0 12px rgba(255,23,68,0.75);">// RETRO DESK</span>
     </div>
     <div style="font-family: 'DM Mono', monospace; font-size: 0.66rem; color: #71717A; letter-spacing: 0.12em; text-transform: uppercase; margin-top: 4px;">
         DIGITAL TRADING DESK
@@ -1097,16 +934,16 @@ st.sidebar.markdown("""
 nav_pnl_color = "#00D09C" if today_pnl >= 0 else "#EB5B56"
 nav_all_color = "#00D09C" if overall_pnl >= 0 else "#EB5B56"
 st.sidebar.markdown(f"""
-<div style="background: #121622; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 10px; padding: 12px 14px; margin-bottom: 16px; font-family: 'DM Mono', monospace; box-shadow: 0 4px 16px rgba(0,0,0,0.5);">
-    <div style="font-size: 0.64rem; color: #71717A; letter-spacing: 0.12em; text-transform: uppercase;">PORTFOLIO NAV</div>
-    <div style="font-size: 1.30rem; font-weight: 700; color: #FFFFFF; margin: 3px 0; font-family: 'Space Grotesk', sans-serif; letter-spacing: -0.03em;">{CURRENCY_SYMBOL}{equity:,.2f}</div>
-    <div style="display: flex; justify-content: space-between; font-size: 0.70rem; color: #71717A; margin-top: 5px; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 5px;">
-        <span>SESSION: <b style="color: {nav_pnl_color};">{format_pnl_str(today_pnl)}</b></span>
-        <span>RETURN: <b style="color: {nav_all_color};">{format_pct_str(overall_pnl_pct)}</b></span>
+<div style="background: #0B0E17; border: 1px solid rgba(255, 23, 68, 0.25); border-top: 2px solid #FF1744; border-radius: 14px; padding: 14px 16px; margin-bottom: 16px; font-family: 'Share Tech Mono', monospace; box-shadow: 0 6px 20px rgba(0,0,0,0.7), 0 0 15px rgba(255, 23, 68, 0.08);">
+    <div style="font-size: 0.66rem; color: #8E99A8; letter-spacing: 0.12em; text-transform: uppercase;">PORTFOLIO NAV</div>
+    <div style="font-size: 1.45rem; font-weight: 800; color: #FFFFFF; margin: 3px 0; font-family: 'Outfit', sans-serif; letter-spacing: 0.01em; text-shadow: 0 0 6px rgba(255,255,255,0.95);">{CURRENCY_SYMBOL}{equity:,.2f}</div>
+    <div style="display: flex; justify-content: space-between; font-size: 0.72rem; color: #8E99A8; margin-top: 6px; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 6px;">
+        <span>SESSION: <b style="color: {'#00E676' if today_pnl >= 0 else '#FF1744'};\藉">{format_pnl_str(today_pnl)}</b></span>
+        <span>RETURN: <b style="color: {'#00E676' if overall_pnl >= 0 else '#FF1744'};\藉">{format_pct_str(overall_pnl_pct)}</b></span>
     </div>
-    <div style="display: flex; justify-content: space-between; font-size: 0.66rem; color: #52525B; margin-top: 4px;">
-        <span>CASH: <b style="color: #A1A1AA;">{cash_pct:.1f}%</b></span>
-        <span>EQUITY: <b style="color: #A1A1AA;">{invested_pct:.1f}%</b></span>
+    <div style="display: flex; justify-content: space-between; font-size: 0.68rem; color: #8E99A8; margin-top: 4px;">
+        <span>CASH: <b style="color: #FF9E00;">{cash_pct:.1f}%</b></span>
+        <span>EQUITY: <b style="color: #FFFFFF;">{invested_pct:.1f}%</b></span>
     </div>
 </div>
 """, unsafe_allow_html=True)
@@ -1190,7 +1027,7 @@ def render_retro_ticker_ribbon(is_india_mode: bool, broker=None) -> str:
             ("SBIN", "₹810.40", "-0.32%", False),
             ("TATAMOTORS", "₹945.60", "+1.65%", True),
         ]
-        market_badge = "NSE // BSE TELETYPE 1960"
+        market_badge = "1960s NSE // BSE TELETYPE"
     else:
         tickers = [
             ("S&P 500", "5,860.20", "+0.64%", True),
@@ -1206,7 +1043,7 @@ def render_retro_ticker_ribbon(is_india_mode: bool, broker=None) -> str:
             ("AMD", "$156.20", "+1.85%", True),
             ("SPY", "$580.20", "+0.65%", True),
         ]
-        market_badge = "NYSE // QUOTRON 1960"
+        market_badge = "1960s NYSE // QUOTRON"
 
     items_html = ""
     for sym, price, chg, is_up in tickers:
@@ -1244,14 +1081,14 @@ def render_retro_ticker_ribbon(is_india_mode: bool, broker=None) -> str:
     """
 
 st.sidebar.markdown(f"""
-<div style="font-family: 'Share Tech Mono', monospace; font-size: 0.70rem; color: #7A8C9E; line-height: 1.75; padding: 12px 14px; background: #0C111F; border-radius: 8px; border: 1px solid rgba(0, 240, 255, 0.22); border-left: 3px solid #00F0FF; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6);">
-    <div>BROKER: <span style="color: #00F0FF; font-weight: 600;">{broker_label}</span></div>
-    <div>EXCHANGE: <span style="color: #00F0FF; font-weight: 600;">{exchange_label}</span></div>
-    <div>OPEN ORDERS: <span style="color: {'#05FFA1' if open_orders_count > 0 else '#7A8C9E'};\藉">{open_orders_count} QUEUED</span></div>
-    <div>BUYING POWER: <span style="color: #05FFA1; font-weight: 600;">{CURRENCY_SYMBOL}{buying_power:,.2f}</span></div>
-    <div>ACTIVE ARCH: <span style="color: #00F0FF;">{active_arch}</span></div>
-    <div>MARKET HOURS: <span style="color: #A1A1AA;">{market_hours}</span></div>
-    <div>SOLVENCY: <span style="color: #05FFA1;">{solvency_label}</span></div>
+<div style="font-family: 'Share Tech Mono', monospace; font-size: 0.72rem; color: #8E99A8; line-height: 1.75; padding: 14px 16px; background: #0B0E17; border-radius: 14px; border: 1px solid rgba(255, 23, 68, 0.25); border-top: 2px solid #FF1744; box-shadow: 0 6px 20px rgba(0, 0, 0, 0.7), 0 0 15px rgba(255, 23, 68, 0.08);">
+    <div>BROKER: <span style="color: #FFFFFF; font-weight: 600; text-shadow: 0 0 6px rgba(255,255,255,0.7);">{broker_label}</span></div>
+    <div>EXCHANGE: <span style="color: #FFFFFF; font-weight: 600;">{exchange_label}</span></div>
+    <div>OPEN ORDERS: <span style="color: {'#FF1744' if open_orders_count > 0 else '#8E99A8'}; font-weight: 600;">{open_orders_count} QUEUED</span></div>
+    <div>BUYING POWER: <span style="color: #FF9E00; font-weight: 600; text-shadow: 0 0 8px rgba(255,158,0,0.5);">{CURRENCY_SYMBOL}{buying_power:,.2f}</span></div>
+    <div>ACTIVE ARCH: <span style="color: #FFFFFF;">{active_arch}</span></div>
+    <div>MARKET HOURS: <span style="color: #8E99A8;">{market_hours}</span></div>
+    <div>SOLVENCY: <span style="color: #00E676; font-weight: 600;">{solvency_label}</span></div>
 </div>
 """, unsafe_allow_html=True)
 
@@ -1270,17 +1107,17 @@ if page == "📊 Portfolio Overview":
         days_inc = acc_details.get("days_incubated", 5)
         broker_live_badge = f"GATE B INCUBATION: DAY {days_inc} OF 91"
         strategy_badge = "MULTI-ASSET & DURATION ENGINE"
-        term_title = "ANTIGRAVITY <span class=\"hud-title-accent\">// QUANTUM TERMINAL [GATE B MULTI-ASSET]</span>"
+        term_title = "ANTIGRAVITY <span class=\"hud-title-accent\">// 1960s QUOTRON TERMINAL [GATE B MULTI-ASSET]</span>"
     elif is_india_mode:
         hdr_sub = "POD 1: INDIA GROWTH EQUITIES (NSE 100) • VARIANT 2: ASYMMETRIC MULTI-BAGGER (17.96% POST-TAX CAGR) • SEBI CNC DELIVERY"
         broker_live_badge = "GROWW NSE LIVE" if not getattr(broker, 'is_mock', True) else "NSE FORWARD PAPER DESK"
         strategy_badge = "GROWTH MOMENTUM (VARIANT 2)"
-        term_title = "ANTIGRAVITY <span class=\"hud-title-accent\">// QUANTUM TERMINAL [INDIA NSE]</span>"
+        term_title = "ANTIGRAVITY <span class=\"hud-title-accent\">// 1960s QUOTRON TERMINAL [INDIA NSE]</span>"
     else:
         hdr_sub = "POD 2: US GROWTH EQUITIES (PARKED, REVISIT WITH SURVIVOR-FREE DATA) • RESTING PAPER BALANCE"
         broker_live_badge = "ALPACA PAPER (PARKED)"
         strategy_badge = "US MOMENTUM (PARKED)"
-        term_title = "ANTIGRAVITY <span class=\"hud-title-accent\">// QUANTUM TERMINAL [US PARKED]</span>"
+        term_title = "ANTIGRAVITY <span class=\"hud-title-accent\">// 1960s QUOTRON TERMINAL [US PARKED]</span>"
 
     st.markdown(f"""
     <div class="hud-header" style="margin-bottom: 16px;">
@@ -1418,7 +1255,7 @@ if page == "📊 Portfolio Overview":
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;600;700;800;900&family=Share+Tech+Mono&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Share+Tech+Mono&family=Space+Grotesk:wght@400;500;600;700&display=swap');
     
     * {{
         box-sizing: border-box;
@@ -1430,30 +1267,30 @@ if page == "📊 Portfolio Overview":
     
     body {{
         background: transparent;
-        font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif;
+        font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
         color: #FFFFFF;
         padding: 2px;
         overflow: hidden;
     }}
     
-    /* 1960s Quotron × 2060s Quantum Hero Card */
+    /* 1960s Retro Neon Hero Card (Hot White & Ruby Red Tube Glow) */
     .glass-hero-card {{
         position: relative;
-        background: #0C111F;
-        border: 1px solid rgba(0, 240, 255, 0.22);
-        border-top: 3px solid #00F0FF;
-        border-radius: 12px;
+        background: #0B0E17;
+        border: 1px solid rgba(255, 255, 255, 0.09);
+        border-top: 2px solid #FF1744;
+        border-radius: 18px; /* Fluidic curved corners */
         padding: 22px 26px 18px 26px;
         box-shadow: 0 10px 35px rgba(0, 0, 0, 0.85), 
-                    0 0 20px rgba(0, 240, 255, 0.08),
+                    0 0 22px rgba(255, 23, 68, 0.10),
                     inset 0 1px 0 rgba(255, 255, 255, 0.06);
         overflow: hidden;
         width: 100%;
         transition: all 0.22s ease;
     }}
     .glass-hero-card:hover {{
-        border-color: rgba(0, 240, 255, 0.45);
-        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.95), 0 0 25px rgba(0, 240, 255, 0.15);
+        border-color: rgba(255, 23, 68, 0.50);
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.95), 0 0 28px rgba(255, 23, 68, 0.20);
     }}
     
     .card-content-layer {{
@@ -1483,61 +1320,53 @@ if page == "📊 Portfolio Overview":
     .legend-row {{
         display: flex;
         align-items: center;
-        gap: 6px;
+        gap: 7px;
         font-family: 'Share Tech Mono', monospace;
         font-size: 0.72rem;
         font-weight: 500;
-        letter-spacing: 0.10em;
+        letter-spacing: 0.08em;
         text-transform: uppercase;
-        color: #7A8C9E;
+        color: #8E99A8;
         height: 20px;
     }}
     
     .dot-mint {{
         width: 8px;
         height: 8px;
-        background-color: #05FFA1;
-        border-radius: 2px;
+        background-color: #00E676;
+        border-radius: 9999px;
         display: inline-block;
-        box-shadow: 0 0 10px rgba(5, 255, 161, 0.6);
+        box-shadow: 0 0 10px rgba(0, 230, 118, 0.6);
     }}
     
     .dot-red {{
         width: 8px;
         height: 8px;
-        background-color: #FF2A6D;
-        border-radius: 2px;
+        background-color: #FF1744;
+        border-radius: 9999px;
         display: inline-block;
-        box-shadow: 0 0 10px rgba(255, 42, 109, 0.6);
-    }}
-    
-    .dot-purple {{
-        width: 8px;
-        height: 8px;
-        background-color: #00F0FF;
-        border-radius: 2px;
-        display: inline-block;
-        box-shadow: 0 0 10px rgba(0, 240, 255, 0.6);
+        box-shadow: 0 0 10px rgba(255, 23, 68, 0.6);
     }}
     
     .dot-amber {{
         width: 8px;
         height: 8px;
-        background-color: #FFB800;
-        border-radius: 2px;
+        background-color: #FF9E00;
+        border-radius: 9999px;
         display: inline-block;
-        box-shadow: 0 0 10px rgba(255, 184, 0, 0.6);
+        box-shadow: 0 0 10px rgba(255, 158, 0, 0.6);
     }}
     
+    /* Fluidic Typography: Outfit with Hot White Tube Glow */
     .big-number {{
         font-size: 2.35rem;
         font-weight: 700;
-        letter-spacing: 0.02em;
+        letter-spacing: 0.01em;
         line-height: 1.15;
         color: #FFFFFF;
         margin: 3px 0 2px 0;
-        font-family: 'Orbitron', 'Space Grotesk', sans-serif;
-        text-shadow: 0 0 12px rgba(255, 255, 255, 0.25);
+        font-family: 'Outfit', sans-serif;
+        text-shadow: 0 0 6px rgba(255, 255, 255, 0.95), 0 0 18px rgba(255, 255, 255, 0.35);
     }}
     
     .return-row {{
@@ -1552,7 +1381,7 @@ if page == "📊 Portfolio Overview":
         align-items: center;
         gap: 5px;
         padding: 3px 10px;
-        border-radius: 9999px;
+        border-radius: 9999px; /* Fluidic pill badge */
         font-family: 'Share Tech Mono', monospace;
         font-size: 0.74rem;
         font-weight: 600;
@@ -1560,43 +1389,43 @@ if page == "📊 Portfolio Overview":
     }}
     
     .badge-green {{
-        background: rgba(5, 255, 161, 0.12);
-        border: 1px solid rgba(5, 255, 161, 0.45);
-        color: #05FFA1;
-        text-shadow: 0 0 8px rgba(5, 255, 161, 0.5);
+        background: rgba(0, 230, 118, 0.12);
+        border: 1px solid rgba(0, 230, 118, 0.45);
+        color: #00E676;
+        text-shadow: 0 0 8px rgba(0, 230, 118, 0.5);
     }}
     
     .badge-red {{
-        background: rgba(255, 42, 109, 0.12);
-        border: 1px solid rgba(255, 42, 109, 0.45);
-        color: #FF2A6D;
-        text-shadow: 0 0 8px rgba(255, 42, 109, 0.5);
+        background: rgba(255, 23, 68, 0.14);
+        border: 1px solid rgba(255, 23, 68, 0.45);
+        color: #FF1744;
+        text-shadow: 0 0 8px rgba(255, 23, 68, 0.6);
     }}
     
     .tf-sub {{
-        color: #7A8C9E;
+        color: #8E99A8;
         font-family: 'Share Tech Mono', monospace;
         font-size: 0.72rem;
         margin-left: 4px;
         letter-spacing: 0.04em;
     }}
     
-    /* Retro-Future Currency Switcher Capsules */
+    /* Fluidic Currency Switcher Capsules */
     .currency-pill-box {{
         display: inline-flex;
-        background: #080C16;
-        border: 1px solid rgba(0, 240, 255, 0.22);
+        background: #070911;
+        border: 1px solid rgba(255, 255, 255, 0.10);
         border-radius: 9999px;
         padding: 2px;
         margin-bottom: 6px;
     }}
     
     .curr-btn {{
-        padding: 3px 10px;
+        padding: 3px 11px;
         font-size: 0.68rem;
         font-weight: 500;
         font-family: 'Share Tech Mono', monospace;
-        color: #7A8C9E;
+        color: #8E99A8;
         border-radius: 9999px;
         border: none;
         background: transparent;
@@ -1605,10 +1434,11 @@ if page == "📊 Portfolio Overview":
     }}
     
     .curr-btn.active {{
-        background: rgba(0, 240, 255, 0.18);
-        color: #00F0FF;
-        border: 1px solid #00F0FF;
-        box-shadow: 0 0 10px rgba(0, 240, 255, 0.4);
+        background: rgba(255, 23, 68, 0.20);
+        color: #FFFFFF;
+        border: 1px solid #FF1744;
+        box-shadow: 0 0 12px rgba(255, 23, 68, 0.4);
+        text-shadow: 0 0 6px rgba(255, 255, 255, 0.6);
     }}
     
     /* Oscilloscope Chart Area */
@@ -1627,7 +1457,7 @@ if page == "📊 Portfolio Overview":
         overflow: visible;
     }}
     
-    /* 1960s Quotron Timeframe Dock */
+    /* 1960s Timeframe Dock (Fluidic Capsule) */
     .pills-dock-wrapper {{
         display: flex;
         justify-content: center;
@@ -1639,8 +1469,8 @@ if page == "📊 Portfolio Overview":
         display: inline-flex;
         align-items: center;
         gap: 5px;
-        background: #080C16;
-        border: 1px solid rgba(0, 240, 255, 0.22);
+        background: #070911;
+        border: 1px solid rgba(255, 255, 255, 0.10);
         border-radius: 9999px;
         padding: 3px 6px;
         box-shadow: inset 0 0 12px rgba(0, 0, 0, 0.7);
@@ -1649,7 +1479,7 @@ if page == "📊 Portfolio Overview":
     .timeframe-pill {{
         background: transparent;
         border: 1px solid transparent;
-        color: #7A8C9E;
+        color: #8E99A8;
         font-family: 'Share Tech Mono', monospace;
         font-size: 0.72rem;
         font-weight: 500;
@@ -1660,31 +1490,32 @@ if page == "📊 Portfolio Overview":
     }}
     
     .timeframe-pill:hover {{
-        color: #00F0FF;
-        background: rgba(0, 240, 255, 0.08);
+        color: #FFFFFF;
+        background: rgba(255, 255, 255, 0.05);
     }}
     
     .timeframe-pill.active {{
-        background: rgba(0, 240, 255, 0.18);
-        border: 1px solid #00F0FF;
-        color: #00F0FF;
+        background: rgba(255, 23, 68, 0.20);
+        border: 1px solid #FF1744;
+        color: #FFFFFF;
         font-weight: 600;
-        box-shadow: 0 0 10px rgba(0, 240, 255, 0.4);
+        box-shadow: 0 0 12px rgba(255, 23, 68, 0.45);
+        text-shadow: 0 0 6px rgba(255, 255, 255, 0.6);
     }}
     
-    /* Retro HUD Floating Tooltip */
+    /* 1960s Retro HUD Floating Tooltip */
     .live-tooltip {{
         position: absolute;
         display: none;
         pointer-events: none;
-        background: #080C16;
-        border: 1px solid rgba(0, 240, 255, 0.4);
-        border-radius: 8px;
-        padding: 8px 12px;
+        background: #080A12;
+        border: 1px solid rgba(255, 23, 68, 0.4);
+        border-radius: 12px;
+        padding: 8px 14px;
         font-size: 0.74rem;
         color: #FFFFFF;
         font-family: 'Share Tech Mono', monospace;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.9), 0 0 15px rgba(0, 240, 255, 0.25);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.9), 0 0 16px rgba(255, 23, 68, 0.25);
         z-index: 100;
         line-height: 1.5;
     }}
@@ -1695,15 +1526,15 @@ if page == "📊 Portfolio Overview":
         <div class="card-content-layer">
             <div class="groww-header">
                 <div class="metric-left">
-                    <div class="legend-row" style="font-size: 0.88rem; color: #7A8C9E; font-weight: 500; text-transform: capitalize;">
-                        <span>Current</span> <span id="legend-dot" class="dot-mint" style="width: 8px; height: 8px; margin-left: 6px;"></span>
+                    <div class="legend-row" style="font-size: 0.88rem; color: #8E99A8; font-weight: 500; text-transform: capitalize;">
+                        <span>Current</span> <span id="legend-dot" class="dot-red" style="width: 8px; height: 8px; margin-left: 6px;"></span>
                     </div>
                     <div class="big-number" id="current-display">{CURRENCY_SYMBOL}{equity:,.2f}</div>
                     <div class="return-row" id="return-row" style="font-size: 0.92rem;">
                         <div id="pnl-badge" class="return-glass-badge {'badge-green' if overall_pnl >= 0 else 'badge-red'}">
                             <span id="pnl-span" style="font-weight: 600;">{format_pnl_str(overall_pnl)} ({format_pct_str(overall_pnl_pct)})</span>
                         </div>
-                        <span id="tf-tag" class="tf-sub" style="color: #7A8C9E; margin-left: 6px;">All time</span>
+                        <span id="tf-tag" class="tf-sub" style="color: #8E99A8; margin-left: 6px;">All time</span>
                     </div>
                 </div>
                 <div class="metric-right">
@@ -1712,7 +1543,7 @@ if page == "📊 Portfolio Overview":
                             <button class="curr-btn {'active' if not is_india_mode else ''}" id="btn-usd" onclick="setCurrency('USD')">$ USD</button>
                             <button class="curr-btn {'active' if is_india_mode else ''}" id="btn-inr" onclick="setCurrency('INR')">&#8377; INR</button>
                         </div>
-                        <div class="legend-row" style="font-size: 0.88rem; color: #7A8C9E; font-weight: 500; text-transform: capitalize;">
+                        <div class="legend-row" style="font-size: 0.88rem; color: #8E99A8; font-weight: 500; text-transform: capitalize;">
                             <span class="dot-amber" style="width: 8px; height: 8px; margin-right: 6px;"></span> <span>Invested</span>
                         </div>
                     </div>
@@ -1723,51 +1554,51 @@ if page == "📊 Portfolio Overview":
             <div class="chart-area" id="chart-area">
                 <svg class="groww-svg" id="groww-svg" viewBox="0 0 1000 260" preserveAspectRatio="none">
                     <defs>
-                        <!-- Dynamic Oscilloscope Glow Filter -->
+                        <!-- Dynamic Hot White / Ruby Red Neon Glow Filter -->
                         <filter id="neon-glow" x="-20%" y="-20%" width="140%" height="140%">
-                            <feDropShadow id="glow-shadow" dx="0" dy="0" stdDeviation="3.5" flood-color="#05FFA1" flood-opacity="0.45" />
+                            <feDropShadow id="glow-shadow" dx="0" dy="0" stdDeviation="3.2" flood-color="#FF1744" flood-opacity="0.55" />
                         </filter>
                         
-                        <!-- Dynamic Neon Stroke Gradient -->
+                        <!-- Dynamic Neon Stroke Gradient (Hot White core to Ruby Red aura) -->
                         <linearGradient id="stroke-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                            <stop id="stroke-stop-0" offset="0%" stop-color="#00F0FF" />
-                            <stop id="stroke-stop-100" offset="100%" stop-color="#05FFA1" />
+                            <stop id="stroke-stop-0" offset="0%" stop-color="#FFFFFF" />
+                            <stop id="stroke-stop-100" offset="100%" stop-color="#FF1744" />
                         </linearGradient>
 
                         <!-- Dynamic Volumetric Area Fill Gradient -->
                         <linearGradient id="area-gradient" x1="0" y1="0" x2="0" y2="1">
-                            <stop id="area-stop-0" offset="0%" stop-color="#05FFA1" stop-opacity="0.16" />
-                            <stop id="area-stop-70" offset="70%" stop-color="#05FFA1" stop-opacity="0.02" />
-                            <stop id="area-stop-100" offset="100%" stop-color="#05FFA1" stop-opacity="0.00" />
+                            <stop id="area-stop-0" offset="0%" stop-color="#FF1744" stop-opacity="0.16" />
+                            <stop id="area-stop-70" offset="70%" stop-color="#FF1744" stop-opacity="0.02" />
+                            <stop id="area-stop-100" offset="100%" stop-color="#FF1744" stop-opacity="0.00" />
                         </linearGradient>
 
                         <!-- Vertical Laser Cursor Beam Gradient -->
                         <linearGradient id="cursor-beam" x1="0" y1="0" x2="0" y2="1">
-                            <stop id="cursor-stop-0" offset="0%" stop-color="#00F0FF" stop-opacity="0.85" />
-                            <stop id="cursor-stop-75" offset="75%" stop-color="#00F0FF" stop-opacity="0.25" />
-                            <stop id="cursor-stop-100" offset="100%" stop-color="#00F0FF" stop-opacity="0.0" />
+                            <stop id="cursor-stop-0" offset="0%" stop-color="#FFFFFF" stop-opacity="0.90" />
+                            <stop id="cursor-stop-75" offset="75%" stop-color="#FF1744" stop-opacity="0.30" />
+                            <stop id="cursor-stop-100" offset="100%" stop-color="#FF1744" stop-opacity="0.0" />
                         </linearGradient>
                     </defs>
 
                     <!-- Hairline Grid Baseline -->
-                    <line x1="0" y1="248" x2="1000" y2="248" stroke="rgba(0,240,255,0.10)" stroke-width="1" stroke-dasharray="4,4" />
+                    <line x1="0" y1="248" x2="1000" y2="248" stroke="rgba(255,255,255,0.06)" stroke-width="1" stroke-dasharray="4,4" />
 
                     <!-- Nixie Tube Amber Invested Capital Line (Dotted) -->
-                    <path id="path-invested" stroke="#FFB800" stroke-width="1.8" stroke-dasharray="5,5" fill="none" d="" />
+                    <path id="path-invested" stroke="#FF9E00" stroke-width="1.8" stroke-dasharray="5,5" fill="none" d="" />
 
                     <!-- Oscilloscope Area Fill -->
                     <path id="path-area" fill="url(#area-gradient)" d="" />
 
-                    <!-- Oscilloscope Neon Current Curve -->
+                    <!-- Oscilloscope Neon Current Curve (Hot White core with Neon Glow) -->
                     <path id="path-current" stroke="url(#stroke-gradient)" filter="url(#neon-glow)" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round" fill="none" d="" />
 
                     <!-- Vertical Tracking Laser Line -->
                     <line id="cursor-line" x1="0" y1="6" x2="0" y2="248" stroke="url(#cursor-beam)" stroke-width="1.4" stroke-dasharray="2,2" style="display:none;" />
 
                     <!-- Tracking Laser Rings & Dots -->
-                    <circle id="cursor-halo" r="10" fill="rgba(0, 240, 255, 0.22)" style="display:none;" />
-                    <circle id="cursor-dot-mint" r="4.5" fill="#06080F" stroke="#05FFA1" stroke-width="2.2" style="display:none;" />
-                    <circle id="cursor-dot-amber" r="3.5" fill="#06080F" stroke="#FFB800" stroke-width="1.8" style="display:none;" />
+                    <circle id="cursor-halo" r="10" fill="rgba(255, 23, 68, 0.22)" style="display:none;" />
+                    <circle id="cursor-dot-mint" r="4.5" fill="#05070B" stroke="#FF1744" stroke-width="2.2" style="display:none;" />
+                    <circle id="cursor-dot-amber" r="3.5" fill="#05070B" stroke="#FF9E00" stroke-width="1.8" style="display:none;" />
                 </svg>
                 <div class="live-tooltip" id="live-tooltip"></div>
             </div>
@@ -1824,7 +1655,7 @@ if page == "📊 Portfolio Overview":
         render();
     }}
 
-    // Catmull-Rom to Cubic Bezier curve smoothing for organic financial line
+    // Catmull-Rom to Cubic Bezier curve smoothing for fluidic financial line
     function getSmoothPath(points) {{
         if (points.length === 0) return '';
         if (points.length === 1) return `M ${{points[0].x}},${{points[0].y}}`;
@@ -1867,9 +1698,9 @@ if page == "📊 Portfolio Overview":
         const pnlSpan = document.getElementById('pnl-span');
         const sign = pnl >= 0 ? '+' : '-';
         const isPos = pnl >= 0;
-        const themeColor = isPos ? '#05FFA1' : '#FF2A6D';
-        const strokeStart = isPos ? '#00F0FF' : '#FF2A6D';
-        const areaOp0 = isPos ? '0.16' : '0.20';
+        const themeColor = isPos ? '#00E676' : '#FF1744';
+        const strokeStart = '#FFFFFF';
+        const areaOp0 = isPos ? '0.14' : '0.18';
         const areaOp70 = isPos ? '0.02' : '0.03';
 
         if (pnlBadge) pnlBadge.className = 'return-glass-badge ' + (isPos ? 'badge-green' : 'badge-red');
@@ -1883,9 +1714,6 @@ if page == "📊 Portfolio Overview":
         const areaStop70 = document.getElementById('area-stop-70');
         const areaStop100 = document.getElementById('area-stop-100');
         const glowShadow = document.getElementById('glow-shadow');
-        const cursorStop0 = document.getElementById('cursor-stop-0');
-        const cursorStop75 = document.getElementById('cursor-stop-75');
-        const cursorStop100 = document.getElementById('cursor-stop-100');
         const legendDot = document.getElementById('legend-dot');
 
         if (strokeStop0) strokeStop0.setAttribute('stop-color', strokeStart);
@@ -1900,13 +1728,10 @@ if page == "📊 Portfolio Overview":
         }}
         if (areaStop100) areaStop100.setAttribute('stop-color', themeColor);
         if (glowShadow) glowShadow.setAttribute('flood-color', themeColor);
-        if (cursorStop0) cursorStop0.setAttribute('stop-color', '#00F0FF');
-        if (cursorStop75) cursorStop75.setAttribute('stop-color', '#00F0FF');
-        if (cursorStop100) cursorStop100.setAttribute('stop-color', '#00F0FF');
         if (legendDot) legendDot.className = isPos ? 'dot-mint' : 'dot-red';
 
         dotMint.setAttribute('stroke', themeColor);
-        cursorHalo.setAttribute('fill', isPos ? 'rgba(0, 240, 255, 0.22)' : 'rgba(255, 42, 109, 0.22)');
+        cursorHalo.setAttribute('fill', isPos ? 'rgba(0, 230, 118, 0.22)' : 'rgba(255, 23, 68, 0.22)');
 
         // Scale SVG coordinate system
         const allVals = equities.concat(investedArr);
@@ -2018,7 +1843,7 @@ if page == "📊 Portfolio Overview":
         const pnlPct = (pnl / invVal) * 100;
         const sign = pnl >= 0 ? '+' : '-';
         const isPointPos = pnl >= 0;
-        const pointColor = isPointPos ? '#05FFA1' : '#FF2A6D';
+        const pointColor = isPointPos ? '#00E676' : '#FF1744';
         const pnlBadge = document.getElementById('pnl-badge');
         const pnlSpan = document.getElementById('pnl-span');
         if (pnlBadge) pnlBadge.className = 'return-glass-badge ' + (isPointPos ? 'badge-green' : 'badge-red');
@@ -2026,17 +1851,17 @@ if page == "📊 Portfolio Overview":
         document.getElementById('tf-tag').innerText = dateStr;
 
         dotMint.setAttribute('stroke', pointColor);
-        cursorHalo.setAttribute('fill', isPointPos ? 'rgba(0, 240, 255, 0.22)' : 'rgba(255, 42, 109, 0.22)');
+        cursorHalo.setAttribute('fill', isPointPos ? 'rgba(0, 230, 118, 0.22)' : 'rgba(255, 23, 68, 0.22)');
         
         // Tooltip position & content
         tooltip.style.display = 'block';
         const tooltipX = Math.min(rect.width - 200, Math.max(10, mouseX - 90));
         tooltip.style.left = tooltipX + 'px';
         tooltip.style.top = '10px';
-        tooltip.innerHTML = `<span style="color:#00F0FF; font-family:'Share Tech Mono',monospace; font-size:0.72rem; letter-spacing:0.08em; text-transform:uppercase;">${{dateStr}}</span><br>` +
-            `<div style="margin-top:4px; font-family:'Space Grotesk',sans-serif; font-size:0.84rem;"><b style="color:${{pointColor}};">Valuation:</b> ${{formatCurrency(eqVal, currentCurrency)}}</div>` +
-            `<div style="font-family:'Space Grotesk',sans-serif; font-size:0.84rem;"><b style="color:#FFB800;">Invested:</b> ${{formatCurrency(invVal, currentCurrency)}}</div>` +
-            `<div style="font-family:'Space Grotesk',sans-serif; font-size:0.84rem; margin-top:3px; border-top:1px solid rgba(0,240,255,0.18); padding-top:3px;"><b style="color:#7A8C9E;">Net Alpha:</b> <span style="color:${{pointColor}}; font-weight:700;">${{sign}}${{formatCurrency(Math.abs(pnl), currentCurrency)}} (${{pnlPct >= 0 ? '+' : ''}}${{pnlPct.toFixed(2)}}%)</span></div>`;
+        tooltip.innerHTML = `<span style="color:#FFFFFF; font-family:'Share Tech Mono',monospace; font-size:0.72rem; letter-spacing:0.08em; text-transform:uppercase; text-shadow:0 0 6px rgba(255,255,255,0.7);">${{dateStr}}</span><br>` +
+            `<div style="margin-top:4px; font-family:'Plus Jakarta Sans',sans-serif; font-size:0.84rem;"><b style="color:${{pointColor}};">Valuation:</b> ${{formatCurrency(eqVal, currentCurrency)}}</div>` +
+            `<div style="font-family:'Plus Jakarta Sans',sans-serif; font-size:0.84rem;"><b style="color:#FF9E00;">Invested:</b> ${{formatCurrency(invVal, currentCurrency)}}</div>` +
+            `<div style="font-family:'Plus Jakarta Sans',sans-serif; font-size:0.84rem; margin-top:3px; border-top:1px solid rgba(255,255,255,0.10); padding-top:3px;"><b style="color:#8E99A8;">Net Alpha:</b> <span style="color:${{pointColor}}; font-weight:700;">${{sign}}${{formatCurrency(Math.abs(pnl), currentCurrency)}} (${{pnlPct >= 0 ? '+' : ''}}${{pnlPct.toFixed(2)}}%)</span></div>`;
     }});
 
     chartArea.addEventListener('mouseleave', () => {{

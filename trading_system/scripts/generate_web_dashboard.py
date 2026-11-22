@@ -198,47 +198,50 @@ def generate_dashboard_html() -> str:
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ANTIGRAVITY // RETRO//FUTURE QUANTUM EXCHANGE [GATE B MULTI-ASSET]</title>
+    <title>ANTIGRAVITY // 1960s QUOTRON QUANTUM DESK [GATE B MULTI-ASSET]</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;600;700;800;900&family=Share+Tech+Mono&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Share+Tech+Mono&family=Space+Grotesk:wght@400;500;600;700&display=swap');
 
         :root {{
-            --neon-cyan: #00F0FF;
-            --neon-green: #05FFA1;
-            --neon-red: #FF2A6D;
-            --neon-amber: #FFB800;
-            --bg-canvas: #06080F;
-            --bg-card: #0C111F;
-            --bg-card-hover: #111728;
-            --border-card: rgba(0, 240, 255, 0.20);
-            --border-card-hover: rgba(0, 240, 255, 0.45);
+            --neon-red: #FF1744;
+            --neon-red-glow: 0 0 14px rgba(255, 23, 68, 0.65), 0 0 28px rgba(255, 23, 68, 0.25);
+            --neon-white: #FFFFFF;
+            --neon-white-glow: 0 0 8px rgba(255, 255, 255, 0.95), 0 0 20px rgba(255, 255, 255, 0.4);
+            --neon-green: #00E676;
+            --neon-amber: #FF9E00;
+            --bg-canvas: #05070B;
+            --bg-card: #0B0E17;
+            --bg-card-hover: #101420;
+            --border-card: rgba(255, 255, 255, 0.09);
+            --border-card-hover: rgba(255, 23, 68, 0.50);
             --text-primary: #FFFFFF;
-            --text-secondary: #7A8C9E;
+            --text-secondary: #8E99A8;
         }}
 
         * {{ margin: 0; padding: 0; box-sizing: border-box; }}
 
         body {{
-            font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-family: 'Plus Jakarta Sans', 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif;
             background-color: var(--bg-canvas);
             color: var(--text-primary);
             line-height: 1.5;
             padding: 24px;
             position: relative;
             min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
         }}
 
-        /* 1960s CRT Scanline & Radar Grid Mesh */
+        /* 1960s Warm CRT Mesh */
         body::before {{
             content: '';
             position: fixed;
             top: 0; left: 0; width: 100vw; height: 100vh;
             background: 
-                linear-gradient(rgba(0, 240, 255, 0.028) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(0, 240, 255, 0.028) 1px, transparent 1px),
-                repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.20) 0px, rgba(0, 0, 0, 0.20) 1px, transparent 1px, transparent 3px);
-            background-size: 36px 36px, 36px 36px, 100% 3px;
+                linear-gradient(rgba(255, 23, 68, 0.018) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px),
+                repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.22) 0px, rgba(0, 0, 0, 0.22) 1px, transparent 1px, transparent 3px);
+            background-size: 40px 40px, 40px 40px, 100% 3px;
             pointer-events: none;
             z-index: 0;
         }}
@@ -250,51 +253,51 @@ def generate_dashboard_html() -> str:
             z-index: 1;
         }}
 
-        /* 1960s Quotron Stock Ticker Ribbon */
+        /* 1960s Quotron Stock Ticker Ribbon (Fluidic Pill Capsule) */
         .retro-ticker-ribbon {{
-            background: linear-gradient(90deg, #070B14 0%, #0C1222 50%, #070B14 100%);
-            border-top: 1px solid rgba(0, 240, 255, 0.28);
-            border-bottom: 1px solid rgba(0, 240, 255, 0.28);
-            padding: 8px 16px;
+            background: linear-gradient(90deg, #07090F 0%, #0E121E 50%, #07090F 100%);
+            border: 1px solid rgba(255, 23, 68, 0.30);
+            border-top: 1px solid rgba(255, 255, 255, 0.15);
+            padding: 8px 18px;
             margin-bottom: 20px;
             display: flex;
             align-items: center;
             overflow: hidden;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.8), inset 0 0 15px rgba(0, 240, 255, 0.04);
-            border-radius: 8px;
+            box-shadow: 0 6px 25px rgba(0, 0, 0, 0.85), 0 0 18px rgba(255, 23, 68, 0.10);
+            border-radius: 9999px; /* Fluidic pill */
         }}
 
         .ticker-badge {{
             display: inline-flex;
             align-items: center;
-            gap: 6px;
-            font-family: 'Orbitron', monospace;
-            font-size: 0.68rem;
+            gap: 7px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.72rem;
             font-weight: 700;
-            color: var(--neon-cyan);
-            background: rgba(0, 240, 255, 0.1);
-            padding: 3px 8px;
-            border-radius: 4px;
-            border: 1px solid rgba(0, 240, 255, 0.35);
-            margin-right: 14px;
-            letter-spacing: 0.08em;
+            color: #FFFFFF;
+            background: rgba(255, 23, 68, 0.15);
+            padding: 3px 11px;
+            border-radius: 9999px;
+            border: 1px solid rgba(255, 23, 68, 0.5);
+            margin-right: 16px;
+            letter-spacing: 0.06em;
             flex-shrink: 0;
-            box-shadow: 0 0 10px rgba(0, 240, 255, 0.2);
+            box-shadow: 0 0 12px rgba(255, 23, 68, 0.35);
         }}
 
         .pulse-dot {{
-            width: 7px;
-            height: 7px;
-            background-color: var(--neon-green);
+            width: 8px;
+            height: 8px;
+            background-color: var(--neon-red);
             border-radius: 50%;
             display: inline-block;
-            box-shadow: 0 0 8px var(--neon-green);
-            animation: pulse-glow 2s infinite;
+            box-shadow: 0 0 10px var(--neon-red);
+            animation: pulse-glow 1.8s infinite;
         }}
 
         @keyframes pulse-glow {{
-            0%, 100% {{ opacity: 1; transform: scale(1); }}
-            50% {{ opacity: 0.4; transform: scale(0.85); }}
+            0%, 100% {{ opacity: 1; transform: scale(1); box-shadow: 0 0 10px #FF1744; }}
+            50% {{ opacity: 0.35; transform: scale(0.85); box-shadow: 0 0 4px #FF1744; }}
         }}
 
         .ticker-content {{
@@ -325,47 +328,47 @@ def generate_dashboard_html() -> str:
             display: inline-flex;
             align-items: center;
             gap: 6px;
-            padding: 2px 7px;
-            background: rgba(255, 255, 255, 0.03);
-            border-radius: 4px;
-            border: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 3px 9px;
+            background: rgba(255, 255, 255, 0.04);
+            border-radius: 9999px;
+            border: 1px solid rgba(255, 255, 255, 0.07);
         }}
 
         .tick-up {{
             color: var(--neon-green);
             font-weight: 600;
-            text-shadow: 0 0 8px rgba(5, 255, 161, 0.5);
+            text-shadow: 0 0 8px rgba(0, 230, 118, 0.6);
         }}
 
         .tick-down {{
             color: var(--neon-red);
             font-weight: 600;
-            text-shadow: 0 0 8px rgba(255, 42, 109, 0.5);
+            text-shadow: 0 0 8px rgba(255, 23, 68, 0.6);
         }}
 
-        /* Retro HUD Header */
+        /* Retro HUD Header (Hot White & Ruby Red) */
         .header {{
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 16px 22px;
-            background: linear-gradient(135deg, #0C111F 0%, #111728 100%);
-            border: 1px solid var(--border-card);
-            border-left: 4px solid var(--neon-cyan);
-            border-radius: 10px;
+            padding: 18px 26px;
+            background: linear-gradient(145deg, #0A0D15 0%, #0E121E 100%);
+            border: 1px solid rgba(255, 23, 68, 0.30);
+            border-top: 2px solid var(--neon-red);
+            border-radius: 18px; /* Smooth rounded boundaries */
             margin-bottom: 22px;
-            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.8), 0 0 18px rgba(0, 240, 255, 0.08);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.85), 0 0 20px rgba(255, 23, 68, 0.12);
             flex-wrap: wrap;
             gap: 16px;
         }}
 
         .header-title h1 {{
-            font-family: 'Orbitron', sans-serif;
-            font-size: 1.35rem;
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.40rem;
             font-weight: 800;
             color: #FFFFFF;
-            letter-spacing: 0.04em;
-            text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+            letter-spacing: 0.01em;
+            text-shadow: 0 0 6px rgba(255, 255, 255, 0.9), 0 0 18px rgba(255, 255, 255, 0.35);
             display: flex;
             align-items: center;
             gap: 10px;
@@ -375,8 +378,8 @@ def generate_dashboard_html() -> str:
             font-family: 'Share Tech Mono', monospace;
             font-size: 0.72rem;
             color: var(--text-secondary);
-            margin-top: 4px;
-            letter-spacing: 0.08em;
+            margin-top: 5px;
+            letter-spacing: 0.06em;
             text-transform: uppercase;
         }}
 
@@ -384,19 +387,19 @@ def generate_dashboard_html() -> str:
             display: inline-flex;
             align-items: center;
             gap: 8px;
-            background: rgba(0, 240, 255, 0.1);
-            color: var(--neon-cyan);
-            padding: 6px 14px;
+            background: rgba(255, 23, 68, 0.12);
+            color: #FFFFFF;
+            padding: 6px 16px;
             border-radius: 9999px;
             font-size: 12px;
             font-weight: 700;
-            font-family: 'Orbitron', monospace;
-            border: 1px solid rgba(0, 240, 255, 0.35);
-            box-shadow: 0 0 12px rgba(0, 240, 255, 0.25);
-            letter-spacing: 0.05em;
+            font-family: 'Outfit', sans-serif;
+            border: 1px solid rgba(255, 23, 68, 0.5);
+            box-shadow: 0 0 14px rgba(255, 23, 68, 0.30);
+            letter-spacing: 0.02em;
         }}
 
-        /* KPI Cards Grid */
+        /* KPI Cards Grid (Fluidic Curves) */
         .grid-kpis {{
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
@@ -405,19 +408,19 @@ def generate_dashboard_html() -> str:
         }}
 
         .card {{
-            background: linear-gradient(135deg, #0C111F 0%, #111728 100%);
+            background: linear-gradient(145deg, #0A0D15 0%, #0E121E 100%);
             border: 1px solid var(--border-card);
-            border-top: 3px solid var(--neon-cyan);
-            border-radius: 10px;
-            padding: 18px 20px;
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.8), 0 0 15px rgba(0, 240, 255, 0.05);
+            border-top: 2px solid var(--neon-red);
+            border-radius: 16px; /* Fluidic curved corners */
+            padding: 20px 22px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.8), 0 0 18px rgba(255, 23, 68, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.05);
             transition: all 0.22s ease;
         }}
 
         .card:hover {{
             border-color: var(--border-card-hover);
             transform: translateY(-2px);
-            box-shadow: 0 10px 32px rgba(0, 0, 0, 0.9), 0 0 20px rgba(0, 240, 255, 0.12);
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.9), 0 0 25px rgba(255, 23, 68, 0.18);
         }}
 
         .kpi-title {{
@@ -433,13 +436,14 @@ def generate_dashboard_html() -> str:
         }}
 
         .kpi-value {{
-            font-family: 'Orbitron', 'Space Grotesk', sans-serif;
-            font-size: 1.65rem;
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.75rem;
             font-weight: 800;
-            letter-spacing: 0.02em;
+            letter-spacing: 0.01em;
             margin: 8px 0;
-            line-height: 1.2;
-            text-shadow: 0 0 10px rgba(255, 255, 255, 0.25);
+            line-height: 1.15;
+            color: #FFFFFF;
+            text-shadow: 0 0 6px rgba(255, 255, 255, 0.95), 0 0 18px rgba(255, 255, 255, 0.35);
         }}
 
         .kpi-subtitle {{
@@ -461,10 +465,10 @@ def generate_dashboard_html() -> str:
         }}
 
         .section-header {{
-            font-family: 'Orbitron', sans-serif;
-            font-size: 0.95rem;
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.05rem;
             font-weight: 700;
-            letter-spacing: 0.03em;
+            letter-spacing: 0.01em;
             margin-bottom: 16px;
             display: flex;
             justify-content: space-between;
@@ -485,63 +489,64 @@ def generate_dashboard_html() -> str:
 
         th {{
             padding: 12px 14px;
-            background: #080C16;
-            color: var(--neon-cyan);
+            background: #080A12;
+            color: #FFFFFF;
             font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 0.08em;
-            border-bottom: 1px solid rgba(0, 240, 255, 0.25);
+            border-bottom: 1px solid rgba(255, 23, 68, 0.30);
             font-size: 0.70rem;
+            text-shadow: 0 0 5px rgba(255, 255, 255, 0.6);
         }}
 
         td {{
             padding: 12px 14px;
-            border-bottom: 1px solid rgba(0, 240, 255, 0.10);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
             color: #E2E8F0;
         }}
 
         tr:hover td {{
-            background: rgba(0, 240, 255, 0.03);
+            background: rgba(255, 23, 68, 0.04);
             color: #FFFFFF;
         }}
 
-        /* Neon Badges */
+        /* Fluidic Neon Badges */
         .badge {{
-            padding: 3px 8px;
-            border-radius: 4px;
+            padding: 3px 9px;
+            border-radius: 9999px; /* Fluidic pill badge */
             font-size: 10px;
             font-weight: 700;
             text-transform: uppercase;
-            font-family: 'Orbitron', monospace;
+            font-family: 'Share Tech Mono', monospace;
             letter-spacing: 0.06em;
         }}
 
         .badge-success {{
-            background: rgba(5, 255, 161, 0.12);
+            background: rgba(0, 230, 118, 0.12);
             color: var(--neon-green);
-            border: 1px solid rgba(5, 255, 161, 0.45);
-            box-shadow: 0 0 8px rgba(5, 255, 161, 0.35);
+            border: 1px solid rgba(0, 230, 118, 0.45);
+            box-shadow: 0 0 8px rgba(0, 230, 118, 0.4);
         }}
 
         .badge-defense {{
-            background: rgba(255, 184, 0, 0.12);
+            background: rgba(255, 158, 0, 0.12);
             color: var(--neon-amber);
-            border: 1px solid rgba(255, 184, 0, 0.45);
-            box-shadow: 0 0 8px rgba(255, 184, 0, 0.35);
+            border: 1px solid rgba(255, 158, 0, 0.45);
+            box-shadow: 0 0 8px rgba(255, 158, 0, 0.4);
         }}
 
         .badge-danger {{
-            background: rgba(255, 42, 109, 0.12);
+            background: rgba(255, 23, 68, 0.14);
             color: var(--neon-red);
-            border: 1px solid rgba(255, 42, 109, 0.45);
-            box-shadow: 0 0 8px rgba(255, 42, 109, 0.35);
+            border: 1px solid rgba(255, 23, 68, 0.45);
+            box-shadow: 0 0 8px rgba(255, 23, 68, 0.5);
         }}
 
         .progress-bar-container {{
             width: 100%;
             height: 8px;
-            background: #080C16;
-            border: 1px solid rgba(0, 240, 255, 0.22);
+            background: #080A12;
+            border: 1px solid rgba(255, 255, 255, 0.10);
             border-radius: 9999px;
             overflow: hidden;
             margin-top: 10px;
@@ -549,9 +554,9 @@ def generate_dashboard_html() -> str:
 
         .progress-bar-fill {{
             height: 100%;
-            background: linear-gradient(90deg, var(--neon-cyan), var(--neon-green));
+            background: linear-gradient(90deg, #FFFFFF, var(--neon-red));
             border-radius: 9999px;
-            box-shadow: 0 0 10px var(--neon-cyan);
+            box-shadow: 0 0 10px var(--neon-red);
         }}
 
         .footer {{
@@ -560,51 +565,51 @@ def generate_dashboard_html() -> str:
             color: var(--text-secondary);
             font-family: 'Share Tech Mono', monospace;
             padding: 24px 0;
-            border-top: 1px solid rgba(0, 240, 255, 0.15);
+            border-top: 1px solid rgba(255, 23, 68, 0.20);
             margin-top: 32px;
         }}
     </style>
 </head>
 <body>
 <div class="container">
-    <!-- 1960s Quotron Stock Ticker Ribbon -->
+    <!-- 1960s Quotron Stock Ticker Ribbon (Fluidic Pill) -->
     <div class="retro-ticker-ribbon">
-        <div class="ticker-badge"><span class="pulse-dot"></span>NSE // BSE TELETYPE 1960</div>
+        <div class="ticker-badge"><span class="pulse-dot"></span>1960s NSE // BSE TELETYPE</div>
         <div class="ticker-content">
             <div class="ticker-marquee-inner">
-                <div class="tick-item"><span style="font-weight:700; color:#FFFFFF;">NIFTY 50</span> <span style="color:#A1A1AA;">24,180.50</span> <span class="tick-up">▲ +0.72%</span></div>
-                <div class="tick-item"><span style="font-weight:700; color:#FFFFFF;">SENSEX</span> <span style="color:#A1A1AA;">79,420.10</span> <span class="tick-up">▲ +0.65%</span></div>
-                <div class="tick-item"><span style="font-weight:700; color:#FFFFFF;">RELIANCE</span> <span style="color:#A1A1AA;">₹2,980.50</span> <span class="tick-up">▲ +1.42%</span></div>
-                <div class="tick-item"><span style="font-weight:700; color:#FFFFFF;">TCS</span> <span style="color:#A1A1AA;">₹4,120.00</span> <span class="tick-down">▼ -0.58%</span></div>
-                <div class="tick-item"><span style="font-weight:700; color:#FFFFFF;">HDFCBANK</span> <span style="color:#A1A1AA;">₹1,650.25</span> <span class="tick-up">▲ +0.84%</span></div>
-                <div class="tick-item"><span style="font-weight:700; color:#FFFFFF;">INFY</span> <span style="color:#A1A1AA;">₹1,840.10</span> <span class="tick-up">▲ +1.18%</span></div>
-                <div class="tick-item"><span style="font-weight:700; color:#FFFFFF;">ICICIBANK</span> <span style="color:#A1A1AA;">₹1,120.00</span> <span class="tick-up">▲ +0.52%</span></div>
-                <div class="tick-item"><span style="font-weight:700; color:#FFFFFF;">BHARTIARTL</span> <span style="color:#A1A1AA;">₹1,410.80</span> <span class="tick-up">▲ +2.05%</span></div>
-                <div class="tick-item"><span style="font-weight:700; color:#FFFFFF;">ITC</span> <span style="color:#A1A1AA;">₹485.20</span> <span class="tick-up">▲ +0.38%</span></div>
-                <div class="tick-item"><span style="font-weight:700; color:#FFFFFF;">LT</span> <span style="color:#A1A1AA;">₹3,580.00</span> <span class="tick-up">▲ +0.95%</span></div>
-                <div class="tick-item"><span style="font-weight:700; color:#FFFFFF;">SBIN</span> <span style="color:#A1A1AA;">₹810.40</span> <span class="tick-down">▼ -0.32%</span></div>
-                <div class="tick-item"><span style="font-weight:700; color:#FFFFFF;">TATAMOTORS</span> <span style="color:#A1A1AA;">₹945.60</span> <span class="tick-up">▲ +1.65%</span></div>
-                <!-- Duplicate set for seamless continuous marquee -->
-                <div class="tick-item"><span style="font-weight:700; color:#FFFFFF;">NIFTY 50</span> <span style="color:#A1A1AA;">24,180.50</span> <span class="tick-up">▲ +0.72%</span></div>
-                <div class="tick-item"><span style="font-weight:700; color:#FFFFFF;">SENSEX</span> <span style="color:#A1A1AA;">79,420.10</span> <span class="tick-up">▲ +0.65%</span></div>
-                <div class="tick-item"><span style="font-weight:700; color:#FFFFFF;">RELIANCE</span> <span style="color:#A1A1AA;">₹2,980.50</span> <span class="tick-up">▲ +1.42%</span></div>
-                <div class="tick-item"><span style="font-weight:700; color:#FFFFFF;">TCS</span> <span style="color:#A1A1AA;">₹4,120.00</span> <span class="tick-down">▼ -0.58%</span></div>
-                <div class="tick-item"><span style="font-weight:700; color:#FFFFFF;">HDFCBANK</span> <span style="color:#A1A1AA;">₹1,650.25</span> <span class="tick-up">▲ +0.84%</span></div>
-                <div class="tick-item"><span style="font-weight:700; color:#FFFFFF;">INFY</span> <span style="color:#A1A1AA;">₹1,840.10</span> <span class="tick-up">▲ +1.18%</span></div>
-                <div class="tick-item"><span style="font-weight:700; color:#FFFFFF;">ICICIBANK</span> <span style="color:#A1A1AA;">₹1,120.00</span> <span class="tick-up">▲ +0.52%</span></div>
-                <div class="tick-item"><span style="font-weight:700; color:#FFFFFF;">BHARTIARTL</span> <span style="color:#A1A1AA;">₹1,410.80</span> <span class="tick-up">▲ +2.05%</span></div>
-                <div class="tick-item"><span style="font-weight:700; color:#FFFFFF;">ITC</span> <span style="color:#A1A1AA;">₹485.20</span> <span class="tick-up">▲ +0.38%</span></div>
-                <div class="tick-item"><span style="font-weight:700; color:#FFFFFF;">LT</span> <span style="color:#A1A1AA;">₹3,580.00</span> <span class="tick-up">▲ +0.95%</span></div>
-                <div class="tick-item"><span style="font-weight:700; color:#FFFFFF;">SBIN</span> <span style="color:#A1A1AA;">₹810.40</span> <span class="tick-down">▼ -0.32%</span></div>
-                <div class="tick-item"><span style="font-weight:700; color:#FFFFFF;">TATAMOTORS</span> <span style="color:#A1A1AA;">₹945.60</span> <span class="tick-up">▲ +1.65%</span></div>
+                <div class="tick-item"><span style="font-weight:700; color:#FFFFFF; text-shadow:0 0 4px rgba(255,255,255,0.8);">NIFTY 50</span> <span style="color:#A4B1C2;">24,180.50</span> <span class="tick-up">▲ +0.72%</span></div>
+                <div class="tick-item"><span style="font-weight:700; color:#FFFFFF; text-shadow:0 0 4px rgba(255,255,255,0.8);">SENSEX</span> <span style="color:#A4B1C2;">79,420.10</span> <span class="tick-up">▲ +0.65%</span></div>
+                <div class="tick-item"><span style="font-weight:700; color:#FFFFFF; text-shadow:0 0 4px rgba(255,255,255,0.8);">RELIANCE</span> <span style="color:#A4B1C2;">₹2,980.50</span> <span class="tick-up">▲ +1.42%</span></div>
+                <div class="tick-item"><span style="font-weight:700; color:#FFFFFF; text-shadow:0 0 4px rgba(255,255,255,0.8);">TCS</span> <span style="color:#A4B1C2;">₹4,120.00</span> <span class="tick-down">▼ -0.58%</span></div>
+                <div class="tick-item"><span style="font-weight:700; color:#FFFFFF; text-shadow:0 0 4px rgba(255,255,255,0.8);">HDFCBANK</span> <span style="color:#A4B1C2;">₹1,650.25</span> <span class="tick-up">▲ +0.84%</span></div>
+                <div class="tick-item"><span style="font-weight:700; color:#FFFFFF; text-shadow:0 0 4px rgba(255,255,255,0.8);">INFY</span> <span style="color:#A4B1C2;">₹1,840.10</span> <span class="tick-up">▲ +1.18%</span></div>
+                <div class="tick-item"><span style="font-weight:700; color:#FFFFFF; text-shadow:0 0 4px rgba(255,255,255,0.8);">ICICIBANK</span> <span style="color:#A4B1C2;">₹1,120.00</span> <span class="tick-up">▲ +0.52%</span></div>
+                <div class="tick-item"><span style="font-weight:700; color:#FFFFFF; text-shadow:0 0 4px rgba(255,255,255,0.8);">BHARTIARTL</span> <span style="color:#A4B1C2;">₹1,410.80</span> <span class="tick-up">▲ +2.05%</span></div>
+                <div class="tick-item"><span style="font-weight:700; color:#FFFFFF; text-shadow:0 0 4px rgba(255,255,255,0.8);">ITC</span> <span style="color:#A4B1C2;">₹485.20</span> <span class="tick-up">▲ +0.38%</span></div>
+                <div class="tick-item"><span style="font-weight:700; color:#FFFFFF; text-shadow:0 0 4px rgba(255,255,255,0.8);">LT</span> <span style="color:#A4B1C2;">₹3,580.00</span> <span class="tick-up">▲ +0.95%</span></div>
+                <div class="tick-item"><span style="font-weight:700; color:#FFFFFF; text-shadow:0 0 4px rgba(255,255,255,0.8);">SBIN</span> <span style="color:#A4B1C2;">₹810.40</span> <span class="tick-down">▼ -0.32%</span></div>
+                <div class="tick-item"><span style="font-weight:700; color:#FFFFFF; text-shadow:0 0 4px rgba(255,255,255,0.8);">TATAMOTORS</span> <span style="color:#A4B1C2;">₹945.60</span> <span class="tick-up">▲ +1.65%</span></div>
+                <!-- Continuous seamless marquee loop -->
+                <div class="tick-item"><span style="font-weight:700; color:#FFFFFF; text-shadow:0 0 4px rgba(255,255,255,0.8);">NIFTY 50</span> <span style="color:#A4B1C2;">24,180.50</span> <span class="tick-up">▲ +0.72%</span></div>
+                <div class="tick-item"><span style="font-weight:700; color:#FFFFFF; text-shadow:0 0 4px rgba(255,255,255,0.8);">SENSEX</span> <span style="color:#A4B1C2;">79,420.10</span> <span class="tick-up">▲ +0.65%</span></div>
+                <div class="tick-item"><span style="font-weight:700; color:#FFFFFF; text-shadow:0 0 4px rgba(255,255,255,0.8);">RELIANCE</span> <span style="color:#A4B1C2;">₹2,980.50</span> <span class="tick-up">▲ +1.42%</span></div>
+                <div class="tick-item"><span style="font-weight:700; color:#FFFFFF; text-shadow:0 0 4px rgba(255,255,255,0.8);">TCS</span> <span style="color:#A4B1C2;">₹4,120.00</span> <span class="tick-down">▼ -0.58%</span></div>
+                <div class="tick-item"><span style="font-weight:700; color:#FFFFFF; text-shadow:0 0 4px rgba(255,255,255,0.8);">HDFCBANK</span> <span style="color:#A4B1C2;">₹1,650.25</span> <span class="tick-up">▲ +0.84%</span></div>
+                <div class="tick-item"><span style="font-weight:700; color:#FFFFFF; text-shadow:0 0 4px rgba(255,255,255,0.8);">INFY</span> <span style="color:#A4B1C2;">₹1,840.10</span> <span class="tick-up">▲ +1.18%</span></div>
+                <div class="tick-item"><span style="font-weight:700; color:#FFFFFF; text-shadow:0 0 4px rgba(255,255,255,0.8);">ICICIBANK</span> <span style="color:#A4B1C2;">₹1,120.00</span> <span class="tick-up">▲ +0.52%</span></div>
+                <div class="tick-item"><span style="font-weight:700; color:#FFFFFF; text-shadow:0 0 4px rgba(255,255,255,0.8);">BHARTIARTL</span> <span style="color:#A4B1C2;">₹1,410.80</span> <span class="tick-up">▲ +2.05%</span></div>
+                <div class="tick-item"><span style="font-weight:700; color:#FFFFFF; text-shadow:0 0 4px rgba(255,255,255,0.8);">ITC</span> <span style="color:#A4B1C2;">₹485.20</span> <span class="tick-up">▲ +0.38%</span></div>
+                <div class="tick-item"><span style="font-weight:700; color:#FFFFFF; text-shadow:0 0 4px rgba(255,255,255,0.8);">LT</span> <span style="color:#A4B1C2;">₹3,580.00</span> <span class="tick-up">▲ +0.95%</span></div>
+                <div class="tick-item"><span style="font-weight:700; color:#FFFFFF; text-shadow:0 0 4px rgba(255,255,255,0.8);">SBIN</span> <span style="color:#A4B1C2;">₹810.40</span> <span class="tick-down">▼ -0.32%</span></div>
+                <div class="tick-item"><span style="font-weight:700; color:#FFFFFF; text-shadow:0 0 4px rgba(255,255,255,0.8);">TATAMOTORS</span> <span style="color:#A4B1C2;">₹945.60</span> <span class="tick-up">▲ +1.65%</span></div>
             </div>
         </div>
     </div>
 
-    <!-- Retro HUD Header -->
+    <!-- Retro HUD Command Strip (Hot White & Ruby Red) -->
     <div class="header">
         <div class="header-title">
-            <h1>ANTIGRAVITY <span style="color: var(--neon-cyan);">// QUANTUM TERMINAL [GATE B]</span></h1>
+            <h1>ANTIGRAVITY <span style="color: var(--neon-red); text-shadow: 0 0 12px rgba(255,23,68,0.75);">// 1960s QUOTRON QUANTUM DESK</span></h1>
             <p>Phase 1 Multi-Asset Growth + Phase 3 Sovereign Carry Haven • Central Manager Reconciled</p>
         </div>
         <div style="display: flex; gap: 12px; align-items: center;">
@@ -622,7 +627,7 @@ def generate_dashboard_html() -> str:
     <div class="grid-kpis">
         <div class="card">
             <div class="kpi-title">Combined Fund Value</div>
-            <div class="kpi-value" style="color: var(--neon-cyan);">₹{combined_nav:,.2f}</div>
+            <div class="kpi-value" style="color: #FFFFFF;">₹{combined_nav:,.2f}</div>
             <div class="kpi-subtitle" style="color: {pnl_badge_color};">
                 {total_pnl_pct:+.2f}% (₹{total_pnl:+,.2f}) vs ₹100k Seed
             </div>
@@ -636,7 +641,7 @@ def generate_dashboard_html() -> str:
         </div>
         <div class="card">
             <div class="kpi-title">Current Peak Drawdown</div>
-            <div class="kpi-value" style="color: {'#05FFA1' if curr_dd >= -1.0 else '#FF2A6D'};">{curr_dd:+.2f}%</div>
+            <div class="kpi-value" style="color: {'#00E676' if curr_dd >= -1.0 else '#FF1744'};">{curr_dd:+.2f}%</div>
             <div class="kpi-subtitle" style="color: var(--text-secondary);">
                 Max DD: {max_dd:.2f}% | Ladder Tier 1: -5.0%
             </div>
@@ -678,7 +683,7 @@ def generate_dashboard_html() -> str:
             </div>
             <div style="font-size: 12px; font-family: 'Share Tech Mono', monospace;">
                 <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
-                    <span style="color: var(--neon-cyan);">● Sleeve 1 (Multi-Asset Equity & Gold):</span>
+                    <span style="color: #FFFFFF;">● Sleeve 1 (Multi-Asset Equity & Gold):</span>
                     <strong>₹{etf_nav:,.2f} ({(etf_nav/combined_nav*100):.1f}%)</strong>
                 </div>
                 <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
@@ -694,10 +699,10 @@ def generate_dashboard_html() -> str:
     </div>
 
     <!-- Incubation Progress Banner -->
-    <div class="card" style="margin-bottom: 24px; border-left: 4px solid var(--neon-cyan);">
+    <div class="card" style="margin-bottom: 24px; border-left: 4px solid var(--neon-red);">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-            <span style="font-family: 'Orbitron', sans-serif; font-weight: 700; color: var(--neon-cyan); font-size: 0.92rem;">🛡️ Gate B Institutional 13-Week Incubation Progress</span>
-            <span style="font-size: 13px; font-family: 'Orbitron', monospace; font-weight: 700; color: #FFFFFF;">Day {days_incubated} of {target_days} ({((days_incubated/target_days)*100):.1f}%)</span>
+            <span style="font-family: 'Outfit', sans-serif; font-weight: 700; color: #FFFFFF; font-size: 0.95rem;">🛡️ Gate B Institutional 13-Week Incubation Progress</span>
+            <span style="font-size: 13px; font-family: 'Outfit', monospace; font-weight: 700; color: #FFFFFF;">Day {days_incubated} of {target_days} ({((days_incubated/target_days)*100):.1f}%)</span>
         </div>
         <p style="font-size: 12px; font-family: 'Share Tech Mono', monospace; color: var(--text-secondary);">Autonomous paper trading verification executing daily on GitHub Actions with zero human intervention. Target completion: 15 February 2027.</p>
         <div class="progress-bar-container">
@@ -729,7 +734,7 @@ def generate_dashboard_html() -> str:
                 </tbody>
             </table>
         </div>
-        </div>
+    </div>
 
     <!-- Sleeve 2 Holdings Table -->
     <div class="card" style="margin-bottom: 24px;">
@@ -785,13 +790,13 @@ def generate_dashboard_html() -> str:
 
     <!-- Footer -->
     <div class="footer">
-        <p>ANTIGRAVITY // QUANTUM EXCHANGE ARCHITECTURE | Operating Mode: <strong>{mode}</strong> | Governance: Strict Gate B Invariant Protocol</p>
+        <p>ANTIGRAVITY // 1960s QUOTRON QUANTUM DESK | Operating Mode: <strong>{mode}</strong> | Governance: Strict Gate B Invariant Protocol</p>
         <p style="margin-top: 4px; font-size: 11px; color: #526075;">Automated pipeline runs every Indian exchange trading session at 16:13 IST (10:43 UTC).</p>
     </div>
 </div>
 
 <script>
-    // Equity Curve Chart
+    // Equity Curve Chart (Hot White Core with Ruby Red Neon Glow)
     const ctxEquity = document.getElementById('equityChart').getContext('2d');
     new Chart(ctxEquity, {{
         type: 'line',
@@ -801,9 +806,9 @@ def generate_dashboard_html() -> str:
                 {{
                     label: 'Fund NAV (INR ₹)',
                     data: {json.dumps(nav_list)},
-                    borderColor: '#00F0FF',
-                    backgroundColor: 'rgba(0, 240, 255, 0.12)',
-                    borderWidth: 2.4,
+                    borderColor: '#FFFFFF',
+                    backgroundColor: 'rgba(255, 23, 68, 0.14)',
+                    borderWidth: 2.6,
                     fill: true,
                     tension: 0.25,
                     yAxisID: 'y'
@@ -811,9 +816,9 @@ def generate_dashboard_html() -> str:
                 {{
                     label: 'Drawdown (%)',
                     data: {json.dumps(dd_list)},
-                    borderColor: '#FF2A6D',
+                    borderColor: '#FF1744',
                     borderWidth: 1.8,
-                    borderDash: [4, 4],
+                    borderDash: [5, 5],
                     fill: false,
                     tension: 0.2,
                     yAxisID: 'y1'
@@ -826,20 +831,20 @@ def generate_dashboard_html() -> str:
             interaction: {{ mode: 'index', intersect: false }},
             scales: {{
                 x: {{
-                    grid: {{ color: 'rgba(0, 240, 255, 0.08)' }},
-                    ticks: {{ color: '#7A8C9E', font: {{ family: "'Share Tech Mono'" }} }}
+                    grid: {{ color: 'rgba(255, 255, 255, 0.05)' }},
+                    ticks: {{ color: '#8E99A8', font: {{ family: "'Share Tech Mono'" }} }}
                 }},
                 y: {{
                     position: 'left',
-                    grid: {{ color: 'rgba(0, 240, 255, 0.08)' }},
-                    ticks: {{ color: '#00F0FF', font: {{ family: "'Share Tech Mono'" }}, callback: v => '₹' + v.toLocaleString() }},
+                    grid: {{ color: 'rgba(255, 255, 255, 0.05)' }},
+                    ticks: {{ color: '#FFFFFF', font: {{ family: "'Share Tech Mono'" }}, callback: v => '₹' + v.toLocaleString() }},
                     suggestedMin: 98000,
                     suggestedMax: 100500
                 }},
                 y1: {{
                     position: 'right',
                     grid: {{ drawOnChartArea: false }},
-                    ticks: {{ color: '#FF2A6D', font: {{ family: "'Share Tech Mono'" }}, callback: v => v + '%' }},
+                    ticks: {{ color: '#FF1744', font: {{ family: "'Share Tech Mono'" }}, callback: v => v + '%' }},
                     suggestedMin: -3.0,
                     suggestedMax: 0.5
                 }}
@@ -858,9 +863,9 @@ def generate_dashboard_html() -> str:
             labels: ['Sleeve 1: Multi-Asset & Gold', 'Sleeve 2: Debt Carry Haven'],
             datasets: [{{
                 data: [{etf_nav:.2f}, {bond_nav:.2f}],
-                backgroundColor: ['#00F0FF', '#FFB800'],
+                backgroundColor: ['#FFFFFF', '#FF9E00'],
                 borderWidth: 1,
-                borderColor: '#06080F'
+                borderColor: '#05070B'
             }}]
         }},
         options: {{
