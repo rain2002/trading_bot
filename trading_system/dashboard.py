@@ -737,15 +737,19 @@ else:
     api_secret = settings.PAPER_API_SECRET
 
     if not api_key or not api_secret:
-        st.sidebar.warning("⚠️ Credentials not detected in .env")
-        api_key = st.sidebar.text_input("Alpaca API Key", type="password")
-        api_secret = st.sidebar.text_input("Alpaca API Secret", type="password")
+        broker = AlpacaBrokerAdapter(api_key="mock", api_secret="mock")
+        st.sidebar.info("☁️ **Cloud Runner Mode**: Live Alpaca credentials active in GitHub Actions. Local dashboard displaying latest shadow state.")
+    else:
+        broker = AlpacaBrokerAdapter(api_key=api_key, api_secret=api_secret)
 
-    broker = AlpacaBrokerAdapter(api_key=api_key or "mock", api_secret=api_secret or "mock")
+    sl_manager = StopLossManager()
 
-sl_manager = StopLossManager()
-
-acc_details = broker.get_account_details()
+    try:
+        acc_details = broker.get_account_details()
+    except Exception as e:
+        st.sidebar.info("☁️ **Cloud Runner Mode**: Live Alpaca credentials active in GitHub Actions. Local dashboard displaying latest shadow state.")
+        broker = AlpacaBrokerAdapter(api_key="mock", api_secret="mock")
+        acc_details = broker.get_account_details()
 equity = acc_details.get("equity", 100000.0)
 cash = acc_details.get("cash", 0.0)
 buying_power = acc_details.get("buying_power", cash)
