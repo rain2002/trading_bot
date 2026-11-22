@@ -593,29 +593,29 @@
             </div>
             <div style="font-size: 0.82rem; color: var(--text-dim); display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
                 <span>CENTRAL HEDGE FUND ARCHITECTURE &bull; SEBI 100% CNC CASH DELIVERY</span>
-                <span>DATA TIMESTAMP: <strong class="text-amber">2026-11-20 18:49:13</strong></span>
+                <span>DATA TIMESTAMP: <strong class="text-amber">NO DATA</strong></span>
             </div>
         </header>
 
         <!-- PRIMARY STATUS STRIP (OK / STALE / DATA FAULT / HALTED) -->
-        <section class="status-strip status-ok" aria-label="Fund Telemetry Operational Status">
+        <section class="status-strip status-fault" aria-label="Fund Telemetry Operational Status">
             <div class="status-badge-main">
                 <span>STATUS:</span>
-                <span>[OK]</span>
-                <span style="font-size: 0.85rem; font-weight: normal; margin-left: 6px;">(AUTONOMOUS TRADING OPERATION NOMINAL)</span>
+                <span>[DATA FAULT]</span>
+                <span style="font-size: 0.85rem; font-weight: normal; margin-left: 6px;">(manager_state.json MISSING OR UNREADABLE)</span>
             </div>
             <div class="status-telemetry">
-                <span>LAST SESSION: <strong class="text-amber">2026-11-20</strong></span>
-                <span>DATA AGE: <strong class="text-amber">2d</strong></span>
-                <span>MODE: <strong class="text-amber">PAPER</strong></span>
+                <span>LAST SESSION: <strong class="text-amber"><span class="nodata">[NO DATA]</span></strong></span>
+                <span>DATA AGE: <strong class="text-amber">NO DATA</strong></span>
+                <span>MODE: <strong class="text-amber"><span class="nodata">[NO DATA]</span></strong></span>
             </div>
         </section>
 
         <!-- ACTUAL FUND HOLDINGS STRIP (RULE 3: NO FAKE TICKER TAPE) -->
         <div class="holdings-tape" role="region" aria-label="Actual Fund Holdings Quotes">
-            <span class="tape-label">FUND HOLDINGS (2026-11-20):</span>
+            <span class="tape-label">FUND HOLDINGS (NO DATE):</span>
             <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                <span class="holding-chip"><span class="chip-sym">GOLDBEES.NS</span>: ₹102.21</span> &bull; <span class="holding-chip"><span class="chip-sym">LTGILTBEES.NS</span>: ₹29.81</span> &bull; <span class="holding-chip"><span class="chip-sym">MID150BEES.NS</span>: ₹235.09</span> &bull; <span class="holding-chip"><span class="chip-sym">MON100.NS</span>: ₹298.89</span> &bull; <span class="holding-chip"><span class="chip-sym">NIFTYBEES.NS</span>: ₹294.22</span> &bull; <span class="holding-chip"><span class="chip-sym">LIQUIDBEES.NS</span>: ₹999.99</span>
+                <span class="nodata">[NO RECORDED ACTIVE HOLDINGS IN CURRENT STATE]</span>
             </div>
         </div>
 
@@ -625,25 +625,25 @@
             <div class="terminal-card">
                 <div class="card-header">
                     <span>Gate B Institutional Incubation Progress</span>
-                    <span class="badge-pass">DAY 5 OF 91 (5.5%)</span>
+                    <span class="badge-pass"><span class="nodata">[NO DATA]</span></span>
                 </div>
                 <div class="ascii-bar-row">
-                    PROGRESS: <span class="text-amber">[█░░░░░░░░░░░░░░░░░░░░░░░]</span>
+                    PROGRESS: <span class="text-amber">[░░░░░░░░░░░░░░░░░░░░░░░░]</span>
                 </div>
                 <ul class="criteria-list">
                     <li>
                         <span>1. Duration (13 Weeks / 91 Days Uninterrupted):</span>
-                        <strong class="text-amber">5 / 91 DAYS</strong>
+                        <strong class="text-amber"><span class="nodata">[NO DATA]</span> / 91 DAYS</strong>
                     </li>
                     <li>
                         <span>2. Drawdown Control (&le; 40.00% Kill Switch Limit):</span>
-                        <strong class="text-green">
-                            -1.92% (KILL SWITCH -40.0%)
+                        <strong class="text-alert">
+                            <span class="nodata">[NO DATA]</span> (KILL SWITCH -40.0%)
                         </strong>
                     </li>
                     <li>
                         <span>3. Multi-Sleeve Reconciliation (Daily Gap &le; 0.10%):</span>
-                        <strong><span class="badge-pass">[PASS] 0.00% GAP &le; 0.10%</span></strong>
+                        <strong><span class="nodata">[NO DATA]</span></strong>
                     </li>
                     <li>
                         <span>4. Capital Invariant (100% Cash Delivery, Zero Leverage):</span>
@@ -656,18 +656,18 @@
             <div class="terminal-card">
                 <div class="card-header">
                     <span>Emergency Kill Switch Safeguard</span>
-                    <span class="badge-dim">THROTTLE: OFF (policy)</span>
+                    <span class="badge-dim">THROTTLE: <span class="nodata">[NO DATA]</span></span>
                 </div>
                 <div class="ascii-bar-row">
                     DISTANCE TO -40% KILL SWITCH:
                 </div>
                 <div class="ascii-bar-row" style="font-size: 1.05rem; font-weight: 700;">
-                    <span class="text-amber">[███████████████████░]</span> <span class="badge-pass">[ARMED &bull; SAFE] +38.08% BUFFER</span>
+                    <span class="text-amber">[░░░░░░░░░░░░░░░░░░░░]</span> <span class="nodata">[NO DATA]</span>
                 </div>
                 <ul class="criteria-list" style="margin-top: 8px;">
                     <li>
                         <span>Current Fund Drawdown:</span>
-                        <strong class="text-alert">-1.92%</strong>
+                        <strong class="text-alert"><span class="nodata">[NO DATA]</span></strong>
                     </li>
                     <li>
                         <span>Emergency Kill Switch Threshold:</span>
@@ -675,7 +675,7 @@
                     </li>
                     <li>
                         <span>Remaining Safety Buffer:</span>
-                        <strong class="text-green">+38.08%</strong>
+                        <strong class="text-alert">+<span class="nodata">[NO DATA]</span></strong>
                     </li>
                     <li>
                         <span>Throttle Policy (T1 Pre-Registered):</span>
@@ -698,36 +698,36 @@
             <div class="metrics-grid">
                 <div class="metric-box">
                     <div class="metric-title">Combined Fund NAV</div>
-                    <div class="metric-number text-amber">₹98,474.89</div>
-                    <div class="metric-sub">Base Seed Capital: ₹1,00,000.00</div>
+                    <div class="metric-number text-amber"><span class="nodata">[NO DATA]</span></div>
+                    <div class="metric-sub">Base Seed Capital: <span class="nodata">[NO DATA]</span></div>
                 </div>
                 <div class="metric-box">
                     <div class="metric-title">Unitized NAV Per Share</div>
-                    <div class="metric-number text-green">98.0828</div>
-                    <div class="metric-sub">Base NAV: 100.0000 &bull; HWM: 100.0000</div>
+                    <div class="metric-number text-green"><span class="nodata">[NO DATA]</span></div>
+                    <div class="metric-sub">Base NAV: 100.0000 &bull; HWM: <span class="nodata">[NO DATA]</span></div>
                 </div>
                 <div class="metric-box">
                     <div class="metric-title">Inception PnL vs Seed</div>
                     <div class="metric-number text-alert">
-                        -1.53%
+                        <span class="nodata">[NO DATA]</span>
                     </div>
-                    <div class="metric-sub">Net Alpha: -₹1,525.11</div>
+                    <div class="metric-sub">Net Alpha: <span class="nodata">[NO DATA]</span></div>
                 </div>
                 <div class="metric-box">
                     <div class="metric-title">Current / Peak Drawdown</div>
                     <div class="metric-number text-alert">
-                        -1.92%
+                        <span class="nodata">[NO DATA]</span>
                     </div>
-                    <div class="metric-sub">Max Recorded Drawdown: -1.92%</div>
+                    <div class="metric-sub">Max Recorded Drawdown: <span class="nodata">[NO DATA]</span></div>
                 </div>
                 <div class="metric-box">
                     <div class="metric-title">Total Issued Units</div>
-                    <div class="metric-number text-amber">800.00</div>
+                    <div class="metric-number text-amber"><span class="nodata">[NO DATA]</span></div>
                     <div class="metric-sub">Daily Unitized Ledger Accounting</div>
                 </div>
                 <div class="metric-box">
                     <div class="metric-title">Reconciliation Invariant</div>
-                    <div class="metric-number"><span class="badge-pass">[PASS] 0.00% GAP &le; 0.10%</span></div>
+                    <div class="metric-number"><span class="nodata">[NO DATA]</span></div>
                     <div class="metric-sub">Sleeve 1 + Sleeve 2 &equiv; Central Fund NAV</div>
                 </div>
             </div>
@@ -739,7 +739,7 @@
                     <span class="text-dim">Verified End-of-Day Telemetry</span>
                 </div>
                 <div class="chart-box">
-                    <canvas id="equityChart"></canvas>
+                    <div class="nodata-cell" style="padding-top: 100px;">[NO HISTORICAL LOG SESSIONS TO GRAPH]</div>
                 </div>
             </div>
 
@@ -769,19 +769,19 @@
                             <tr>
                                 <td>Multi-Sleeve NAV Reconciliation</td>
                                 <td>Tolerance &le; 0.10% Gap</td>
-                                <td>0.00%</td>
-                                <td><span class="badge-pass">[PASS] 0.00% GAP &le; 0.10%</span></td>
+                                <td><span class="nodata">[NO DATA]</span></td>
+                                <td><span class="nodata">[NO DATA]</span></td>
                             </tr>
                             <tr>
                                 <td>Institutional Drawdown Guardrail</td>
                                 <td>Emergency Kill Switch: -40.00% (Throttles OFF)</td>
-                                <td>Current: -1.92% (Buffer: +38.08%)</td>
+                                <td>Current: <span class="nodata">[NO DATA]</span> (Buffer: +<span class="nodata">[NO DATA]</span>)</td>
                                 <td><span class="badge-pass">[KILL SWITCH ARMED &bull; SAFE]</span></td>
                             </tr>
                             <tr>
                                 <td>Daily Unitized NAV Ledger</td>
                                 <td>Base NAV 100.0000</td>
-                                <td>98.0828 NAV / 800.0 Units</td>
+                                <td><span class="nodata">[NO DATA]</span> NAV / <span class="nodata">[NO DATA]</span> Units</td>
                                 <td><span class="badge-pass">[RECORDED IN LEDGER]</span></td>
                             </tr>
                         </tbody>
@@ -796,7 +796,7 @@
             <div class="terminal-card" style="margin-bottom: 16px;">
                 <div class="card-header">
                     <span>Sleeve 1: Multi-Asset Equity &amp; Gold (Phase 1 Champion)</span>
-                    <span>NAV: <strong class="text-amber">₹78,466.25</strong> &bull; Cash: ₹366.31</span>
+                    <span>NAV: <strong class="text-amber"><span class="nodata">[NO DATA]</span></strong> &bull; Cash: <span class="nodata">[NO DATA]</span></span>
                 </div>
                 <div class="table-scroll">
                     <table>
@@ -812,63 +812,13 @@
                             </tr>
                         </thead>
                         <tbody>
-                            
-            <tr>
-                <td class="font-bold text-amber">GOLDBEES.NS</td>
-                <td>178</td>
-                <td>₹111.91</td>
-                <td>₹102.21</td>
-                <td>₹18,193.38 (18.5%)</td>
-                <td class="text-alert font-bold">-8.67% (-₹1,726.60)</td>
-                <td><span class="badge-pass">[ACTIVE SLEEVE 1]</span></td>
-            </tr>
-            
-            <tr>
-                <td class="font-bold text-amber">LTGILTBEES.NS</td>
-                <td>541</td>
-                <td>₹29.54</td>
-                <td>₹29.81</td>
-                <td>₹16,127.21 (16.4%)</td>
-                <td class="text-green font-bold">+0.91% (₹146.07)</td>
-                <td><span class="badge-pass">[ACTIVE SLEEVE 1]</span></td>
-            </tr>
-            
-            <tr>
-                <td class="font-bold text-amber">MID150BEES.NS</td>
-                <td>51</td>
-                <td>₹234.72</td>
-                <td>₹235.09</td>
-                <td>₹11,989.59 (12.2%)</td>
-                <td class="text-green font-bold">+0.16% (₹18.87)</td>
-                <td><span class="badge-pass">[ACTIVE SLEEVE 1]</span></td>
-            </tr>
-            
-            <tr>
-                <td class="font-bold text-amber">MON100.NS</td>
-                <td>66</td>
-                <td>₹302.35</td>
-                <td>₹298.89</td>
-                <td>₹19,726.74 (20.0%)</td>
-                <td class="text-alert font-bold">-1.14% (-₹228.36)</td>
-                <td><span class="badge-pass">[ACTIVE SLEEVE 1]</span></td>
-            </tr>
-            
-            <tr>
-                <td class="font-bold text-amber">NIFTYBEES.NS</td>
-                <td>41</td>
-                <td>₹286.64</td>
-                <td>₹294.22</td>
-                <td>₹12,063.02 (12.2%)</td>
-                <td class="text-green font-bold">+2.64% (₹310.78)</td>
-                <td><span class="badge-pass">[ACTIVE SLEEVE 1]</span></td>
-            </tr>
-            
+                            <tr><td colspan="7" class="nodata-cell">[NO HOLDINGS IN SLEEVE 1 STATE]</td></tr>
     <tr class="row-cash">
         <td class="text-dim">Sleeve 1 Residual Cash</td>
         <td>N/A</td>
         <td>₹1.00</td>
         <td>₹1.00</td>
-        <td>₹366.31 (0.4%)</td>
+        <td><span class="nodata">[NO DATA]</span> (<span class="nodata">[NO DATA]</span>)</td>
         <td class="text-green">+0.00%</td>
         <td><span class="badge-dim">[SETTLEMENT CASH]</span></td>
     </tr>
@@ -882,7 +832,7 @@
             <div class="terminal-card">
                 <div class="card-header">
                     <span>Sleeve 2: Sovereign Bond &amp; Overnight Cash (Phase 3 Haven)</span>
-                    <span>NAV: <strong class="text-amber">₹20,008.64</strong> &bull; Cash: ₹8.84</span>
+                    <span>NAV: <strong class="text-amber"><span class="nodata">[NO DATA]</span></strong> &bull; Cash: <span class="nodata">[NO DATA]</span></span>
                 </div>
 
                 <!-- CRITICAL REQUIREMENT: MODELLED NOTICE (NO EMOJI) -->
@@ -904,23 +854,13 @@
                             </tr>
                         </thead>
                         <tbody>
-                            
-            <tr>
-                <td class="font-bold text-amber">LIQUIDBEES.NS (Overnight Sovereign Repo)</td>
-                <td>20</td>
-                <td>₹1,000.00</td>
-                <td>₹999.99</td>
-                <td>₹19,999.80 (20.3%)</td>
-                <td class="text-green font-bold">Total Carry: ₹22.52</td>
-                <td><span class="badge-pass">[SAFE HAVEN B0]</span></td>
-            </tr>
-            
+                            <tr><td colspan="7" class="nodata-cell">[NO HOLDINGS IN SLEEVE 2 STATE]</td></tr>
     <tr class="row-cash">
         <td class="text-dim">Sleeve 2 Overnight Repo Reserve</td>
         <td>N/A</td>
         <td>₹1.00</td>
         <td>₹1.00</td>
-        <td>₹8.84 (0.0%)</td>
+        <td><span class="nodata">[NO DATA]</span> (<span class="nodata">[NO DATA]</span>)</td>
         <td class="text-green">Accruing ~6.0% p.a.</td>
         <td><span class="badge-dim">[DAILY REPO CARRY]</span></td>
     </tr>
@@ -1066,67 +1006,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            
-            <tr>
-                <td class="text-amber font-bold">2026-11-13</td>
-                <td>₹79,945.49</td>
-                <td>99.9319</td>
-                <td class="text-alert">-0.07%</td>
-                <td>OFF (policy)</td>
-                <td>0.00%</td>
-                <td><span class="badge-pass">[PASS]</span></td>
-            </tr>
-            
-            <tr>
-                <td class="text-amber font-bold">2026-11-16</td>
-                <td>₹99,535.34</td>
-                <td>99.4298</td>
-                <td class="text-alert">-0.57%</td>
-                <td>OFF (policy)</td>
-                <td>0.00%</td>
-                <td><span class="badge-pass">[PASS]</span></td>
-            </tr>
-            
-            <tr>
-                <td class="text-amber font-bold">2026-11-17</td>
-                <td>₹99,551.33</td>
-                <td>99.4442</td>
-                <td class="text-alert">-0.56%</td>
-                <td>OFF (policy)</td>
-                <td>0.00%</td>
-                <td><span class="badge-pass">[PASS]</span></td>
-            </tr>
-            
-            <tr>
-                <td class="text-amber font-bold">2026-11-18</td>
-                <td>₹98,804.20</td>
-                <td>98.5046</td>
-                <td class="text-alert">-1.50%</td>
-                <td>OFF (policy)</td>
-                <td>0.00%</td>
-                <td><span class="badge-pass">[PASS]</span></td>
-            </tr>
-            
-            <tr>
-                <td class="text-amber font-bold">2026-11-19</td>
-                <td>₹99,215.91</td>
-                <td>99.0147</td>
-                <td class="text-alert">-0.99%</td>
-                <td>OFF (policy)</td>
-                <td>0.00%</td>
-                <td><span class="badge-pass">[PASS]</span></td>
-            </tr>
-            
-            <tr>
-                <td class="text-amber font-bold">2026-11-20</td>
-                <td>₹98,474.89</td>
-                <td>98.0828</td>
-                <td class="text-alert">-1.92%</td>
-                <td>OFF (policy)</td>
-                <td>0.00%</td>
-                <td><span class="badge-pass">[PASS]</span></td>
-            </tr>
-            
+                            <tr><td colspan="7" class="nodata-cell">[NO SESSIONS RECORDED IN EQUITY LOG]</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -1136,7 +1016,7 @@
         <!-- FOOTER (ACTUAL RUN TIMES: 18:49–20:30 UTC & COMPILED TIMESTAMP) -->
         <footer class="terminal-footer" role="contentinfo">
             <div>ANTIGRAVITY // 1980s AMBER TERMINAL &bull; GATE B PAPER INCUBATION &bull; RUNNERS EXECUTE 18:49–20:30 UTC</div>
-            <div>STRICT READ-ONLY TELEMETRY &bull; PAGE COMPILED: 2026-11-22 22:44 UTC</div>
+            <div>STRICT READ-ONLY TELEMETRY &bull; PAGE COMPILED: 2026-11-22 22:47 UTC</div>
         </footer>
     </div>
 
@@ -1213,7 +1093,7 @@
 
         // Chart.js Setup
         let equityChartInstance = null;
-        const hasChart = true;
+        const hasChart = false;
 
         if (hasChart) {
             const ctx = document.getElementById('equityChart');
@@ -1227,11 +1107,11 @@
                 equityChartInstance = new Chart(ctx, {
                     type: 'line',
                     data: {
-                        labels: ["2026-11-13", "2026-11-16", "2026-11-17", "2026-11-18", "2026-11-19", "2026-11-20"],
+                        labels: [],
                         datasets: [
                             {
                                 label: 'Fund NAV (INR ₹)',
-                                data: [79945.49, 99535.34, 99551.33, 98804.2, 99215.91, 98474.89],
+                                data: [],
                                 borderColor: navColor,
                                 backgroundColor: isLight ? 'rgba(138,90,0,0.08)' : 'rgba(255,176,0,0.15)',
                                 borderWidth: 2.2,
@@ -1241,7 +1121,7 @@
                             },
                             {
                                 label: 'Drawdown (%)',
-                                data: [-0.07, -0.57, -0.56, -1.5, -0.99, -1.92],
+                                data: [],
                                 borderColor: ddColor,
                                 borderWidth: 1.8,
                                 borderDash: [4, 4],
