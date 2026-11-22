@@ -2,23 +2,29 @@
 Generate Institutional Web Dashboard (1980s Retro Amber Phosphor Terminal)
 ============================================================================
 Compiles current Gate B paper trading state, multi-sleeve holdings, equity curve,
-and risk gauges into a static, single-file HTML dashboard with a CRT amber monochrome
-aesthetic and a Teletype Ledger Paper light theme toggle.
+and risk gauges into a static, single-file HTML dashboard with an authentic 1980s
+CRT amber monochrome aesthetic and a Teletype Ledger Paper light theme toggle.
 
 HARD RULES ENFORCED:
 1. Zero hardcoded or fallback numbers: missing fields render "[NO DATA]" in warning style.
-2. No fake ticker tape: displays only actual verified holdings from current state.
-3. Computed status labels: reconciliation PASS/FAIL vs 0.1% limit, throttle text from
-   throttle_level, issued units from state. Throttle thresholds: -15%, -30%, kill -40%.
-4. Mark bond-sleeve returns "MODELLED (carry model, not market-tested)".
-5. Shadow pods get dedicated tab with permanent "EXPLORATORY - NOT EVIDENCE" banner.
-6. Top status strip: OK / STALE (>3 days old) / DATA FAULT / HALTED with data age.
-7. Mobile-first: 390px viewport works with zero horizontal scroll.
+2. A row with a NaN or missing NAV is displayed as 'DATA FAULT' in warning style,
+   never as PASSED, and never as a number.
+3. No fake ticker tape: displays only actual verified holdings from current state with session date.
+4. Computed status labels: reconciliation PASS/FAIL vs 0.1% limit.
+5. Under FIXED_SHARES_PLUS_KILL_SWITCH policy (T1), multi-tier throttles are OFF (policy)
+   and replaced with a single gauge for distance to the -40% kill switch.
+6. Mark bond-sleeve returns "[!] NOTE: Bond-sleeve returns are MODELLED (carry model, not market-tested)".
+7. Shadow pods get dedicated tab with permanent "[!] EXPLORATORY - NOT EVIDENCE [!]" banner.
+8. Visible Retro 1980s Terminal: Monospaced type everywhere, square corners (0px border-radius),
+   no emoji, no text-glow blur on numbers, scanlines at most 4% opacity.
+9. Top status strip: OK / STALE (>3 days old) / DATA FAULT / HALTED with exact data timestamp and age.
+10. Mobile-first: 390px viewport works with zero horizontal scroll.
 """
 
 import os
 import sys
 import json
+import math
 from datetime import datetime, timezone, date
 import pandas as pd
 
@@ -60,11 +66,13 @@ def load_csv(path: str) -> pd.DataFrame:
 
 
 def format_inr(val, decimals: int = 2, show_symbol: bool = True) -> str:
-    """Format number using Indian digit grouping (e.g. 1,00,000.00). Returns NO DATA if missing."""
+    """Format number using Indian digit grouping (e.g. -₹1,525.11, ₹1,00,000.00). Returns NO DATA / DATA FAULT if invalid."""
     if val is None or not isinstance(val, (int, float)):
         return '<span class="nodata">[NO DATA]</span>'
     try:
         val = float(val)
+        if math.isnan(val) or math.isinf(val):
+            return '<span class="nodata">[DATA FAULT: NaN]</span>'
     except (ValueError, TypeError):
         return '<span class="nodata">[NO DATA]</span>'
 
@@ -87,6 +95,7 @@ def format_inr(val, decimals: int = 2, show_symbol: bool = True) -> str:
             groups.insert(0, rest)
         formatted = ",".join(groups) + "," + last3
 
+    # Negative sign strictly before the rupee symbol: -₹1,525.11
     prefix = "-₹" if is_neg else ("₹" if show_symbol else "")
     if not show_symbol and is_neg:
         prefix = "-"
@@ -94,11 +103,13 @@ def format_inr(val, decimals: int = 2, show_symbol: bool = True) -> str:
 
 
 def format_usd(val, decimals: int = 2, show_symbol: bool = True) -> str:
-    """Format standard USD currency (e.g. $100,000.00). Returns NO DATA if missing."""
+    """Format standard USD currency (e.g. -$1,525.11, $100,000.00). Returns NO DATA if missing."""
     if val is None or not isinstance(val, (int, float)):
         return '<span class="nodata">[NO DATA]</span>'
     try:
         val = float(val)
+        if math.isnan(val) or math.isinf(val):
+            return '<span class="nodata">[DATA FAULT: NaN]</span>'
     except (ValueError, TypeError):
         return '<span class="nodata">[NO DATA]</span>'
 
@@ -117,6 +128,8 @@ def format_pct(val, decimals: int = 2, show_sign: bool = True) -> str:
         return '<span class="nodata">[NO DATA]</span>'
     try:
         val = float(val)
+        if math.isnan(val) or math.isinf(val):
+            return '<span class="nodata">[DATA FAULT: NaN]</span>'
     except (ValueError, TypeError):
         return '<span class="nodata">[NO DATA]</span>'
 
@@ -130,6 +143,8 @@ def format_num(val, decimals: int = 2) -> str:
         return '<span class="nodata">[NO DATA]</span>'
     try:
         val = float(val)
+        if math.isnan(val) or math.isinf(val):
+            return '<span class="nodata">[DATA FAULT: NaN]</span>'
     except (ValueError, TypeError):
         return '<span class="nodata">[NO DATA]</span>'
     return f"{val:,.{decimals}f}"
@@ -138,6 +153,11 @@ def format_num(val, decimals: int = 2) -> str:
 def render_ascii_bar(pct: float, width: int = 20, filled: str = "█", empty: str = "░") -> str:
     """Render an ASCII progress bar."""
     if pct is None or not isinstance(pct, (int, float)):
+        return f"[{empty * width}]"
+    try:
+        if math.isnan(pct) or math.isinf(pct):
+            return f"[{empty * width}]"
+    except Exception:
         return f"[{empty * width}]"
     clamped = max(0.0, min(100.0, float(pct)))
     filled_len = int(round((clamped / 100.0) * width))
@@ -149,7 +169,7 @@ def generate_dashboard_html(data_dir: str = None, output_path: str = None, now_d
     """
     Generate production single-file static HTML dashboard.
     Enforces retro 1980s amber-phosphor CRT trading terminal theme, Teletype paper light theme,
-    and strict data integrity with ZERO fake numbers.
+    square corners, monospaced typography, and strict data integrity with ZERO fake numbers.
     """
     if data_dir is None:
         data_dir = DATA_DIR
@@ -187,7 +207,10 @@ def generate_dashboard_html(data_dir: str = None, output_path: str = None, now_d
         fault_reasons.append("manager_state.json MISSING OR UNREADABLE")
     else:
         # Check essential fields
-        if mgr_state.get("combined_fund_nav") is None and mgr_state.get("unitized_nav") is None:
+        c_nav_check = mgr_state.get("combined_fund_nav")
+        u_nav_check = mgr_state.get("unitized_nav")
+        if (c_nav_check is None or (isinstance(c_nav_check, float) and math.isnan(c_nav_check))) and \
+           (u_nav_check is None or (isinstance(u_nav_check, float) and math.isnan(u_nav_check))):
             data_fault = True
             fault_reasons.append("ESSENTIAL NAV METRICS MISSING IN STATE")
 
@@ -195,20 +218,35 @@ def generate_dashboard_html(data_dir: str = None, output_path: str = None, now_d
     halt_reason = mgr_state.get("halt_reason") if mgr_state else None
 
     # -------------------------------------------------------------
-    # 2. SESSION DATE & DATA AGE EVALUATION
+    # 2. DATA TIMESTAMP & DATA AGE EVALUATION (NOT BUILD TIMESTAMP)
     # -------------------------------------------------------------
     last_session_date = None
+    data_timestamp_str = None
+
     if not eq_log.empty:
-        date_col = "session_date" if "session_date" in eq_log.columns else ("date" if "date" in eq_log.columns else None)
-        if date_col:
-            valid_sessions = eq_log[date_col].dropna().astype(str).tolist()
+        # Look for date/session_date in the latest row
+        date_col = "date" if "date" in eq_log.columns else None
+        session_col = "session_date" if "session_date" in eq_log.columns else None
+
+        if session_col:
+            valid_sessions = eq_log[session_col].dropna().astype(str).tolist()
             if valid_sessions:
                 last_session_date = valid_sessions[-1].strip()[:10]
+
+        if date_col:
+            valid_dates = eq_log[date_col].dropna().astype(str).tolist()
+            if valid_dates:
+                data_timestamp_str = valid_dates[-1].strip()
 
     if not last_session_date and mgr_state:
         rebal = mgr_state.get("last_rebalance_date") or mgr_state.get("last_update")
         if rebal:
             last_session_date = str(rebal)[:10]
+
+    if not data_timestamp_str and mgr_state:
+        upd = mgr_state.get("last_update") or mgr_state.get("last_rebalance_date")
+        if upd:
+            data_timestamp_str = str(upd)
 
     data_age_days = None
     data_age_str = "NO DATA"
@@ -257,41 +295,57 @@ def generate_dashboard_html(data_dir: str = None, output_path: str = None, now_d
     hwm_unit = mgr_state.get("hwm_unit_nav")
     curr_dd = mgr_state.get("current_drawdown")
     max_dd = mgr_state.get("max_drawdown")
+    policy = mgr_state.get("policy", "FIXED_SHARES_PLUS_KILL_SWITCH") if mgr_state else None
     throttle = mgr_state.get("throttle_level")
     rec_gap = mgr_state.get("last_reconciliation_gap_pct")
     mode = mgr_state.get("mode")
-    issued_units = ledger.get("total_units") or mgr_state.get("current_shares")
+    issued_units = ledger.get("total_units") or (mgr_state.get("current_shares") if mgr_state else None)
 
     # Inception PnL computation
     total_pnl = None
     total_pnl_pct = None
     if combined_nav is not None and target_cap is not None and target_cap > 0:
-        total_pnl = combined_nav - target_cap
-        total_pnl_pct = (total_pnl / target_cap) * 100.0
+        try:
+            if not math.isnan(combined_nav) and not math.isnan(target_cap):
+                total_pnl = combined_nav - target_cap
+                total_pnl_pct = (total_pnl / target_cap) * 100.0
+        except Exception:
+            pass
 
-    # Drawdown scaling: check if current_drawdown is decimal or pct
+    # Drawdown scaling
     curr_dd_pct = None
     if curr_dd is not None:
-        curr_dd_pct = curr_dd * 100.0 if abs(curr_dd) <= 1.0 and curr_dd != 0 else curr_dd
+        try:
+            if not math.isnan(curr_dd):
+                curr_dd_pct = curr_dd * 100.0 if abs(curr_dd) <= 1.0 and curr_dd != 0 else curr_dd
+        except Exception:
+            pass
+
     max_dd_pct = None
     if max_dd is not None:
-        max_dd_pct = max_dd * 100.0 if abs(max_dd) <= 1.0 and max_dd != 0 else max_dd
+        try:
+            if not math.isnan(max_dd):
+                max_dd_pct = max_dd * 100.0 if abs(max_dd) <= 1.0 and max_dd != 0 else max_dd
+        except Exception:
+            pass
 
     # Computed reconciliation label (PASS/FAIL vs 0.1% limit)
     rec_status_label = '<span class="nodata">[NO DATA]</span>'
     rec_is_pass = False
     if rec_gap is not None:
-        if abs(rec_gap) <= 0.1:
-            rec_status_label = f'<span class="badge-pass">[PASS] {rec_gap:.2f}% GAP &le; 0.10%</span>'
-            rec_is_pass = True
-        else:
-            rec_status_label = f'<span class="badge-alert">[FAIL] {rec_gap:.2f}% GAP &gt; 0.10%</span>'
+        try:
+            if not math.isnan(rec_gap):
+                if abs(rec_gap) <= 0.1:
+                    rec_status_label = f'<span class="badge-pass">[PASS] {rec_gap:.2f}% GAP &le; 0.10%</span>'
+                    rec_is_pass = True
+                else:
+                    rec_status_label = f'<span class="badge-alert">[FAIL] {rec_gap:.2f}% GAP &gt; 0.10%</span>'
+        except Exception:
+            pass
 
     # Policy & Throttle text
     # Production runs FIXED_SHARES_PLUS_KILL_SWITCH (T1 pre-registered).
-    # Under this policy, -15% and -30% throttles are inactive; only -40% kill switch is live.
-    policy = mgr_state.get("policy") if mgr_state else None
-    throttle = mgr_state.get("throttle_level") if mgr_state else None
+    # Under this policy, multi-tier throttles are OFF (policy) and only -40% kill switch is live.
     if policy == "FIXED_SHARES_PLUS_KILL_SWITCH":
         throttle_text = "OFF (policy)"
     elif throttle is not None:
@@ -302,8 +356,10 @@ def generate_dashboard_html(data_dir: str = None, output_path: str = None, now_d
     # -------------------------------------------------------------
     # 4. GATE B INCUBATION PANEL & PROGRESS
     # -------------------------------------------------------------
-    days_incubated = etf_state.get("days_incubated") or bond_state.get("days_incubated")
-    target_weeks = etf_state.get("incubation_target_weeks") or bond_state.get("incubation_target_weeks") or 13
+    days_incubated = (etf_state.get("days_incubated") if etf_state else None) or \
+                     (bond_state.get("days_incubated") if bond_state else None)
+    target_weeks = (etf_state.get("incubation_target_weeks") if etf_state else None) or \
+                   (bond_state.get("incubation_target_weeks") if bond_state else None) or 13
     target_days = target_weeks * 7 if target_weeks is not None else 91
 
     gate_b_progress_pct = None
@@ -324,7 +380,6 @@ def generate_dashboard_html(data_dir: str = None, output_path: str = None, now_d
     if curr_dd_pct is not None:
         abs_dd = abs(curr_dd_pct)
         kill_margin = 40.0 - abs_dd
-        # Buffer percentage remaining out of 40%
         buffer_pct = max(0.0, min(100.0, (kill_margin / 40.0) * 100.0))
         kill_ascii = render_ascii_bar(buffer_pct, 20)
         if kill_margin > 0:
@@ -359,9 +414,8 @@ def generate_dashboard_html(data_dir: str = None, output_path: str = None, now_d
     # -------------------------------------------------------------
     # 7. SLEEVES TAB: HOLDINGS TABLES & MODELLED BOND NOTICE
     # -------------------------------------------------------------
-    # Sleeve 1: Multi-Asset Equity & Gold
-    etf_nav = etf_state.get("nav")
-    etf_cash = etf_state.get("cash")
+    etf_nav = etf_state.get("nav") if etf_state else None
+    etf_cash = etf_state.get("cash") if etf_state else None
     etf_table_rows = ""
 
     if etf_pos:
@@ -389,7 +443,6 @@ def generate_dashboard_html(data_dir: str = None, output_path: str = None, now_d
     else:
         etf_table_rows = '<tr><td colspan="7" class="nodata-cell">[NO HOLDINGS IN SLEEVE 1 STATE]</td></tr>'
 
-    # Cash row for Sleeve 1
     etf_cash_wt = (etf_cash / combined_nav * 100.0) if (etf_cash is not None and combined_nav and combined_nav > 0) else None
     etf_table_rows += f"""
     <tr class="row-cash">
@@ -403,10 +456,9 @@ def generate_dashboard_html(data_dir: str = None, output_path: str = None, now_d
     </tr>
     """
 
-    # Sleeve 2: Sovereign Bond & Cash Reserve
-    bond_nav = bond_state.get("nav")
-    bond_cash = bond_state.get("cash")
-    total_carry = bond_state.get("total_carry_earned")
+    bond_nav = bond_state.get("nav") if bond_state else None
+    bond_cash = bond_state.get("cash") if bond_state else None
+    total_carry = bond_state.get("total_carry_earned") if bond_state else None
     bond_table_rows = ""
 
     if bond_pos:
@@ -477,7 +529,7 @@ def generate_dashboard_html(data_dir: str = None, output_path: str = None, now_d
     nse_shadow_hwm = nse_shadow.get("hwm_true") if nse_shadow else None
 
     # -------------------------------------------------------------
-    # 9. LOG TAB & CHART DATA (ZERO FAKE POINTS)
+    # 9. LOG TAB & CHART DATA (STRICT NaN DATA FAULT ENFORCEMENT)
     # -------------------------------------------------------------
     dates_list = []
     nav_list = []
@@ -485,35 +537,80 @@ def generate_dashboard_html(data_dir: str = None, output_path: str = None, now_d
     log_rows_html = ""
 
     if not eq_log.empty:
-        # Sort chronologically by date if possible
         for _, r in eq_log.iterrows():
-            s_dt = str(r.get("session_date", str(r.get("date", ""))[:10]))
+            s_dt = str(r.get("session_date", str(r.get("date", ""))[:10])).strip()
             c_nav_raw = r.get("combined_fund_nav", r.get("total_portfolio_value"))
             u_nav_raw = r.get("nav_per_unit")
             d_pct_raw = r.get("current_drawdown_pct")
             rec_gap_raw = r.get("reconciliation_gap_pct")
             throt_raw = r.get("throttle_level")
 
-            c_nav_val = float(c_nav_raw) if (pd.notna(c_nav_raw) and str(c_nav_raw) != "") else None
-            u_nav_val = float(u_nav_raw) if (pd.notna(u_nav_raw) and str(u_nav_raw) != "") else None
-            d_pct_val = float(d_pct_raw) if (pd.notna(d_pct_raw) and str(d_pct_raw) != "") else None
-            rec_gap_val = float(rec_gap_raw) if (pd.notna(rec_gap_raw) and str(rec_gap_raw) != "") else None
-            throt_val = int(throt_raw) if (pd.notna(throt_raw) and str(throt_raw) != "") else 0
+            # Check for NaN / Missing NAV: Hard Rule 2
+            nav_is_fault = False
+            c_nav_val = None
+            if c_nav_raw is None or pd.isna(c_nav_raw) or str(c_nav_raw).strip() == "" or str(c_nav_raw).lower() == "nan":
+                nav_is_fault = True
+            else:
+                try:
+                    c_nav_val = float(c_nav_raw)
+                    if math.isnan(c_nav_val) or math.isinf(c_nav_val) or c_nav_val <= 0:
+                        nav_is_fault = True
+                except (ValueError, TypeError):
+                    nav_is_fault = True
 
-            if s_dt and c_nav_val is not None:
-                dates_list.append(s_dt)
-                nav_list.append(c_nav_val)
-                dd_list.append(d_pct_val if d_pct_val is not None else 0.0)
+            u_nav_val = None
+            if u_nav_raw is not None and not pd.isna(u_nav_raw):
+                try:
+                    u_val = float(u_nav_raw)
+                    if not math.isnan(u_val):
+                        u_nav_val = u_val
+                except (ValueError, TypeError):
+                    pass
 
-            rec_badge = '<span class="badge-pass">[PASS]</span>' if (rec_gap_val is not None and rec_gap_val <= 0.1) else '<span class="badge-alert">[FAIL]</span>'
-            d_class = "text-green" if (d_pct_val is not None and d_pct_val >= 0) else "text-alert"
+            d_pct_val = None
+            if d_pct_raw is not None and not pd.isna(d_pct_raw):
+                try:
+                    d_val = float(d_pct_raw)
+                    if not math.isnan(d_val):
+                        d_pct_val = d_val
+                except (ValueError, TypeError):
+                    pass
+
+            rec_gap_val = None
+            if rec_gap_raw is not None and not pd.isna(rec_gap_raw):
+                try:
+                    rg_val = float(rec_gap_raw)
+                    if not math.isnan(rg_val):
+                        rec_gap_val = rg_val
+                except (ValueError, TypeError):
+                    pass
+
+            throt_val = 0
+            if throt_raw is not None and not pd.isna(throt_raw):
+                try:
+                    throt_val = int(throt_raw)
+                except (ValueError, TypeError):
+                    pass
+
+            # If NAV is fault: NEVER display PASSED, and NEVER display a number
+            if nav_is_fault:
+                c_nav_display = '<span class="nodata">[DATA FAULT: NaN NAV]</span>'
+                rec_badge = '<span class="badge-alert">[DATA FAULT]</span>'
+            else:
+                c_nav_display = format_inr(c_nav_val)
+                rec_badge = '<span class="badge-pass">[PASS]</span>' if (rec_gap_val is not None and rec_gap_val <= 0.1) else '<span class="badge-alert">[FAIL]</span>'
+                if s_dt and c_nav_val is not None:
+                    dates_list.append(s_dt)
+                    nav_list.append(c_nav_val)
+                    dd_list.append(d_pct_val if d_pct_val is not None else 0.0)
 
             throt_display = "OFF (policy)" if policy == "FIXED_SHARES_PLUS_KILL_SWITCH" else f"Level {throt_val}"
+            d_class = "text-green" if (d_pct_val is not None and d_pct_val >= 0) else "text-alert"
 
             log_rows_html += f"""
             <tr>
                 <td class="text-amber font-bold">{s_dt}</td>
-                <td>{format_inr(c_nav_val)}</td>
+                <td>{c_nav_display}</td>
                 <td>{format_num(u_nav_val, 4)}</td>
                 <td class="{d_class}">{format_pct(d_pct_val)}</td>
                 <td>{throt_display}</td>
@@ -526,7 +623,9 @@ def generate_dashboard_html(data_dir: str = None, output_path: str = None, now_d
 
     has_chart_data = len(dates_list) > 0 and len(nav_list) > 0
 
-    now_utc_str = now_dt.strftime("%Y-%m-%d %H:%M UTC") if isinstance(now_dt, datetime) else str(now_dt)
+    # Separate data timestamp vs page build timestamp
+    data_ts_display = data_timestamp_str or (last_session_date + " EOD" if last_session_date else "NO DATA")
+    build_utc_str = now_dt.strftime("%Y-%m-%d %H:%M UTC") if isinstance(now_dt, datetime) else str(now_dt)
 
     # -------------------------------------------------------------
     # 10. ASSEMBLE PRODUCTION RETRO TERMINAL HTML
@@ -536,7 +635,7 @@ def generate_dashboard_html(data_dir: str = None, output_path: str = None, now_d
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
-    <title>ANTIGRAVITY // 1980s AMBER PHOSPHOR TERMINAL [GATE B PAPER TRADING]</title>
+    <title>ANTIGRAVITY // 1980s AMBER PHOSPHOR TERMINAL [GATE B PAPER INCUBATION]</title>
     <!-- Chart.js Pinned Exact Version from cdnjs -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
     <!-- Google Fonts Monospace Only -->
@@ -545,7 +644,7 @@ def generate_dashboard_html(data_dir: str = None, output_path: str = None, now_d
     <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=Share+Tech+Mono&display=swap" rel="stylesheet">
     <style>
         :root {{
-            /* CRT Amber Phosphor Default Theme */
+            /* CRT Amber Phosphor Default Theme - Strictly 0px Square Corners & Monospace */
             --bg-canvas: #090b09;
             --bg-bezel: #050705;
             --bg-panel: #0e120e;
@@ -558,11 +657,11 @@ def generate_dashboard_html(data_dir: str = None, output_path: str = None, now_d
             --green-phosphor: #33ff33;
             --green-dim: #1f991f;
             --green-bg: rgba(51, 255, 51, 0.12);
-            --alert-red: #ff2a44;
-            --alert-red-bg: rgba(255, 42, 68, 0.18);
+            --alert-red: #ff4455;
+            --alert-red-bg: rgba(255, 68, 85, 0.18);
             --amber-bg: rgba(255, 176, 0, 0.12);
             --font-mono: 'Share Tech Mono', 'Courier Prime', monospace;
-            --card-radius: 4px;
+            --card-radius: 0px; /* Square corners everywhere */
         }}
 
         /* Teletype Ledger Paper Light Theme */
@@ -583,12 +682,15 @@ def generate_dashboard_html(data_dir: str = None, output_path: str = None, now_d
             --alert-red-bg: #fee2e2;
             --amber-bg: #fef3c7;
             --font-mono: 'Courier Prime', monospace;
+            --card-radius: 0px;
         }}
 
         * {{
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            border-radius: 0px !important; /* Strict retro square corners */
+            text-shadow: none !important;  /* No blurry text glow on numbers */
         }}
 
         body {{
@@ -603,7 +705,7 @@ def generate_dashboard_html(data_dir: str = None, output_path: str = None, now_d
             position: relative;
         }}
 
-        /* Subtle CRT Scanline Overlay */
+        /* Scanlines strictly <= 4% opacity */
         .scanlines {{
             position: fixed;
             top: 0;
@@ -612,9 +714,9 @@ def generate_dashboard_html(data_dir: str = None, output_path: str = None, now_d
             height: 100vh;
             pointer-events: none;
             z-index: 9999;
-            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.30) 50%);
+            background: linear-gradient(rgba(0, 0, 0, 0) 50%, rgba(0, 0, 0, 0.4) 50%);
             background-size: 100% 4px;
-            opacity: 0.75;
+            opacity: 0.04; /* Strictly 4% opacity */
         }}
 
         body.light-theme .scanlines {{
@@ -647,8 +749,6 @@ def generate_dashboard_html(data_dir: str = None, output_path: str = None, now_d
             border: 2px solid var(--border-color);
             padding: 14px 18px;
             margin-bottom: 12px;
-            border-radius: var(--card-radius);
-            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.6);
         }}
 
         .terminal-bar-top {{
@@ -677,14 +777,13 @@ def generate_dashboard_html(data_dir: str = None, output_path: str = None, now_d
             font-size: 0.82rem;
             font-weight: 700;
             cursor: pointer;
-            border-radius: 3px;
         }}
 
         .theme-toggle-btn:hover {{
             background: var(--amber-bg);
         }}
 
-        /* TOP STATUS STRIP (PRIMARY FOCUS) */
+        /* TOP STATUS STRIP (PRIMARY FOCUS: OK / STALE / DATA FAULT / HALTED) */
         .status-strip {{
             display: flex;
             align-items: center;
@@ -694,7 +793,6 @@ def generate_dashboard_html(data_dir: str = None, output_path: str = None, now_d
             padding: 12px 16px;
             margin-bottom: 14px;
             border: 2px solid;
-            border-radius: var(--card-radius);
         }}
 
         .status-strip.status-ok {{
@@ -733,7 +831,7 @@ def generate_dashboard_html(data_dir: str = None, output_path: str = None, now_d
             font-weight: 600;
         }}
 
-        /* ACTUAL HOLDINGS TICKER (NO FAKE DATA) */
+        /* ACTUAL FUND HOLDINGS STRIP (NO FAKE TICKER TAPE) */
         .holdings-tape {{
             background: var(--bg-panel);
             border: 1px solid var(--border-color);
@@ -744,7 +842,6 @@ def generate_dashboard_html(data_dir: str = None, output_path: str = None, now_d
             align-items: center;
             gap: 10px;
             flex-wrap: wrap;
-            border-radius: var(--card-radius);
         }}
 
         .tape-label {{
@@ -764,7 +861,7 @@ def generate_dashboard_html(data_dir: str = None, output_path: str = None, now_d
             color: var(--text-primary);
         }}
 
-        /* GATE B PANEL & RISK GAUGES */
+        /* GATE B PANEL & SINGLE RISK GAUGE */
         .panel-grid {{
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -782,8 +879,6 @@ def generate_dashboard_html(data_dir: str = None, output_path: str = None, now_d
             background: var(--bg-panel);
             border: 1px solid var(--border-color);
             padding: 14px 16px;
-            border-radius: var(--card-radius);
-            box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.4);
         }}
 
         .card-header {{
@@ -802,7 +897,7 @@ def generate_dashboard_html(data_dir: str = None, output_path: str = None, now_d
         .ascii-bar-row {{
             margin: 8px 0;
             font-family: var(--font-mono);
-            font-size: 0.85rem;
+            font-size: 0.88rem;
         }}
 
         .criteria-list {{
@@ -821,7 +916,7 @@ def generate_dashboard_html(data_dir: str = None, output_path: str = None, now_d
         /* NAVIGATION TABS */
         .nav-tabs {{
             display: flex;
-            gap: 6px;
+            gap: 4px;
             border-bottom: 2px solid var(--border-color);
             margin-bottom: 16px;
             overflow-x: auto;
@@ -836,7 +931,6 @@ def generate_dashboard_html(data_dir: str = None, output_path: str = None, now_d
 
         .nav-tabs::-webkit-scrollbar-thumb {{
             background: var(--border-color);
-            border-radius: 2px;
         }}
 
         .tab-btn {{
@@ -849,7 +943,6 @@ def generate_dashboard_html(data_dir: str = None, output_path: str = None, now_d
             font-size: 0.9rem;
             font-weight: 700;
             cursor: pointer;
-            border-radius: 4px 4px 0 0;
             white-space: nowrap;
         }}
 
@@ -873,19 +966,30 @@ def generate_dashboard_html(data_dir: str = None, output_path: str = None, now_d
             display: block;
         }}
 
-        /* METRIC CARDS GRID (FUND TAB) */
+        /* BALANCED 3x2 METRIC CARDS GRID (NO HOLES AT DESKTOP WIDTH) */
         .metrics-grid {{
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            grid-template-columns: repeat(3, 1fr);
             gap: 12px;
             margin-bottom: 16px;
+        }}
+
+        @media (max-width: 900px) {{
+            .metrics-grid {{
+                grid-template-columns: repeat(2, 1fr);
+            }}
+        }}
+
+        @media (max-width: 600px) {{
+            .metrics-grid {{
+                grid-template-columns: 1fr;
+            }}
         }}
 
         .metric-box {{
             background: var(--bg-panel);
             border: 1px solid var(--border-color);
             padding: 14px;
-            border-radius: var(--card-radius);
         }}
 
         .metric-title {{
@@ -915,7 +1019,6 @@ def generate_dashboard_html(data_dir: str = None, output_path: str = None, now_d
             border: 1px solid var(--border-color);
             padding: 16px;
             margin-bottom: 16px;
-            border-radius: var(--card-radius);
             min-height: 380px;
             position: relative;
         }}
@@ -933,7 +1036,16 @@ def generate_dashboard_html(data_dir: str = None, output_path: str = None, now_d
             -webkit-overflow-scrolling: touch;
             margin: 10px 0 16px 0;
             border: 1px solid var(--border-color);
-            border-radius: var(--card-radius);
+            scrollbar-width: thin;
+            scrollbar-color: var(--border-color) transparent;
+        }}
+
+        .table-scroll::-webkit-scrollbar {{
+            height: 6px;
+        }}
+
+        .table-scroll::-webkit-scrollbar-thumb {{
+            background: var(--border-color);
         }}
 
         table {{
@@ -963,20 +1075,19 @@ def generate_dashboard_html(data_dir: str = None, output_path: str = None, now_d
 
         /* Teletype Green-Bar Continuous Form Paper */
         body.light-theme table tbody tr:nth-child(even) {{
-            background-color: #eaf3e8; /* Classic continuous form green-bar */
+            background-color: #eaf3e8; /* Continuous form green-bar */
         }}
         body.light-theme table tbody tr:nth-child(odd) {{
             background-color: #fbf8ee;
         }}
 
-        /* PERMANENT SHADOW EXPLORATORY BANNER */
+        /* PERMANENT SHADOW EXPLORATORY BANNER (NO EMOJI) */
         .banner-exploratory {{
             background: var(--alert-red-bg);
             border: 2px solid var(--alert-red);
             color: var(--alert-red);
             padding: 14px 18px;
             margin-bottom: 16px;
-            border-radius: var(--card-radius);
             font-weight: 700;
         }}
 
@@ -1001,10 +1112,9 @@ def generate_dashboard_html(data_dir: str = None, output_path: str = None, now_d
             margin-bottom: 10px;
             font-size: 0.82rem;
             font-weight: 700;
-            border-radius: var(--card-radius);
         }}
 
-        /* WARNING / NO DATA STYLING (HARD RULE 1) */
+        /* WARNING / NO DATA STYLING (HARD RULE 1 & 2) */
         .nodata {{
             color: var(--alert-red) !important;
             background: var(--alert-red-bg);
@@ -1012,7 +1122,6 @@ def generate_dashboard_html(data_dir: str = None, output_path: str = None, now_d
             border: 1px dashed var(--alert-red);
             font-weight: 700;
             font-size: 0.85em;
-            border-radius: 2px;
         }}
 
         .nodata-cell {{
@@ -1041,7 +1150,6 @@ def generate_dashboard_html(data_dir: str = None, output_path: str = None, now_d
             color: var(--text-dim);
             border: 1px solid var(--border-color);
             padding: 1px 6px;
-            border-radius: 3px;
         }}
 
         .text-green {{ color: var(--green-phosphor) !important; }}
@@ -1083,7 +1191,7 @@ def generate_dashboard_html(data_dir: str = None, output_path: str = None, now_d
                 font-size: 1.4rem;
             }}
             .nav-tabs {{
-                gap: 4px;
+                gap: 2px;
             }}
             .tab-btn {{
                 padding: 8px 10px;
@@ -1117,7 +1225,7 @@ def generate_dashboard_html(data_dir: str = None, output_path: str = None, now_d
             </div>
             <div style="font-size: 0.82rem; color: var(--text-dim); display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
                 <span>CENTRAL HEDGE FUND ARCHITECTURE &bull; SEBI 100% CNC CASH DELIVERY</span>
-                <span>SYSTEM CLOCK: {now_utc_str}</span>
+                <span>DATA TIMESTAMP: <strong class="text-amber">{data_ts_display}</strong></span>
             </div>
         </header>
 
@@ -1135,15 +1243,15 @@ def generate_dashboard_html(data_dir: str = None, output_path: str = None, now_d
             </div>
         </section>
 
-        <!-- ACTUAL HOLDINGS TAPE (RULE 2: NO FAKE TICKER TAPE) -->
+        <!-- ACTUAL FUND HOLDINGS STRIP (RULE 3: NO FAKE TICKER TAPE) -->
         <div class="holdings-tape" role="region" aria-label="Actual Fund Holdings Quotes">
-            <span class="tape-label">HOLDINGS ({sleeve_session_date}):</span>
+            <span class="tape-label">FUND HOLDINGS ({sleeve_session_date}):</span>
             <div style="display: flex; gap: 10px; flex-wrap: wrap;">
                 {actual_holdings_html}
             </div>
         </div>
 
-        <!-- GATE B PANEL & RISK GAUGES -->
+        <!-- GATE B PANEL & SINGLE RISK GAUGE -->
         <div class="panel-grid">
             <!-- Gate B Panel -->
             <div class="terminal-card">
@@ -1160,9 +1268,9 @@ def generate_dashboard_html(data_dir: str = None, output_path: str = None, now_d
                         <strong class="text-amber">{format_num(days_incubated, 0)} / {target_days} DAYS</strong>
                     </li>
                     <li>
-                        <span>2. Drawdown Control (&le; 15.00% Zero Throttle):</span>
-                        <strong class="{ 'text-green' if (curr_dd_pct is not None and abs(curr_dd_pct) < 15.0) else 'text-alert' }">
-                            {format_pct(curr_dd_pct)} (LIMIT -15.0%)
+                        <span>2. Drawdown Control (&le; 40.00% Kill Switch Limit):</span>
+                        <strong class="{ 'text-green' if (curr_dd_pct is not None and abs(curr_dd_pct) < 40.0) else 'text-alert' }">
+                            {format_pct(curr_dd_pct)} (KILL SWITCH -40.0%)
                         </strong>
                     </li>
                     <li>
@@ -1217,13 +1325,13 @@ def generate_dashboard_html(data_dir: str = None, output_path: str = None, now_d
             <button class="tab-btn" role="tab" aria-selected="false" onclick="openTab(event, 'tab-log')">[4] RECONCILIATION LOG</button>
         </nav>
 
-        <!-- TAB 1: FUND OVERVIEW (DEFAULT) -->
+        <!-- TAB 1: FUND OVERVIEW (BALANCED 3x2 KPI GRID) -->
         <div id="tab-fund" class="tab-content active" role="tabpanel">
             <div class="metrics-grid">
                 <div class="metric-box">
                     <div class="metric-title">Combined Fund NAV</div>
                     <div class="metric-number text-amber">{format_inr(combined_nav)}</div>
-                    <div class="metric-sub">Base Seed: {format_inr(target_cap)}</div>
+                    <div class="metric-sub">Base Seed Capital: {format_inr(target_cap)}</div>
                 </div>
                 <div class="metric-box">
                     <div class="metric-title">Unitized NAV Per Share</div>
@@ -1231,18 +1339,18 @@ def generate_dashboard_html(data_dir: str = None, output_path: str = None, now_d
                     <div class="metric-sub">Base NAV: 100.0000 &bull; HWM: {format_num(hwm_unit, 4)}</div>
                 </div>
                 <div class="metric-box">
-                    <div class="metric-title">Current / Peak Drawdown</div>
-                    <div class="metric-number { 'text-green' if (curr_dd_pct is not None and curr_dd_pct >= 0) else 'text-alert' }">
-                        {format_pct(curr_dd_pct)}
-                    </div>
-                    <div class="metric-sub">Max Recorded Drawdown: {format_pct(max_dd_pct)}</div>
-                </div>
-                <div class="metric-box">
                     <div class="metric-title">Inception PnL vs Seed</div>
                     <div class="metric-number { 'text-green' if (total_pnl is not None and total_pnl >= 0) else 'text-alert' }">
                         {format_pct(total_pnl_pct)}
                     </div>
                     <div class="metric-sub">Net Alpha: {format_inr(total_pnl)}</div>
+                </div>
+                <div class="metric-box">
+                    <div class="metric-title">Current / Peak Drawdown</div>
+                    <div class="metric-number { 'text-green' if (curr_dd_pct is not None and curr_dd_pct >= 0) else 'text-alert' }">
+                        {format_pct(curr_dd_pct)}
+                    </div>
+                    <div class="metric-sub">Max Recorded Drawdown: {format_pct(max_dd_pct)}</div>
                 </div>
                 <div class="metric-box">
                     <div class="metric-title">Total Issued Units</div>
@@ -1349,9 +1457,9 @@ def generate_dashboard_html(data_dir: str = None, output_path: str = None, now_d
                     <span>NAV: <strong class="text-amber">{format_inr(bond_nav)}</strong> &bull; Cash: {format_inr(bond_cash)}</span>
                 </div>
 
-                <!-- CRITICAL REQUIREMENT 4: MODELLED NOTICE -->
+                <!-- CRITICAL REQUIREMENT: MODELLED NOTICE (NO EMOJI) -->
                 <div class="modelled-notice" role="note">
-                    &#9888; NOTE: Bond-sleeve returns are MODELLED (carry model, not market-tested).
+                    [!] NOTE: Bond-sleeve returns are MODELLED (carry model, not market-tested).
                 </div>
 
                 <div class="table-scroll">
@@ -1375,11 +1483,11 @@ def generate_dashboard_html(data_dir: str = None, output_path: str = None, now_d
             </div>
         </div>
 
-        <!-- TAB 3: SHADOW PODS (CRITICAL REQUIREMENT 5: EXPLORATORY BANNER) -->
+        <!-- TAB 3: SHADOW PODS (CRITICAL REQUIREMENT: EXPLORATORY BANNER) -->
         <div id="tab-shadows" class="tab-content" role="tabpanel">
-            <!-- CRITICAL PERMANENT EXPLORATORY BANNER -->
+            <!-- CRITICAL PERMANENT EXPLORATORY BANNER (NO EMOJI) -->
             <div class="banner-exploratory" role="alert">
-                <div class="banner-exploratory-title">&#9888; EXPLORATORY - NOT EVIDENCE &#9888;</div>
+                <div class="banner-exploratory-title">[!] EXPLORATORY - NOT EVIDENCE [!]</div>
                 <div class="banner-exploratory-text">
                     Shadow pods execute simulated, experimental research models (e.g. US Growth Momentum, NSE Whole-Market Factor).
                     <strong>ZERO FUND CAPITAL IS COMMITTED.</strong>
@@ -1460,7 +1568,7 @@ def generate_dashboard_html(data_dir: str = None, output_path: str = None, now_d
                                 <th>Combined NAV</th>
                                 <th>Unit NAV</th>
                                 <th>Drawdown</th>
-                                <th>Throttle Tier</th>
+                                <th>Throttle Status</th>
                                 <th>Reconciliation Gap</th>
                                 <th>Audit Result</th>
                             </tr>
@@ -1473,10 +1581,10 @@ def generate_dashboard_html(data_dir: str = None, output_path: str = None, now_d
             </div>
         </div>
 
-        <!-- FOOTER -->
+        <!-- FOOTER (ACTUAL RUN TIMES: 18:49–20:30 UTC & COMPILED TIMESTAMP) -->
         <footer class="terminal-footer" role="contentinfo">
-            <div>ANTIGRAVITY // 1980s QUOTRON QUANTUM DESK &bull; GATE B PAPER INCUBATION</div>
-            <div>STRICT READ-ONLY TELEMETRY &bull; RECONCILIATION STRICT LIMIT 0.1%</div>
+            <div>ANTIGRAVITY // 1980s AMBER TERMINAL &bull; GATE B PAPER INCUBATION &bull; RUNNERS EXECUTE 18:49–20:30 UTC</div>
+            <div>STRICT READ-ONLY TELEMETRY &bull; PAGE COMPILED: {build_utc_str}</div>
         </footer>
     </div>
 
@@ -1560,7 +1668,7 @@ def generate_dashboard_html(data_dir: str = None, output_path: str = None, now_d
             if (ctx) {{
                 const isLight = document.body.classList.contains('light-theme');
                 const navColor = isLight ? '#8a5a00' : '#ffb000';
-                const ddColor = isLight ? '#b91c1c' : '#ff2a44';
+                const ddColor = isLight ? '#b91c1c' : '#ff4455';
                 const textColor = isLight ? '#1a201c' : '#ffb000';
                 const gridColor = isLight ? 'rgba(0,0,0,0.08)' : 'rgba(255,176,0,0.12)';
 
@@ -1606,7 +1714,9 @@ def generate_dashboard_html(data_dir: str = None, output_path: str = None, now_d
                                 ticks: {{
                                     color: textColor,
                                     font: {{ family: "'Share Tech Mono', monospace" }},
-                                    callback: function(v) {{ return '₹' + v.toLocaleString('en-IN'); }}
+                                    callback: function(v) {{
+                                        return (v < 0 ? '-₹' : '₹') + Math.abs(v).toLocaleString('en-IN');
+                                    }}
                                 }}
                             }},
                             y1: {{
@@ -1636,7 +1746,7 @@ def generate_dashboard_html(data_dir: str = None, output_path: str = None, now_d
         function updateChartColors(isLight) {{
             if (!equityChartInstance) return;
             const navColor = isLight ? '#8a5a00' : '#ffb000';
-            const ddColor = isLight ? '#b91c1c' : '#ff2a44';
+            const ddColor = isLight ? '#b91c1c' : '#ff4455';
             const textColor = isLight ? '#1a201c' : '#ffb000';
             const gridColor = isLight ? 'rgba(0,0,0,0.08)' : 'rgba(255,176,0,0.12)';
 

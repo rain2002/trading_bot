@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
-    <title>ANTIGRAVITY // 1980s AMBER PHOSPHOR TERMINAL [GATE B PAPER TRADING]</title>
+    <title>ANTIGRAVITY // 1980s AMBER PHOSPHOR TERMINAL [GATE B PAPER INCUBATION]</title>
     <!-- Chart.js Pinned Exact Version from cdnjs -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
     <!-- Google Fonts Monospace Only -->
@@ -12,7 +12,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=Share+Tech+Mono&display=swap" rel="stylesheet">
     <style>
         :root {
-            /* CRT Amber Phosphor Default Theme */
+            /* CRT Amber Phosphor Default Theme - Strictly 0px Square Corners & Monospace */
             --bg-canvas: #090b09;
             --bg-bezel: #050705;
             --bg-panel: #0e120e;
@@ -25,11 +25,11 @@
             --green-phosphor: #33ff33;
             --green-dim: #1f991f;
             --green-bg: rgba(51, 255, 51, 0.12);
-            --alert-red: #ff2a44;
-            --alert-red-bg: rgba(255, 42, 68, 0.18);
+            --alert-red: #ff4455;
+            --alert-red-bg: rgba(255, 68, 85, 0.18);
             --amber-bg: rgba(255, 176, 0, 0.12);
             --font-mono: 'Share Tech Mono', 'Courier Prime', monospace;
-            --card-radius: 4px;
+            --card-radius: 0px; /* Square corners everywhere */
         }
 
         /* Teletype Ledger Paper Light Theme */
@@ -50,12 +50,15 @@
             --alert-red-bg: #fee2e2;
             --amber-bg: #fef3c7;
             --font-mono: 'Courier Prime', monospace;
+            --card-radius: 0px;
         }
 
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            border-radius: 0px !important; /* Strict retro square corners */
+            text-shadow: none !important;  /* No blurry text glow on numbers */
         }
 
         body {
@@ -70,7 +73,7 @@
             position: relative;
         }
 
-        /* Subtle CRT Scanline Overlay */
+        /* Scanlines strictly <= 4% opacity */
         .scanlines {
             position: fixed;
             top: 0;
@@ -79,9 +82,9 @@
             height: 100vh;
             pointer-events: none;
             z-index: 9999;
-            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.30) 50%);
+            background: linear-gradient(rgba(0, 0, 0, 0) 50%, rgba(0, 0, 0, 0.4) 50%);
             background-size: 100% 4px;
-            opacity: 0.75;
+            opacity: 0.04; /* Strictly 4% opacity */
         }
 
         body.light-theme .scanlines {
@@ -114,8 +117,6 @@
             border: 2px solid var(--border-color);
             padding: 14px 18px;
             margin-bottom: 12px;
-            border-radius: var(--card-radius);
-            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.6);
         }
 
         .terminal-bar-top {
@@ -144,14 +145,13 @@
             font-size: 0.82rem;
             font-weight: 700;
             cursor: pointer;
-            border-radius: 3px;
         }
 
         .theme-toggle-btn:hover {
             background: var(--amber-bg);
         }
 
-        /* TOP STATUS STRIP (PRIMARY FOCUS) */
+        /* TOP STATUS STRIP (PRIMARY FOCUS: OK / STALE / DATA FAULT / HALTED) */
         .status-strip {
             display: flex;
             align-items: center;
@@ -161,7 +161,6 @@
             padding: 12px 16px;
             margin-bottom: 14px;
             border: 2px solid;
-            border-radius: var(--card-radius);
         }
 
         .status-strip.status-ok {
@@ -200,7 +199,7 @@
             font-weight: 600;
         }
 
-        /* ACTUAL HOLDINGS TICKER (NO FAKE DATA) */
+        /* ACTUAL FUND HOLDINGS STRIP (NO FAKE TICKER TAPE) */
         .holdings-tape {
             background: var(--bg-panel);
             border: 1px solid var(--border-color);
@@ -211,7 +210,6 @@
             align-items: center;
             gap: 10px;
             flex-wrap: wrap;
-            border-radius: var(--card-radius);
         }
 
         .tape-label {
@@ -231,7 +229,7 @@
             color: var(--text-primary);
         }
 
-        /* GATE B PANEL & RISK GAUGES */
+        /* GATE B PANEL & SINGLE RISK GAUGE */
         .panel-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -249,8 +247,6 @@
             background: var(--bg-panel);
             border: 1px solid var(--border-color);
             padding: 14px 16px;
-            border-radius: var(--card-radius);
-            box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.4);
         }
 
         .card-header {
@@ -269,7 +265,7 @@
         .ascii-bar-row {
             margin: 8px 0;
             font-family: var(--font-mono);
-            font-size: 0.85rem;
+            font-size: 0.88rem;
         }
 
         .criteria-list {
@@ -288,7 +284,7 @@
         /* NAVIGATION TABS */
         .nav-tabs {
             display: flex;
-            gap: 6px;
+            gap: 4px;
             border-bottom: 2px solid var(--border-color);
             margin-bottom: 16px;
             overflow-x: auto;
@@ -303,7 +299,6 @@
 
         .nav-tabs::-webkit-scrollbar-thumb {
             background: var(--border-color);
-            border-radius: 2px;
         }
 
         .tab-btn {
@@ -316,7 +311,6 @@
             font-size: 0.9rem;
             font-weight: 700;
             cursor: pointer;
-            border-radius: 4px 4px 0 0;
             white-space: nowrap;
         }
 
@@ -340,19 +334,30 @@
             display: block;
         }
 
-        /* METRIC CARDS GRID (FUND TAB) */
+        /* BALANCED 3x2 METRIC CARDS GRID (NO HOLES AT DESKTOP WIDTH) */
         .metrics-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            grid-template-columns: repeat(3, 1fr);
             gap: 12px;
             margin-bottom: 16px;
+        }
+
+        @media (max-width: 900px) {
+            .metrics-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 600px) {
+            .metrics-grid {
+                grid-template-columns: 1fr;
+            }
         }
 
         .metric-box {
             background: var(--bg-panel);
             border: 1px solid var(--border-color);
             padding: 14px;
-            border-radius: var(--card-radius);
         }
 
         .metric-title {
@@ -382,7 +387,6 @@
             border: 1px solid var(--border-color);
             padding: 16px;
             margin-bottom: 16px;
-            border-radius: var(--card-radius);
             min-height: 380px;
             position: relative;
         }
@@ -400,7 +404,16 @@
             -webkit-overflow-scrolling: touch;
             margin: 10px 0 16px 0;
             border: 1px solid var(--border-color);
-            border-radius: var(--card-radius);
+            scrollbar-width: thin;
+            scrollbar-color: var(--border-color) transparent;
+        }
+
+        .table-scroll::-webkit-scrollbar {
+            height: 6px;
+        }
+
+        .table-scroll::-webkit-scrollbar-thumb {
+            background: var(--border-color);
         }
 
         table {
@@ -430,20 +443,19 @@
 
         /* Teletype Green-Bar Continuous Form Paper */
         body.light-theme table tbody tr:nth-child(even) {
-            background-color: #eaf3e8; /* Classic continuous form green-bar */
+            background-color: #eaf3e8; /* Continuous form green-bar */
         }
         body.light-theme table tbody tr:nth-child(odd) {
             background-color: #fbf8ee;
         }
 
-        /* PERMANENT SHADOW EXPLORATORY BANNER */
+        /* PERMANENT SHADOW EXPLORATORY BANNER (NO EMOJI) */
         .banner-exploratory {
             background: var(--alert-red-bg);
             border: 2px solid var(--alert-red);
             color: var(--alert-red);
             padding: 14px 18px;
             margin-bottom: 16px;
-            border-radius: var(--card-radius);
             font-weight: 700;
         }
 
@@ -468,10 +480,9 @@
             margin-bottom: 10px;
             font-size: 0.82rem;
             font-weight: 700;
-            border-radius: var(--card-radius);
         }
 
-        /* WARNING / NO DATA STYLING (HARD RULE 1) */
+        /* WARNING / NO DATA STYLING (HARD RULE 1 & 2) */
         .nodata {
             color: var(--alert-red) !important;
             background: var(--alert-red-bg);
@@ -479,7 +490,6 @@
             border: 1px dashed var(--alert-red);
             font-weight: 700;
             font-size: 0.85em;
-            border-radius: 2px;
         }
 
         .nodata-cell {
@@ -508,7 +518,6 @@
             color: var(--text-dim);
             border: 1px solid var(--border-color);
             padding: 1px 6px;
-            border-radius: 3px;
         }
 
         .text-green { color: var(--green-phosphor) !important; }
@@ -550,7 +559,7 @@
                 font-size: 1.4rem;
             }
             .nav-tabs {
-                gap: 4px;
+                gap: 2px;
             }
             .tab-btn {
                 padding: 8px 10px;
@@ -584,7 +593,7 @@
             </div>
             <div style="font-size: 0.82rem; color: var(--text-dim); display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
                 <span>CENTRAL HEDGE FUND ARCHITECTURE &bull; SEBI 100% CNC CASH DELIVERY</span>
-                <span>SYSTEM CLOCK: 2026-11-22 22:37 UTC</span>
+                <span>DATA TIMESTAMP: <strong class="text-amber">2026-11-20 18:49:13</strong></span>
             </div>
         </header>
 
@@ -602,15 +611,15 @@
             </div>
         </section>
 
-        <!-- ACTUAL HOLDINGS TAPE (RULE 2: NO FAKE TICKER TAPE) -->
+        <!-- ACTUAL FUND HOLDINGS STRIP (RULE 3: NO FAKE TICKER TAPE) -->
         <div class="holdings-tape" role="region" aria-label="Actual Fund Holdings Quotes">
-            <span class="tape-label">HOLDINGS (2026-11-20):</span>
+            <span class="tape-label">FUND HOLDINGS (2026-11-20):</span>
             <div style="display: flex; gap: 10px; flex-wrap: wrap;">
                 <span class="holding-chip"><span class="chip-sym">GOLDBEES.NS</span>: ₹102.21</span> &bull; <span class="holding-chip"><span class="chip-sym">LTGILTBEES.NS</span>: ₹29.81</span> &bull; <span class="holding-chip"><span class="chip-sym">MID150BEES.NS</span>: ₹235.09</span> &bull; <span class="holding-chip"><span class="chip-sym">MON100.NS</span>: ₹298.89</span> &bull; <span class="holding-chip"><span class="chip-sym">NIFTYBEES.NS</span>: ₹294.22</span> &bull; <span class="holding-chip"><span class="chip-sym">LIQUIDBEES.NS</span>: ₹999.99</span>
             </div>
         </div>
 
-        <!-- GATE B PANEL & RISK GAUGES -->
+        <!-- GATE B PANEL & SINGLE RISK GAUGE -->
         <div class="panel-grid">
             <!-- Gate B Panel -->
             <div class="terminal-card">
@@ -627,9 +636,9 @@
                         <strong class="text-amber">5 / 91 DAYS</strong>
                     </li>
                     <li>
-                        <span>2. Drawdown Control (&le; 15.00% Zero Throttle):</span>
+                        <span>2. Drawdown Control (&le; 40.00% Kill Switch Limit):</span>
                         <strong class="text-green">
-                            -1.92% (LIMIT -15.0%)
+                            -1.92% (KILL SWITCH -40.0%)
                         </strong>
                     </li>
                     <li>
@@ -684,13 +693,13 @@
             <button class="tab-btn" role="tab" aria-selected="false" onclick="openTab(event, 'tab-log')">[4] RECONCILIATION LOG</button>
         </nav>
 
-        <!-- TAB 1: FUND OVERVIEW (DEFAULT) -->
+        <!-- TAB 1: FUND OVERVIEW (BALANCED 3x2 KPI GRID) -->
         <div id="tab-fund" class="tab-content active" role="tabpanel">
             <div class="metrics-grid">
                 <div class="metric-box">
                     <div class="metric-title">Combined Fund NAV</div>
                     <div class="metric-number text-amber">₹98,474.89</div>
-                    <div class="metric-sub">Base Seed: ₹1,00,000.00</div>
+                    <div class="metric-sub">Base Seed Capital: ₹1,00,000.00</div>
                 </div>
                 <div class="metric-box">
                     <div class="metric-title">Unitized NAV Per Share</div>
@@ -698,18 +707,18 @@
                     <div class="metric-sub">Base NAV: 100.0000 &bull; HWM: 100.0000</div>
                 </div>
                 <div class="metric-box">
-                    <div class="metric-title">Current / Peak Drawdown</div>
-                    <div class="metric-number text-alert">
-                        -1.92%
-                    </div>
-                    <div class="metric-sub">Max Recorded Drawdown: -1.92%</div>
-                </div>
-                <div class="metric-box">
                     <div class="metric-title">Inception PnL vs Seed</div>
                     <div class="metric-number text-alert">
                         -1.53%
                     </div>
                     <div class="metric-sub">Net Alpha: -₹1,525.11</div>
+                </div>
+                <div class="metric-box">
+                    <div class="metric-title">Current / Peak Drawdown</div>
+                    <div class="metric-number text-alert">
+                        -1.92%
+                    </div>
+                    <div class="metric-sub">Max Recorded Drawdown: -1.92%</div>
                 </div>
                 <div class="metric-box">
                     <div class="metric-title">Total Issued Units</div>
@@ -876,9 +885,9 @@
                     <span>NAV: <strong class="text-amber">₹20,008.64</strong> &bull; Cash: ₹8.84</span>
                 </div>
 
-                <!-- CRITICAL REQUIREMENT 4: MODELLED NOTICE -->
+                <!-- CRITICAL REQUIREMENT: MODELLED NOTICE (NO EMOJI) -->
                 <div class="modelled-notice" role="note">
-                    &#9888; NOTE: Bond-sleeve returns are MODELLED (carry model, not market-tested).
+                    [!] NOTE: Bond-sleeve returns are MODELLED (carry model, not market-tested).
                 </div>
 
                 <div class="table-scroll">
@@ -922,11 +931,11 @@
             </div>
         </div>
 
-        <!-- TAB 3: SHADOW PODS (CRITICAL REQUIREMENT 5: EXPLORATORY BANNER) -->
+        <!-- TAB 3: SHADOW PODS (CRITICAL REQUIREMENT: EXPLORATORY BANNER) -->
         <div id="tab-shadows" class="tab-content" role="tabpanel">
-            <!-- CRITICAL PERMANENT EXPLORATORY BANNER -->
+            <!-- CRITICAL PERMANENT EXPLORATORY BANNER (NO EMOJI) -->
             <div class="banner-exploratory" role="alert">
-                <div class="banner-exploratory-title">&#9888; EXPLORATORY - NOT EVIDENCE &#9888;</div>
+                <div class="banner-exploratory-title">[!] EXPLORATORY - NOT EVIDENCE [!]</div>
                 <div class="banner-exploratory-text">
                     Shadow pods execute simulated, experimental research models (e.g. US Growth Momentum, NSE Whole-Market Factor).
                     <strong>ZERO FUND CAPITAL IS COMMITTED.</strong>
@@ -1051,7 +1060,7 @@
                                 <th>Combined NAV</th>
                                 <th>Unit NAV</th>
                                 <th>Drawdown</th>
-                                <th>Throttle Tier</th>
+                                <th>Throttle Status</th>
                                 <th>Reconciliation Gap</th>
                                 <th>Audit Result</th>
                             </tr>
@@ -1060,7 +1069,7 @@
                             
             <tr>
                 <td class="text-amber font-bold">2026-11-13</td>
-                <td><span class="nodata">[NO DATA]</span></td>
+                <td>₹79,945.49</td>
                 <td>99.9319</td>
                 <td class="text-alert">-0.07%</td>
                 <td>OFF (policy)</td>
@@ -1124,10 +1133,10 @@
             </div>
         </div>
 
-        <!-- FOOTER -->
+        <!-- FOOTER (ACTUAL RUN TIMES: 18:49–20:30 UTC & COMPILED TIMESTAMP) -->
         <footer class="terminal-footer" role="contentinfo">
-            <div>ANTIGRAVITY // 1980s QUOTRON QUANTUM DESK &bull; GATE B PAPER INCUBATION</div>
-            <div>STRICT READ-ONLY TELEMETRY &bull; RECONCILIATION STRICT LIMIT 0.1%</div>
+            <div>ANTIGRAVITY // 1980s AMBER TERMINAL &bull; GATE B PAPER INCUBATION &bull; RUNNERS EXECUTE 18:49–20:30 UTC</div>
+            <div>STRICT READ-ONLY TELEMETRY &bull; PAGE COMPILED: 2026-11-22 22:44 UTC</div>
         </footer>
     </div>
 
@@ -1211,18 +1220,18 @@
             if (ctx) {
                 const isLight = document.body.classList.contains('light-theme');
                 const navColor = isLight ? '#8a5a00' : '#ffb000';
-                const ddColor = isLight ? '#b91c1c' : '#ff2a44';
+                const ddColor = isLight ? '#b91c1c' : '#ff4455';
                 const textColor = isLight ? '#1a201c' : '#ffb000';
                 const gridColor = isLight ? 'rgba(0,0,0,0.08)' : 'rgba(255,176,0,0.12)';
 
                 equityChartInstance = new Chart(ctx, {
                     type: 'line',
                     data: {
-                        labels: ["2026-11-16", "2026-11-17", "2026-11-18", "2026-11-19", "2026-11-20"],
+                        labels: ["2026-11-13", "2026-11-16", "2026-11-17", "2026-11-18", "2026-11-19", "2026-11-20"],
                         datasets: [
                             {
                                 label: 'Fund NAV (INR ₹)',
-                                data: [99535.34, 99551.33, 98804.2, 99215.91, 98474.89],
+                                data: [79945.49, 99535.34, 99551.33, 98804.2, 99215.91, 98474.89],
                                 borderColor: navColor,
                                 backgroundColor: isLight ? 'rgba(138,90,0,0.08)' : 'rgba(255,176,0,0.15)',
                                 borderWidth: 2.2,
@@ -1232,7 +1241,7 @@
                             },
                             {
                                 label: 'Drawdown (%)',
-                                data: [-0.57, -0.56, -1.5, -0.99, -1.92],
+                                data: [-0.07, -0.57, -0.56, -1.5, -0.99, -1.92],
                                 borderColor: ddColor,
                                 borderWidth: 1.8,
                                 borderDash: [4, 4],
@@ -1257,7 +1266,9 @@
                                 ticks: {
                                     color: textColor,
                                     font: { family: "'Share Tech Mono', monospace" },
-                                    callback: function(v) { return '₹' + v.toLocaleString('en-IN'); }
+                                    callback: function(v) {
+                                        return (v < 0 ? '-₹' : '₹') + Math.abs(v).toLocaleString('en-IN');
+                                    }
                                 }
                             },
                             y1: {
@@ -1287,7 +1298,7 @@
         function updateChartColors(isLight) {
             if (!equityChartInstance) return;
             const navColor = isLight ? '#8a5a00' : '#ffb000';
-            const ddColor = isLight ? '#b91c1c' : '#ff2a44';
+            const ddColor = isLight ? '#b91c1c' : '#ff4455';
             const textColor = isLight ? '#1a201c' : '#ffb000';
             const gridColor = isLight ? 'rgba(0,0,0,0.08)' : 'rgba(255,176,0,0.12)';
 

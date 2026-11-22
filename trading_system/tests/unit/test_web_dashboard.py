@@ -9,6 +9,7 @@ import os
 import json
 import pytest
 import pandas as pd
+import numpy as np
 from datetime import datetime, timezone
 from trading_system.scripts.generate_web_dashboard import (
     load_json,
@@ -26,10 +27,12 @@ def test_format_inr():
     assert format_inr(100000.0) == "₹1,00,000.00"
     assert format_inr(98474.89) == "₹98,474.89"
     assert format_inr(10000000.0) == "₹1,00,00,000.00"
+    # Negative sign strictly before rupee symbol: -₹1,525.11
     assert format_inr(-1525.11) == "-₹1,525.11"
     assert format_inr(0.0) == "₹0.00"
     assert '<span class="nodata">[NO DATA]</span>' in format_inr(None)
     assert '<span class="nodata">[NO DATA]</span>' in format_inr("invalid")
+    assert '<span class="nodata">[DATA FAULT: NaN]</span>' in format_inr(float("nan"))
 
 
 def test_format_usd():
@@ -37,6 +40,7 @@ def test_format_usd():
     assert format_usd(100000.0) == "$100,000.00"
     assert format_usd(-1525.11) == "-$1,525.11"
     assert '<span class="nodata">[NO DATA]</span>' in format_usd(None)
+    assert '<span class="nodata">[DATA FAULT: NaN]</span>' in format_usd(float("nan"))
 
 
 def test_ascii_bar():
@@ -74,7 +78,6 @@ def test_stale_data(tmp_path):
     """
     out_html = tmp_path / "index.html"
 
-    # State with valid NAV
     mgr_state = {
         "manager_name": "CENTRAL_PORTFOLIO_MANAGER",
         "combined_fund_nav": 99000.0,
@@ -88,7 +91,6 @@ def test_stale_data(tmp_path):
     }
     (tmp_path / "manager_state.json").write_text(json.dumps(mgr_state), encoding="utf-8")
 
-    # Equity log with old session date: 2026-11-10
     eq_df = pd.DataFrame([
         {
             "session_date": "2026-11-10",
@@ -101,7 +103,6 @@ def test_stale_data(tmp_path):
     ])
     eq_df.to_csv(tmp_path / "manager_equity_log.csv", index=False)
 
-    # Reference time is 2026-11-20 (10 days later > 3 days limit)
     now_dt = datetime(2026, 11, 20, 12, 0, 0, tzinfo=timezone.utc)
     res = generate_dashboard_html(data_dir=str(tmp_path), output_path=str(out_html), now_dt=now_dt)
 
@@ -173,6 +174,58 @@ def test_data_fault(tmp_path):
     generate_dashboard_html(data_dir=str(tmp_path), output_path=str(out_html))
     content_b = out_html.read_text(encoding="utf-8")
     assert "[DATA FAULT]" in content_b
+
+
+def test_nan_row_renders_data_fault_never_passed(tmp_path):
+    """
+    Hard Rule: A row with a NaN or missing NAV is displayed as 'DATA FAULT'
+    in warning style, never as PASSED, and never as a number.
+    """
+    out_html = tmp_path / "index.html"
+
+    mgr_state = {
+        "manager_name": "CENTRAL_PORTFOLIO_MANAGER",
+        "policy": "FIXED_SHARES_PLUS_KILL_SWITCH",
+        "combined_fund_nav": 98474.89,
+        "combined_target_capital": 100000.0,
+        "unitized_nav": 98.0828,
+        "last_rebalance_date": "2026-11-20",
+        "mode": "PAPER"
+    }
+    (tmp_path / "manager_state.json").write_text(json.dumps(mgr_state), encoding="utf-8")
+
+    # Equity log with a NaN row for 2026-11-13
+    eq_df = pd.DataFrame([
+        {
+            "session_date": "2026-11-13",
+            "combined_fund_nav": np.nan,  # Missing / NaN NAV
+            "nav_per_unit": 99.9319,
+            "current_drawdown_pct": -0.07,
+            "reconciliation_gap_pct": 0.0,
+            "throttle_level": 0
+        },
+        {
+            "session_date": "2026-11-20",
+            "combined_fund_nav": 98474.89,
+            "nav_per_unit": 98.0828,
+            "current_drawdown_pct": -1.92,
+            "reconciliation_gap_pct": 0.0,
+            "throttle_level": 0
+        }
+    ])
+    eq_df.to_csv(tmp_path / "manager_equity_log.csv", index=False)
+
+    now_dt = datetime(2026, 11, 21, 12, 0, 0, tzinfo=timezone.utc)
+    generate_dashboard_html(data_dir=str(tmp_path), output_path=str(out_html), now_dt=now_dt)
+
+    content = out_html.read_text(encoding="utf-8")
+
+    # Must render DATA FAULT for the NaN row
+    assert "DATA FAULT: NaN NAV" in content
+    # The NaN row must NEVER be rendered as a number like '₹nan'
+    assert "₹nan" not in content
+    assert "₹NaN" not in content
+    assert "nan" not in content.lower() or "data fault: nan nav" in content.lower()
 
 
 def test_normal(tmp_path):
@@ -263,15 +316,17 @@ def test_normal(tmp_path):
     # 3. Hard Rule 2: No fake ticker tape
     assert "1960s NSE // BSE TELETYPE" not in content
     assert "RELIANCE ₹2,980.50" not in content
+    assert "NIFTY 50" not in content
+    assert "SENSEX" not in content
     # Actual holdings tape present
     assert "GOLDBEES.NS" in content
     assert "LIQUIDBEES.NS" in content
 
-    # 4. Hard Rule 3: Computed status labels
+    # 4. Hard Rule 3: Computed status labels & -40% kill switch single gauge
     assert "[PASS]" in content
     assert "OFF (policy)" in content
     assert "DISTANCE TO -40% KILL SWITCH" in content
-    assert "-40.00%" in content  # Kill Switch Threshold
+    assert "-40.00%" in content
 
     # 5. Hard Rule 4: Bond-sleeve returns marked MODELLED
     assert "MODELLED (carry model, not market-tested)" in content
@@ -279,5 +334,13 @@ def test_normal(tmp_path):
     # 6. Hard Rule 5: Shadow pods tab with permanent EXPLORATORY banner
     assert "EXPLORATORY - NOT EVIDENCE" in content
 
-    # 7. Tech requirements: Pinned Chart.js from cdnjs
+    # 7. Retro Styling: Square corners, scanlines <= 4%, no emoji, no glow
+    assert "border-radius: 0px !important" in content
+    assert "text-shadow: none !important" in content
+    assert "opacity: 0.04" in content
+    # Check absence of common emoji
+    for emoji in ["📊", "🏆", "⚠️", "🇺🇸", "🇮🇳", "☁️", "🌱", "📝", "🛡️"]:
+        assert emoji not in content, f"Emoji {emoji} found in retro dashboard"
+
+    # 8. Tech requirements: Pinned Chart.js from cdnjs
     assert "https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js" in content
