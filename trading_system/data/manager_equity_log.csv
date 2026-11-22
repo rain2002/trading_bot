@@ -1,5 +1,5 @@
 date,session_date,total_portfolio_value,primary_sleeve_nav,reserve_sleeve_nav,combined_fund_nav,nav_per_unit,true_trading_return_pct,current_drawdown_pct,throttle_level,is_halted,halt_reason,reconciliation_gap_pct,share_etf_gold,share_cash_sleeve,execution_mode
-2026-11-15 16:51:20,2026-11-13,79945.49,79945.49,,,99.9319,-0.07,-0.07,0,False,,0.0,1.0,0.0,PAPER
+2026-11-15 16:51:20,2026-11-13,79945.49,79945.49,0.00,79945.49,99.9319,-0.07,-0.07,0,False,NOTE: Pre-Sleeve 2 solo incubation calibration,0.0,1.0,0.0,PAPER
 2026-11-17 00:32:18,2026-11-16,79543.85,79543.85,19991.49,99535.34,99.4298,-0.57,-0.57,0,False,,0.0,1.0,0.0,PAPER
 2026-11-17 19:12:17,2026-11-17,79555.34,79555.34,19995.99,99551.33,99.4442,-0.56,-0.56,0,False,,0.0,1.0,0.0,PAPER
 2026-11-18 19:02:21,2026-11-18,78803.71,78803.71,20000.49,98804.2,98.5046,-1.5,-1.5,0,False,,0.0,1.0,0.0,PAPER
