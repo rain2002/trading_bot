@@ -705,23 +705,23 @@ def generate_dashboard_html(data_dir: str = None, output_path: str = None, now_d
     <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=IBM+Plex+Mono:ital,wght@0,400;0,600;0,700;1,400&family=Share+Tech+Mono&display=swap" rel="stylesheet">
     <style>
         :root {{
-            /* High-Contrast Luminous CRT Workstation Theme - Strictly 0px Square Corners & Monospace */
-            --bg-canvas: #080A0C;
-            --bg-bezel: #050709;
-            --bg-panel: #131822;
-            --bg-panel-hover: #18202B;
-            --border-color: #212C3B;
-            --border-bright: #FFB020;
-            --text-primary: #F8FAFC;
-            --text-secondary: #94A3B8;
-            --text-dim: #64748B;
-            --green-phosphor: #00E599;
-            --green-dim: #00C782;
-            --green-bg: rgba(0, 229, 153, 0.12);
-            --alert-red: #FF3B56;
-            --alert-red-bg: rgba(255, 59, 86, 0.18);
-            --amber-bg: rgba(255, 176, 32, 0.14);
-            --teal-accent: #00D8F6;
+            /* 1980s Terminal - Bloomberg Warm Amber Phosphor with High-Visibility Red/Green Insights */
+            --bg-canvas: #080705;
+            --bg-bezel: #040302;
+            --bg-panel: #140F09;
+            --bg-panel-hover: #1A140C;
+            --border-color: #2B1D0B;
+            --border-bright: #F59E0B;
+            --text-primary: #FEF3C7;
+            --text-secondary: #A8824B;
+            --text-dim: #785A2E;
+            --green-phosphor: #10B981;
+            --green-dim: #059669;
+            --green-bg: rgba(16, 185, 129, 0.15);
+            --alert-red: #EF4444;
+            --alert-red-bg: rgba(239, 68, 68, 0.18);
+            --amber-bg: rgba(245, 158, 11, 0.15);
+            --teal-accent: #F59E0B;
             --font-mono: 'IBM Plex Mono', 'Share Tech Mono', monospace;
             --card-radius: 0px; /* Square corners everywhere */
         }}
