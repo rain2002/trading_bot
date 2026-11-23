@@ -1142,7 +1142,7 @@ def render_retro_ticker_ribbon(is_india_mode: bool, broker=None) -> str:
             ("LT", "₹3,580.00", "+0.95%", True),
             ("SBIN", "₹810.40", "-0.32%", False),
         ]
-        market_badge = "1980s NSE // TELETYPE"
+        market_badge = "NSE"
     else:
         tickers = [
             ("S&P 500", "5,860.20", "+0.64%", True),
@@ -1158,7 +1158,7 @@ def render_retro_ticker_ribbon(is_india_mode: bool, broker=None) -> str:
             ("TSLA", "$218.40", "-1.45%", False),
             ("SPY", "$580.20", "+0.65%", True),
         ]
-        market_badge = "1980s NYSE // QUOTRON"
+        market_badge = "NYSE"
 
     items_html = ""
     for sym, price, chg, is_up in tickers:
