@@ -208,19 +208,35 @@ div.stButton > button {
     justify-content: center !important;
     text-align: center !important;
     font-family: 'IBM Plex Mono', monospace !important;
-    font-size: 0.80rem !important;
+    font-size: 0.75rem !important;
     font-weight: 600 !important;
-    letter-spacing: 0.04em !important;
+    letter-spacing: 0.05em !important;
     background: linear-gradient(180deg, #1C160E 0%, #140F09 100%) !important;
     color: #FEF3C7 !important;
     border: 1px solid #2B1D0B !important;
     border-radius: 2px !important;
-    padding: 8px 16px !important;
+    padding: 4px 10px !important;
+    min-height: 36px !important;
+    height: 36px !important;
     box-shadow: inset 0 1px 0 rgba(254, 243, 199, 0.12), inset 0 -1px 0 rgba(0, 0, 0, 0.7), 0 2px 5px rgba(0, 0, 0, 0.5) !important;
     cursor: pointer !important;
     transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1) !important;
     position: relative !important;
     overflow: hidden !important;
+    white-space: nowrap !important;
+}
+
+div.stButton > button p {
+    font-family: 'IBM Plex Mono', monospace !important;
+    font-size: 0.74rem !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.05em !important;
+    white-space: nowrap !important;
+    text-overflow: clip !important;
+    overflow: visible !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    line-height: 1.2 !important;
 }
 
 div.stButton > button:hover {
@@ -328,44 +344,83 @@ section[data-testid="stSidebar"] div.stButton > button[data-testid="stBaseButton
 }
 
 /* Specifically style the 3 bot control deck buttons */
+div.stButton > button:has([title*="PAUSE"]),
+div.stButton > button:has([title*="RESUME"]),
 div[data-testid="column"]:nth-of-type(1) div.stButton > button {
-    border: 1px solid #F59E0B !important;
-    color: #F59E0B !important;
-    background: linear-gradient(180deg, #24180A 0%, #140F09 100%) !important;
-    box-shadow: inset 0 1px 0 rgba(245, 158, 11, 0.3), 0 0 8px rgba(245, 158, 11, 0.2) !important;
+    border: 1px solid #D97706 !important;
+    color: #FBBF24 !important;
+    background: linear-gradient(180deg, #281B0B 0%, #160F07 100%) !important;
+    box-shadow: inset 0 1px 0 rgba(251, 191, 36, 0.3), inset 0 -1px 0 rgba(0, 0, 0, 0.8), 0 2px 4px rgba(0, 0, 0, 0.6) !important;
+    min-height: 36px !important;
+    height: 36px !important;
+    padding: 4px 6px !important;
 }
 
+div.stButton > button:has([title*="PAUSE"]):hover,
+div.stButton > button:has([title*="RESUME"]):hover,
 div[data-testid="column"]:nth-of-type(1) div.stButton > button:hover {
-    background: #F59E0B !important;
+    background: linear-gradient(180deg, #F59E0B 0%, #D97706 100%) !important;
     color: #080705 !important;
-    border-color: #FBBF24 !important;
-    box-shadow: 0 0 20px rgba(245, 158, 11, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.4) !important;
-    transform: translateY(-2px) !important;
+    border-color: #FCD34D !important;
+    box-shadow: 0 0 16px rgba(245, 158, 11, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.4) !important;
+    transform: translateY(-1px) !important;
 }
 
+div.stButton > button:has([title*="PAUSE"]):hover p,
+div.stButton > button:has([title*="RESUME"]):hover p,
+div[data-testid="column"]:nth-of-type(1) div.stButton > button:hover p {
+    color: #080705 !important;
+}
+
+div.stButton > button:has([title*="HALT"]),
 div[data-testid="column"]:nth-of-type(2) div.stButton > button {
-    border: 1px solid #EF4444 !important;
-    color: #EF4444 !important;
-    background: linear-gradient(180deg, #23120C 0%, #140F09 100%) !important;
-    box-shadow: inset 0 1px 0 rgba(239, 68, 68, 0.35), 0 0 8px rgba(239, 68, 68, 0.3) !important;
-    animation: emergencyHazardPulse 2.2s infinite ease-in-out !important;
+    border: 1px solid #DC2626 !important;
+    color: #F87171 !important;
+    background: linear-gradient(180deg, #2A100C 0%, #180907 100%) !important;
+    box-shadow: inset 0 1px 0 rgba(248, 113, 113, 0.4), inset 0 -1px 0 rgba(0, 0, 0, 0.8), 0 0 10px rgba(239, 68, 68, 0.35), 0 2px 4px rgba(0, 0, 0, 0.6) !important;
+    min-height: 36px !important;
+    height: 36px !important;
+    padding: 4px 6px !important;
 }
 
+div.stButton > button:has([title*="HALT"]):hover,
 div[data-testid="column"]:nth-of-type(2) div.stButton > button:hover {
-    background: #EF4444 !important;
+    background: linear-gradient(180deg, #EF4444 0%, #DC2626 100%) !important;
     color: #080705 !important;
-    border-color: #F87171 !important;
-    box-shadow: 0 0 24px rgba(239, 68, 68, 0.85), inset 0 1px 0 rgba(255, 255, 255, 0.5) !important;
+    border-color: #FCA5A5 !important;
+    box-shadow: 0 0 20px rgba(239, 68, 68, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.5) !important;
     animation: none !important;
-    transform: translateY(-2px) !important;
+    transform: translateY(-1px) !important;
 }
 
+div.stButton > button:has([title*="HALT"]):hover p,
+div[data-testid="column"]:nth-of-type(2) div.stButton > button:hover p {
+    color: #080705 !important;
+}
+
+div.stButton > button:has([title*="SYNC"]),
+div[data-testid="column"]:nth-of-type(3) div.stButton > button {
+    border: 1px solid #8A622A !important;
+    color: #FEF3C7 !important;
+    background: linear-gradient(180deg, #241A0E 0%, #140E08 100%) !important;
+    box-shadow: inset 0 1px 0 rgba(254, 243, 199, 0.2), inset 0 -1px 0 rgba(0, 0, 0, 0.8), 0 2px 4px rgba(0, 0, 0, 0.6) !important;
+    min-height: 36px !important;
+    height: 36px !important;
+    padding: 4px 6px !important;
+}
+
+div.stButton > button:has([title*="SYNC"]):hover,
 div[data-testid="column"]:nth-of-type(3) div.stButton > button:hover {
     border-color: #F59E0B !important;
-    color: #FBBF24 !important;
-    background: #1C150D !important;
-    box-shadow: 0 0 16px rgba(245, 158, 11, 0.45), inset 0 1px 0 rgba(254, 243, 199, 0.3) !important;
-    transform: translateY(-2px) !important;
+    color: #080705 !important;
+    background: #F59E0B !important;
+    box-shadow: 0 0 16px rgba(245, 158, 11, 0.5), inset 0 1px 0 rgba(254, 243, 199, 0.4) !important;
+    transform: translateY(-1px) !important;
+}
+
+div.stButton > button:has([title*="SYNC"]):hover p,
+div[data-testid="column"]:nth-of-type(3) div.stButton > button:hover p {
+    color: #080705 !important;
 }
 
 /* ==============================================================================
@@ -1472,43 +1527,43 @@ if page == "📊 Portfolio Overview":
     bot_st_label = "SAFETY HALT" if st.session_state.bot_safety_halt else ("ACTIVE // AUTONOMOUS" if st.session_state.bot_active else "PAUSED // MANUAL")
     bot_st_color = "#EF4444" if st.session_state.bot_safety_halt else ("#10B981" if st.session_state.bot_active else "#F59E0B")
 
-    col_bot_tele, col_bot_ctrl = st.columns([3, 2])
+    col_bot_tele, col_bot_ctrl = st.columns([1.35, 1.0])
     with col_bot_tele:
         st.markdown(f"""
-        <div class="cyber-card" style="padding: 12px 16px; margin-bottom: 14px;">
-            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #2B1D0B; padding-bottom: 6px; margin-bottom: 8px;">
+        <div class="cyber-card" style="padding: 9px 14px; margin-bottom: 14px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #2B1D0B; padding-bottom: 4px; margin-bottom: 6px;">
                 <div style="font-family: 'IBM Plex Mono', monospace; font-size: 0.70rem; color: #A8824B; letter-spacing: 0.08em; text-transform: uppercase;">
-                    // BOT OPERATIONAL TELEMETRY &amp; RISK GATING
+                    // TELEMETRY &amp; RISK GATING
                 </div>
                 <div>
-                    <span class="status-pill" style="border-left: 2px solid {bot_st_color}; color: {bot_st_color}; font-size: 0.68rem;">
+                    <span class="status-pill" style="border-left: 2px solid {bot_st_color}; color: {bot_st_color}; font-size: 0.68rem; padding: 2px 8px;">
                         <span class="pulse-dot" style="background-color: {bot_st_color};"></span> {bot_st_label}
                     </span>
                 </div>
             </div>
-            <div style="display: flex; justify-content: space-between; font-family: 'IBM Plex Mono', monospace; font-size: 0.74rem; color: #A8824B; line-height: 1.6;">
-                <div>POLICY: <span style="color: #FEF3C7; font-weight: 600;">FIXED_SHARES_PLUS_KILL_SWITCH (T1)</span></div>
-                <div>SAFETY GATE: <span style="color: #10B981; font-weight: 600;">-40.0% KILL SWITCH [ARMED]</span></div>
-                <div>THROTTLE: <span style="color: #F59E0B; font-weight: 600;">OFF (policy)</span></div>
+            <div style="display: flex; justify-content: space-between; gap: 12px; font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem; color: #A8824B;">
+                <div>POLICY: <span style="color: #FEF3C7; font-weight: 600;">FIXED_SHARES</span></div>
+                <div>GATE: <span style="color: #10B981; font-weight: 600;">-40% HALT</span></div>
+                <div>THROTTLE: <span style="color: #F59E0B; font-weight: 600;">OFF</span></div>
             </div>
         </div>
         """, unsafe_allow_html=True)
     with col_bot_ctrl:
-        st.markdown("<div style='height: 2px;'></div>", unsafe_allow_html=True)
+        st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
         cb1, cb2, cb3 = st.columns(3)
         with cb1:
-            btn_txt = "⏸ PAUSE BOT" if st.session_state.bot_active else "▶ START BOT"
+            btn_txt = "❚❚ PAUSE" if st.session_state.bot_active else "► RESUME"
             if st.button(btn_txt, use_container_width=True, key="btn_bot_toggle"):
                 st.session_state.bot_active = not st.session_state.bot_active
                 st.session_state.bot_safety_halt = False
                 st.rerun()
         with cb2:
-            if st.button("⏹ EMERGENCY HALT", use_container_width=True, key="btn_bot_halt"):
+            if st.button("■ E-HALT", use_container_width=True, key="btn_bot_halt"):
                 st.session_state.bot_safety_halt = True
                 st.session_state.bot_active = False
                 st.rerun()
         with cb3:
-            if st.button("🔄 RE-SYNC", use_container_width=True, key="btn_bot_resync"):
+            if st.button("↻ RE-SYNC", use_container_width=True, key="btn_bot_resync"):
                 st.cache_data.clear()
                 st.rerun()
 
