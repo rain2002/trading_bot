@@ -1425,38 +1425,6 @@ def get_watchlist_items(is_india: bool = True):
 # PAGE 1: 📊 PORTFOLIO OVERVIEW (EXECUTIVE DESK)
 # ==============================================================================
 if page == "📊 Portfolio Overview":
-    is_multibot = (is_india_mode and isinstance(broker, MultiBotBrokerAdapter))
-    if is_multibot:
-        hdr_sub = "GATE B QUANT FUND • SLEEVE 1: MULTI-ASSET ETF & GOLD (79.8%) • SLEEVE 2: SOVEREIGN BOND & CASH CARRY (20.2%) • CENTRAL MANAGER RECONCILED"
-        days_inc = acc_details.get("days_incubated", 5)
-        broker_live_badge = f"GATE B INCUBATION: DAY {days_inc} OF 91"
-        strategy_badge = "MULTI-ASSET & DURATION ENGINE"
-        term_title = "ANTIGRAVITY <span class=\"hud-title-accent\">// 1980s CRT WORKSTATION [GATE B MULTI-ASSET]</span>"
-    elif is_india_mode:
-        hdr_sub = "POD 1: INDIA GROWTH EQUITIES (NSE 100) • VARIANT 2: ASYMMETRIC MULTI-BAGGER (17.96% POST-TAX CAGR) • SEBI CNC DELIVERY"
-        broker_live_badge = "GROWW NSE LIVE" if not getattr(broker, 'is_mock', True) else "NSE FORWARD PAPER DESK"
-        strategy_badge = "GROWTH MOMENTUM (VARIANT 2)"
-        term_title = "ANTIGRAVITY <span class=\"hud-title-accent\">// 1980s CRT WORKSTATION [INDIA NSE]</span>"
-    else:
-        hdr_sub = "POD 2: US GROWTH EQUITIES (PARKED, REVISIT WITH SURVIVOR-FREE DATA) • RESTING PAPER BALANCE"
-        broker_live_badge = "ALPACA PAPER (PARKED)"
-        strategy_badge = "US MOMENTUM (PARKED)"
-        term_title = "ANTIGRAVITY <span class=\"hud-title-accent\">// 1980s CRT WORKSTATION [US PARKED]</span>"
-
-    st.markdown(f"""
-    <div class="hud-header" style="margin-bottom: 14px;">
-        <div>
-            <div class="hud-title">{term_title}</div>
-            <div class="hud-subtitle">{hdr_sub}</div>
-        </div>
-        <div style="display: flex; gap: 8px; align-items: center;">
-            <span class="status-pill"><span class="pulse-dot"></span> [LIVE EXECUTION READY]</span>
-            <span class="status-pill" style="border-left-color: #10B981; color: #10B981;">{broker_live_badge}</span>
-            <span class="status-pill" style="border-left-color: #F59E0B; color: #FEF3C7;">{strategy_badge}</span>
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
-
     # 1980s CRT 5-METRIC WORKSTATION SUMMARY CARD
     tot_pnl_cls = "groww-item-val-green" if overall_pnl >= 0 else "groww-item-val-red"
     tot_pnl_icon = "▲" if overall_pnl >= 0 else "▼"
