@@ -2,10 +2,10 @@
   "manager_name": "CENTRAL_PORTFOLIO_MANAGER",
   "phase": "PHASE_2",
   "policy": "FIXED_SHARES_PLUS_KILL_SWITCH",
-  "unitized_nav": 98.0828,
+  "unitized_nav": 97.7718,
   "hwm_unit_nav": 100.0,
-  "current_drawdown": -0.0192,
-  "max_drawdown": -0.0192,
+  "current_drawdown": -0.0223,
+  "max_drawdown": -0.0223,
   "throttle_level": 0,
   "consecutive_recovery_days": 0,
   "is_halted": false,
@@ -18,7 +18,7 @@
     "BOND_AND_CASH": 0.0,
     "CASH_SLEEVE": 0.0
   },
-  "last_update": "2026-11-20T18:49:13.911250+00:00",
+  "last_update": "2026-11-23T22:13:55.044966+00:00",
   "mode": "PAPER",
   "max_duration_scale": 1.0,
   "sleeves": {
@@ -26,8 +26,8 @@
       "bot_name": "ETF_AND_GOLD_BOT",
       "mandate": "Active Multi-Asset Equity & Gold Growth (Phase 1)",
       "target_capital": 80000.0,
-      "reported_nav": 78466.25,
-      "independent_nav": 78466.25,
+      "reported_nav": 78217.42,
+      "independent_nav": 78217.42,
       "reconciliation_gap_pct": 0.0,
       "reconciliation_passed": true,
       "reconciliation_status": "PASSED",
@@ -38,8 +38,8 @@
       "bot_name": "BOND_AND_CASH_BOT",
       "mandate": "Dedicated Safe Carry & Retreat Haven Partition (Phase 3 Champion B0)",
       "target_capital": 20000.0,
-      "reported_nav": 20008.64,
-      "independent_nav": 20008.64,
+      "reported_nav": 20013.35,
+      "independent_nav": 20013.35,
       "reconciliation_gap_pct": 0.0,
       "reconciliation_passed": true,
       "reconciliation_status": "PASSED",
@@ -47,8 +47,10 @@
       "stale": false
     }
   },
-  "combined_fund_nav": 98474.89,
+  "combined_fund_nav": 98230.77,
   "combined_target_capital": 100000.0,
   "consecutive_unverified_quote_days": 0,
-  "unverified_quotes_warning": null
+  "unverified_quotes_warning": null,
+  "kill_switch_active": false,
+  "consecutive_reconciliation_breaches": 0
 }
