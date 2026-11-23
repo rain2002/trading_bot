@@ -197,6 +197,66 @@ section[data-testid="stSidebar"] {
     box-shadow: 6px 0 24px rgba(0, 0, 0, 0.7) !important;
 }
 
+/* ==============================================================================
+   TACTILE MECHANICAL TERMINAL BUTTONS & ANIMATIONS
+   ============================================================================== */
+
+/* Base mechanical keycap structure for all Streamlit buttons */
+div.stButton > button {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-align: center !important;
+    font-family: 'IBM Plex Mono', monospace !important;
+    font-size: 0.80rem !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.04em !important;
+    background: linear-gradient(180deg, #1C160E 0%, #140F09 100%) !important;
+    color: #FEF3C7 !important;
+    border: 1px solid #2B1D0B !important;
+    border-radius: 2px !important;
+    padding: 8px 16px !important;
+    box-shadow: inset 0 1px 0 rgba(254, 243, 199, 0.12), inset 0 -1px 0 rgba(0, 0, 0, 0.7), 0 2px 5px rgba(0, 0, 0, 0.5) !important;
+    cursor: pointer !important;
+    transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    position: relative !important;
+    overflow: hidden !important;
+}
+
+div.stButton > button:hover {
+    background: #1C150D !important;
+    color: #FFFFFF !important;
+    border-color: #F59E0B !important;
+    box-shadow: inset 0 1px 0 rgba(254, 243, 199, 0.25), 0 0 14px rgba(245, 158, 11, 0.35), 0 4px 8px rgba(0, 0, 0, 0.6) !important;
+    transform: translateY(-2px) !important;
+}
+
+div.stButton > button:active {
+    transform: translateY(1.5px) scale(0.985) !important;
+    box-shadow: inset 0 3px 6px rgba(0, 0, 0, 0.9), 0 1px 2px rgba(245, 158, 11, 0.2) !important;
+    transition: all 0.06s ease !important;
+}
+
+/* Primary Illuminated Amber Button */
+div.stButton > button[kind="primary"],
+div.stButton > button[data-testid="stBaseButton-primary"] {
+    background: linear-gradient(180deg, #2D1E0C 0%, #191207 100%) !important;
+    border: 1px solid #F59E0B !important;
+    color: #FBBF24 !important;
+    font-weight: 700 !important;
+    box-shadow: inset 0 1px 0 rgba(254, 243, 199, 0.25), 0 0 8px rgba(245, 158, 11, 0.25) !important;
+}
+
+div.stButton > button[kind="primary"]:hover,
+div.stButton > button[data-testid="stBaseButton-primary"]:hover {
+    background: #F59E0B !important;
+    color: #080705 !important;
+    border-color: #FBBF24 !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4), 0 0 20px rgba(245, 158, 11, 0.65), 0 4px 10px rgba(0, 0, 0, 0.7) !important;
+    transform: translateY(-2px) !important;
+}
+
+/* Sidebar Navigation Items: Terminal Function Keys */
 section[data-testid="stSidebar"] div[data-testid="stVerticalBlock"] > div.stButton,
 section[data-testid="stSidebar"] div.stButton {
     margin: 0 !important;
@@ -205,25 +265,26 @@ section[data-testid="stSidebar"] div.stButton {
     width: 100% !important;
 }
 
-/* Base styling for sidebar navigation items */
 section[data-testid="stSidebar"] div.stButton > button {
     display: flex !important;
     align-items: center !important;
     justify-content: flex-start !important;
     text-align: left !important;
     width: 100% !important;
-    min-height: 38px !important;
-    height: 38px !important;
-    padding: 0 12px !important;
+    min-height: 40px !important;
+    height: 40px !important;
+    padding: 0 14px !important;
     font-family: 'IBM Plex Mono', monospace !important;
     font-size: 0.78rem !important;
     font-weight: 500 !important;
     letter-spacing: 0.02em !important;
-    background: transparent !important;
+    background: #0E0B07 !important;
     color: #A8824B !important;
-    border: 1px solid transparent !important;
+    border: 1px solid #1E150B !important;
+    border-left: 3px solid transparent !important;
     border-radius: 2px !important;
-    transition: all 0.15s ease !important;
+    box-shadow: inset 0 1px 0 rgba(254, 243, 199, 0.06), 0 1px 3px rgba(0, 0, 0, 0.4) !important;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
     box-sizing: border-box !important;
 }
 
@@ -231,17 +292,80 @@ section[data-testid="stSidebar"] div.stButton > button:hover {
     background: #140F09 !important;
     color: #FEF3C7 !important;
     border-color: #2B1D0B !important;
+    border-left: 3px solid #F59E0B !important;
+    transform: translateX(4px) !important;
+    box-shadow: inset 0 1px 0 rgba(254, 243, 199, 0.15), 0 2px 8px rgba(0, 0, 0, 0.5) !important;
 }
 
-/* Sidebar Active Function State */
+section[data-testid="stSidebar"] div.stButton > button:active {
+    transform: translateX(2px) scale(0.99) !important;
+}
+
+/* Sidebar Active Module Function Key */
 section[data-testid="stSidebar"] div.stButton > button[kind="primary"],
 section[data-testid="stSidebar"] div.stButton > button[data-testid="stBaseButton-primary"] {
-    background: #140F09 !important;
-    color: #FEF3C7 !important;
+    background: linear-gradient(90deg, rgba(245, 158, 11, 0.22) 0%, #140F09 100%) !important;
+    color: #FFFFFF !important;
     border: 1px solid #2B1D0B !important;
-    border-left: 3px solid #F59E0B !important;
-    font-weight: 600 !important;
-    box-shadow: inset 1px 0 0 #F59E0B !important;
+    border-left: 4px solid #F59E0B !important;
+    font-weight: 700 !important;
+    box-shadow: inset 3px 0 10px rgba(245, 158, 11, 0.35), inset 0 1px 0 rgba(254, 243, 199, 0.2) !important;
+    transform: none !important;
+}
+
+/* Hazard Pulse Animation for Emergency Halt Controls */
+@keyframes emergencyHazardPulse {
+    0%, 100% {
+        border-color: #EF4444 !important;
+        color: #EF4444 !important;
+        box-shadow: inset 0 1px 0 rgba(239, 68, 68, 0.3), 0 0 6px rgba(239, 68, 68, 0.3) !important;
+    }
+    50% {
+        border-color: #F87171 !important;
+        color: #FFA5A5 !important;
+        box-shadow: inset 0 1px 0 rgba(255, 200, 200, 0.5), 0 0 18px rgba(239, 68, 68, 0.75) !important;
+    }
+}
+
+/* Specifically style the 3 bot control deck buttons */
+div[data-testid="column"]:nth-of-type(1) div.stButton > button {
+    border: 1px solid #F59E0B !important;
+    color: #F59E0B !important;
+    background: linear-gradient(180deg, #24180A 0%, #140F09 100%) !important;
+    box-shadow: inset 0 1px 0 rgba(245, 158, 11, 0.3), 0 0 8px rgba(245, 158, 11, 0.2) !important;
+}
+
+div[data-testid="column"]:nth-of-type(1) div.stButton > button:hover {
+    background: #F59E0B !important;
+    color: #080705 !important;
+    border-color: #FBBF24 !important;
+    box-shadow: 0 0 20px rgba(245, 158, 11, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.4) !important;
+    transform: translateY(-2px) !important;
+}
+
+div[data-testid="column"]:nth-of-type(2) div.stButton > button {
+    border: 1px solid #EF4444 !important;
+    color: #EF4444 !important;
+    background: linear-gradient(180deg, #23120C 0%, #140F09 100%) !important;
+    box-shadow: inset 0 1px 0 rgba(239, 68, 68, 0.35), 0 0 8px rgba(239, 68, 68, 0.3) !important;
+    animation: emergencyHazardPulse 2.2s infinite ease-in-out !important;
+}
+
+div[data-testid="column"]:nth-of-type(2) div.stButton > button:hover {
+    background: #EF4444 !important;
+    color: #080705 !important;
+    border-color: #F87171 !important;
+    box-shadow: 0 0 24px rgba(239, 68, 68, 0.85), inset 0 1px 0 rgba(255, 255, 255, 0.5) !important;
+    animation: none !important;
+    transform: translateY(-2px) !important;
+}
+
+div[data-testid="column"]:nth-of-type(3) div.stButton > button:hover {
+    border-color: #F59E0B !important;
+    color: #FBBF24 !important;
+    background: #1C150D !important;
+    box-shadow: 0 0 16px rgba(245, 158, 11, 0.45), inset 0 1px 0 rgba(254, 243, 199, 0.3) !important;
+    transform: translateY(-2px) !important;
 }
 
 /* ==============================================================================
@@ -613,39 +737,65 @@ section[data-testid="stSidebar"] div.stButton > button[data-testid="stBaseButton
     color: #A8824B !important;
 }
 
-/* Order Execution Buttons: Phosphor BUY / Loss-Red SELL */
-button[aria-label="BUY"],
-button[aria-label="BUY"][data-testid="stBaseButton-primary"] {
-    background: #140F09 !important;
+/* Order Execution Buttons: Tactile Phosphor BUY / Warning-Red SELL Keycaps */
+button[aria-label*="BUY"],
+button[aria-label*="BUY"][data-testid="stBaseButton-primary"],
+button[kind="primary"][aria-label*="BUY"] {
+    background: linear-gradient(180deg, #1C180E 0%, #140F09 100%) !important;
     color: #10B981 !important;
     font-family: 'IBM Plex Mono', monospace !important;
     font-weight: 700 !important;
     font-size: 0.95rem !important;
+    letter-spacing: 0.05em !important;
     border-radius: 2px !important;
     border: 1px solid #10B981 !important;
-    box-shadow: none !important;
-    transition: all 0.15s ease !important;
+    box-shadow: inset 0 1px 0 rgba(16, 185, 129, 0.35), inset 0 -1px 0 rgba(0, 0, 0, 0.6), 0 3px 8px rgba(0, 0, 0, 0.5) !important;
+    transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    cursor: pointer !important;
+    position: relative !important;
 }
-button[aria-label="BUY"]:hover {
+button[aria-label*="BUY"]:hover,
+button[aria-label*="BUY"][data-testid="stBaseButton-primary"]:hover {
     background: #10B981 !important;
     color: #080705 !important;
+    border-color: #34D399 !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4), 0 0 18px rgba(16, 185, 129, 0.55), 0 4px 10px rgba(0, 0, 0, 0.6) !important;
+    transform: translateY(-2px) !important;
+}
+button[aria-label*="BUY"]:active,
+button[aria-label*="BUY"][data-testid="stBaseButton-primary"]:active {
+    transform: translateY(1.5px) scale(0.985) !important;
+    box-shadow: inset 0 3px 6px rgba(0, 0, 0, 0.8), 0 0 6px rgba(16, 185, 129, 0.4) !important;
 }
 
-button[aria-label="SELL"],
-button[aria-label="SELL"][data-testid="stBaseButton-primary"] {
-    background: #140F09 !important;
+button[aria-label*="SELL"],
+button[aria-label*="SELL"][data-testid="stBaseButton-primary"],
+button[kind="primary"][aria-label*="SELL"] {
+    background: linear-gradient(180deg, #1C180E 0%, #140F09 100%) !important;
     color: #EF4444 !important;
     font-family: 'IBM Plex Mono', monospace !important;
     font-weight: 700 !important;
     font-size: 0.95rem !important;
+    letter-spacing: 0.05em !important;
     border-radius: 2px !important;
     border: 1px solid #EF4444 !important;
-    box-shadow: none !important;
-    transition: all 0.15s ease !important;
+    box-shadow: inset 0 1px 0 rgba(239, 68, 68, 0.35), inset 0 -1px 0 rgba(0, 0, 0, 0.6), 0 3px 8px rgba(0, 0, 0, 0.5) !important;
+    transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    cursor: pointer !important;
+    position: relative !important;
 }
-button[aria-label="SELL"]:hover {
+button[aria-label*="SELL"]:hover,
+button[aria-label*="SELL"][data-testid="stBaseButton-primary"]:hover {
     background: #EF4444 !important;
     color: #080705 !important;
+    border-color: #F87171 !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4), 0 0 18px rgba(239, 68, 68, 0.55), 0 4px 10px rgba(0, 0, 0, 0.6) !important;
+    transform: translateY(-2px) !important;
+}
+button[aria-label*="SELL"]:active,
+button[aria-label*="SELL"][data-testid="stBaseButton-primary"]:active {
+    transform: translateY(1.5px) scale(0.985) !important;
+    box-shadow: inset 0 3px 6px rgba(0, 0, 0, 0.8), 0 0 6px rgba(239, 68, 68, 0.4) !important;
 }
 
 /* Form Inputs, Selects, and Number Inputs */
@@ -1638,22 +1788,40 @@ if page == "📊 Portfolio Overview":
     }}
     
     .curr-btn {{
-        padding: 2px 8px;
-        font-size: 0.66rem;
+        padding: 4px 10px;
+        font-size: 0.68rem;
         font-weight: 600;
         font-family: 'IBM Plex Mono', monospace;
         color: #A8824B;
         border-radius: 2px;
-        border: 1px solid transparent;
-        background: transparent;
+        border: 1px solid #2B1D0B;
+        background: #140F09;
         cursor: pointer;
-        transition: all 0.15s ease;
+        box-shadow: inset 0 1px 0 rgba(254, 243, 199, 0.08), 0 1px 3px rgba(0, 0, 0, 0.4);
+        transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+        position: relative;
+    }}
+    
+    .curr-btn:hover {{
+        color: #FEF3C7;
+        background: #1C150D;
+        border-color: #F59E0B;
+        box-shadow: 0 0 10px rgba(245, 158, 11, 0.3), inset 0 1px 0 rgba(254, 243, 199, 0.15);
+        transform: translateY(-1px);
+    }}
+    
+    .curr-btn:active {{
+        transform: translateY(1.5px) scale(0.98);
+        box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.8);
     }}
     
     .curr-btn.active {{
-        background: #140F09;
-        color: #FEF3C7;
-        border-color: #F59E0B;
+        background: #F59E0B;
+        color: #080705;
+        border-color: #FBBF24;
+        font-weight: 700;
+        box-shadow: 0 0 14px rgba(245, 158, 11, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+        transform: none;
     }}
     
     /* Oscilloscope Chart Area */
@@ -1691,29 +1859,40 @@ if page == "📊 Portfolio Overview":
     }}
     
     .timeframe-pill {{
-        background: transparent;
-        border: 1px solid transparent;
+        background: #140F09;
+        border: 1px solid #2B1D0B;
         color: #A8824B;
         font-family: 'IBM Plex Mono', monospace;
-        font-size: 0.70rem;
-        font-weight: 500;
-        padding: 3px 10px;
+        font-size: 0.72rem;
+        font-weight: 600;
+        padding: 4px 12px;
         border-radius: 2px;
         cursor: pointer;
-        transition: all 0.15s ease;
+        box-shadow: inset 0 1px 0 rgba(254, 243, 199, 0.06), 0 1px 3px rgba(0, 0, 0, 0.4);
+        transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+        position: relative;
     }}
     
     .timeframe-pill:hover {{
         color: #FEF3C7;
-        background: #140F09;
-        border-color: #2B1D0B;
+        background: #1C150D;
+        border-color: #F59E0B;
+        box-shadow: 0 0 10px rgba(245, 158, 11, 0.3), inset 0 1px 0 rgba(254, 243, 199, 0.15);
+        transform: translateY(-1px);
+    }}
+    
+    .timeframe-pill:active {{
+        transform: translateY(1.5px) scale(0.98);
+        box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.8);
     }}
     
     .timeframe-pill.active {{
-        background: #140F09;
-        border: 1px solid #10B981;
-        color: #FEF3C7;
-        font-weight: 600;
+        background: #F59E0B;
+        border: 1px solid #FBBF24;
+        color: #080705;
+        font-weight: 700;
+        box-shadow: 0 0 14px rgba(245, 158, 11, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+        transform: none;
     }}
     
     /* 1980s Retro HUD Floating Tooltip */
