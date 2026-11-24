@@ -5,7 +5,7 @@
   "strategy_id": "B0",
   "incubation_start_date": "2026-11-15T01:44:13.726023+00:00",
   "incubation_target_weeks": 13,
-  "days_incubated": 8,
+  "days_incubated": 9,
   "initial_capital": 20000.0,
   "cash": 13.35,
   "positions": {
@@ -21,7 +21,7 @@
   "current_drawdown_pct": 0.0,
   "max_drawdown_pct": -0.07,
   "max_duration_scale": 1.0,
-  "last_run_timestamp": "2026-11-23T22:13:53.375803+00:00",
+  "last_run_timestamp": "2026-11-24T20:52:36.617614+00:00",
   "last_rebalance_date": "2026-11-19T19:09:40.053606+00:00",
   "last_bar_date": "2026-11-23",
   "status": "HEALTHY_ACTIVE",
