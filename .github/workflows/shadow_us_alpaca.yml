@@ -18,10 +18,10 @@ concurrency:
 
 on:
   schedule:
-    # 09:30 EST (14:30 UTC) Monday through Friday - US Market Open Execution
-    - cron: '30 14 * * 1-5'
-    # 16:15 EST (21:15 UTC) Monday through Friday - US Market Close Scan & Queueing
-    - cron: '15 21 * * 1-5'
+    # 09:32 EST (14:32 UTC) Monday through Friday - US Market Open Execution (uncrowded minute to minimize runner queue lag)
+    - cron: '32 14 * * 1-5'
+    # 16:18 EST (21:18 UTC) Monday through Friday - US Market Close Scan & Queueing (uncrowded minute to minimize runner queue lag)
+    - cron: '18 21 * * 1-5'
   workflow_dispatch:
     inputs:
       phase:
@@ -89,7 +89,7 @@ jobs:
         run: |
           if [ -n "${{ github.event.inputs.phase }}" ]; then
             PHASE="${{ github.event.inputs.phase }}"
-          elif [ "${{ github.event.schedule }}" = "30 14 * * 1-5" ]; then
+          elif [ "${{ github.event.schedule }}" = "32 14 * * 1-5" ] || [ "${{ github.event.schedule }}" = "30 14 * * 1-5" ]; then
             PHASE="execute"
           else
             PHASE="scan"
