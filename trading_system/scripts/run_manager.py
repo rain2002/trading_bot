@@ -664,6 +664,121 @@ def execute_manager_cycle(
     }
 
 
+def _read_todays_india_trades(data_dir: str, today_str: str) -> Tuple[list, float]:
+    """Reads today's executed trades and bond carry accrual from CSV logs."""
+    trades_out = []
+    carry_today = 0.0
+    for fname, bot_label in [
+        ("etf_gold_trades.csv", "ETF"),
+        ("bond_cash_trades.csv", "BOND"),
+    ]:
+        fpath = os.path.join(data_dir, fname)
+        if not os.path.exists(fpath) or os.path.getsize(fpath) == 0:
+            continue
+        try:
+            df = pd.read_csv(fpath)
+            if df.empty or "timestamp" not in df.columns:
+                continue
+            today_df = df[df["timestamp"].astype(str).str.startswith(today_str)]
+            for _, row in today_df.iterrows():
+                side = str(row.get("side", "")).upper()
+                if side == "DIVIDEND_CARRY":
+                    carry_today += abs(float(row.get("net_cash_impact", 0.0)))
+                else:
+                    trades_out.append({
+                        "bot": bot_label,
+                        "side": side,
+                        "symbol": str(row.get("symbol", "")),
+                        "shares": float(row.get("shares", 0)),
+                        "price": float(row.get("price", 0)),
+                        "value": float(row.get("trade_value", 0)),
+                    })
+        except Exception as e:
+            logger.warning(f"Failed to read {fname} for Discord report: {e}")
+    return trades_out, carry_today
+
+
+def send_india_discord_report(res: Dict[str, Any], data_dir: Optional[str] = None) -> bool:
+    """Dispatches India Gate B daily status & executed trades embed to Discord."""
+    if os.environ.get("ENABLE_NOTIFICATIONS", "0") != "1":
+        return False
+    try:
+        from trading_system.app.notifications.notifier import QuantNotifier
+        notifier = QuantNotifier()
+        if not notifier.discord_url:
+            return False
+
+        d_dir = data_dir or os.path.join(PROJECT_ROOT, "trading_system", "data")
+        status = res.get("status", {})
+        today_str = str(res.get("timestamp", ""))[:10] or datetime.now(timezone.utc).strftime("%Y-%m-%d")
+
+        if status.get("is_data_fault"):
+            return notifier.send_discord_alert(
+                title=f"🚨 India Gate B — DATA FAULT ({today_str})",
+                message=(
+                    f"**Reason:** {status.get('data_fault_reason')}\n"
+                    f"**Action:** Cycle safely aborted. Prior state retained; kill switch avoided."
+                ),
+                color=0xFF3333,
+            )
+
+        etf_state = {}
+        etf_path = os.path.join(d_dir, "etf_gold_state.json")
+        if os.path.exists(etf_path):
+            with open(etf_path, "r") as f:
+                etf_state = json.load(f)
+
+        days_inc = int(etf_state.get("days_incubated", 0))
+        session_date = etf_state.get("last_bar_date") or today_str
+        p_sleeve = res["sleeves"]["primary_sleeve"]
+        r_sleeve = res["sleeves"]["reserve_sleeve"]
+        metrics = res["nav_metrics"]
+        is_halted = bool(status.get("is_halted", False))
+
+        trades_today, carry_today = _read_todays_india_trades(d_dir, today_str)
+        if trades_today:
+            trade_lines = [
+                f"• `{t['side']}` **{t['shares']:g} {t['symbol']}** @ INR {t['price']:,.2f} (INR {t['value']:,.2f})"
+                for t in trades_today[:12]
+            ]
+        else:
+            trade_lines = ["• None today (Drift within 5% tolerance band / HOLD)"]
+        if carry_today > 0:
+            trade_lines.append(f"• `+CARRY` Bond Sleeve Overnight Yield: **+INR {carry_today:,.2f}**")
+
+        pos_lines = []
+        for sym, pos in sorted(etf_state.get("positions", {}).items()):
+            shs = pos.get("shares", 0)
+            px = float(pos.get("last_price", 0.0))
+            pos_lines.append(f"• **{sym}**: {shs:g} shs @ ₹{px:,.2f} (₹{shs * px:,.0f})")
+        holdings_text = "\n".join(pos_lines[:10]) if pos_lines else "• None"
+
+        halt_str = f"HALTED ({status.get('halt_reason')})" if is_halted else "HEALTHY_ACTIVE"
+        color = 0xFF3333 if is_halted else 0x00D084
+
+        msg = (
+            f"**Status:** `{halt_str}` | Mode: `{res.get('mode', 'PAPER')}`\n"
+            f"**Session Date:** `{session_date}` | **Incubation:** Day {days_inc} / 91\n"
+            f"━━━━━━━━━━━━━━━━━━━━\n"
+            f"💰 **Combined Fund NAV:** INR {res['combined_fund_nav']:,.2f}\n"
+            f"📈 **ETF Sleeve:** INR {p_sleeve['independent_nav']:,.2f} | **Bond Sleeve:** INR {r_sleeve['independent_nav']:,.2f}\n"
+            f"🏷️ **Unitized NAV:** INR {metrics['nav_per_unit']:,.4f} (Ret: {metrics['true_trading_return_pct']:+.2f}% | DD: {status['current_drawdown']*100:.2f}%)\n"
+            f"🔍 **Recon Gap:** {status['last_reconciliation_gap_pct']:.4f}% | Throttle: {status['throttle_level']} | Scale: {res.get('max_duration_scale', 1.0):.2f}x\n"
+            f"━━━━━━━━━━━━━━━━━━━━\n"
+            f"🔄 **Trades Executed ({len(trades_today)}):**\n" + "\n".join(trade_lines) + "\n"
+            f"━━━━━━━━━━━━━━━━━━━━\n"
+            f"📋 **ETF Sleeve Holdings:**\n{holdings_text}"
+        )
+        return notifier.send_discord_alert(
+            title=f"🇮🇳 India Gate B Report — Day {days_inc}/91 ({session_date})",
+            message=msg[:3900],
+            color=color,
+        )
+    except Exception as e:
+        logger.warning(f"Failed to send India Discord report: {e}")
+        return False
+
+
 def main():
     parser = argparse.ArgumentParser(description="Central Portfolio Manager (Phase 2 Paper Trader)")
     parser.add_argument("--policy", default="FIXED_SHARES_PLUS_KILL_SWITCH", choices=["FIXED_SHARES_PLUS_KILL_SWITCH", "THROTTLE_AND_KILL_SWITCH"])
@@ -687,6 +802,7 @@ def main():
         print(f"[DATA FAULT DETECTED] {status['data_fault_reason']}")
         print("Cycle bypassed safely: Prior manager state retained, ledger unchanged, kill switch avoided.")
         print("=" * 80)
+        send_india_discord_report(res)
         sys.exit(1)
 
     metrics = res["nav_metrics"]
@@ -711,6 +827,8 @@ def main():
         val = metrics['total_portfolio_value'] * share
         print(f"  - {sleeve:15s}: {share * 100.0:5.1f}% (INR {val:,.2f})")
     print("=" * 80)
+
+    send_india_discord_report(res)
 
     if status["is_halted"]:
         print(f"[CRITICAL ALERT] Manager Trading Halted: {status['halt_reason']}")

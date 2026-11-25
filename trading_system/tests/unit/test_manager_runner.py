@@ -963,6 +963,69 @@ def test_manager_runner_data_fault_on_extreme_nav_jump(tmp_path: Path):
     assert not os.path.exists(equity_log_path)
 
 
+def test_send_india_discord_report_formats_trades_and_nav(tmp_path: Path, monkeypatch):
+    """
+    Verifies that send_india_discord_report posts an accurate Discord embed containing
+    NAV, unitized NAV, holdings, executed trades from today, and daily bond carry.
+    """
+    from unittest.mock import patch
+    from trading_system.scripts.run_manager import send_india_discord_report
+
+    monkeypatch.setenv("ENABLE_NOTIFICATIONS", "1")
+    monkeypatch.setenv("DISCORD_WEBHOOK_URL", "https://discord.mock/webhook")
+
+    # Populate minimal ETF state + today's trade + bond carry CSV
+    (tmp_path / "etf_gold_state.json").write_text(json.dumps({
+        "days_incubated": 7,
+        "last_bar_date": "2026-11-25",
+        "positions": {
+            "GOLDBEES.NS": {"shares": 178, "last_price": 103.50}
+        }
+    }))
+    (tmp_path / "etf_gold_trades.csv").write_text(
+        "timestamp,bot,symbol,side,shares,price,trade_value,fees_paid,tax_paid,net_cash_impact\n"
+        "2026-11-25 10:45:00,ETF_AND_GOLD,NIFTYBEES.NS,BUY,4,290.0,1160.0,0.8,0.0,1160.8\n"
+    )
+    (tmp_path / "bond_cash_trades.csv").write_text(
+        "timestamp,bot,symbol,side,shares,price,trade_value,fees_paid,tax_paid,net_cash_impact\n"
+        "2026-11-25 10:45:05,BOND_AND_CASH,LIQUIDBEES.NS,DIVIDEND_CARRY,0,1000.0,0.0,0.0,0.0,-4.51\n"
+    )
+
+    sample_res = {
+        "timestamp": "2026-11-25T10:45:10+00:00",
+        "mode": "PAPER",
+        "combined_fund_nav": 98500.0,
+        "max_duration_scale": 1.0,
+        "nav_metrics": {"nav_per_unit": 98.12, "true_trading_return_pct": -1.88},
+        "status": {
+            "is_halted": False,
+            "halt_reason": None,
+            "is_data_fault": False,
+            "current_drawdown": -0.0188,
+            "last_reconciliation_gap_pct": 0.0,
+            "throttle_level": 0,
+        },
+        "sleeves": {
+            "primary_sleeve": {"independent_nav": 78482.14},
+            "reserve_sleeve": {"independent_nav": 20017.86},
+        },
+    }
+
+    with patch("requests.post") as mock_post:
+        mock_post.return_value.status_code = 204
+        ok = send_india_discord_report(sample_res, data_dir=str(tmp_path))
+
+    assert ok is True
+    assert mock_post.call_count == 1
+    embed = mock_post.call_args[1]["json"]["embeds"][0]
+    assert "Day 7/91" in embed["title"]
+    assert "98,500.00" in embed["description"]
+    assert "BUY" in embed["description"]
+    assert "NIFTYBEES.NS" in embed["description"]
+    assert "+INR 4.51" in embed["description"]
+
+
+
 
 
 

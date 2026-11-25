@@ -60,7 +60,7 @@ jobs:
       - name: "Install Dependencies"
         run: |
           python -m pip install --upgrade pip
-          pip install yfinance pandas numpy scipy requests python-dotenv
+          pip install yfinance pandas numpy scipy requests python-dotenv pydantic pydantic-settings
 
       - name: "Restore US Shadow State Artifacts from state-shadow-us Branch"
         run: |
@@ -84,7 +84,8 @@ jobs:
           PYTHONPATH: .
           PAPER_API_KEY: ${{ secrets.PAPER_API_KEY }}
           PAPER_API_SECRET: ${{ secrets.PAPER_API_SECRET }}
-          ENABLE_NOTIFICATIONS: "0"
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          ENABLE_NOTIFICATIONS: "1"
         run: |
           if [ -n "${{ github.event.inputs.phase }}" ]; then
             PHASE="${{ github.event.inputs.phase }}"

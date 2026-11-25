@@ -221,6 +221,7 @@ class PodPaperEngine:
         self.live_broker = live_broker
         # Concentration architecture: 8 slots for US growth momentum (exploratory grid search baseline), 10 slots for India
         self.max_positions = 8 if "US" in self.pod_name else 10
+        self.session_trades: List[Dict[str, Any]] = []
         self.state = self._load_state()
 
     def sync_alpaca_live(self):
@@ -348,6 +349,7 @@ class PodPaperEngine:
             json.dump(self.state, f, indent=2)
 
     def log_trade(self, trade_data: Dict[str, Any]):
+        self.session_trades.append(dict(trade_data))
         os.makedirs(os.path.dirname(self.trades_file), exist_ok=True)
         file_exists = os.path.exists(self.trades_file) and os.path.getsize(self.trades_file) > 0
         df_row = pd.DataFrame([trade_data])
@@ -947,6 +949,7 @@ class MultiAssetPodPaperEngine:
         self.state_file = state_file
         self.trades_file = trades_file
         self.stressed_friction = stressed_friction
+        self.session_trades: List[Dict[str, Any]] = []
         self.state = self._load_state()
 
     def _load_state(self) -> Dict[str, Any]:
@@ -978,6 +981,7 @@ class MultiAssetPodPaperEngine:
             json.dump(self.state, f, indent=2)
 
     def log_trade(self, trade_data: Dict[str, Any]):
+        self.session_trades.append(dict(trade_data))
         os.makedirs(os.path.dirname(self.trades_file), exist_ok=True)
         file_exists = os.path.exists(self.trades_file) and os.path.getsize(self.trades_file) > 0
         df_row = pd.DataFrame([trade_data])
@@ -1507,6 +1511,11 @@ def main():
         trades_file=MULTI_ASSET_TRADES_CSV
     )
 
+    us_cycle_status = args.phase.upper()
+    us_cycle_delay = 0
+    us_cycle_notes = ""
+    us_notify = True
+
     if args.phase == "status":
         if args.pod in ["all", "india"]:
             india_engine.print_status_tear_sheet()
@@ -1531,6 +1540,9 @@ def main():
 
         if args.pod in ["all", "us"]:
             is_valid, status, delay_mins, msg = verify_us_timing_window(args.phase, force=args.force)
+            us_cycle_status = status
+            us_cycle_delay = delay_mins
+            us_cycle_notes = msg
             if not is_valid:
                 print(f"\n>>> [POD 2: US TIMING GUARD] SCAN SKIPPED: {msg}\n")
                 us_engine.log_daily_equity(status=status, delay_mins=delay_mins, notes=msg)
@@ -1546,9 +1558,14 @@ def main():
 
                 if not args.force and latest_bar_date and us_engine.state.get("last_scan_bar_date") == latest_bar_date:
                     print(f"\n>>> [POD 2: US IDEMPOTENCY] Session {latest_bar_date} already scanned; skipping duplicate scan.\n")
+                    us_notify = False
                 else:
                     print(f"\n>>> [POD 2: US] SCANNING POINT-IN-TIME US UNIVERSE AT MARKET CLOSE (16:05 EST)... (Delay: {delay_mins}m)")
-                    us_engine.sync_alpaca_live()
+                    try:
+                        us_engine.sync_alpaca_live()
+                    except RuntimeError as guard_err:
+                        _send_us_error_alert(str(guard_err))
+                        raise
                     us_tickers = get_active_pit_universe("US")
                     combined_tickers = list(set(us_tickers) | set(us_engine.state["positions"].keys()))
                     us_data = fetch_yfinance_history(combined_tickers, period="1y")
@@ -1594,24 +1611,37 @@ def main():
             ny_today_str = get_ny_now().strftime("%Y-%m-%d")
             if not args.force and us_engine.state.get("last_execute_date") == ny_today_str:
                 print(f"\n>>> [POD 2: US IDEMPOTENCY] Execution cycle for {ny_today_str} already completed; skipping duplicate run.\n")
+                us_notify = False
             else:
                 is_valid, status, delay_mins, msg = verify_us_timing_window(args.phase, force=args.force)
+                us_cycle_status = status
+                us_cycle_delay = delay_mins
+                us_cycle_notes = msg
                 if not is_valid:
                     print(f"\n>>> [POD 2: US TIMING GUARD] EXECUTION SKIPPED: {msg}\n")
-                    # Do not pollute equity log on premature pre-open cron wakes; log post-close skips at most once/day
-                    if status != "SKIPPED_PRE_OPEN" and us_engine.state.get("last_skip_logged_date") != ny_today_str:
+                    # Do not pollute equity log or spam Discord on premature pre-open cron wakes; log post-close skips at most once/day
+                    if status == "SKIPPED_PRE_OPEN":
+                        us_notify = False
+                    elif us_engine.state.get("last_skip_logged_date") != ny_today_str:
                         us_engine.state["last_skip_logged_date"] = ny_today_str
                         us_engine._save_state()
                         us_engine.log_daily_equity(status=status, delay_mins=delay_mins, notes=msg)
+                    else:
+                        us_notify = False
                 else:
                     clock_open = None if args.force else check_us_market_open_clock()
                     if clock_open is False:
                         holiday_msg = f"Exchange clock reports US market CLOSED on {ny_today_str}; preserving queued orders for next trading open."
                         print(f"\n>>> [POD 2: US EXCHANGE CLOCK] {holiday_msg}\n")
+                        us_cycle_status = "SKIPPED_MARKET_CLOSED"
+                        us_cycle_delay = 0
+                        us_cycle_notes = holiday_msg
                         if us_engine.state.get("last_skip_logged_date") != ny_today_str:
                             us_engine.state["last_skip_logged_date"] = ny_today_str
                             us_engine._save_state()
                             us_engine.log_daily_equity(status="SKIPPED_MARKET_CLOSED", delay_mins=0, notes=holiday_msg)
+                        else:
+                            us_notify = False
                     else:
                         print(f"\n>>> [POD 2: US] EXECUTING QUEUED ORDERS AT MARKET OPEN (09:30 EST)... (Delay: {delay_mins}m)")
                         us_tickers = get_active_pit_universe("US")
@@ -1639,6 +1669,7 @@ def main():
                         us_engine.state["last_execute_date"] = ny_today_str
                         us_engine.execute_open_fills(current_opens, runtime_prices=runtime_prices, delay_mins=delay_mins)
                         fill_status = "EXECUTE_FILL" if had_orders else "EXECUTE_NO_ORDERS"
+                        us_cycle_status = fill_status
                         us_engine.log_daily_equity(status=fill_status, delay_mins=delay_mins, notes=msg)
 
         if args.pod in ["all", "pod_c", "multi_asset"]:
@@ -1669,18 +1700,55 @@ def main():
             multi_asset_engine.execute_open_fills(current_opens)
 
     # Dispatches live mobile notifications and regenerates web dashboard
-    dispatch_notifications_and_dashboard(india_engine, us_engine, multi_asset_engine, args.phase, args.pod)
+    dispatch_notifications_and_dashboard(
+        india_engine,
+        us_engine,
+        multi_asset_engine,
+        args.phase,
+        args.pod,
+        us_cycle_status=us_cycle_status,
+        us_cycle_delay=us_cycle_delay,
+        us_cycle_notes=us_cycle_notes,
+        us_notify=us_notify,
+    )
 
 
-def dispatch_notifications_and_dashboard(india_engine, us_engine, multi_asset_engine=None, phase: str = "status", pod: str = "all"):
+def _send_us_error_alert(err_msg: str):
+    if os.environ.get("ENABLE_NOTIFICATIONS", "0") != "1":
+        return
+    try:
+        from trading_system.app.notifications.notifier import QuantNotifier
+        notifier = QuantNotifier()
+        if notifier.discord_url:
+            notifier.send_discord_alert(
+                title="🚨 US Shadow Desk — Integrity Guard Alert",
+                message=err_msg[:3800],
+                color=0xFF3333,
+            )
+    except Exception:
+        pass
+
+
+def dispatch_notifications_and_dashboard(
+    india_engine,
+    us_engine,
+    multi_asset_engine=None,
+    phase: str = "status",
+    pod: str = "all",
+    us_cycle_status: str = "",
+    us_cycle_delay: int = 0,
+    us_cycle_notes: str = "",
+    us_notify: bool = True,
+):
     try:
         from trading_system.scripts.generate_web_dashboard import generate_dashboard_html
         generate_dashboard_html()
     except Exception as e:
         print(f"[Dashboard Warning] Could not regenerate web dashboard: {e}")
 
-    # Automated notifications DEACTIVATED by user directive
     if os.environ.get("ENABLE_NOTIFICATIONS", "0") != "1":
+        return
+    if pod == "us" and not us_notify:
         return
 
     try:
@@ -1689,11 +1757,81 @@ def dispatch_notifications_and_dashboard(india_engine, us_engine, multi_asset_en
         if not notifier.discord_url and not (notifier.tg_token and notifier.tg_chat_id):
             return
 
+        # Rich Discord embed specifically for US Shadow cycles
+        if pod == "us" and notifier.discord_url:
+            us_cash = float(us_engine.state.get("cash", 0.0))
+            us_pos = us_engine.state.get("positions", {})
+            us_port_val = sum(
+                float(p.get("shares", 0.0)) * float(p.get("last_close", p.get("entry_price", 0.0)))
+                for p in us_pos.values()
+            )
+            us_eq = us_cash + us_port_val
+            us_dd = float(us_engine.state.get("max_drawdown", 0.0))
+            us_pnl = us_eq - us_engine.initial_capital
+            us_pnl_pct = (us_pnl / us_engine.initial_capital * 100.0) if us_engine.initial_capital > 0 else 0.0
+            day0_ok = bool(us_engine.state.get("day0_verified", False))
+
+            trades = getattr(us_engine, "session_trades", [])
+            if trades:
+                trade_lines = []
+                for t in trades[:12]:
+                    act = t.get("action", "TRADE")
+                    sym = t.get("symbol", "")
+                    shs = float(t.get("shares", 0.0))
+                    fpx = float(t.get("fill_price", 0.0))
+                    pnl_s = f" | PnL: ${float(t.get('realized_pnl', 0.0)):+,.2f}" if act in ("SELL", "TRIM") else ""
+                    trade_lines.append(f"• `{act}` **{shs:g} {sym}** @ ${fpx:,.2f}{pnl_s}")
+                trades_block = "\n".join(trade_lines)
+            else:
+                trades_block = "• None in this cycle"
+
+            pos_lines = []
+            for sym, p in sorted(us_pos.items()):
+                shs = float(p.get("shares", 0.0))
+                entry = float(p.get("entry_price", 0.0))
+                cur = float(p.get("last_close", entry))
+                mv = shs * cur
+                pct = ((cur - entry) / entry * 100.0) if entry > 0 else 0.0
+                pos_lines.append(f"• **{sym}**: {shs:g} shs @ ${cur:,.2f} (${mv:,.0f}, {pct:+.1f}%)")
+            pos_block = "\n".join(pos_lines[:10]) if pos_lines else "• None (100% Cash)"
+
+            q_buys = [f"`BUY` {b['sym']} (${b['target_alloc']:,.0f})" for b in us_engine.state.get("pending_buys", [])]
+            q_sells = [f"`SELL` {s['sym']}" for s in us_engine.state.get("pending_sells", [])]
+            queued_all = q_sells + q_buys
+            queued_block = ", ".join(queued_all[:10]) if queued_all else "None queued"
+
+            status_lbl = us_cycle_status or phase.upper()
+            is_skip = status_lbl.startswith("SKIPPED_")
+            color = 0xFFB000 if is_skip else 0x00D084
+
+            embed_msg = (
+                f"**Phase:** `{phase.upper()}` | **Status:** `{status_lbl}` (Delay: {us_cycle_delay}m)\n"
+                f"**Day 0 Verified:** `{day0_ok}` | **Last Scan Bar:** `{us_engine.state.get('last_scan_bar_date') or 'N/A'}`\n"
+                f"━━━━━━━━━━━━━━━━━━━━\n"
+                f"💰 **Equity:** ${us_eq:,.2f} ({us_pnl_pct:+.2f}% / ${us_pnl:+,.2f})\n"
+                f"💵 **Cash:** ${us_cash:,.2f} | **Positions:** {len(us_pos)} | **Max DD:** {us_dd*100:.2f}%\n"
+                f"━━━━━━━━━━━━━━━━━━━━\n"
+                f"🔄 **Trades Executed ({len(trades)}):**\n{trades_block}\n"
+                f"━━━━━━━━━━━━━━━━━━━━\n"
+                f"⏳ **Queued for Next Open:** {queued_block}\n"
+                f"━━━━━━━━━━━━━━━━━━━━\n"
+                f"📋 **Active Holdings ({len(us_pos)}):**\n{pos_block}"
+            )
+            if us_cycle_notes and is_skip:
+                embed_msg += f"\n\nℹ️ _{us_cycle_notes}_"
+
+            notifier.send_discord_alert(
+                title=f"🇺🇸 US Shadow Desk (Alpaca) — {status_lbl}",
+                message=embed_msg[:3900],
+                color=color,
+            )
+            return
+
         msg_lines = [f"⚡ **ANTIGRAVITY QUANT ALERT: {phase.upper()} CYCLE ({pod.upper()})**"]
         if pod in ["all", "india"]:
             in_cash = india_engine.state.get("cash", 0)
             in_pos = india_engine.state.get("positions", {})
-            in_eq = in_cash + sum(p.get("shares", 0) * p.get("peak_price", p.get("entry_price", 0)) for p in in_pos.values())
+            in_eq = in_cash + sum(p.get("shares", 0) * p.get("last_close", p.get("entry_price", 0)) for p in in_pos.values())
             in_dd = india_engine.state.get("max_drawdown", 0)
             in_pnl = in_eq - india_engine.initial_capital
             in_pnl_pct = (in_pnl / india_engine.initial_capital * 100) if india_engine.initial_capital > 0 else 0
@@ -1713,7 +1851,7 @@ def dispatch_notifications_and_dashboard(india_engine, us_engine, multi_asset_en
         if pod in ["all", "us"]:
             us_cash = us_engine.state.get("cash", 0)
             us_pos = us_engine.state.get("positions", {})
-            us_eq = us_cash + sum(p.get("shares", 0) * p.get("peak_price", p.get("entry_price", 0)) for p in us_pos.values())
+            us_eq = us_cash + sum(p.get("shares", 0) * p.get("last_close", p.get("entry_price", 0)) for p in us_pos.values())
             us_dd = us_engine.state.get("max_drawdown", 0)
             us_pnl = us_eq - us_engine.initial_capital
             us_pnl_pct = (us_pnl / us_engine.initial_capital * 100) if us_engine.initial_capital > 0 else 0
@@ -1721,6 +1859,9 @@ def dispatch_notifications_and_dashboard(india_engine, us_engine, multi_asset_en
             msg_lines.append("🇺🇸 **US Growth Pod (NASDAQ/NYSE)**:")
             msg_lines.append(f"• Equity: ${us_eq:,.2f} ({us_pnl_pct:+.2f}%) | Cash: ${us_cash:,.2f}")
             msg_lines.append(f"• Active Positions: {len(us_pos)} | Max DD: {us_dd*100:.1f}%")
+            if us_engine.state.get("pending_buys"):
+                buys_str = ", ".join([b["sym"] for b in us_engine.state["pending_buys"]])
+                msg_lines.append(f"• Queued Buys for Open: {buys_str}")
             if us_engine.state.get("pending_sells"):
                 sells_str = ", ".join([s["sym"] for s in us_engine.state["pending_sells"]])
                 msg_lines.append(f"• Queued Sells for Open: {sells_str}")
@@ -1728,7 +1869,7 @@ def dispatch_notifications_and_dashboard(india_engine, us_engine, multi_asset_en
         if pod in ["all", "pod_c", "multi_asset"] and multi_asset_engine is not None:
             c_cash = multi_asset_engine.state.get("cash", 0)
             c_pos = multi_asset_engine.state.get("positions", {})
-            c_eq = c_cash + sum(p.get("shares", 0) * p.get("peak_price", p.get("entry_price", 0)) for p in c_pos.values())
+            c_eq = c_cash + sum(p.get("shares", 0) * p.get("last_close", p.get("entry_price", 0)) for p in c_pos.values())
             c_dd = multi_asset_engine.state.get("max_drawdown", 0)
             c_pnl = c_eq - multi_asset_engine.initial_capital
             c_pnl_pct = (c_pnl / multi_asset_engine.initial_capital * 100) if multi_asset_engine.initial_capital > 0 else 0

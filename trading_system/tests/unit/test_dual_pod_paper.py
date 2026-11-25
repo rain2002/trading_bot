@@ -835,6 +835,57 @@ def test_overnight_scan_window_and_execute_idempotency(monkeypatch):
     assert status == "SKIPPED_WEEKEND"
 
 
+def test_us_shadow_discord_dispatch_includes_executed_trades(tmp_path, monkeypatch):
+    """
+    Verifies that US Shadow Discord dispatch includes executed trades, positions,
+    and queued orders, and stays silent when us_notify=False (idempotent/pre-open skip).
+    """
+    from unittest.mock import patch
+    from trading_system.scripts.run_dual_pod_paper import dispatch_notifications_and_dashboard
+
+    monkeypatch.setenv("ENABLE_NOTIFICATIONS", "1")
+    monkeypatch.setenv("DISCORD_WEBHOOK_URL", "https://discord.mock/webhook")
+    monkeypatch.setattr("trading_system.scripts.generate_web_dashboard.generate_dashboard_html", lambda: None)
+
+    us_engine = PodPaperEngine(
+        pod_name="US",
+        currency="USD",
+        initial_capital=100000.0,
+        state_file=str(tmp_path / "us_state.json"),
+        trades_file=str(tmp_path / "us_trades.csv"),
+    )
+    us_engine.state["day0_verified"] = True
+    us_engine.state["cash"] = 87500.0
+    us_engine.state["positions"] = {
+        "NVDA": {"shares": 100.0, "entry_price": 125.0, "last_close": 130.0, "peak_price": 132.0}
+    }
+    us_engine.session_trades.append({
+        "action": "BUY",
+        "symbol": "NVDA",
+        "shares": 100.0,
+        "fill_price": 125.0,
+    })
+
+    with patch("requests.post") as mock_post:
+        mock_post.return_value.status_code = 204
+        # Silent when us_notify=False
+        dispatch_notifications_and_dashboard(None, us_engine, phase="execute", pod="us", us_notify=False)
+        assert mock_post.call_count == 0
+
+        # Sends rich embed with trades & equity when us_notify=True
+        dispatch_notifications_and_dashboard(
+            None, us_engine, phase="execute", pod="us",
+            us_cycle_status="EXECUTE_FILL", us_cycle_delay=4, us_notify=True
+        )
+        assert mock_post.call_count == 1
+        embed = mock_post.call_args[1]["json"]["embeds"][0]
+        assert "EXECUTE_FILL" in embed["title"]
+        assert "NVDA" in embed["description"]
+        assert "BUY" in embed["description"]
+        assert "$100,500.00" in embed["description"]
+
+
+
 
 
 
