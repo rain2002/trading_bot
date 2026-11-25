@@ -68,6 +68,18 @@ class AlpacaBrokerAdapter(BrokerAdapter):
         except Exception as e:
             logger.warning(f"Alpaca connection health check failed: {e}")
             return False
+
+    def get_market_clock(self) -> Optional[Dict[str, Any]]:
+        """Fetch official exchange open/closed clock from Alpaca (/v2/clock)."""
+        if not self.api_key or self.api_key == "mock":
+            return None
+        try:
+            resp = requests.get(f"{self.base_url}/v2/clock", headers=self.headers, timeout=8)
+            if resp.status_code == 200:
+                return resp.json()
+        except Exception as e:
+            logger.warning(f"Alpaca market clock fetch warning: {e}")
+        return None
         
     def get_positions(self) -> Dict[str, float]:
         """Fetch actual positions from the broker normalized with '-' for dual-class shares."""

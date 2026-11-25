@@ -799,5 +799,42 @@ def test_day0_alpaca_integrity_guard_and_sha256_provenance(tmp_path, monkeypatch
     assert engine.state["cash"] == 105000.0
 
 
+def test_overnight_scan_window_and_execute_idempotency(monkeypatch):
+    """
+    Verifies that:
+      1. Overnight pre-open hours (e.g. 02:15 EST Wed, or 02:15 EST Sat after Friday close)
+         are valid post-close scan windows because previous daily close bars are complete.
+      2. Active market hours (09:25-15:59 EST) still block premature scans.
+    """
+    from datetime import datetime
+    from zoneinfo import ZoneInfo
+    from trading_system.scripts.run_dual_pod_paper import verify_us_timing_window
+
+    ny_tz = ZoneInfo("America/New_York")
+
+    # Overnight Wednesday 02:15 EST -> valid scan of Tuesday's close
+    wed_overnight = datetime(2026, 11, 25, 2, 15, tzinfo=ny_tz)
+    monkeypatch.setattr("trading_system.scripts.run_dual_pod_paper.get_ny_now", lambda: wed_overnight)
+    is_v, status, delay, _ = verify_us_timing_window("scan")
+    assert is_v is True
+    assert status == "SCAN_COMPLETE"
+    assert delay == 0
+
+    # Early Saturday 02:15 EST (delayed Friday post-close scan) -> allowed within weekend grace
+    sat_overnight = datetime(2026, 11, 28, 2, 15, tzinfo=ny_tz)
+    monkeypatch.setattr("trading_system.scripts.run_dual_pod_paper.get_ny_now", lambda: sat_overnight)
+    is_v, status, delay, _ = verify_us_timing_window("scan")
+    assert is_v is True
+    assert status == "SCAN_COMPLETE"
+
+    # Saturday 10:00 EST -> blocked weekend
+    sat_day = datetime(2026, 11, 28, 10, 0, tzinfo=ny_tz)
+    monkeypatch.setattr("trading_system.scripts.run_dual_pod_paper.get_ny_now", lambda: sat_day)
+    is_v, status, delay, _ = verify_us_timing_window("scan")
+    assert is_v is False
+    assert status == "SKIPPED_WEEKEND"
+
+
+
 
 

@@ -1394,6 +1394,11 @@ def verify_us_timing_window(phase: str, force: bool = False) -> Tuple[bool, str,
     time_mins = ny_now.hour * 60 + ny_now.minute
 
     if weekday >= 5:
+        # Allow a delayed Friday post-close scan that arrives overnight before 09:25 EST Saturday
+        if phase == "scan" and weekday == 5 and time_mins < (9 * 60 + 25):
+            return True, "SCAN_COMPLETE", 0, (
+                f"Within overnight weekend grace window ({current_time_str}); scanning Friday market close."
+            )
         msg = f"US market is closed on weekends (Current: {ny_now.strftime('%A %H:%M %Z')}). Preserving state for next session."
         return False, "SKIPPED_WEEKEND", 0, msg
 
@@ -1422,19 +1427,38 @@ def verify_us_timing_window(phase: str, force: bool = False) -> Tuple[bool, str,
         return True, "EXECUTE_FILL", delay_mins, msg
 
     elif phase == "scan":
-        # Scheduled scan window: post-close (after 16:00 Eastern)
+        # Scan is blocked ONLY during active intraday trading hours (09:25–15:59 EST).
+        # Both post-close (>= 16:00 EST) and overnight pre-open (< 09:25 EST) have complete EOD bars.
+        open_start = 9 * 60 + 25   # 09:25 Eastern
         market_close = 16 * 60     # 16:00 Eastern
         close_sched = 16 * 60 + 15 # 16:15 Eastern
 
-        if time_mins < market_close:
+        if open_start <= time_mins < market_close:
             msg = f"PREMATURE RUN: Current Eastern time is {current_time_str}, during active market hours before official 16:00 close. Scan deferred."
             return False, "SKIPPED_RUNNER_PRE_CLOSE", 0, msg
 
-        delay_mins = max(0, time_mins - close_sched)
-        msg = f"Within valid Market Close scan window ({current_time_str}); runner delay {delay_mins}m. Scanning closes and updating signals."
+        delay_mins = max(0, time_mins - close_sched) if time_mins >= market_close else 0
+        msg = f"Within valid Market Close / Overnight scan window ({current_time_str}); runner delay {delay_mins}m. Scanning closes and updating signals."
         return True, "SCAN_COMPLETE", delay_mins, msg
 
     return True, "VERIFIED", 0, "Timing verified."
+
+
+def check_us_market_open_clock() -> Optional[bool]:
+    """Queries Alpaca /v2/clock if credentials are set. Returns True/False, or None if unavailable."""
+    api_key = os.environ.get("PAPER_API_KEY") or os.environ.get("ALPACA_API_KEY")
+    api_secret = os.environ.get("PAPER_API_SECRET") or os.environ.get("ALPACA_SECRET_KEY")
+    if not api_key or not api_secret:
+        return None
+    try:
+        from trading_system.app.broker.alpaca import AlpacaBrokerAdapter
+        adapter = AlpacaBrokerAdapter(api_key=api_key, api_secret=api_secret, base_url="https://paper-api.alpaca.markets")
+        clock = adapter.get_market_clock()
+        if isinstance(clock, dict) and "is_open" in clock:
+            return bool(clock["is_open"])
+    except Exception:
+        pass
+    return None
 
 
 def main():
@@ -1511,14 +1535,26 @@ def main():
                 print(f"\n>>> [POD 2: US TIMING GUARD] SCAN SKIPPED: {msg}\n")
                 us_engine.log_daily_equity(status=status, delay_mins=delay_mins, notes=msg)
             else:
-                print(f"\n>>> [POD 2: US] SCANNING POINT-IN-TIME US UNIVERSE AT MARKET CLOSE (16:05 EST)... (Delay: {delay_mins}m)")
-                us_engine.sync_alpaca_live()
-                us_tickers = get_active_pit_universe("US")
-                combined_tickers = list(set(us_tickers) | set(us_engine.state["positions"].keys()))
-                us_data = fetch_yfinance_history(combined_tickers, period="1y")
                 bench_us = yf.download("SPY", period="1y", progress=False, auto_adjust=False)
                 bench_us = normalize_df_columns(bench_us)
-                us_engine.scan_and_evaluate(us_data, bench_us, active_pit_universe=set(us_tickers), delay_mins=delay_mins, notes=msg)
+                latest_bar_date = ""
+                try:
+                    if not bench_us.empty:
+                        latest_bar_date = str(bench_us.index[-1])[:10]
+                except Exception:
+                    latest_bar_date = ""
+
+                if not args.force and latest_bar_date and us_engine.state.get("last_scan_bar_date") == latest_bar_date:
+                    print(f"\n>>> [POD 2: US IDEMPOTENCY] Session {latest_bar_date} already scanned; skipping duplicate scan.\n")
+                else:
+                    print(f"\n>>> [POD 2: US] SCANNING POINT-IN-TIME US UNIVERSE AT MARKET CLOSE (16:05 EST)... (Delay: {delay_mins}m)")
+                    us_engine.sync_alpaca_live()
+                    us_tickers = get_active_pit_universe("US")
+                    combined_tickers = list(set(us_tickers) | set(us_engine.state["positions"].keys()))
+                    us_data = fetch_yfinance_history(combined_tickers, period="1y")
+                    if latest_bar_date:
+                        us_engine.state["last_scan_bar_date"] = latest_bar_date
+                    us_engine.scan_and_evaluate(us_data, bench_us, active_pit_universe=set(us_tickers), delay_mins=delay_mins, notes=msg)
 
         if args.pod in ["all", "pod_c", "multi_asset"]:
             print("\n>>> [POD C: MULTI-ASSET] SCANNING MACRO TREND REGIMES AT MARKET CLOSE (15:35 IST)...")
@@ -1555,37 +1591,55 @@ def main():
             india_engine.execute_open_fills(current_opens)
 
         if args.pod in ["all", "us"]:
-            is_valid, status, delay_mins, msg = verify_us_timing_window(args.phase, force=args.force)
-            if not is_valid:
-                print(f"\n>>> [POD 2: US TIMING GUARD] EXECUTION SKIPPED: {msg}\n")
-                us_engine.log_daily_equity(status=status, delay_mins=delay_mins, notes=msg)
+            ny_today_str = get_ny_now().strftime("%Y-%m-%d")
+            if not args.force and us_engine.state.get("last_execute_date") == ny_today_str:
+                print(f"\n>>> [POD 2: US IDEMPOTENCY] Execution cycle for {ny_today_str} already completed; skipping duplicate run.\n")
             else:
-                print(f"\n>>> [POD 2: US] EXECUTING QUEUED ORDERS AT MARKET OPEN (09:30 EST)... (Delay: {delay_mins}m)")
-                us_tickers = get_active_pit_universe("US")
-                needed_symbols = list(set(us_tickers) | set(us_engine.state["positions"].keys()) | {p["sym"] for p in us_engine.state["pending_buys"]} | {p["sym"] for p in us_engine.state["pending_sells"]})
-                us_open_df = yf.download(needed_symbols, period="5d", progress=False, group_by="ticker", auto_adjust=False)
-                current_opens = {}
-                runtime_prices = {}
-                for s in needed_symbols:
-                    try:
-                        if isinstance(us_open_df.columns, pd.MultiIndex):
-                            if s in us_open_df.columns.levels[-1]:
-                                df = us_open_df.xs(s, axis=1, level=-1).dropna(how="all")
-                            elif s in us_open_df.columns.levels[0]:
-                                df = us_open_df[s].dropna(how="all")
-                            else:
-                                continue
-                        else:
-                            df = us_open_df.dropna(how="all")
-                        df.columns = [str(c).lower() for c in df.columns]
-                        current_opens[s] = float(df["open"].dropna().iloc[-1])
-                        runtime_prices[s] = float(df["close"].dropna().iloc[-1])
-                    except Exception:
-                        pass
-                had_orders = bool(us_engine.state.get("pending_buys") or us_engine.state.get("pending_sells"))
-                us_engine.execute_open_fills(current_opens, runtime_prices=runtime_prices, delay_mins=delay_mins)
-                fill_status = "EXECUTE_FILL" if had_orders else "EXECUTE_NO_ORDERS"
-                us_engine.log_daily_equity(status=fill_status, delay_mins=delay_mins, notes=msg)
+                is_valid, status, delay_mins, msg = verify_us_timing_window(args.phase, force=args.force)
+                if not is_valid:
+                    print(f"\n>>> [POD 2: US TIMING GUARD] EXECUTION SKIPPED: {msg}\n")
+                    # Do not pollute equity log on premature pre-open cron wakes; log post-close skips at most once/day
+                    if status != "SKIPPED_PRE_OPEN" and us_engine.state.get("last_skip_logged_date") != ny_today_str:
+                        us_engine.state["last_skip_logged_date"] = ny_today_str
+                        us_engine._save_state()
+                        us_engine.log_daily_equity(status=status, delay_mins=delay_mins, notes=msg)
+                else:
+                    clock_open = None if args.force else check_us_market_open_clock()
+                    if clock_open is False:
+                        holiday_msg = f"Exchange clock reports US market CLOSED on {ny_today_str}; preserving queued orders for next trading open."
+                        print(f"\n>>> [POD 2: US EXCHANGE CLOCK] {holiday_msg}\n")
+                        if us_engine.state.get("last_skip_logged_date") != ny_today_str:
+                            us_engine.state["last_skip_logged_date"] = ny_today_str
+                            us_engine._save_state()
+                            us_engine.log_daily_equity(status="SKIPPED_MARKET_CLOSED", delay_mins=0, notes=holiday_msg)
+                    else:
+                        print(f"\n>>> [POD 2: US] EXECUTING QUEUED ORDERS AT MARKET OPEN (09:30 EST)... (Delay: {delay_mins}m)")
+                        us_tickers = get_active_pit_universe("US")
+                        needed_symbols = list(set(us_tickers) | set(us_engine.state["positions"].keys()) | {p["sym"] for p in us_engine.state["pending_buys"]} | {p["sym"] for p in us_engine.state["pending_sells"]})
+                        us_open_df = yf.download(needed_symbols, period="5d", progress=False, group_by="ticker", auto_adjust=False)
+                        current_opens = {}
+                        runtime_prices = {}
+                        for s in needed_symbols:
+                            try:
+                                if isinstance(us_open_df.columns, pd.MultiIndex):
+                                    if s in us_open_df.columns.levels[-1]:
+                                        df = us_open_df.xs(s, axis=1, level=-1).dropna(how="all")
+                                    elif s in us_open_df.columns.levels[0]:
+                                        df = us_open_df[s].dropna(how="all")
+                                    else:
+                                        continue
+                                else:
+                                    df = us_open_df.dropna(how="all")
+                                df.columns = [str(c).lower() for c in df.columns]
+                                current_opens[s] = float(df["open"].dropna().iloc[-1])
+                                runtime_prices[s] = float(df["close"].dropna().iloc[-1])
+                            except Exception:
+                                pass
+                        had_orders = bool(us_engine.state.get("pending_buys") or us_engine.state.get("pending_sells"))
+                        us_engine.state["last_execute_date"] = ny_today_str
+                        us_engine.execute_open_fills(current_opens, runtime_prices=runtime_prices, delay_mins=delay_mins)
+                        fill_status = "EXECUTE_FILL" if had_orders else "EXECUTE_NO_ORDERS"
+                        us_engine.log_daily_equity(status=fill_status, delay_mins=delay_mins, notes=msg)
 
         if args.pod in ["all", "pod_c", "multi_asset"]:
             print("\n>>> [POD C: MULTI-ASSET] EXECUTING QUEUED MACRO ORDERS AT MARKET OPEN (09:15 IST)...")

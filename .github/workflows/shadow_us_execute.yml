@@ -1,0 +1,109 @@
+name: "US Shadow Execute (Market Open)"
+
+# ==============================================================================
+# Isolated Workflow for US Shadow Open Execution (Variant 1 Exploratory)
+# Uses staggered cron windows calibrated against GitHub's 0-11h schedule delay
+# + same-day idempotency & Alpaca /v2/clock holiday guard so execution occurs
+# exactly once inside regular trading hours (09:25-16:00 EST).
+# ==============================================================================
+
+concurrency:
+  group: shadow-us-execute
+  cancel-in-progress: false
+
+on:
+  schedule:
+    # With +9-11h GitHub cron lag, lands 14:23-16:23 UTC (09:23-11:23 EST)
+    - cron: '23 05 * * 1-5'
+    # With +8-11h GitHub cron lag, lands 15:23-18:23 UTC (10:23-13:23 EST)
+    - cron: '23 07 * * 1-5'
+    # With +5-10h GitHub cron lag, lands 15:23-20:23 UTC (10:23-15:23 EST)
+    - cron: '23 10 * * 1-5'
+    # With 0-6h GitHub cron lag, lands 14:32-20:32 UTC (09:32-15:32 EST)
+    - cron: '32 14 * * 1-5'
+  workflow_dispatch:
+    inputs:
+      force:
+        description: 'Bypass market timing guard (manual force run)'
+        required: false
+        default: false
+        type: boolean
+
+jobs:
+  us-shadow-execute:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: write
+
+    steps:
+      - name: "Checkout Repository (main branch)"
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: "Set up Python 3.12"
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: "Install Dependencies"
+        run: |
+          python -m pip install --upgrade pip
+          pip install yfinance pandas numpy scipy requests python-dotenv
+
+      - name: "Restore US Shadow State Artifacts from state-shadow-us Branch"
+        run: |
+          mkdir -p trading_system/data
+          git fetch origin +refs/heads/state-shadow-us:refs/remotes/origin/state-shadow-us 2>/dev/null || true
+          if git show-ref --verify --quiet refs/remotes/origin/state-shadow-us; then
+            for f in \
+              trading_system/data/paper_state_us.json \
+              trading_system/data/paper_trades_us.csv \
+              trading_system/data/paper_equity_log.csv; do
+              git checkout origin/state-shadow-us -- "$f" 2>/dev/null && echo "  Restored $f" || echo "  $f not found"
+            done
+          fi
+
+      - name: "Execute US Shadow Open Fill Phase"
+        env:
+          PYTHONPATH: .
+          PAPER_API_KEY: ${{ secrets.PAPER_API_KEY }}
+          PAPER_API_SECRET: ${{ secrets.PAPER_API_SECRET }}
+          ENABLE_NOTIFICATIONS: "0"
+        run: |
+          FORCE_ARG=""
+          if [ "${{ github.event.inputs.force }}" = "true" ]; then
+            FORCE_ARG="--force"
+          fi
+          python trading_system/scripts/run_dual_pod_paper.py --pod us --phase execute --mode exploratory_shadow $FORCE_ARG
+
+      - name: "Persist US Shadow State Artifacts to state-shadow-us Branch"
+        if: always()
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          mkdir -p /tmp/shadow_repo
+          git clone --depth 1 --branch state-shadow-us https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git /tmp/shadow_repo
+          mkdir -p /tmp/shadow_repo/trading_system/data
+          for f in \
+            trading_system/data/paper_state_us.json \
+            trading_system/data/paper_trades_us.csv \
+            trading_system/data/paper_equity_log.csv; do
+            [ -f "$f" ] && cp "$f" /tmp/shadow_repo/trading_system/data/
+          done
+          cd /tmp/shadow_repo
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add trading_system/data/paper_* 2>/dev/null || true
+          if ! git diff --staged --quiet; then
+            git commit -m "chore(shadow-us): persist daily US forward paper trading state [skip ci]"
+            for attempt in 1 2 3; do
+              git pull --rebase origin state-shadow-us 2>/dev/null || true
+              git push origin state-shadow-us && break
+              sleep 2
+            done
+          else
+            echo "No US shadow state changes to commit."
+          fi

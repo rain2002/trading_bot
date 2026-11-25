@@ -17,11 +17,10 @@ concurrency:
   cancel-in-progress: false
 
 on:
-  schedule:
-    # 09:32 EST (14:32 UTC) Monday through Friday - US Market Open Execution (uncrowded minute to minimize runner queue lag)
-    - cron: '32 14 * * 1-5'
-    # 16:18 EST (21:18 UTC) Monday through Friday - US Market Close Scan & Queueing (uncrowded minute to minimize runner queue lag)
-    - cron: '18 21 * * 1-5'
+  # Automated schedules moved to dedicated independent workflows:
+  #   - .github/workflows/shadow_us_scan.yml (Post-Close & Overnight Scan)
+  #   - .github/workflows/shadow_us_execute.yml (Market Open Execution)
+  # Manual dispatch remains active here for ad-hoc runs.
   workflow_dispatch:
     inputs:
       phase:
