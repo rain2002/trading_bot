@@ -202,8 +202,9 @@ def get_active_pit_universe(pod_name: str, as_of_date: Optional[pd.Timestamp] = 
             mgr = PointInTimeConstituentManager(changes_csv_path=changes_csv, start_end_csv_path=se_csv)
             raw_constituents = mgr.get_active_constituents(as_of_date)
             if raw_constituents:
-                tickers = [s.replace(".", "-") for s in raw_constituents]
-                print(f"[{pod_name} PIT] Loaded {len(tickers)} active Point-in-Time constituents as of {as_of_date.strftime('%Y-%m-%d')}.")
+                banned_etfs = {"SPY", "QQQ", "IWM", "DIA", "VTI", "VOO", "SPLV", "USMV", "QUAL", "VLUE", "MTUM"}
+                tickers = [s.replace(".", "-") for s in raw_constituents if s.upper() not in banned_etfs]
+                print(f"[{pod_name} PIT] Loaded {len(tickers)} active non-ETF Point-in-Time constituents as of {as_of_date.strftime('%Y-%m-%d')}.")
                 return sorted(tickers)
 
         raise RuntimeError(

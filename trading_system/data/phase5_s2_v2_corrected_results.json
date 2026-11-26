@@ -1,0 +1,287 @@
+{
+  "timestamp": "2026-11-26T03:11:24.860877+00:00",
+  "runner_commit": "e5b558ef16b897f75f51eeb8917c8d57a10f6a79",
+  "base_protocol_sha256": "8f536f131fada8185425f153ce060b50b7e34a5715e2aaaf6a409f0d6b24a5f2",
+  "amendment_sha256": "7726da83a6ed9ca8cf90a2541b9411070a5db6be74ebb3de3fb340cbf49455a4",
+  "multi_testing_n": 86,
+  "coverage_audit": {
+    "total_unique_equities": 3232,
+    "delisted_or_merged_equities": 1422,
+    "delisted_percentage": 44.0,
+    "active_equities_per_year": {
+      "2007": 1192,
+      "2008": 1327,
+      "2009": 1353,
+      "2010": 1501,
+      "2011": 1569,
+      "2012": 1594,
+      "2013": 1589,
+      "2014": 1565,
+      "2015": 1584,
+      "2016": 1621,
+      "2017": 1661,
+      "2018": 1648,
+      "2019": 1660,
+      "2020": 1699,
+      "2021": 1840,
+      "2022": 1965,
+      "2023": 2061,
+      "2024": 2037
+    },
+    "panel_date_range": {
+      "start": "2007-09-17",
+      "end": "2024-07-05",
+      "total_trading_days": 4116
+    }
+  },
+  "benchmark": {
+    "series": "INDEX_NSEI.parquet + 1.35% p.a. dividend yield",
+    "cagr_pct": 10.3,
+    "sharpe_ratio": 0.56,
+    "max_drawdown_pct": -59.43
+  },
+  "candidate_s2_in_sample": {
+    "cagr_pct": 22.34,
+    "sharpe_ratio": 1.23,
+    "max_drawdown_pct": -29.04,
+    "total_return_pct": 1876.0,
+    "deflated_sharpe_ratio": 0.856,
+    "total_trades": 403,
+    "circuit_blocked_entries": 0,
+    "circuit_delayed_exits": 11,
+    "skewness": 1.85,
+    "kurtosis": 51.28
+  },
+  "candidate_s2_stressed_2x": {
+    "cagr_pct": 17.71,
+    "sharpe_ratio": 1.08,
+    "max_drawdown_pct": -36.53,
+    "total_trades": 423
+  },
+  "control_a_monte_carlo": {
+    "n_iterations": 1000,
+    "median_sharpe": 0.28,
+    "p95_sharpe": 0.44,
+    "p99_sharpe": 0.5,
+    "sharpe_distribution_sample": [
+      0.056,
+      0.384,
+      0.242,
+      0.143,
+      0.245,
+      0.411,
+      0.349,
+      0.35,
+      0.305,
+      0.353,
+      0.437,
+      0.155,
+      0.282,
+      0.394,
+      0.23,
+      0.454,
+      0.232,
+      0.199,
+      0.058,
+      0.204,
+      0.364,
+      0.092,
+      0.194,
+      0.283,
+      0.194,
+      0.323,
+      0.364,
+      0.307,
+      0.105,
+      0.381,
+      0.491,
+      0.442,
+      0.229,
+      0.398,
+      0.45,
+      0.145,
+      0.326,
+      0.159,
+      0.212,
+      0.146,
+      0.243,
+      0.356,
+      0.366,
+      0.267,
+      0.149,
+      0.499,
+      0.425,
+      0.235,
+      0.096,
+      0.321
+    ]
+  },
+  "control_b_liquid_top100": {
+    "cagr_pct": -0.88,
+    "sharpe_ratio": 0.12,
+    "max_drawdown_pct": -72.55,
+    "years": 14.8
+  },
+  "subperiod_stability": {
+    "segments_positive": 4,
+    "h7_pass": true,
+    "segments": {
+      "Segment_1": {
+        "window": "2007-09-17 to 2011-05-25",
+        "s2_cagr_pct": 21.58,
+        "bench_cagr_pct": 6.21,
+        "excess_cagr_pct": 15.37,
+        "s2_sharpe": 1.28,
+        "positive_excess": true
+      },
+      "Segment_2": {
+        "window": "2011-05-26 to 2015-02-19",
+        "s2_cagr_pct": 25.24,
+        "bench_cagr_pct": 15.7,
+        "excess_cagr_pct": 9.54,
+        "s2_sharpe": 1.5,
+        "positive_excess": true
+      },
+      "Segment_3": {
+        "window": "2015-02-20 to 2018-10-29",
+        "s2_cagr_pct": 13.39,
+        "bench_cagr_pct": 5.49,
+        "excess_cagr_pct": 7.9,
+        "s2_sharpe": 0.74,
+        "positive_excess": true
+      },
+      "Segment_4": {
+        "window": "2018-10-30 to 2022-07-05",
+        "s2_cagr_pct": 22.86,
+        "bench_cagr_pct": 14.14,
+        "excess_cagr_pct": 8.72,
+        "s2_sharpe": 1.17,
+        "positive_excess": true
+      }
+    }
+  },
+  "parameter_plateau": {
+    "all_passed": true,
+    "variations": {
+      "BASE": {
+        "cagr_pct": 22.34,
+        "sharpe_ratio": 1.23,
+        "max_drawdown_pct": -29.04,
+        "passed_h8": true
+      },
+      "LOOKBACK_MINUS20": {
+        "cagr_pct": 14.24,
+        "sharpe_ratio": 0.87,
+        "max_drawdown_pct": -39.5,
+        "passed_h8": true
+      },
+      "LOOKBACK_PLUS20": {
+        "cagr_pct": 15.91,
+        "sharpe_ratio": 1.02,
+        "max_drawdown_pct": -28.89,
+        "passed_h8": true
+      },
+      "EXIT_SMA_MINUS20": {
+        "cagr_pct": 18.88,
+        "sharpe_ratio": 1.09,
+        "max_drawdown_pct": -28.36,
+        "passed_h8": true
+      },
+      "EXIT_SMA_PLUS20": {
+        "cagr_pct": 21.32,
+        "sharpe_ratio": 1.2,
+        "max_drawdown_pct": -28.54,
+        "passed_h8": true
+      },
+      "HARD_STOP_MINUS20": {
+        "cagr_pct": 19.48,
+        "sharpe_ratio": 1.15,
+        "max_drawdown_pct": -35.93,
+        "passed_h8": true
+      },
+      "HARD_STOP_PLUS20": {
+        "cagr_pct": 23.16,
+        "sharpe_ratio": 1.22,
+        "max_drawdown_pct": -24.76,
+        "passed_h8": true
+      },
+      "TRAIL_TIERS_MINUS20": {
+        "cagr_pct": 16.48,
+        "sharpe_ratio": 1.04,
+        "max_drawdown_pct": -35.21,
+        "passed_h8": true
+      },
+      "TRAIL_TIERS_PLUS20": {
+        "cagr_pct": 22.43,
+        "sharpe_ratio": 1.26,
+        "max_drawdown_pct": -28.71,
+        "passed_h8": true
+      }
+    }
+  },
+  "gate_a_hurdles": {
+    "H1_Excess_CAGR": {
+      "description": "CAGR >= Benchmark TRI + 4.00%",
+      "threshold": ">= 14.3%",
+      "candidate_val": "22.34%",
+      "passed": true
+    },
+    "H2_Sharpe_Ratio": {
+      "description": "Annualized Sharpe >= 0.80",
+      "threshold": ">= 0.80",
+      "candidate_val": "1.23",
+      "passed": true
+    },
+    "H3_Max_Drawdown": {
+      "description": "Max Drawdown >= -35.00%",
+      "threshold": ">= -35.00%",
+      "candidate_val": "-29.04%",
+      "passed": true
+    },
+    "H4_Deflated_Sharpe": {
+      "description": "DSR >= 0.95 with N = 86",
+      "threshold": ">= 0.95",
+      "candidate_val": "0.856",
+      "passed": false
+    },
+    "H5_Control_A_Null": {
+      "description": "Sharpe > Control A 95th Percentile",
+      "threshold": "> 0.44",
+      "candidate_val": "1.23",
+      "passed": true
+    },
+    "H6_Control_B_Liquid": {
+      "description": "Sharpe > Ctrl B AND CAGR > Ctrl B",
+      "threshold": "Sharpe > 0.12 & CAGR > -0.88%",
+      "candidate_val": "Sharpe=1.23, CAGR=22.34%",
+      "passed": true
+    },
+    "H7_Subperiod_Stability": {
+      "description": "Positive excess return in >= 3 of 4 subperiods",
+      "threshold": ">= 3 segments",
+      "candidate_val": "4/4 segments",
+      "passed": true
+    },
+    "H8_Parameter_Plateau": {
+      "description": "Sharpe >= 0.70 across all +-20% parameter shifts",
+      "threshold": "All shifts >= 0.70",
+      "candidate_val": "All Passed",
+      "passed": true
+    },
+    "H9_Severe_Cost_Stress": {
+      "description": "Passes excess return and Sharpe >= 0.70 at 2x costs",
+      "threshold": "CAGR >= 14.3% & Sharpe >= 0.70",
+      "candidate_val": "CAGR=17.71%, Sharpe=1.08",
+      "passed": true
+    },
+    "ALL_HURDLES_PASSED": false
+  },
+  "holdout_evaluation": {
+    "status": "SEALED_GATE_A_FAILED",
+    "message": "Holdout remains strictly unopened as Candidate S2 did not clear all 9 Gate A hurdles."
+  },
+  "recommendation": "PARK_NSE_BOT_PERMANENTLY_CORE_RETAINS_ETF_CASH_ONLY",
+  "corporate_actions_version": "nse_corporate_actions_v2.csv",
+  "corporate_actions_events_count": 511,
+  "corporate_actions_sha256": "a04cd4ac4e64b1813e99855fbd47fa73a1a5c22f909a112ab702e28bc123058d"
+}

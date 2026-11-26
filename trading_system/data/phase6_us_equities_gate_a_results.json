@@ -1,0 +1,132 @@
+{
+  "benchmark_spy": {
+    "cagr_pct": 10.42,
+    "sharpe_ratio": 0.6403,
+    "max_drawdown_pct": -52.89
+  },
+  "control_eq_weight": {
+    "cagr_pct": 9.81,
+    "sharpe_ratio": 0.9025,
+    "max_drawdown_pct": -17.17,
+    "worst_month_pct": -11.12,
+    "ending_equity": 379738.48,
+    "avg_monthly_turnover_pct": 15.7,
+    "spy_corr": 0.588
+  },
+  "candidates": {
+    "U1_LOW_VOL_TREND": {
+      "cagr_pct": 7.95,
+      "sharpe_ratio": 0.8838,
+      "max_drawdown_pct": -12.24,
+      "worst_month_pct": -8.06,
+      "ending_equity": 297558.43,
+      "avg_monthly_turnover_pct": 36.4,
+      "spy_corr": 0.402,
+      "dsr_family_3": 0.9906
+    },
+    "U2_RESIDUAL_MOM": {
+      "cagr_pct": 8.11,
+      "sharpe_ratio": 0.6684,
+      "max_drawdown_pct": -25.61,
+      "worst_month_pct": -10.54,
+      "ending_equity": 304156.17,
+      "avg_monthly_turnover_pct": 43.0,
+      "spy_corr": 0.492,
+      "dsr_family_3": 0.9513
+    },
+    "U3_LOW_BETA_DIP": {
+      "cagr_pct": 8.61,
+      "sharpe_ratio": 0.9412,
+      "max_drawdown_pct": -13.51,
+      "worst_month_pct": -10.86,
+      "ending_equity": 324768.91,
+      "avg_monthly_turnover_pct": 70.1,
+      "spy_corr": 0.459,
+      "dsr_family_3": 0.9914
+    }
+  },
+  "null_control_p95": 0.9925,
+  "u3_stressed": {
+    "cagr_pct": 7.73,
+    "sharpe_ratio": 0.8538,
+    "max_drawdown_pct": -13.82,
+    "worst_month_pct": -10.94,
+    "ending_equity": 289181.09,
+    "avg_monthly_turnover_pct": 70.1,
+    "spy_corr": 0.46
+  },
+  "plateaus": {
+    "TOP_K_12": {
+      "cagr_pct": 8.51,
+      "sharpe": 0.8967,
+      "max_dd_pct": -15.07
+    },
+    "TOP_K_18": {
+      "cagr_pct": 8.37,
+      "sharpe": 0.9331,
+      "max_dd_pct": -12.18
+    },
+    "BETA_0.75": {
+      "cagr_pct": 8.09,
+      "sharpe": 0.8953,
+      "max_dd_pct": -11.08
+    },
+    "BETA_1.05": {
+      "cagr_pct": 7.5,
+      "sharpe": 0.7784,
+      "max_dd_pct": -13.5
+    },
+    "DIP_16D": {
+      "cagr_pct": 9.42,
+      "sharpe": 0.9631,
+      "max_dd_pct": -13.02
+    },
+    "DIP_24D": {
+      "cagr_pct": 8.55,
+      "sharpe": 0.9127,
+      "max_dd_pct": -15.59
+    }
+  },
+  "subperiods": {
+    "Seg_1": {
+      "window": "2007-09-28..2011-03-31",
+      "sharpe": 0.5648,
+      "spy_sharpe": 0.0438,
+      "beat_spy": true
+    },
+    "Seg_2": {
+      "window": "2011-04-29..2014-10-31",
+      "sharpe": 1.4203,
+      "spy_sharpe": 1.0225,
+      "beat_spy": true
+    },
+    "Seg_3": {
+      "window": "2014-11-28..2018-05-31",
+      "sharpe": 0.6726,
+      "spy_sharpe": 0.9738,
+      "beat_spy": false
+    },
+    "Seg_4": {
+      "window": "2018-06-29..2021-12-31",
+      "sharpe": 0.7856,
+      "spy_sharpe": 0.9955,
+      "beat_spy": false
+    }
+  },
+  "hurdles": {
+    "H1_Sharpe": true,
+    "H2_MaxDD": true,
+    "H3_CAGR": false,
+    "H4_DSR_Family": true,
+    "H5_Null_Control": false,
+    "H6_Subperiods": false,
+    "H7_Plateaus": true,
+    "H8_Stressed_2x": true,
+    "H9_Beat_Ctrl_EqWt": false
+  },
+  "all_hurdles_passed": false,
+  "holdout": {
+    "opened": false,
+    "reason": "Gate A hurdles failed; holdout remains sealed."
+  }
+}

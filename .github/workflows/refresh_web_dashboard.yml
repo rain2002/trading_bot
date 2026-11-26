@@ -10,6 +10,7 @@ on:
       - "Daily Multi-Bot Paper Trading Pipeline"
       - "US Shadow Scan (Post-Close & Overnight)"
       - "US Shadow Execute (Market Open)"
+      - "NSE Whole-Market S2 Shadow (Non-ETF)"
     types:
       - completed
   workflow_dispatch:
@@ -31,6 +32,7 @@ jobs:
         run: |
           git fetch origin +refs/heads/state:refs/remotes/origin/state 2>/dev/null || true
           git fetch origin +refs/heads/state-shadow-us:refs/remotes/origin/state-shadow-us 2>/dev/null || true
+          git fetch origin +refs/heads/state-shadow-nse:refs/remotes/origin/state-shadow-nse 2>/dev/null || true
 
       - name: "Set up Python 3.12"
         uses: actions/setup-python@v5

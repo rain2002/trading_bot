@@ -230,6 +230,7 @@ def generate_dashboard_html(data_dir: str = None, output_path: str = None, now_d
     use_git = (os.path.abspath(data_dir) == os.path.abspath(DATA_DIR))
     state_branch = "origin/state" if use_git else None
     shadow_branch = "origin/state-shadow-us" if use_git else None
+    nse_shadow_branch = "origin/state-shadow-nse" if use_git else None
 
     mgr_state = load_json(mgr_file, git_branch=state_branch)
     etf_state = load_json(etf_file, git_branch=state_branch)
@@ -238,6 +239,7 @@ def generate_dashboard_html(data_dir: str = None, output_path: str = None, now_d
     ledger = load_json(ledger_file, git_branch=state_branch)
     us_shadow = load_json(us_shadow_file, git_branch=shadow_branch)
     us_eq_log = load_csv(us_eq_file, git_branch=shadow_branch)
+    nse_s2_shadow = load_json(os.path.join(data_dir, "nse_s2_shadow_state.json"), git_branch=nse_shadow_branch)
 
     # -------------------------------------------------------------
     # 1. EVALUATE CRITICAL DATA FAULT & HALTED STATUS
@@ -581,6 +583,12 @@ def generate_dashboard_html(data_dir: str = None, output_path: str = None, now_d
                 </td>
             </tr>
         """
+
+    nse_s2_init = nse_s2_shadow.get("initial_capital") if nse_s2_shadow else 80000.0
+    nse_s2_cash = nse_s2_shadow.get("cash") if nse_s2_shadow else None
+    nse_s2_hwm = nse_s2_shadow.get("hwm_true") if nse_s2_shadow else None
+    nse_s2_pos_cnt = len(nse_s2_shadow.get("positions", {})) if nse_s2_shadow else 0
+    nse_s2_regime = nse_s2_shadow.get("macro_regime", "READY (NON-ETF SHADOW)") if nse_s2_shadow else "AWAITING FIRST EOD RUN (NON-ETF)"
 
     # -------------------------------------------------------------
     # 9. LOG TAB & CHART DATA (STRICT NaN DATA FAULT ENFORCEMENT)
@@ -1627,11 +1635,11 @@ def generate_dashboard_html(data_dir: str = None, output_path: str = None, now_d
                         </thead>
                         <tbody>
                             <tr>
-                                <td class="font-bold text-amber">NSE Whole-Market Candidate S2</td>
-                                <td>₹0.00 (Unfunded)</td>
-                                <td>₹0.00</td>
-                                <td>&mdash;</td>
-                                <td><span class="badge-shadow">[PENDING S2 CORPORATE-ACTIONS AUDIT]</span></td>
+                                <td class="font-bold text-amber">NSE Whole-Market Candidate S2 (Non-ETF)</td>
+                                <td>{format_inr(nse_s2_init)}</td>
+                                <td>{format_inr(nse_s2_cash)}</td>
+                                <td>{format_inr(nse_s2_hwm)} ({nse_s2_pos_cnt} pos)</td>
+                                <td><span class="badge-shadow">{nse_s2_regime}</span></td>
                             </tr>
                         </tbody>
                     </table>

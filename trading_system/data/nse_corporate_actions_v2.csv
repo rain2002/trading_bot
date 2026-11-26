@@ -1,0 +1,512 @@
+date,symbol,action,multiplier,isin_old,isin_new,source,description
+2007-09-10,GLENMARK,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2007-09-10, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=0.9%)
+2007-09-28,GMRINFRA,SPLIT_OR_BONUS,5.0,,,Bhavcopy Open+Volume Microstructure Verified (Delisted/Renamed),"Open ratio 4.763 vs 5.00 (err=4.7%, vol_x=4.0x)"
+2007-10-10,ELECON,SPLIT_OR_BONUS,3.0,,,"Yahoo Finance Official Splits (ex_ref=2007-10-10, yf=3)",Verified split/bonus multiplier 3.0000 (ex-date aligned error=1.8%)
+2007-10-16,PENINLAND,SPLIT_OR_BONUS,5.0,,,"Yahoo Finance Official Splits (ex_ref=2007-10-16, yf=5)",Verified split/bonus multiplier 5.0000 (ex-date aligned error=1.2%)
+2007-10-17,TV-18,SPLIT_OR_BONUS,2.0,,,Bhavcopy Open+Volume Microstructure Verified (Delisted/Renamed),"Open ratio 2.000 vs 2.00 (err=0.0%, vol_x=1.7x)"
+2007-10-18,ASHAPURMIN,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2007-10-18, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=7.8%)
+2007-10-22,ASIANELEC,SPLIT_OR_BONUS,2.0,,,Bhavcopy Open+Volume Microstructure Verified (Delisted/Renamed),"Open ratio 2.017 vs 2.00 (err=0.8%, vol_x=2.1x)"
+2007-10-23,ICSA,SPLIT_OR_BONUS,5.0,,,Bhavcopy Open+Volume Microstructure Verified (Delisted/Renamed),"Open ratio 4.932 vs 5.00 (err=1.4%, vol_x=11.9x)"
+2007-10-24,JBMA,SPLIT_OR_BONUS,1.5,,,"Yahoo Finance Official Splits (ex_ref=2007-10-24, yf=1.5)",Verified split/bonus multiplier 1.5000 (ex-date aligned error=8.2%)
+2007-11-08,GMDCLTD,SPLIT_OR_BONUS,5.0,,,"Yahoo Finance Official Splits (ex_ref=2007-11-08, yf=5)",Verified split/bonus multiplier 5.0000 (ex-date aligned error=3.4%)
+2007-12-17,JPASSOCIAT,SPLIT_OR_BONUS,5.0,,,Bhavcopy Open+Volume Microstructure Verified (Delisted/Renamed),"Open ratio 4.946 vs 5.00 (err=1.1%, vol_x=7.1x)"
+2008-01-21,JINDALSTEL,SPLIT_OR_BONUS,5.0,,,"Yahoo Finance Official Splits (ex_ref=2008-01-21, yf=5)",Verified split/bonus multiplier 5.0000 (ex-date aligned error=3.0%)
+2008-01-21,SUZLON,SPLIT_OR_BONUS,5.0,,,"Yahoo Finance Official Splits (ex_ref=2008-01-21, yf=5)",Verified split/bonus multiplier 5.0000 (ex-date aligned error=3.6%)
+2008-01-24,ROLTA,SPLIT_OR_BONUS,2.0,,,Bhavcopy Open+Volume Microstructure Verified (Delisted/Renamed),"Open ratio 1.942 vs 2.00 (err=2.9%, vol_x=2.7x)"
+2008-01-29,RAJESHEXPO,SPLIT_OR_BONUS,6.0,,,"Yahoo Finance Official Splits (ex_ref=2008-01-29, yf=3)",Verified split/bonus multiplier 6.0000 (ex-date aligned error=7.1%)
+2008-02-08,GVKPIL,SPLIT_OR_BONUS,10.0,,,"Yahoo Finance Official Splits (ex_ref=2008-02-08, yf=10)",Verified split/bonus multiplier 10.0000 (ex-date aligned error=1.3%)
+2008-02-25,WALCHANNAG,SPLIT_OR_BONUS,10.0,,,"Yahoo Finance Official Splits (ex_ref=2008-02-25, yf=5)",Verified split/bonus multiplier 10.0000 (ex-date aligned error=4.8%)
+2008-02-29,SIEMENS,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2008-02-29, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=0.1%)
+2008-03-11,MARKSANS,SPLIT_OR_BONUS,10.0,,,"Yahoo Finance Official Splits (ex_ref=2008-03-11, yf=10)",Verified split/bonus multiplier 10.0000 (ex-date aligned error=4.1%)
+2008-04-04,KNL,SPLIT_OR_BONUS,10.0,,,Bhavcopy Open+Volume Microstructure Verified (Delisted/Renamed),"Open ratio 9.546 vs 10.00 (err=4.5%, vol_x=15.6x)"
+2008-04-10,NMDC,SPLIT_OR_BONUS,10.0,,,"Yahoo Finance Official Splits (ex_ref=2008-04-10, yf=10)",Verified split/bonus multiplier 10.0000 (ex-date aligned error=4.8%)
+2008-04-10,RENUKA,SPLIT_OR_BONUS,10.0,,,"Yahoo Finance Official Splits (ex_ref=2008-04-10, yf=10)",Verified split/bonus multiplier 10.0000 (ex-date aligned error=1.3%)
+2008-04-16,CONCOR,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2008-04-16, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=3.4%)
+2008-05-21,NMDC,SPLIT_OR_BONUS,3.0,,,"Yahoo Finance Official Splits (ex_ref=2008-05-21, yf=3)",Verified split/bonus multiplier 3.0000 (ex-date aligned error=2.2%)
+2008-05-30,RPOWER,SPLIT_OR_BONUS,1.6,,,"Yahoo Finance Official Splits (ex_ref=2008-05-30, yf=1.6)",Verified split/bonus multiplier 1.6000 (ex-date aligned error=9.0%)
+2008-07-25,MOTILALOFS,SPLIT_OR_BONUS,5.0,,,"Yahoo Finance Official Splits (ex_ref=2008-07-25, yf=5)",Verified split/bonus multiplier 5.0000 (ex-date aligned error=0.2%)
+2008-08-08,INDIAINFO,SPLIT_OR_BONUS,5.0,,,Bhavcopy Open+Volume Microstructure Verified (Delisted/Renamed),"Open ratio 4.906 vs 5.00 (err=1.9%, vol_x=4.0x)"
+2008-08-08,SESAGOA,SPLIT_OR_BONUS,20.0,,,Bhavcopy Open+Volume Microstructure Verified (Delisted/Renamed),"Open ratio 19.135 vs 20.00 (err=4.3%, vol_x=18.3x)"
+2008-08-21,HDIL,SPLIT_OR_BONUS,1.285714,,,"Yahoo Finance Official Splits (ex_ref=2008-08-21, yf=1.28571)",Verified split/bonus multiplier 1.2857 (ex-date aligned error=3.0%)
+2008-09-11,BIOCON,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2008-09-11, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=0.1%)
+2008-09-17,ERAINFRA,SPLIT_OR_BONUS,5.0,,,Bhavcopy Open+Volume Microstructure Verified (Delisted/Renamed),"Open ratio 4.847 vs 5.00 (err=3.1%, vol_x=2.3x)"
+2008-10-01,LT,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2008-10-01, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=0.6%)
+2008-10-06,GAIL,SPLIT_OR_BONUS,1.5,,,"Yahoo Finance Official Splits (ex_ref=2008-10-06, yf=1.5)",Verified split/bonus multiplier 1.5000 (ex-date aligned error=4.2%)
+2008-10-16,GMDCLTD,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2008-10-16, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=3.4%)
+2008-10-16,SOUTHBANK,SPLIT_OR_BONUS,1.25,,,"Yahoo Finance Official Splits (ex_ref=2008-10-16, yf=1.25)",Verified split/bonus multiplier 1.2500 (ex-date aligned error=2.0%)
+2008-10-22,AREVAT&D,SPLIT_OR_BONUS,5.0,,,Bhavcopy Open+Volume Microstructure Verified (Delisted/Renamed),"Open ratio 4.879 vs 5.00 (err=2.4%, vol_x=4.2x)"
+2008-10-29,SCI,SPLIT_OR_BONUS,1.5,,,"Yahoo Finance Official Splits (ex_ref=2008-10-29, yf=1.5)",Verified split/bonus multiplier 1.5000 (ex-date aligned error=1.9%)
+2008-10-29,UNIPHOS,SPLIT_OR_BONUS,2.0,,,Bhavcopy Open+Volume Microstructure Verified (Delisted/Renamed),"Open ratio 1.883 vs 2.00 (err=5.9%, vol_x=2.4x)"
+2008-11-06,RATNAMANI,SPLIT_OR_BONUS,5.0,,,"Yahoo Finance Official Splits (ex_ref=2008-11-06, yf=5)",Verified split/bonus multiplier 5.0000 (ex-date aligned error=1.4%)
+2008-12-12,JYOTHYLAB,SPLIT_OR_BONUS,5.0,,,"Yahoo Finance Official Splits (ex_ref=2008-12-12, yf=5)",Verified split/bonus multiplier 5.0000 (ex-date aligned error=7.6%)
+2009-06-16,TCS,BONUS,2.0,INE467B01029,INE467B01029,NSE Circular,Bonus 1:1
+2009-07-24,BHARTIARTL,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2009-07-24, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=2.1%)
+2009-07-30,DIVISLAB,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2009-07-30, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=0.9%)
+2009-08-07,AUSTRAL,SPLIT_OR_BONUS,10.0,,,Bhavcopy Open+Volume Microstructure Verified (Delisted/Renamed),"Open ratio 10.036 vs 10.00 (err=0.4%, vol_x=18.6x)"
+2009-08-20,SHREEASHTA,SPLIT_OR_BONUS,10.0,,,Bhavcopy Open+Volume Microstructure Verified (Delisted/Renamed),"Open ratio 9.846 vs 10.00 (err=1.5%, vol_x=8.0x)"
+2009-09-14,JINDALSTEL,SPLIT_OR_BONUS,6.0,,,"Yahoo Finance Official Splits (ex_ref=2009-09-14, yf=6)",Verified split/bonus multiplier 6.0000 (ex-date aligned error=2.3%)
+2009-10-27,EDUCOMP,SPLIT_OR_BONUS,5.0,,,"Yahoo Finance Official Splits (ex_ref=2009-10-27, yf=5)",Verified split/bonus multiplier 5.0000 (ex-date aligned error=1.0%)
+2009-10-29,IOC,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2009-10-29, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=2.1%)
+2009-10-30,VINATIORGA,SPLIT_OR_BONUS,5.0,,,"Yahoo Finance Official Splits (ex_ref=2009-10-30, yf=5)",Verified split/bonus multiplier 5.0000 (ex-date aligned error=2.9%)
+2009-11-11,ADSL,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2009-11-11, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=1.8%)
+2009-11-19,ALLCARGO,SPLIT_OR_BONUS,5.0,,,"Yahoo Finance Official Splits (ex_ref=2009-11-19, yf=5)",Verified split/bonus multiplier 5.0000 (ex-date aligned error=0.9%)
+2009-11-26,RELIANCE,BONUS,2.0,INE002A01018,INE002A01018,NSE Circular,Bonus 1:1
+2009-12-10,ADANIENT,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2009-12-10, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=1.1%)
+2009-12-10,JINDALSAW,SPLIT_OR_BONUS,5.0,,,"Yahoo Finance Official Splits (ex_ref=2009-12-10, yf=5)",Verified split/bonus multiplier 5.0000 (ex-date aligned error=0.6%)
+2010-01-04,LITL,SPLIT_OR_BONUS,10.0,,,Bhavcopy Open+Volume Microstructure Verified (Delisted/Renamed),"Open ratio 9.709 vs 10.00 (err=2.9%, vol_x=5.5x)"
+2010-02-10,KRBL,SPLIT_OR_BONUS,10.0,,,"Yahoo Finance Official Splits (ex_ref=2010-02-10, yf=10)",Verified split/bonus multiplier 10.0000 (ex-date aligned error=2.8%)
+2010-03-09,STRTECH,SPLIT_OR_BONUS,5.0,,,Bhavcopy Open+Volume Microstructure Verified (Delisted/Renamed),"Open ratio 4.939 vs 5.00 (err=1.2%, vol_x=26.1x)"
+2010-03-15,RENUKA,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2010-03-15, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=0.7%)
+2010-03-18,IVRCLINFRA,SPLIT_OR_BONUS,2.0,,,Bhavcopy Open+Volume Microstructure Verified (Delisted/Renamed),"Open ratio 2.017 vs 2.00 (err=0.8%, vol_x=3.4x)"
+2010-03-22,IPCALAB,SPLIT_OR_BONUS,5.0,,,"Yahoo Finance Official Splits (ex_ref=2010-03-22, yf=5)",Verified split/bonus multiplier 5.0000 (ex-date aligned error=1.1%)
+2010-03-29,M&M,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2010-03-29, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=1.1%)
+2010-04-09,CASTROL,SPLIT_OR_BONUS,2.0,,,Bhavcopy Open+Volume Microstructure Verified (Delisted/Renamed),"Open ratio 1.933 vs 2.00 (err=3.4%, vol_x=1.7x)"
+2010-04-15,ZEENEWS,SPLIT_OR_BONUS,2.0,,,Bhavcopy Open+Volume Microstructure Verified (Delisted/Renamed),"Open ratio 1.937 vs 2.00 (err=3.1%, vol_x=132.6x)"
+2010-05-06,ENGINERSIN,SPLIT_OR_BONUS,6.0,,,"Yahoo Finance Official Splits (ex_ref=2010-05-06, yf=2)",Verified split/bonus multiplier 6.0000 (ex-date aligned error=3.9%)
+2010-06-15,WIPRO,BONUS,1.5,INE075A01022,INE075A01022,NSE Circular,Bonus 1:2 (3 for 2)
+2010-06-21,RSSOFTWARE,SPLIT_OR_BONUS,1.28,,,"Yahoo Finance Official Splits (ex_ref=2010-06-21, yf=1.28)",Verified split/bonus multiplier 1.2800 (ex-date aligned error=7.8%)
+2010-06-21,STER,SPLIT_OR_BONUS,4.0,,,Bhavcopy Open+Volume Microstructure Verified (Delisted/Renamed),"Open ratio 3.769 vs 4.00 (err=5.8%, vol_x=5.2x)"
+2010-06-23,KANSAINER,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2010-06-23, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=1.0%)
+2010-06-29,ORBITCORP,SPLIT_OR_BONUS,2.0,,,Bhavcopy Open+Volume Microstructure Verified (Delisted/Renamed),"Open ratio 1.925 vs 2.00 (err=3.8%, vol_x=1.6x)"
+2010-06-30,TATATEA,SPLIT_OR_BONUS,10.0,,,Bhavcopy Open+Volume Microstructure Verified (Delisted/Renamed),"Open ratio 9.952 vs 10.00 (err=0.5%, vol_x=26.4x)"
+2010-07-06,TULIP,SPLIT_OR_BONUS,5.0,,,Bhavcopy Open+Volume Microstructure Verified (Delisted/Renamed),"Open ratio 4.909 vs 5.00 (err=1.8%, vol_x=7.4x)"
+2010-07-21,EMAMILTD,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2010-07-21, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=0.8%)
+2010-07-23,ECLERX,SPLIT_OR_BONUS,1.5,,,"Yahoo Finance Official Splits (ex_ref=2010-07-23, yf=1.5)",Verified split/bonus multiplier 1.5000 (ex-date aligned error=1.2%)
+2010-07-29,MMTC,SPLIT_OR_BONUS,20.0,,,"Yahoo Finance Official Splits (ex_ref=2010-07-29, yf=10)",Verified split/bonus multiplier 20.0000 (ex-date aligned error=4.9%)
+2010-08-03,ITC,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2010-08-03, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=1.3%)
+2010-08-10,HCC,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2010-08-10, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=0.1%)
+2010-08-13,JAYSREETEA,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2010-08-13, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=1.7%)
+2010-08-18,HDFC,SPLIT_OR_BONUS,5.0,,,Bhavcopy Open+Volume Microstructure Verified (Delisted/Renamed),"Open ratio 4.776 vs 5.00 (err=4.5%, vol_x=6.4x)"
+2010-08-20,REDINGTON,SPLIT_OR_BONUS,5.0,,,"Yahoo Finance Official Splits (ex_ref=2010-08-20, yf=5)",Verified split/bonus multiplier 5.0000 (ex-date aligned error=1.7%)
+2010-08-27,LUPIN,SPLIT,5.0,INE326A01029,INE326A01037,NSE Circular,Split 5:1 from Rs 10 to Rs 2
+2010-09-02,APOLLOHOSP,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2010-09-02, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=0.7%)
+2010-09-08,BAJAJ-AUTO,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2010-09-08, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=0.2%)
+2010-09-08,BRITANNIA,SPLIT_OR_BONUS,5.0,,,"Yahoo Finance Official Splits (ex_ref=2010-09-08, yf=5)",Verified split/bonus multiplier 5.0000 (ex-date aligned error=1.3%)
+2010-09-08,DABUR,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2010-09-08, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=0.3%)
+2010-09-08,TVSMOTOR,SPLIT,2.0,INE494B01015,INE494B01023,NSE Circular,Split 2:1 from Rs 2 to Rs 1
+2010-09-13,KOTAKBANK,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2010-09-13, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=1.2%)
+2010-09-15,ASTRAL,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2010-09-15, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=1.9%)
+2010-09-16,KARURVYSYA,SPLIT_OR_BONUS,1.4,,,"Yahoo Finance Official Splits (ex_ref=2010-09-16, yf=1.4)",Verified split/bonus multiplier 1.4000 (ex-date aligned error=2.2%)
+2010-09-21,BHUSANSTL,SPLIT_OR_BONUS,5.0,,,Bhavcopy Open+Volume Microstructure Verified (Delisted/Renamed),"Open ratio 5.003 vs 5.00 (err=0.1%, vol_x=6.1x)"
+2010-09-23,MUNDRAPORT,SPLIT_OR_BONUS,5.0,,,Bhavcopy Open+Volume Microstructure Verified (Delisted/Renamed),"Open ratio 4.908 vs 5.00 (err=1.8%, vol_x=3.7x)"
+2010-09-23,SOUTHBANK,SPLIT_OR_BONUS,10.0,,,"Yahoo Finance Official Splits (ex_ref=2010-09-23, yf=10)",Verified split/bonus multiplier 10.0000 (ex-date aligned error=0.0%)
+2010-09-28,TI,SPLIT_OR_BONUS,3.0,,,"Yahoo Finance Official Splits (ex_ref=2010-09-28, yf=3)",Verified split/bonus multiplier 3.0000 (ex-date aligned error=1.7%)
+2010-10-01,AQUA,SPLIT_OR_BONUS,10.0,,,Bhavcopy Open+Volume Microstructure Verified (Delisted/Renamed),"Open ratio 9.855 vs 10.00 (err=1.4%, vol_x=10.7x)"
+2010-10-08,HAVELLS,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2010-10-08, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=0.3%)
+2010-10-18,PARSVNATH,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2010-10-18, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=1.3%)
+2010-10-22,JINDALPOLY,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2010-10-22, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=1.9%)
+2010-10-29,JISLJALEQS,SPLIT_OR_BONUS,5.0,,,"Yahoo Finance Official Splits (ex_ref=2010-10-29, yf=5)",Verified split/bonus multiplier 5.0000 (ex-date aligned error=1.4%)
+2010-10-29,PFOCUS,SPLIT_OR_BONUS,10.0,,,"Yahoo Finance Official Splits (ex_ref=2010-10-29, yf=10)",Verified split/bonus multiplier 10.0000 (ex-date aligned error=2.1%)
+2010-11-02,ARCHIES,SPLIT_OR_BONUS,5.0,,,"Yahoo Finance Official Splits (ex_ref=2010-11-02, yf=5)",Verified split/bonus multiplier 5.0000 (ex-date aligned error=1.9%)
+2010-11-08,ATLANTA,SPLIT_OR_BONUS,5.0,,,Bhavcopy Open+Volume Microstructure Verified (Delisted/Renamed),"Open ratio 4.932 vs 5.00 (err=1.4%, vol_x=17.1x)"
+2010-11-11,ZEEL,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2010-11-11, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=0.0%)
+2010-11-16,MVL,SPLIT_OR_BONUS,2.0,,,Bhavcopy Open+Volume Microstructure Verified (Delisted/Renamed),"Open ratio 2.061 vs 2.00 (err=3.0%, vol_x=2.7x)"
+2010-11-24,GREAVESCOT,SPLIT_OR_BONUS,5.0,,,"Yahoo Finance Official Splits (ex_ref=2010-11-24, yf=5)",Verified split/bonus multiplier 5.0000 (ex-date aligned error=0.7%)
+2010-11-25,SUNPHARMA,SPLIT_OR_BONUS,5.0,,,"Yahoo Finance Official Splits (ex_ref=2010-11-25, yf=5)",Verified split/bonus multiplier 5.0000 (ex-date aligned error=0.1%)
+2010-12-20,BALKRISIND,SPLIT_OR_BONUS,5.0,,,"Yahoo Finance Official Splits (ex_ref=2010-12-20, yf=5)",Verified split/bonus multiplier 5.0000 (ex-date aligned error=0.8%)
+2010-12-23,COROMANDEL,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2010-12-23, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=0.1%)
+2010-12-23,EIDPARRY,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2010-12-23, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=0.0%)
+2010-12-23,POLYPLEX,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2010-12-23, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=1.3%)
+2010-12-23,SURYAPHARM,SPLIT_OR_BONUS,10.0,,,Bhavcopy Open+Volume Microstructure Verified (Delisted/Renamed),"Open ratio 9.728 vs 10.00 (err=2.7%, vol_x=21.7x)"
+2010-12-30,LICHSGFIN,SPLIT_OR_BONUS,5.0,,,"Yahoo Finance Official Splits (ex_ref=2010-12-30, yf=5)",Verified split/bonus multiplier 5.0000 (ex-date aligned error=1.8%)
+2011-02-08,ONGC,SPLIT_OR_BONUS,4.0,,,"Yahoo Finance Official Splits (ex_ref=2011-02-08, yf=2)",Verified split/bonus multiplier 4.0000 (ex-date aligned error=0.5%)
+2011-02-10,AUROPHARMA,SPLIT_OR_BONUS,5.0,,,"Yahoo Finance Official Splits (ex_ref=2011-02-10, yf=5)",Verified split/bonus multiplier 5.0000 (ex-date aligned error=2.0%)
+2011-02-10,SREINFRA,SPLIT_OR_BONUS,2.0,,,Bhavcopy Open+Volume Microstructure Verified (Delisted/Renamed),"Open ratio 1.894 vs 2.00 (err=5.3%, vol_x=1.6x)"
+2011-02-24,HEXAWARE,SPLIT_OR_BONUS,2.0,,,Bhavcopy Open+Volume Microstructure Verified (Delisted/Renamed),"Open ratio 2.033 vs 2.00 (err=1.7%, vol_x=6.0x)"
+2011-03-07,HINDZINC,SPLIT_OR_BONUS,10.0,,,"Yahoo Finance Official Splits (ex_ref=2011-03-07, yf=5)",Verified split/bonus multiplier 10.0000 (ex-date aligned error=3.4%)
+2011-03-15,NATIONALUM,SPLIT_OR_BONUS,4.0,,,"Yahoo Finance Official Splits (ex_ref=2011-03-15, yf=2)",Verified split/bonus multiplier 4.0000 (ex-date aligned error=7.1%)
+2011-05-03,ONMOBILE,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2011-05-03, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=0.1%)
+2011-06-09,MANAPPURAM,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2011-06-09, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=1.4%)
+2011-06-21,COX&KINGS,SPLIT_OR_BONUS,2.0,,,Bhavcopy Open+Volume Microstructure Verified (Delisted/Renamed),"Open ratio 1.921 vs 2.00 (err=4.0%, vol_x=1.5x)"
+2011-06-23,TITAN,SPLIT_BONUS,20.0,INE280A01010,INE280A01028,NSE Circular,Split 10:1 from Rs 10 to Rs 1 plus 1:1 Bonus
+2011-07-14,HDFCBANK,SPLIT,5.0,INE040A01018,INE040A01026,NSE Circular,Split 5:1 from Rs 10 to Rs 2
+2011-08-02,ASHOKLEY,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2011-08-02, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=0.7%)
+2011-08-16,WABAG,SPLIT_OR_BONUS,2.5,,,"Yahoo Finance Official Splits (ex_ref=2011-08-16, yf=2.5)",Verified split/bonus multiplier 2.5000 (ex-date aligned error=2.4%)
+2011-09-12,TATAMOTORS,SPLIT_OR_BONUS,5.0,,,Bhavcopy Open+Volume Microstructure Verified (Delisted/Renamed),"Open ratio 5.241 vs 5.00 (err=4.8%, vol_x=3.4x)"
+2011-09-12,TATAMTRDVR,SPLIT_OR_BONUS,5.0,,,Bhavcopy Open+Volume Microstructure Verified (Delisted/Renamed),"Open ratio 5.230 vs 5.00 (err=4.6%, vol_x=1.9x)"
+2011-09-20,CUMMINSIND,SPLIT_OR_BONUS,1.4,,,"Yahoo Finance Official Splits (ex_ref=2011-09-20, yf=1.4)",Verified split/bonus multiplier 1.4000 (ex-date aligned error=1.6%)
+2011-09-22,NITINFIRE,SPLIT_OR_BONUS,3.0,,,Bhavcopy Open+Volume Microstructure Verified (Delisted/Renamed),"Open ratio 3.084 vs 3.00 (err=2.8%, vol_x=10.0x)"
+2011-09-26,TATAPOWER,SPLIT_OR_BONUS,10.0,,,"Yahoo Finance Official Splits (ex_ref=2011-09-26, yf=10)",Verified split/bonus multiplier 10.0000 (ex-date aligned error=2.2%)
+2011-10-03,BHEL,SPLIT_OR_BONUS,5.0,,,"Yahoo Finance Official Splits (ex_ref=2011-10-03, yf=5)",Verified split/bonus multiplier 5.0000 (ex-date aligned error=2.5%)
+2011-10-31,VIPIND,SPLIT,5.0,INE054A01019,INE054A01027,NSE Circular,Split 5:1 from Rs 10 to Rs 2
+2012-03-29,OIL,SPLIT_OR_BONUS,2.5,,,"Yahoo Finance Official Splits (ex_ref=2012-03-29, yf=2.5)",Verified split/bonus multiplier 2.5000 (ex-date aligned error=2.2%)
+2012-05-22,INVENTURE,SPLIT_OR_BONUS,4.0,,,"Yahoo Finance Official Splits (ex_ref=2012-05-22, yf=4)",Verified split/bonus multiplier 4.0000 (ex-date aligned error=2.9%)
+2012-05-25,GRAVITA,SPLIT,5.0,INE024L01019,INE024L01027,NSE Circular,Split 5:1 from Rs 10 to Rs 2
+2012-07-12,JYOTHYLAB,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2012-07-12, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=1.5%)
+2012-07-13,BPCL,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2012-07-13, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=0.7%)
+2012-08-09,AJANTPHARM,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2012-08-09, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=1.3%)
+2012-09-04,CASTROL,SPLIT_OR_BONUS,2.0,,,Bhavcopy Open+Volume Microstructure Verified (Delisted/Renamed),"Open ratio 1.973 vs 2.00 (err=1.4%, vol_x=2.9x)"
+2012-10-29,ORISSAMINE,SPLIT_OR_BONUS,10.0,,,"Yahoo Finance Official Splits (ex_ref=2012-10-29, yf=10)",Verified split/bonus multiplier 10.0000 (ex-date aligned error=2.3%)
+2012-10-30,BOMDYEING,SPLIT_OR_BONUS,5.0,,,"Yahoo Finance Official Splits (ex_ref=2012-10-30, yf=5)",Verified split/bonus multiplier 5.0000 (ex-date aligned error=0.1%)
+2012-11-22,RUBYMILLS,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2012-11-22, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=2.0%)
+2013-01-28,20MICRONS,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2013-01-28, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=0.4%)
+2013-02-15,M&MFIN,SPLIT_OR_BONUS,5.0,,,"Yahoo Finance Official Splits (ex_ref=2013-02-15, yf=5)",Verified split/bonus multiplier 5.0000 (ex-date aligned error=0.0%)
+2013-05-23,BALMLAWRIE,SPLIT_OR_BONUS,1.75,,,"Yahoo Finance Official Splits (ex_ref=2013-05-23, yf=1.75)",Verified split/bonus multiplier 1.7500 (ex-date aligned error=0.8%)
+2013-06-26,EMAMILTD,SPLIT_OR_BONUS,1.5,,,"Yahoo Finance Official Splits (ex_ref=2013-06-26, yf=1.5)",Verified split/bonus multiplier 1.5000 (ex-date aligned error=1.0%)
+2013-07-03,ASHOKA,SPLIT_OR_BONUS,3.0,,,"Yahoo Finance Official Splits (ex_ref=2013-07-03, yf=2)",Verified split/bonus multiplier 3.0000 (ex-date aligned error=1.0%)
+2013-07-11,LT,SPLIT_OR_BONUS,1.5,,,"Yahoo Finance Official Splits (ex_ref=2013-07-11, yf=1.5)",Verified split/bonus multiplier 1.5000 (ex-date aligned error=2.3%)
+2013-07-23,TORNTPHARM,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2013-07-23, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=1.1%)
+2013-07-26,HERITGFOOD,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2013-07-26, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=6.2%)
+2013-07-29,SUNPHARMA,BONUS,2.0,INE044A01036,INE044A01036,NSE Circular,Bonus 1:1
+2013-07-30,ASIANPAINT,SPLIT_OR_BONUS,10.0,,,"Yahoo Finance Official Splits (ex_ref=2013-07-30, yf=10)",Verified split/bonus multiplier 10.0000 (ex-date aligned error=0.2%)
+2013-09-05,ASTRAL,SPLIT_OR_BONUS,2.5,,,"Yahoo Finance Official Splits (ex_ref=2013-09-05, yf=2.5)",Verified split/bonus multiplier 2.5000 (ex-date aligned error=2.4%)
+2013-09-06,CONCOR,SPLIT_OR_BONUS,1.5,,,"Yahoo Finance Official Splits (ex_ref=2013-09-06, yf=1.5)",Verified split/bonus multiplier 1.5000 (ex-date aligned error=0.6%)
+2013-09-17,AJANTPHARM,SPLIT_OR_BONUS,1.5,,,"Yahoo Finance Official Splits (ex_ref=2013-09-17, yf=1.5)",Verified split/bonus multiplier 1.5000 (ex-date aligned error=5.1%)
+2013-10-17,FEDERALBNK,SPLIT_OR_BONUS,5.0,,,"Yahoo Finance Official Splits (ex_ref=2013-10-17, yf=5)",Verified split/bonus multiplier 5.0000 (ex-date aligned error=2.6%)
+2013-11-11,OMAXE,SPLIT_OR_BONUS,1.25641,,,"Yahoo Finance Official Splits (ex_ref=2013-11-11, yf=1.25641)",Verified split/bonus multiplier 1.2564 (ex-date aligned error=9.5%)
+2013-11-22,RELAXO,SPLIT_OR_BONUS,5.0,,,"Yahoo Finance Official Splits (ex_ref=2013-11-22, yf=5)",Verified split/bonus multiplier 5.0000 (ex-date aligned error=2.0%)
+2013-12-19,STAR,SPLIT_OR_BONUS,2.5,,,Bhavcopy Open+Volume Microstructure Verified (Delisted/Renamed),"Open ratio 2.512 vs 2.50 (err=0.5%, vol_x=5.6x)"
+2014-01-27,KSCL,SPLIT_OR_BONUS,5.0,,,"Yahoo Finance Official Splits (ex_ref=2014-01-27, yf=5)",Verified split/bonus multiplier 5.0000 (ex-date aligned error=0.5%)
+2014-02-03,SWANENERGY,SPLIT_OR_BONUS,2.0,,,Bhavcopy Open+Volume Microstructure Verified (Delisted/Renamed),"Open ratio 1.959 vs 2.00 (err=2.0%, vol_x=3.4x)"
+2014-06-03,MINDTREE,BONUS,2.0,INE018I01017,INE018I01017,NSE Circular,Bonus 1:1
+2014-06-09,GRUH,SPLIT_OR_BONUS,2.0,,,Bhavcopy Open+Volume Microstructure Verified (Delisted/Renamed),"Open ratio 1.923 vs 2.00 (err=3.9%, vol_x=2.5x)"
+2014-07-28,AXISBANK,SPLIT_OR_BONUS,5.0,,,"Yahoo Finance Official Splits (ex_ref=2014-07-28, yf=5)",Verified split/bonus multiplier 5.0000 (ex-date aligned error=0.5%)
+2014-08-26,HAVELLS,SPLIT_OR_BONUS,5.0,,,"Yahoo Finance Official Splits (ex_ref=2014-08-26, yf=5)",Verified split/bonus multiplier 5.0000 (ex-date aligned error=0.9%)
+2014-08-28,MANINFRA,SPLIT_OR_BONUS,5.0,,,"Yahoo Finance Official Splits (ex_ref=2014-08-28, yf=5)",Verified split/bonus multiplier 5.0000 (ex-date aligned error=1.1%)
+2014-09-04,J&KBANK,SPLIT_OR_BONUS,10.0,,,"Yahoo Finance Official Splits (ex_ref=2014-09-04, yf=10)",Verified split/bonus multiplier 10.0000 (ex-date aligned error=1.3%)
+2014-09-08,ALKYLAMINE,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2014-09-08, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=0.6%)
+2014-09-25,ASTRAL,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2014-09-25, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=0.5%)
+2014-11-20,SBIN,SPLIT,10.0,INE062A01012,INE062A01020,NSE Circular,Split 10:1 from Rs 10 to Rs 1
+2014-12-02,INFY,BONUS,2.0,INE009A01021,INE009A01021,NSE Circular,Bonus 1:1
+2014-12-04,ICICIBANK,SPLIT,5.0,INE090A01013,INE090A01021,NSE Circular,Split 5:1 from Rs 10 to Rs 2
+2014-12-18,JKTYRE,SPLIT_OR_BONUS,5.0,,,"Yahoo Finance Official Splits (ex_ref=2014-12-18, yf=5)",Verified split/bonus multiplier 5.0000 (ex-date aligned error=2.1%)
+2014-12-18,PNB,SPLIT_OR_BONUS,5.0,,,"Yahoo Finance Official Splits (ex_ref=2014-12-18, yf=5)",Verified split/bonus multiplier 5.0000 (ex-date aligned error=2.6%)
+2015-01-08,BERGEPAINT,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2015-01-08, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=2.7%)
+2015-01-21,RSSOFTWARE,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2015-01-21, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=1.7%)
+2015-01-22,BANKBARODA,SPLIT_OR_BONUS,5.0,,,"Yahoo Finance Official Splits (ex_ref=2015-01-22, yf=5)",Verified split/bonus multiplier 5.0000 (ex-date aligned error=0.8%)
+2015-01-22,CORPBANK,SPLIT_OR_BONUS,5.0,,,Bhavcopy Open+Volume Microstructure Verified (Delisted/Renamed),"Open ratio 4.935 vs 5.00 (err=1.3%, vol_x=9.4x)"
+2015-01-23,TATACOFFEE,SPLIT_OR_BONUS,10.0,,,Bhavcopy Open+Volume Microstructure Verified (Delisted/Renamed),"Open ratio 9.852 vs 10.00 (err=1.5%, vol_x=48.8x)"
+2015-02-27,HIKAL,SPLIT_OR_BONUS,5.0,,,"Yahoo Finance Official Splits (ex_ref=2015-02-27, yf=5)",Verified split/bonus multiplier 5.0000 (ex-date aligned error=0.6%)
+2015-03-10,PERSISTENT,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2015-03-10, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=3.0%)
+2015-03-19,HCLTECH,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2015-03-19, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=1.3%)
+2015-03-19,TECHM,SPLIT_BONUS,4.0,INE669C01028,INE669C01036,NSE Circular,Split 2:1 from Rs 10 to Rs 5 plus 1:1 Bonus
+2015-03-20,AJANTPHARM,SPLIT_OR_BONUS,2.5,,,"Yahoo Finance Official Splits (ex_ref=2015-03-20, yf=2.5)",Verified split/bonus multiplier 2.5000 (ex-date aligned error=2.5%)
+2015-03-23,GRANULES,SPLIT_OR_BONUS,10.0,,,"Yahoo Finance Official Splits (ex_ref=2015-03-23, yf=10)",Verified split/bonus multiplier 10.0000 (ex-date aligned error=1.6%)
+2015-03-24,AARTIDRUGS,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2015-03-24, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=5.9%)
+2015-03-26,KANSAINER,SPLIT_OR_BONUS,10.0,,,"Yahoo Finance Official Splits (ex_ref=2015-03-26, yf=10)",Verified split/bonus multiplier 10.0000 (ex-date aligned error=1.2%)
+2015-03-26,WABAG,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2015-03-26, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=2.0%)
+2015-04-16,INSECTICID,SPLIT_OR_BONUS,1.5,,,"Yahoo Finance Official Splits (ex_ref=2015-04-16, yf=1.5)",Verified split/bonus multiplier 1.5000 (ex-date aligned error=1.1%)
+2015-04-23,TWL,SPLIT_OR_BONUS,5.0,,,Bhavcopy Open+Volume Microstructure Verified (Delisted/Renamed),"Open ratio 4.948 vs 5.00 (err=1.0%, vol_x=1.8x)"
+2015-06-15,INFY,BONUS,2.0,INE009A01021,INE009A01021,NSE Circular,Bonus 1:1
+2015-07-01,RELAXO,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2015-07-01, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=1.0%)
+2015-07-08,FEDERALBNK,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2015-07-08, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=1.2%)
+2015-07-09,KOTAKBANK,BONUS,2.0,INE237A01028,INE237A01028,NSE Circular,Bonus 1:1
+2015-07-20,AUROPHARMA,BONUS,2.0,INE406A01037,INE406A01037,NSE Circular,Bonus 1:1
+2015-09-14,BEL,SPLIT_OR_BONUS,3.0,,,"Yahoo Finance Official Splits (ex_ref=2015-09-14, yf=3)",Verified split/bonus multiplier 3.0000 (ex-date aligned error=1.8%)
+2015-09-16,AEGISCHEM,SPLIT_OR_BONUS,10.0,,,Bhavcopy Open+Volume Microstructure Verified (Delisted/Renamed),"Open ratio 9.703 vs 10.00 (err=3.0%, vol_x=6.5x)"
+2015-09-23,ALANKIT,SPLIT_OR_BONUS,5.0,,,"Yahoo Finance Official Splits (ex_ref=2015-09-23, yf=5)",Verified split/bonus multiplier 5.0000 (ex-date aligned error=1.5%)
+2015-09-23,COLPAL,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2015-09-23, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=2.1%)
+2015-09-23,DIVISLAB,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2015-09-23, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=0.2%)
+2015-10-01,IDFC,SPLIT_OR_BONUS,2.0,,,Bhavcopy Open+Volume Microstructure Verified (Delisted/Renamed),"Open ratio 2.040 vs 2.00 (err=2.0%, vol_x=19.6x)"
+2015-10-06,CADILAHC,SPLIT_OR_BONUS,5.0,,,Bhavcopy Open+Volume Microstructure Verified (Delisted/Renamed),"Open ratio 4.973 vs 5.00 (err=0.5%, vol_x=5.5x)"
+2015-10-07,BATAINDIA,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2015-10-07, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=0.1%)
+2015-10-15,LAMBODHARA,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2015-10-15, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=1.3%)
+2015-10-21,RUBYMILLS,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2015-10-21, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=0.5%)
+2015-11-26,AVANTIFEED,SPLIT_OR_BONUS,5.0,,,"Yahoo Finance Official Splits (ex_ref=2015-11-26, yf=5)",Verified split/bonus multiplier 5.0000 (ex-date aligned error=0.7%)
+2015-11-26,NATCOPHARM,SPLIT_OR_BONUS,5.0,,,"Yahoo Finance Official Splits (ex_ref=2015-11-26, yf=5)",Verified split/bonus multiplier 5.0000 (ex-date aligned error=2.1%)
+2015-12-03,JAMNAAUTO,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2015-12-03, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=0.6%)
+2015-12-17,ECLERX,SPLIT_OR_BONUS,1.333333,,,"Yahoo Finance Official Splits (ex_ref=2015-12-17, yf=1.33333)",Verified split/bonus multiplier 1.3333 (ex-date aligned error=2.1%)
+2015-12-22,MARICO,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2015-12-22, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=2.9%)
+2015-12-30,ALLCARGO,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2015-12-30, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=0.5%)
+2016-01-20,ABIRLANUVO,SPLIT_OR_BONUS,2.0,,,Bhavcopy Open+Volume Microstructure Verified (Delisted/Renamed),"Open ratio 2.078 vs 2.00 (err=3.9%, vol_x=21.6x)"
+2016-03-09,MINDTREE,SPLIT_OR_BONUS,2.0,,,Bhavcopy Open+Volume Microstructure Verified (Delisted/Renamed),"Open ratio 2.090 vs 2.00 (err=4.5%, vol_x=12.0x)"
+2016-03-14,RAMASTEEL,SPLIT_OR_BONUS,10.0,,,"Yahoo Finance Official Splits (ex_ref=2016-03-14, yf=2)",Verified split/bonus multiplier 10.0000 (ex-date aligned error=3.1%)
+2016-03-15,CROMPGREAV,SPLIT_OR_BONUS,3.0,,,Bhavcopy Open+Volume Microstructure Verified (Delisted/Renamed),"Open ratio 2.930 vs 3.00 (err=2.3%, vol_x=11.3x)"
+2016-03-16,TIDEWATER,SPLIT_OR_BONUS,4.0,,,Bhavcopy Open+Volume Microstructure Verified (Delisted/Renamed),"Open ratio 4.019 vs 4.00 (err=0.5%, vol_x=13.6x)"
+2016-03-21,WELSPUNIND,SPLIT_OR_BONUS,10.0,,,Bhavcopy Open+Volume Microstructure Verified (Delisted/Renamed),"Open ratio 9.997 vs 10.00 (err=0.0%, vol_x=5.7x)"
+2016-05-02,DISHMAN,SPLIT_OR_BONUS,2.0,,,Bhavcopy Open+Volume Microstructure Verified (Delisted/Renamed),"Open ratio 1.984 vs 2.00 (err=0.8%, vol_x=1.7x)"
+2016-06-02,NBCC,SPLIT_OR_BONUS,5.0,,,"Yahoo Finance Official Splits (ex_ref=2016-06-02, yf=5)",Verified split/bonus multiplier 5.0000 (ex-date aligned error=0.7%)
+2016-07-01,ITC,SPLIT_OR_BONUS,1.5,,,"Yahoo Finance Official Splits (ex_ref=2016-07-01, yf=1.5)",Verified split/bonus multiplier 1.5000 (ex-date aligned error=0.9%)
+2016-07-14,BPCL,BONUS,2.0,INE029A01011,INE029A01011,NSE Circular,Bonus 1:1
+2016-07-15,BERGEPAINT,SPLIT_OR_BONUS,1.4,,,"Yahoo Finance Official Splits (ex_ref=2016-07-15, yf=1.4)",Verified split/bonus multiplier 1.4000 (ex-date aligned error=0.4%)
+2016-08-26,PFC,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2016-08-26, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=0.1%)
+2016-08-30,VGUARD,SPLIT_OR_BONUS,10.0,,,"Yahoo Finance Official Splits (ex_ref=2016-08-30, yf=10)",Verified split/bonus multiplier 10.0000 (ex-date aligned error=0.7%)
+2016-09-08,BAJFINANCE,SPLIT_BONUS,10.0,INE296A01016,INE296A01024,NSE Circular,Split 5:1 from Rs 10 to Rs 2 plus 1:1 Bonus
+2016-09-12,MINDAIND,SPLIT_OR_BONUS,5.0,,,Bhavcopy Open+Volume Microstructure Verified (Delisted/Renamed),"Open ratio 5.132 vs 5.00 (err=2.6%, vol_x=4.8x)"
+2016-09-12,TRENT,SPLIT_OR_BONUS,10.0,,,"Yahoo Finance Official Splits (ex_ref=2016-09-12, yf=10)",Verified split/bonus multiplier 10.0000 (ex-date aligned error=2.9%)
+2016-09-14,HINDPETRO,SPLIT_OR_BONUS,3.0,,,"Yahoo Finance Official Splits (ex_ref=2016-09-14, yf=3)",Verified split/bonus multiplier 3.0000 (ex-date aligned error=0.2%)
+2016-09-15,MARICO,BONUS,2.0,INE196A01026,INE196A01026,NSE Circular,Bonus 1:1
+2016-09-28,RECLTD,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2016-09-28, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=0.0%)
+2016-10-04,KAJARIACER,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2016-10-04, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=0.0%)
+2016-10-06,GRASIM,SPLIT_OR_BONUS,5.0,,,"Yahoo Finance Official Splits (ex_ref=2016-10-06, yf=5)",Verified split/bonus multiplier 5.0000 (ex-date aligned error=0.7%)
+2016-10-18,IOC,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2016-10-18, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=0.2%)
+2016-10-19,ALANKIT,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2016-10-19, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=0.1%)
+2016-10-26,BHAGERIA,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2016-10-26, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=0.4%)
+2016-11-11,ICIL,SPLIT_OR_BONUS,5.0,,,"Yahoo Finance Official Splits (ex_ref=2016-11-11, yf=5)",Verified split/bonus multiplier 5.0000 (ex-date aligned error=3.1%)
+2016-11-17,KARURVYSYA,SPLIT_OR_BONUS,5.0,,,"Yahoo Finance Official Splits (ex_ref=2016-11-17, yf=5)",Verified split/bonus multiplier 5.0000 (ex-date aligned error=0.1%)
+2016-11-23,CGCL,SPLIT_OR_BONUS,5.0,,,"Yahoo Finance Official Splits (ex_ref=2016-11-23, yf=5)",Verified split/bonus multiplier 5.0000 (ex-date aligned error=2.1%)
+2016-11-29,KPRMILL,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2016-11-29, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=1.7%)
+2016-12-13,KNRCON,SPLIT_OR_BONUS,5.0,,,"Yahoo Finance Official Splits (ex_ref=2016-12-13, yf=5)",Verified split/bonus multiplier 5.0000 (ex-date aligned error=2.5%)
+2016-12-15,ALANKIT,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2016-12-15, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=2.5%)
+2016-12-15,ONGC,SPLIT_OR_BONUS,1.5,,,"Yahoo Finance Official Splits (ex_ref=2016-12-15, yf=1.5)",Verified split/bonus multiplier 1.5000 (ex-date aligned error=0.4%)
+2016-12-26,BALMLAWRIE,SPLIT_OR_BONUS,4.0,,,"Yahoo Finance Official Splits (ex_ref=2016-12-26, yf=4)",Verified split/bonus multiplier 4.0000 (ex-date aligned error=7.2%)
+2016-12-30,ENGINERSIN,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2016-12-30, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=5.7%)
+2017-01-04,JSWSTEEL,SPLIT,10.0,INE019A01020,INE019A01038,NSE Circular,Split 10:1 from Rs 10 to Rs 1
+2017-01-12,OIL,SPLIT_OR_BONUS,1.333333,,,"Yahoo Finance Official Splits (ex_ref=2017-01-12, yf=1.33333)",Verified split/bonus multiplier 1.3333 (ex-date aligned error=4.9%)
+2017-02-17,NBCC,SPLIT_OR_BONUS,1.5,,,"Yahoo Finance Official Splits (ex_ref=2017-02-17, yf=1.5)",Verified split/bonus multiplier 1.5000 (ex-date aligned error=0.4%)
+2017-03-02,GAIL,BONUS,1.3333333333333333,INE129A01019,INE129A01019,NSE Circular,Bonus 1:3
+2017-03-09,GAIL,SPLIT_OR_BONUS,1.333333,,,"Yahoo Finance Official Splits (ex_ref=2017-03-09, yf=1.33333)",Verified split/bonus multiplier 1.3333 (ex-date aligned error=2.6%)
+2017-03-15,VGUARD,SPLIT_OR_BONUS,1.4,,,"Yahoo Finance Official Splits (ex_ref=2017-03-15, yf=1.4)",Verified split/bonus multiplier 1.4000 (ex-date aligned error=0.0%)
+2017-03-16,BEL,SPLIT_OR_BONUS,10.0,,,"Yahoo Finance Official Splits (ex_ref=2017-03-16, yf=10)",Verified split/bonus multiplier 10.0000 (ex-date aligned error=1.5%)
+2017-04-05,CONCOR,SPLIT_OR_BONUS,1.25,,,"Yahoo Finance Official Splits (ex_ref=2017-04-05, yf=1.25)",Verified split/bonus multiplier 1.2500 (ex-date aligned error=0.2%)
+2017-04-26,BLS,SPLIT_OR_BONUS,10.0,,,"Yahoo Finance Official Splits (ex_ref=2017-04-26, yf=10)",Verified split/bonus multiplier 10.0000 (ex-date aligned error=1.5%)
+2017-05-25,ADVENZYMES,SPLIT_OR_BONUS,5.0,,,"Yahoo Finance Official Splits (ex_ref=2017-05-25, yf=5)",Verified split/bonus multiplier 5.0000 (ex-date aligned error=1.7%)
+2017-06-13,WIPRO,BONUS,2.0,INE075A01022,INE075A01022,NSE Circular,Bonus 1:1
+2017-06-15,BIOCON,SPLIT_OR_BONUS,3.0,,,"Yahoo Finance Official Splits (ex_ref=2017-06-15, yf=3)",Verified split/bonus multiplier 3.0000 (ex-date aligned error=0.0%)
+2017-06-20,ICICIBANK,BONUS,1.1,INE090A01021,INE090A01021,NSE Circular,Bonus 1:10
+2017-06-22,ARCOTECH,SPLIT_OR_BONUS,5.0,,,Bhavcopy Open+Volume Microstructure Verified (Delisted/Renamed),"Open ratio 4.982 vs 5.00 (err=0.4%, vol_x=24.8x)"
+2017-06-22,GODREJCP,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2017-06-22, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=0.0%)
+2017-06-22,KITEX,SPLIT_OR_BONUS,1.4,,,"Yahoo Finance Official Splits (ex_ref=2017-06-22, yf=1.4)",Verified split/bonus multiplier 1.4000 (ex-date aligned error=3.2%)
+2017-07-03,PETRONET,BONUS,2.0,INE347G01014,INE347G01014,NSE Circular,Bonus 1:1
+2017-07-06,IOC,BONUS,2.0,INE242A01010,INE242A01010,NSE Circular,Bonus 1:1
+2017-07-06,PCJEWELLER,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2017-07-06, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=0.0%)
+2017-07-10,MHRIL,SPLIT_OR_BONUS,1.5,,,"Yahoo Finance Official Splits (ex_ref=2017-07-10, yf=1.5)",Verified split/bonus multiplier 1.5000 (ex-date aligned error=1.2%)
+2017-07-11,HINDPETRO,SPLIT_OR_BONUS,1.5,,,"Yahoo Finance Official Splits (ex_ref=2017-07-11, yf=1.5)",Verified split/bonus multiplier 1.5000 (ex-date aligned error=0.4%)
+2017-07-13,BPCL,SPLIT_OR_BONUS,1.5,,,"Yahoo Finance Official Splits (ex_ref=2017-07-13, yf=1.5)",Verified split/bonus multiplier 1.5000 (ex-date aligned error=0.5%)
+2017-07-13,LT,SPLIT_OR_BONUS,1.5,,,"Yahoo Finance Official Splits (ex_ref=2017-07-13, yf=1.5)",Verified split/bonus multiplier 1.5000 (ex-date aligned error=0.5%)
+2017-07-19,NAVINFLUOR,SPLIT_OR_BONUS,5.0,,,"Yahoo Finance Official Splits (ex_ref=2017-07-19, yf=5)",Verified split/bonus multiplier 5.0000 (ex-date aligned error=1.2%)
+2017-07-25,SUNTECK,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2017-07-25, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=0.6%)
+2017-08-01,JAYAGROGN,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2017-08-01, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=0.2%)
+2017-08-10,DWARKESH,SPLIT_OR_BONUS,10.0,,,"Yahoo Finance Official Splits (ex_ref=2017-08-10, yf=10)",Verified split/bonus multiplier 10.0000 (ex-date aligned error=0.4%)
+2017-08-31,INFIBEAM,SPLIT_OR_BONUS,10.0,,,Bhavcopy Open+Volume Microstructure Verified (Delisted/Renamed),"Open ratio 9.938 vs 10.00 (err=0.6%, vol_x=25.8x)"
+2017-09-07,RELIANCE,BONUS,2.0,INE002A01018,INE002A01018,NSE Circular,Bonus 1:1
+2017-09-18,TATAELXSI,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2017-09-18, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=1.1%)
+2017-09-21,YESBANK,SPLIT_OR_BONUS,5.0,,,"Yahoo Finance Official Splits (ex_ref=2017-09-21, yf=5)",Verified split/bonus multiplier 5.0000 (ex-date aligned error=0.2%)
+2017-09-27,MOIL,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2017-09-27, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=1.6%)
+2017-09-28,BHARATFORG,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2017-09-28, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=0.6%)
+2017-09-28,BHEL,SPLIT_OR_BONUS,1.5,,,"Yahoo Finance Official Splits (ex_ref=2017-09-28, yf=1.5)",Verified split/bonus multiplier 1.5000 (ex-date aligned error=0.4%)
+2017-09-28,BPCL,BONUS,1.3333333333333333,INE029A01011,INE029A01011,NSE Circular,Bonus 1:3
+2017-10-05,JAMNAAUTO,SPLIT_OR_BONUS,5.0,,,"Yahoo Finance Official Splits (ex_ref=2017-10-05, yf=5)",Verified split/bonus multiplier 5.0000 (ex-date aligned error=0.6%)
+2017-10-10,HERITGFOOD,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2017-10-10, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=0.0%)
+2017-10-12,CANFINHOME,SPLIT_OR_BONUS,5.0,,,"Yahoo Finance Official Splits (ex_ref=2017-10-12, yf=5)",Verified split/bonus multiplier 5.0000 (ex-date aligned error=1.0%)
+2017-11-09,IGL,SPLIT_OR_BONUS,5.0,,,"Yahoo Finance Official Splits (ex_ref=2017-11-09, yf=5)",Verified split/bonus multiplier 5.0000 (ex-date aligned error=1.1%)
+2017-12-21,BALKRISIND,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2017-12-21, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=0.0%)
+2017-12-21,CASTROLIND,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2017-12-21, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=1.2%)
+2017-12-21,M&M,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2017-12-21, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=0.5%)
+2017-12-21,VAKRANGEE,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2017-12-21, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=1.8%)
+2017-12-26,JINDWORLD,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2017-12-26, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=0.8%)
+2018-03-01,IOC,BONUS,2.0,INE242A01010,INE242A01010,NSE Circular,Bonus 1:1
+2018-03-15,IOC,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2018-03-15, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=2.9%)
+2018-03-27,GAIL,SPLIT_OR_BONUS,1.333333,,,"Yahoo Finance Official Splits (ex_ref=2018-03-27, yf=1.33333)",Verified split/bonus multiplier 1.3333 (ex-date aligned error=0.4%)
+2018-03-27,OIL,SPLIT_OR_BONUS,1.5,,,"Yahoo Finance Official Splits (ex_ref=2018-03-27, yf=1.5)",Verified split/bonus multiplier 1.5000 (ex-date aligned error=5.3%)
+2018-04-25,NBCC,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2018-04-25, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=0.1%)
+2018-05-03,MMTC,SPLIT_OR_BONUS,1.5,,,"Yahoo Finance Official Splits (ex_ref=2018-05-03, yf=1.5)",Verified split/bonus multiplier 1.5000 (ex-date aligned error=5.0%)
+2018-05-31,TCS,BONUS,2.0,INE467B01029,INE467B01029,NSE Circular,Bonus 1:1
+2018-06-06,GRUH,SPLIT_OR_BONUS,2.0,,,Bhavcopy Open+Volume Microstructure Verified (Delisted/Renamed),"Open ratio 2.054 vs 2.00 (err=2.7%, vol_x=1.9x)"
+2018-06-15,MCDOWELL-N,SPLIT_OR_BONUS,5.0,,,Bhavcopy Open+Volume Microstructure Verified (Delisted/Renamed),"Open ratio 4.973 vs 5.00 (err=0.5%, vol_x=6.1x)"
+2018-06-21,EMAMILTD,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2018-06-21, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=0.1%)
+2018-06-21,GAIL,BONUS,1.3333333333333333,INE129A01019,INE129A01019,NSE Circular,Bonus 1:3
+2018-06-21,JUBLFOOD,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2018-06-21, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=0.4%)
+2018-06-22,HIKAL,SPLIT_OR_BONUS,1.5,,,"Yahoo Finance Official Splits (ex_ref=2018-06-22, yf=1.5)",Verified split/bonus multiplier 1.5000 (ex-date aligned error=2.2%)
+2018-06-26,AVANTIFEED,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2018-06-26, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=30.4%)
+2018-06-26,CONCOR,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2018-06-26, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=0.3%)
+2018-06-28,JYOTHYLAB,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2018-06-28, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=1.8%)
+2018-07-11,MINDAIND,SPLIT_OR_BONUS,3.0,,,Bhavcopy Open+Volume Microstructure Verified (Delisted/Renamed),"Open ratio 2.914 vs 3.00 (err=2.9%, vol_x=7.6x)"
+2018-07-12,ASHOKA,SPLIT_OR_BONUS,1.5,,,"Yahoo Finance Official Splits (ex_ref=2018-07-12, yf=1.5)",Verified split/bonus multiplier 1.5000 (ex-date aligned error=2.7%)
+2018-07-12,GICRE,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2018-07-12, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=2.2%)
+2018-08-02,BOROSIL,SPLIT_OR_BONUS,4.0,,,Bhavcopy Open+Volume Microstructure Verified (Delisted/Renamed),"Open ratio 4.030 vs 4.00 (err=0.8%, vol_x=28.2x)"
+2018-08-14,TIRUMALCHM,SPLIT_OR_BONUS,10.0,,,"Yahoo Finance Official Splits (ex_ref=2018-08-14, yf=10)",Verified split/bonus multiplier 10.0000 (ex-date aligned error=2.1%)
+2018-09-04,INFY,BONUS,2.0,INE009A01021,INE009A01021,NSE Circular,Bonus 1:1
+2018-09-11,GLAXO,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2018-09-11, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=0.3%)
+2018-09-12,GODREJCP,SPLIT_OR_BONUS,1.5,,,"Yahoo Finance Official Splits (ex_ref=2018-09-12, yf=1.5)",Verified split/bonus multiplier 1.5000 (ex-date aligned error=0.0%)
+2018-09-20,HCLTECH,BONUS,2.0,INE860A01027,INE860A01027,NSE Circular,Bonus 1:1
+2018-10-19,IEX,SPLIT_OR_BONUS,10.0,,,"Yahoo Finance Official Splits (ex_ref=2018-10-19, yf=10)",Verified split/bonus multiplier 10.0000 (ex-date aligned error=0.9%)
+2018-10-31,JINDWORLD,SPLIT_OR_BONUS,5.0,,,"Yahoo Finance Official Splits (ex_ref=2018-10-31, yf=5)",Verified split/bonus multiplier 5.0000 (ex-date aligned error=6.9%)
+2018-11-28,ARVIND,SPLIT_OR_BONUS,3.0,,,Bhavcopy Open+Volume Microstructure Verified (Delisted/Renamed),"Open ratio 2.842 vs 3.00 (err=5.3%, vol_x=38.3x)"
+2018-11-29,BRITANNIA,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2018-11-29, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=1.2%)
+2019-02-04,CONCOR,SPLIT_OR_BONUS,1.25,,,"Yahoo Finance Official Splits (ex_ref=2019-02-04, yf=1.25)",Verified split/bonus multiplier 1.2500 (ex-date aligned error=1.6%)
+2019-03-06,WIPRO,BONUS,1.3333333333333333,INE075A01022,INE075A01022,NSE Circular,Bonus 1:3 (4 for 3)
+2019-05-15,TTKPRESTIG,SPLIT_OR_BONUS,1.2,,,"Yahoo Finance Official Splits (ex_ref=2019-05-15, yf=1.2)",Verified split/bonus multiplier 1.2000 (ex-date aligned error=6.0%)
+2019-06-11,SYNGENE,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2019-06-11, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=1.7%)
+2019-06-12,BIOCON,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2019-06-12, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=0.5%)
+2019-06-14,CHOLAFIN,SPLIT_OR_BONUS,5.0,,,"Yahoo Finance Official Splits (ex_ref=2019-06-14, yf=5)",Verified split/bonus multiplier 5.0000 (ex-date aligned error=0.9%)
+2019-06-26,RELAXO,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2019-06-26, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=0.7%)
+2019-06-27,AVADHSUGAR,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2019-06-27, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=6.6%)
+2019-07-02,UPL,SPLIT_OR_BONUS,1.5,,,"Yahoo Finance Official Splits (ex_ref=2019-07-02, yf=1.5)",Verified split/bonus multiplier 1.5000 (ex-date aligned error=0.8%)
+2019-07-09,GAIL,BONUS,1.5,INE129A01019,INE129A01019,NSE Circular,Bonus 1:2
+2019-07-17,BHAGERIA,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2019-07-17, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=1.7%)
+2019-07-25,VBL,SPLIT_OR_BONUS,1.5,,,"Yahoo Finance Official Splits (ex_ref=2019-07-25, yf=1.5)",Verified split/bonus multiplier 1.5000 (ex-date aligned error=0.1%)
+2019-08-08,RITES,SPLIT_OR_BONUS,1.25,,,"Yahoo Finance Official Splits (ex_ref=2019-08-08, yf=1.25)",Verified split/bonus multiplier 1.2500 (ex-date aligned error=0.9%)
+2019-08-22,SWELECTES,SPLIT_OR_BONUS,1.5,,,"Yahoo Finance Official Splits (ex_ref=2019-08-22, yf=1.5)",Verified split/bonus multiplier 1.5000 (ex-date aligned error=0.0%)
+2019-08-28,BRIGADE,SPLIT_OR_BONUS,1.5,,,"Yahoo Finance Official Splits (ex_ref=2019-08-28, yf=1.5)",Verified split/bonus multiplier 1.5000 (ex-date aligned error=2.5%)
+2019-09-16,ASTRAL,SPLIT_OR_BONUS,1.25,,,"Yahoo Finance Official Splits (ex_ref=2019-09-16, yf=1.25)",Verified split/bonus multiplier 1.2500 (ex-date aligned error=3.7%)
+2019-09-19,HDFCBANK,SPLIT,2.0,INE040A01026,INE040A01034,NSE Circular,Split 2:1 from Rs 2 to Rs 1
+2019-09-27,AARTIIND,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2019-09-27, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=1.5%)
+2019-12-05,HCLTECH,BONUS,2.0,INE860A01027,INE860A01027,NSE Circular,Bonus 1:1
+2019-12-13,TRIDENT,SPLIT_OR_BONUS,10.0,,,"Yahoo Finance Official Splits (ex_ref=2019-12-13, yf=10)",Verified split/bonus multiplier 10.0000 (ex-date aligned error=1.8%)
+2019-12-26,BALMLAWRIE,SPLIT_OR_BONUS,1.5,,,"Yahoo Finance Official Splits (ex_ref=2019-12-26, yf=1.5)",Verified split/bonus multiplier 1.5000 (ex-date aligned error=0.4%)
+2020-02-05,VINATIORGA,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2020-02-05, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=1.2%)
+2020-04-03,IRCON,SPLIT_OR_BONUS,5.0,,,"Yahoo Finance Official Splits (ex_ref=2020-04-03, yf=5)",Verified split/bonus multiplier 5.0000 (ex-date aligned error=5.2%)
+2020-08-24,EICHERMOT,SPLIT_OR_BONUS,10.0,,,"Yahoo Finance Official Splits (ex_ref=2020-08-24, yf=10)",Verified split/bonus multiplier 10.0000 (ex-date aligned error=0.3%)
+2020-09-25,SUVENPHAR,SPLIT_OR_BONUS,2.0,,,Bhavcopy Open+Volume Microstructure Verified (Delisted/Renamed),"Open ratio 1.944 vs 2.00 (err=2.8%, vol_x=1.9x)"
+2020-09-29,LAURUSLABS,SPLIT_OR_BONUS,5.0,,,"Yahoo Finance Official Splits (ex_ref=2020-09-29, yf=5)",Verified split/bonus multiplier 5.0000 (ex-date aligned error=1.0%)
+2020-09-30,AARTIDRUGS,SPLIT_OR_BONUS,4.0,,,"Yahoo Finance Official Splits (ex_ref=2020-09-30, yf=4)",Verified split/bonus multiplier 4.0000 (ex-date aligned error=4.8%)
+2020-10-01,GAEL,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2020-10-01, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=0.6%)
+2020-10-15,SDBL,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2020-10-15, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=1.1%)
+2020-12-15,APLAPOLLO,SPLIT_OR_BONUS,5.0,,,"Yahoo Finance Official Splits (ex_ref=2020-12-15, yf=5)",Verified split/bonus multiplier 5.0000 (ex-date aligned error=1.9%)
+2020-12-24,VALIANTORG,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2020-12-24, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=1.2%)
+2021-02-03,KNRCON,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2021-02-03, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=1.8%)
+2021-03-18,ASTRAL,SPLIT_OR_BONUS,1.333333,,,"Yahoo Finance Official Splits (ex_ref=2021-03-18, yf=1.33333)",Verified split/bonus multiplier 1.3333 (ex-date aligned error=6.7%)
+2021-03-18,DIXON,SPLIT,5.0,INE935N01012,INE935N01020,NSE Circular,Split 5:1 from Rs 10 to Rs 2
+2021-03-18,INFIBEAM,SPLIT_OR_BONUS,2.0,,,Bhavcopy Open+Volume Microstructure Verified (Delisted/Renamed),"Open ratio 2.065 vs 2.00 (err=3.3%, vol_x=7.5x)"
+2021-04-15,FINPIPE,SPLIT_OR_BONUS,5.0,,,"Yahoo Finance Official Splits (ex_ref=2021-04-15, yf=5)",Verified split/bonus multiplier 5.0000 (ex-date aligned error=0.9%)
+2021-05-07,VAIBHAVGBL,SPLIT_OR_BONUS,5.0,,,"Yahoo Finance Official Splits (ex_ref=2021-05-07, yf=5)",Verified split/bonus multiplier 5.0000 (ex-date aligned error=1.3%)
+2021-05-11,ALKYLAMINE,SPLIT_OR_BONUS,2.5,,,"Yahoo Finance Official Splits (ex_ref=2021-05-11, yf=2.5)",Verified split/bonus multiplier 2.5000 (ex-date aligned error=0.8%)
+2021-05-20,IRCON,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2021-05-20, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=0.7%)
+2021-06-10,VBL,SPLIT_OR_BONUS,1.5,,,"Yahoo Finance Official Splits (ex_ref=2021-06-10, yf=1.5)",Verified split/bonus multiplier 1.5000 (ex-date aligned error=2.8%)
+2021-06-22,AARTIIND,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2021-06-22, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=1.0%)
+2021-06-24,INVENTURE,SPLIT_OR_BONUS,10.0,,,"Yahoo Finance Official Splits (ex_ref=2021-06-24, yf=10)",Verified split/bonus multiplier 10.0000 (ex-date aligned error=1.5%)
+2021-07-13,SALASAR,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2021-07-13, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=2.6%)
+2021-07-29,POWERGRID,SPLIT_OR_BONUS,1.333333,,,"Yahoo Finance Official Splits (ex_ref=2021-07-29, yf=1.33333)",Verified split/bonus multiplier 1.3333 (ex-date aligned error=0.0%)
+2021-08-17,SAGCEM,SPLIT_OR_BONUS,5.0,,,"Yahoo Finance Official Splits (ex_ref=2021-08-17, yf=5)",Verified split/bonus multiplier 5.0000 (ex-date aligned error=1.5%)
+2021-08-18,REDINGTON,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2021-08-18, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=0.1%)
+2021-09-08,MHRIL,SPLIT_OR_BONUS,1.5,,,"Yahoo Finance Official Splits (ex_ref=2021-09-08, yf=1.5)",Verified split/bonus multiplier 1.5000 (ex-date aligned error=4.8%)
+2021-09-14,MAHLIFE,SPLIT_OR_BONUS,3.0,,,"Yahoo Finance Official Splits (ex_ref=2021-09-14, yf=3)",Verified split/bonus multiplier 3.0000 (ex-date aligned error=0.6%)
+2021-09-16,APLAPOLLO,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2021-09-16, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=0.5%)
+2021-09-17,CESC,SPLIT_OR_BONUS,10.0,,,"Yahoo Finance Official Splits (ex_ref=2021-09-17, yf=10)",Verified split/bonus multiplier 10.0000 (ex-date aligned error=1.3%)
+2021-09-24,KPRMILL,SPLIT_OR_BONUS,5.0,,,"Yahoo Finance Official Splits (ex_ref=2021-09-24, yf=5)",Verified split/bonus multiplier 5.0000 (ex-date aligned error=1.6%)
+2021-10-07,AFFLE,SPLIT_OR_BONUS,5.0,,,"Yahoo Finance Official Splits (ex_ref=2021-10-07, yf=5)",Verified split/bonus multiplier 5.0000 (ex-date aligned error=1.3%)
+2021-10-13,SRF,SPLIT_OR_BONUS,5.0,,,"Yahoo Finance Official Splits (ex_ref=2021-10-13, yf=5)",Verified split/bonus multiplier 5.0000 (ex-date aligned error=1.8%)
+2021-10-21,VISHWARAJ,SPLIT_OR_BONUS,5.0,,,"Yahoo Finance Official Splits (ex_ref=2021-10-21, yf=5)",Verified split/bonus multiplier 5.0000 (ex-date aligned error=0.8%)
+2021-10-26,GPIL,SPLIT_OR_BONUS,4.0,,,"Yahoo Finance Official Splits (ex_ref=2021-10-26, yf=2)",Verified split/bonus multiplier 4.0000 (ex-date aligned error=3.2%)
+2021-10-28,IRCTC,SPLIT,5.0,INE335Y01012,INE335Y01020,NSE Circular,Split 5:1 from Rs 10 to Rs 2
+2021-11-17,MANINFRA,SPLIT_OR_BONUS,1.5,,,"Yahoo Finance Official Splits (ex_ref=2021-11-17, yf=1.5)",Verified split/bonus multiplier 1.5000 (ex-date aligned error=7.4%)
+2021-12-02,APOLLOPIPE,SPLIT_OR_BONUS,3.0,,,"Yahoo Finance Official Splits (ex_ref=2021-12-02, yf=3)",Verified split/bonus multiplier 3.0000 (ex-date aligned error=4.4%)
+2021-12-03,IEX,BONUS,3.0,INE022Q01020,INE022Q01020,NSE Circular,Bonus 2:1 (3 for 1)
+2021-12-14,TTKPRESTIG,SPLIT_OR_BONUS,10.0,,,"Yahoo Finance Official Splits (ex_ref=2021-12-14, yf=10)",Verified split/bonus multiplier 10.0000 (ex-date aligned error=1.7%)
+2021-12-16,KKCL,SPLIT_OR_BONUS,5.0,,,"Yahoo Finance Official Splits (ex_ref=2021-12-16, yf=5)",Verified split/bonus multiplier 5.0000 (ex-date aligned error=0.2%)
+2021-12-30,ANDHRSUGAR,SPLIT_OR_BONUS,5.0,,,"Yahoo Finance Official Splits (ex_ref=2021-12-30, yf=5)",Verified split/bonus multiplier 5.0000 (ex-date aligned error=3.2%)
+2022-01-07,IMFA,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2022-01-07, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=0.6%)
+2022-01-10,IPCALAB,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2022-01-10, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=2.1%)
+2022-02-03,AAKASH,SPLIT_OR_BONUS,10.0,,,"Yahoo Finance Official Splits (ex_ref=2022-02-03, yf=10)",Verified split/bonus multiplier 10.0000 (ex-date aligned error=4.0%)
+2022-02-08,SCHAEFFLER,SPLIT_OR_BONUS,5.0,,,"Yahoo Finance Official Splits (ex_ref=2022-02-08, yf=5)",Verified split/bonus multiplier 5.0000 (ex-date aligned error=0.2%)
+2022-02-21,JBMA,SPLIT_OR_BONUS,2.5,,,"Yahoo Finance Official Splits (ex_ref=2022-02-21, yf=2.5)",Verified split/bonus multiplier 2.5000 (ex-date aligned error=1.3%)
+2022-02-22,HGS,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2022-02-22, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=4.3%)
+2022-02-28,EASEMYTRIP,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2022-02-28, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=4.0%)
+2022-03-14,INFIBEAM,SPLIT_OR_BONUS,2.0,,,Bhavcopy Open+Volume Microstructure Verified (Delisted/Renamed),"Open ratio 2.081 vs 2.00 (err=4.1%, vol_x=5.8x)"
+2022-03-14,RKFORGE,SPLIT_OR_BONUS,5.0,,,"Yahoo Finance Official Splits (ex_ref=2022-03-14, yf=5)",Verified split/bonus multiplier 5.0000 (ex-date aligned error=1.2%)
+2022-03-15,BCG,SPLIT_OR_BONUS,1.666667,,,"Yahoo Finance Official Splits (ex_ref=2022-03-15, yf=1.66667)",Verified split/bonus multiplier 1.6667 (ex-date aligned error=4.7%)
+2022-03-21,BSE,SPLIT_OR_BONUS,3.0,,,"Yahoo Finance Official Splits (ex_ref=2022-03-21, yf=3)",Verified split/bonus multiplier 3.0000 (ex-date aligned error=0.4%)
+2022-03-24,VTL,SPLIT_OR_BONUS,5.0,,,"Yahoo Finance Official Splits (ex_ref=2022-03-24, yf=5)",Verified split/bonus multiplier 5.0000 (ex-date aligned error=2.0%)
+2022-03-28,GOLDIAM,SPLIT_OR_BONUS,5.0,,,"Yahoo Finance Official Splits (ex_ref=2022-03-28, yf=5)",Verified split/bonus multiplier 5.0000 (ex-date aligned error=1.1%)
+2022-04-11,PCBL,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2022-04-11, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=0.5%)
+2022-04-12,ARIHANTCAP,SPLIT_OR_BONUS,5.0,,,"Yahoo Finance Official Splits (ex_ref=2022-04-12, yf=5)",Verified split/bonus multiplier 5.0000 (ex-date aligned error=0.3%)
+2022-04-19,JUBLFOOD,SPLIT_OR_BONUS,5.0,,,"Yahoo Finance Official Splits (ex_ref=2022-04-19, yf=5)",Verified split/bonus multiplier 5.0000 (ex-date aligned error=1.4%)
+2022-04-26,SAREGAMA,SPLIT_OR_BONUS,10.0,,,"Yahoo Finance Official Splits (ex_ref=2022-04-26, yf=10)",Verified split/bonus multiplier 10.0000 (ex-date aligned error=0.1%)
+2022-05-13,BLS,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2022-05-13, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=3.3%)
+2022-06-06,VBL,SPLIT_OR_BONUS,1.5,,,"Yahoo Finance Official Splits (ex_ref=2022-06-06, yf=1.5)",Verified split/bonus multiplier 1.5000 (ex-date aligned error=0.1%)
+2022-06-09,AUBANK,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2022-06-09, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=0.9%)
+2022-06-22,AJANTPHARM,SPLIT_OR_BONUS,1.5,,,"Yahoo Finance Official Splits (ex_ref=2022-06-22, yf=1.5)",Verified split/bonus multiplier 1.5000 (ex-date aligned error=1.0%)
+2022-06-24,NAZARA,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2022-06-24, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=9.6%)
+2022-06-27,SALASAR,SPLIT_OR_BONUS,10.0,,,"Yahoo Finance Official Splits (ex_ref=2022-06-27, yf=10)",Verified split/bonus multiplier 10.0000 (ex-date aligned error=3.3%)
+2022-06-30,IOC,BONUS,1.5,INE242A01010,INE242A01010,NSE Circular,Bonus 1:2
+2022-06-30,PAISALO,SPLIT_OR_BONUS,10.0,,,"Yahoo Finance Official Splits (ex_ref=2022-06-30, yf=10)",Verified split/bonus multiplier 10.0000 (ex-date aligned error=1.6%)
+2022-06-30,RATNAMANI,SPLIT_OR_BONUS,1.5,,,"Yahoo Finance Official Splits (ex_ref=2022-06-30, yf=1.5)",Verified split/bonus multiplier 1.5000 (ex-date aligned error=1.6%)
+2022-07-08,TORNTPHARM,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2022-07-08, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=0.5%)
+2022-07-11,GMMPFAUDLR,SPLIT_OR_BONUS,3.0,,,"Yahoo Finance Official Splits (ex_ref=2022-07-11, yf=3)",Verified split/bonus multiplier 3.0000 (ex-date aligned error=4.7%)
+2022-07-12,STEELXIND,SPLIT_OR_BONUS,10.0,,,"Yahoo Finance Official Splits (ex_ref=2022-07-12, yf=10)",Verified split/bonus multiplier 10.0000 (ex-date aligned error=0.7%)
+2022-07-19,RGL,SPLIT_OR_BONUS,5.0,,,"Yahoo Finance Official Splits (ex_ref=2022-07-19, yf=5)",Verified split/bonus multiplier 5.0000 (ex-date aligned error=0.1%)
+2022-07-21,TATASTEEL,SPLIT,10.0,INE081A01012,INE081A01020,NSE Circular,Split 10:1 from Rs 10 to Rs 1
+2022-07-28,TATASTEEL,SPLIT_OR_BONUS,10.0,,,"Yahoo Finance Official Splits (ex_ref=2022-07-28, yf=10)",Verified split/bonus multiplier 10.0000 (ex-date aligned error=2.2%)
+2022-08-17,RECLTD,SPLIT_OR_BONUS,1.333333,,,"Yahoo Finance Official Splits (ex_ref=2022-08-17, yf=1.33333)",Verified split/bonus multiplier 1.3333 (ex-date aligned error=0.5%)
+2022-08-25,RAMASTEEL,SPLIT_OR_BONUS,5.0,,,"Yahoo Finance Official Splits (ex_ref=2022-08-25, yf=5)",Verified split/bonus multiplier 5.0000 (ex-date aligned error=0.5%)
+2022-09-06,GAIL,BONUS,1.3333333333333333,INE129A01019,INE129A01019,NSE Circular,Bonus 1:3
+2022-09-08,SONATSOFTW,SPLIT_OR_BONUS,1.333333,,,"Yahoo Finance Official Splits (ex_ref=2022-09-08, yf=1.33333)",Verified split/bonus multiplier 1.3333 (ex-date aligned error=6.2%)
+2022-09-12,BAJAJFINSV,SPLIT_BONUS,10.0,INE918I01018,INE918I01026,NSE Circular,Split 5:1 from Rs 10 to Rs 2 plus 1:1 Bonus
+2022-09-15,BEL,SPLIT_OR_BONUS,3.0,,,"Yahoo Finance Official Splits (ex_ref=2022-09-15, yf=3)",Verified split/bonus multiplier 3.0000 (ex-date aligned error=0.8%)
+2022-09-21,ECLERX,SPLIT_OR_BONUS,1.5,,,"Yahoo Finance Official Splits (ex_ref=2022-09-21, yf=1.5)",Verified split/bonus multiplier 1.5000 (ex-date aligned error=4.9%)
+2022-09-22,CHOICEIN,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2022-09-22, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=5.4%)
+2022-09-23,RUBYMILLS,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2022-09-23, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=3.3%)
+2022-09-28,RAMRAT,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2022-09-28, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=0.9%)
+2022-09-30,INSECTICID,SPLIT_OR_BONUS,1.5,,,"Yahoo Finance Official Splits (ex_ref=2022-09-30, yf=1.5)",Verified split/bonus multiplier 1.5000 (ex-date aligned error=9.1%)
+2022-10-03,MOTHERSON,SPLIT_OR_BONUS,1.5,,,"Yahoo Finance Official Splits (ex_ref=2022-10-03, yf=1.5)",Verified split/bonus multiplier 1.5000 (ex-date aligned error=0.4%)
+2022-10-12,SBCL,SPLIT_OR_BONUS,1.5,,,"Yahoo Finance Official Splits (ex_ref=2022-10-12, yf=1.5)",Verified split/bonus multiplier 1.5000 (ex-date aligned error=4.3%)
+2022-10-18,HLEGLAS,SPLIT_OR_BONUS,5.0,,,"Yahoo Finance Official Splits (ex_ref=2022-10-18, yf=5)",Verified split/bonus multiplier 5.0000 (ex-date aligned error=0.1%)
+2022-10-31,TDPOWERSYS,SPLIT_OR_BONUS,5.0,,,"Yahoo Finance Official Splits (ex_ref=2022-10-31, yf=5)",Verified split/bonus multiplier 5.0000 (ex-date aligned error=0.4%)
+2022-11-10,NYKAA,SPLIT_OR_BONUS,6.0,,,"Yahoo Finance Official Splits (ex_ref=2022-11-10, yf=6)",Verified split/bonus multiplier 6.0000 (ex-date aligned error=5.8%)
+2022-11-10,SSWL,SPLIT_OR_BONUS,5.0,,,"Yahoo Finance Official Splits (ex_ref=2022-11-10, yf=5)",Verified split/bonus multiplier 5.0000 (ex-date aligned error=1.3%)
+2022-11-16,MSUMI,SPLIT_OR_BONUS,1.4,,,"Yahoo Finance Official Splits (ex_ref=2022-11-16, yf=1.4)",Verified split/bonus multiplier 1.4000 (ex-date aligned error=2.2%)
+2022-11-25,MAHSEAMLES,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2022-11-25, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=0.5%)
+2022-12-02,LIKHITHA,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2022-12-02, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=2.7%)
+2022-12-08,BLS,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2022-12-08, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=5.3%)
+2022-12-16,LANCER,SPLIT_OR_BONUS,2.0,,,Bhavcopy Open+Volume Microstructure Verified (Delisted/Renamed),"Open ratio 1.972 vs 2.00 (err=1.4%, vol_x=4.4x)"
+2022-12-21,SFL,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2022-12-21, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=1.7%)
+2023-01-06,RAMASTEEL,SPLIT_OR_BONUS,5.0,,,"Yahoo Finance Official Splits (ex_ref=2023-01-06, yf=5)",Verified split/bonus multiplier 5.0000 (ex-date aligned error=9.0%)
+2023-01-06,SPLPETRO,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2023-01-06, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=0.1%)
+2023-01-13,VISHNU,SPLIT_OR_BONUS,5.0,,,"Yahoo Finance Official Splits (ex_ref=2023-01-13, yf=5)",Verified split/bonus multiplier 5.0000 (ex-date aligned error=0.1%)
+2023-01-18,KPIGREEN,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2023-01-18, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=3.2%)
+2023-02-22,IRB,SPLIT_OR_BONUS,10.0,,,"Yahoo Finance Official Splits (ex_ref=2023-02-22, yf=10)",Verified split/bonus multiplier 10.0000 (ex-date aligned error=2.2%)
+2023-03-14,ASTRAL,SPLIT_OR_BONUS,1.333333,,,"Yahoo Finance Official Splits (ex_ref=2023-03-14, yf=1.33333)",Verified split/bonus multiplier 1.3333 (ex-date aligned error=0.8%)
+2023-03-16,MEDICO,SPLIT_OR_BONUS,5.0,,,"Yahoo Finance Official Splits (ex_ref=2023-03-16, yf=5)",Verified split/bonus multiplier 5.0000 (ex-date aligned error=0.7%)
+2023-03-17,HITECH,SPLIT_OR_BONUS,10.0,,,"Yahoo Finance Official Splits (ex_ref=2023-03-17, yf=10)",Verified split/bonus multiplier 10.0000 (ex-date aligned error=0.5%)
+2023-05-11,SIRCA,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2023-05-11, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=2.3%)
+2023-05-26,VSSL,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2023-05-26, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=2.8%)
+2023-05-31,LODHA,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2023-05-31, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=2.1%)
+2023-06-12,IONEXCHANG,SPLIT_OR_BONUS,10.0,,,"Yahoo Finance Official Splits (ex_ref=2023-06-12, yf=10)",Verified split/bonus multiplier 10.0000 (ex-date aligned error=0.4%)
+2023-06-15,VBL,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2023-06-15, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=1.5%)
+2023-06-20,BLUESTARCO,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2023-06-20, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=2.2%)
+2023-06-21,INDIAMART,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2023-06-21, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=0.7%)
+2023-07-04,KANSAINER,SPLIT_OR_BONUS,1.5,,,"Yahoo Finance Official Splits (ex_ref=2023-07-04, yf=1.5)",Verified split/bonus multiplier 1.5000 (ex-date aligned error=3.6%)
+2023-07-05,BEPL,SPLIT_OR_BONUS,1.5,,,"Yahoo Finance Official Splits (ex_ref=2023-07-05, yf=1.5)",Verified split/bonus multiplier 1.5000 (ex-date aligned error=3.5%)
+2023-07-07,ROTO,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2023-07-07, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=0.5%)
+2023-07-14,APTECHT,SPLIT_OR_BONUS,1.4,,,"Yahoo Finance Official Splits (ex_ref=2023-07-14, yf=1.4)",Verified split/bonus multiplier 1.4000 (ex-date aligned error=5.9%)
+2023-07-18,ANMOL,SPLIT_OR_BONUS,5.0,,,"Yahoo Finance Official Splits (ex_ref=2023-07-18, yf=5)",Verified split/bonus multiplier 5.0000 (ex-date aligned error=11.0%)
+2023-07-24,SHRIPISTON,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2023-07-24, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=4.1%)
+2023-08-01,KAMOPAINTS,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2023-08-01, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=4.1%)
+2023-08-04,SARDAEN,SPLIT_OR_BONUS,10.0,,,"Yahoo Finance Official Splits (ex_ref=2023-08-04, yf=10)",Verified split/bonus multiplier 10.0000 (ex-date aligned error=0.5%)
+2023-09-01,GNA,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2023-09-01, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=3.3%)
+2023-09-07,JTLIND,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2023-09-07, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=2.6%)
+2023-09-11,ADFFOODS,SPLIT_OR_BONUS,5.0,,,"Yahoo Finance Official Splits (ex_ref=2023-09-11, yf=5)",Verified split/bonus multiplier 5.0000 (ex-date aligned error=1.0%)
+2023-09-12,POWERGRID,SPLIT_OR_BONUS,1.333333,,,"Yahoo Finance Official Splits (ex_ref=2023-09-12, yf=1.33333)",Verified split/bonus multiplier 1.3333 (ex-date aligned error=2.3%)
+2023-09-18,JBCHEPHARM,SPLIT_OR_BONUS,2.0,,,Bhavcopy Open+Volume Microstructure Verified (Delisted/Renamed),"Open ratio 2.001 vs 2.00 (err=0.0%, vol_x=1.7x)"
+2023-09-21,PFC,SPLIT_OR_BONUS,1.25,,,"Yahoo Finance Official Splits (ex_ref=2023-09-21, yf=1.25)",Verified split/bonus multiplier 1.2500 (ex-date aligned error=0.0%)
+2023-09-22,BERGEPAINT,SPLIT_OR_BONUS,1.2,,,"Yahoo Finance Official Splits (ex_ref=2023-09-22, yf=1.2)",Verified split/bonus multiplier 1.2000 (ex-date aligned error=0.1%)
+2023-09-28,HAL,SPLIT,2.0,INE066F01012,INE066F01020,NSE Circular,Split 2:1 from Rs 10 to Rs 5
+2023-10-06,FOCUS,SPLIT_OR_BONUS,5.0,,,"Yahoo Finance Official Splits (ex_ref=2023-10-06, yf=5)",Verified split/bonus multiplier 5.0000 (ex-date aligned error=4.1%)
+2023-10-06,SURYAROSNI,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2023-10-06, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=1.3%)
+2023-10-09,SIGACHI,SPLIT_OR_BONUS,10.0,,,"Yahoo Finance Official Splits (ex_ref=2023-10-09, yf=10)",Verified split/bonus multiplier 10.0000 (ex-date aligned error=0.6%)
+2023-10-17,GENSOL,SPLIT_OR_BONUS,3.0,,,"Yahoo Finance Official Splits (ex_ref=2023-10-17, yf=3)",Verified split/bonus multiplier 3.0000 (ex-date aligned error=5.1%)
+2023-10-27,BCLIND,SPLIT_OR_BONUS,10.0,,,"Yahoo Finance Official Splits (ex_ref=2023-10-27, yf=10)",Verified split/bonus multiplier 10.0000 (ex-date aligned error=0.2%)
+2023-10-27,TALBROAUTO,SPLIT_OR_BONUS,5.0,,,"Yahoo Finance Official Splits (ex_ref=2023-10-27, yf=5)",Verified split/bonus multiplier 5.0000 (ex-date aligned error=1.8%)
+2023-11-02,CANTABIL,SPLIT_OR_BONUS,5.0,,,"Yahoo Finance Official Splits (ex_ref=2023-11-02, yf=5)",Verified split/bonus multiplier 5.0000 (ex-date aligned error=1.5%)
+2023-11-09,HPAL,SPLIT_OR_BONUS,5.0,,,"Yahoo Finance Official Splits (ex_ref=2023-11-09, yf=5)",Verified split/bonus multiplier 5.0000 (ex-date aligned error=0.5%)
+2023-11-10,MKPL,SPLIT_OR_BONUS,10.0,,,"Yahoo Finance Official Splits (ex_ref=2023-11-10, yf=10)",Verified split/bonus multiplier 10.0000 (ex-date aligned error=0.5%)
+2023-12-12,SAFARI,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2023-12-12, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=1.4%)
+2023-12-12,SONATSOFTW,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2023-12-12, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=0.7%)
+2023-12-29,HMAAGRO,SPLIT_OR_BONUS,10.0,,,"Yahoo Finance Official Splits (ex_ref=2023-12-29, yf=10)",Verified split/bonus multiplier 10.0000 (ex-date aligned error=2.0%)
+2024-01-02,ALLCARGO,SPLIT_OR_BONUS,4.0,,,"Yahoo Finance Official Splits (ex_ref=2024-01-02, yf=4)",Verified split/bonus multiplier 4.0000 (ex-date aligned error=4.3%)
+2024-01-05,NESTLEIND,SPLIT_OR_BONUS,10.0,,,"Yahoo Finance Official Splits (ex_ref=2024-01-05, yf=10)",Verified split/bonus multiplier 10.0000 (ex-date aligned error=1.5%)
+2024-01-10,COCHINSHIP,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2024-01-10, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=1.2%)
+2024-01-19,SBC,SPLIT_OR_BONUS,1.5,,,"Yahoo Finance Official Splits (ex_ref=2024-01-19, yf=1.5)",Verified split/bonus multiplier 1.5000 (ex-date aligned error=8.3%)
+2024-02-01,SALASAR,SPLIT_OR_BONUS,5.0,,,"Yahoo Finance Official Splits (ex_ref=2024-02-01, yf=5)",Verified split/bonus multiplier 5.0000 (ex-date aligned error=8.3%)
+2024-02-02,SANDUMA,SPLIT_OR_BONUS,6.0,,,"Yahoo Finance Official Splits (ex_ref=2024-02-02, yf=6)",Verified split/bonus multiplier 6.0000 (ex-date aligned error=5.9%)
+2024-02-15,KPIGREEN,SPLIT_OR_BONUS,1.5,,,"Yahoo Finance Official Splits (ex_ref=2024-02-15, yf=1.5)",Verified split/bonus multiplier 1.5000 (ex-date aligned error=4.8%)
+2024-02-20,CHOICEIN,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2024-02-20, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=2.8%)
+2024-02-22,MASFIN,SPLIT_OR_BONUS,3.0,,,"Yahoo Finance Official Splits (ex_ref=2024-02-22, yf=3)",Verified split/bonus multiplier 3.0000 (ex-date aligned error=3.1%)
+2024-02-28,FIEMIND,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2024-02-28, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=3.5%)
+2024-03-05,CGCL,SPLIT_OR_BONUS,4.0,,,"Yahoo Finance Official Splits (ex_ref=2024-03-05, yf=2)",Verified split/bonus multiplier 4.0000 (ex-date aligned error=5.8%)
+2024-03-07,MANORAMA,SPLIT_OR_BONUS,5.0,,,"Yahoo Finance Official Splits (ex_ref=2024-03-07, yf=5)",Verified split/bonus multiplier 5.0000 (ex-date aligned error=1.4%)
+2024-03-15,GAEL,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2024-03-15, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=0.8%)
+2024-03-19,RAMASTEEL,SPLIT_OR_BONUS,3.0,,,"Yahoo Finance Official Splits (ex_ref=2024-03-19, yf=3)",Verified split/bonus multiplier 3.0000 (ex-date aligned error=6.6%)
+2024-03-20,ADVANIHOTR,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2024-03-20, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=6.8%)
+2024-03-20,PAISALO,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2024-03-20, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=2.0%)
+2024-03-22,REFEX,SPLIT_OR_BONUS,5.0,,,"Yahoo Finance Official Splits (ex_ref=2024-03-22, yf=5)",Verified split/bonus multiplier 5.0000 (ex-date aligned error=0.6%)
+2024-03-28,PERSISTENT,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2024-03-28, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=0.5%)
+2024-04-05,BTML,SPLIT_OR_BONUS,10.0,,,"Yahoo Finance Official Splits (ex_ref=2024-04-05, yf=10)",Verified split/bonus multiplier 10.0000 (ex-date aligned error=1.7%)
+2024-04-18,SBGLP,SPLIT_OR_BONUS,10.0,,,"Yahoo Finance Official Splits (ex_ref=2024-04-18, yf=10)",Verified split/bonus multiplier 10.0000 (ex-date aligned error=1.8%)
+2024-04-23,ANUP,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2024-04-23, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=1.6%)
+2024-04-24,BBL,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2024-04-24, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=1.0%)
+2024-05-15,CANBK,SPLIT_OR_BONUS,5.0,,,"Yahoo Finance Official Splits (ex_ref=2024-05-15, yf=5)",Verified split/bonus multiplier 5.0000 (ex-date aligned error=2.5%)
+2024-05-24,BDL,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2024-05-24, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=2.1%)
+2024-05-24,INOXWIND,SPLIT_OR_BONUS,4.0,,,"Yahoo Finance Official Splits (ex_ref=2024-05-24, yf=4)",Verified split/bonus multiplier 4.0000 (ex-date aligned error=5.4%)
+2024-05-24,SDBL,SPLIT_OR_BONUS,2.5,,,"Yahoo Finance Official Splits (ex_ref=2024-05-24, yf=2.5)",Verified split/bonus multiplier 2.5000 (ex-date aligned error=0.3%)
+2024-05-31,DAVANGERE,SPLIT_OR_BONUS,10.0,,,"Yahoo Finance Official Splits (ex_ref=2024-05-31, yf=10)",Verified split/bonus multiplier 10.0000 (ex-date aligned error=0.0%)
+2024-06-10,MOTILALOFS,SPLIT_OR_BONUS,4.0,,,"Yahoo Finance Official Splits (ex_ref=2024-06-10, yf=4)",Verified split/bonus multiplier 4.0000 (ex-date aligned error=7.4%)
+2024-06-14,KAMOPAINTS,SPLIT_OR_BONUS,5.0,,,"Yahoo Finance Official Splits (ex_ref=2024-06-14, yf=5)",Verified split/bonus multiplier 5.0000 (ex-date aligned error=3.0%)
+2024-06-21,BPCL,BONUS,2.0,INE029A01011,INE029A01011,NSE Circular,Bonus 1:1
+2024-06-21,HINDPETRO,SPLIT_OR_BONUS,1.5,,,"Yahoo Finance Official Splits (ex_ref=2024-06-21, yf=1.5)",Verified split/bonus multiplier 1.5000 (ex-date aligned error=0.3%)
+2024-06-21,PREMEXPLN,SPLIT_OR_BONUS,5.0,,,"Yahoo Finance Official Splits (ex_ref=2024-06-21, yf=5)",Verified split/bonus multiplier 5.0000 (ex-date aligned error=2.0%)
+2024-06-27,AURIONPRO,SPLIT_OR_BONUS,2.0,,,"Yahoo Finance Official Splits (ex_ref=2024-06-27, yf=2)",Verified split/bonus multiplier 2.0000 (ex-date aligned error=3.7%)
+2024-06-27,SHAREINDIA,SPLIT_OR_BONUS,5.0,,,"Yahoo Finance Official Splits (ex_ref=2024-06-27, yf=5)",Verified split/bonus multiplier 5.0000 (ex-date aligned error=0.2%)
+2024-07-02,OIL,SPLIT_OR_BONUS,1.5,,,"Yahoo Finance Official Splits (ex_ref=2024-07-02, yf=1.5)",Verified split/bonus multiplier 1.5000 (ex-date aligned error=1.1%)
+2024-10-28,RELIANCE,BONUS,2.0,INE002A01018,INE002A01018,NSE Circular,Bonus 1:1
