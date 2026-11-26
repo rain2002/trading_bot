@@ -1,0 +1,553 @@
+{
+  "generated_at_utc": "2026-11-26T23:31:21Z",
+  "universe_id": "US_WIDER_SP1500_PIT_NON_ETF",
+  "strictly_no_etfs": true,
+  "in_sample_window": "2007-01-03 .. 2022-12-30",
+  "holdout_window": "2023-01-03 .. 2026-11-26",
+  "holdout_status": "STRICTLY_SEALED",
+  "n_cumulative_trials_dsr": 160,
+  "benchmark_spy": {
+    "cagr_pct": 8.52,
+    "sharpe": 0.5022,
+    "max_dd_pct": -55.19,
+    "calmar": 0.154,
+    "excess_vs_spy_pct": null
+  },
+  "control_equal_weight_pit": {
+    "cagr_pct": 8.36,
+    "sharpe": 0.4717,
+    "max_dd_pct": -58.87,
+    "calmar": 0.142,
+    "excess_vs_spy_pct": -0.16,
+    "annual_turnover_pct": 51.5
+  },
+  "monte_carlo_500_null": {
+    "p50_sharpe": 0.3725,
+    "p95_sharpe": 0.4602,
+    "p95_cagr_pct": 8.0
+  },
+  "data_audit_summary": {
+    "total_pit_unique_tickers": 2723,
+    "downloaded_valid_tickers": 1430,
+    "missing_or_delisted_yahoo_404": 1293,
+    "survivorship_attrition_pct": 47.48,
+    "honest_survivorship_caveat": "Yahoo Finance returns HTTP 404 for delisted/acquired/bankrupt tickers. Therefore, while index membership IS point-in-time across S&P 500/400/600, historical OHLCV coverage still suffers structural delisting attrition quantified above. Any backtest result using Yahoo historical prices carries upward survivorship bias on missing delisted names."
+  },
+  "candidates": {
+    "W1_LOW_VOL_TREND": {
+      "base_5bps": {
+        "cagr_pct": 6.13,
+        "sharpe": 0.4552,
+        "max_dd_pct": -51.59,
+        "calmar": 0.119,
+        "excess_vs_spy_pct": -2.39
+      },
+      "stressed_10bps": {
+        "cagr_pct": 5.74,
+        "sharpe": 0.4323,
+        "max_dd_pct": -52.08,
+        "calmar": 0.11,
+        "excess_vs_spy_pct": -2.78
+      },
+      "annual_turnover_pct": 363.0,
+      "dsr_cum": 0.0,
+      "n_cumulative_trials": 160,
+      "subperiods": {
+        "2007-2010": {
+          "cagr_pct": -8.75,
+          "sharpe": -0.3697,
+          "max_dd_pct": -51.59,
+          "calmar": -0.17,
+          "excess_vs_spy_pct": -7.93
+        },
+        "2011-2014": {
+          "cagr_pct": 15.64,
+          "sharpe": 1.3978,
+          "max_dd_pct": -11.43,
+          "calmar": 1.369,
+          "excess_vs_spy_pct": 0.49
+        },
+        "2015-2018": {
+          "cagr_pct": 8.71,
+          "sharpe": 0.7857,
+          "max_dd_pct": -11.41,
+          "calmar": 0.764,
+          "excess_vs_spy_pct": 1.56
+        },
+        "2019-2022": {
+          "cagr_pct": 11.01,
+          "sharpe": 0.6386,
+          "max_dd_pct": -34.03,
+          "calmar": 0.323,
+          "excess_vs_spy_pct": -2.08
+        }
+      },
+      "subperiods_positive": 3,
+      "plateau_pass_count": 0,
+      "plateau_grid": [
+        {
+          "top_n": 20,
+          "lookback": 150,
+          "cagr_pct": 6.07,
+          "sharpe": 0.4496,
+          "max_dd_pct": -51.76
+        },
+        {
+          "top_n": 20,
+          "lookback": 200,
+          "cagr_pct": 6.07,
+          "sharpe": 0.4496,
+          "max_dd_pct": -51.76
+        },
+        {
+          "top_n": 20,
+          "lookback": 250,
+          "cagr_pct": 6.07,
+          "sharpe": 0.4496,
+          "max_dd_pct": -51.76
+        },
+        {
+          "top_n": 30,
+          "lookback": 150,
+          "cagr_pct": 6.13,
+          "sharpe": 0.4552,
+          "max_dd_pct": -51.59
+        },
+        {
+          "top_n": 30,
+          "lookback": 200,
+          "cagr_pct": 6.13,
+          "sharpe": 0.4552,
+          "max_dd_pct": -51.59
+        },
+        {
+          "top_n": 30,
+          "lookback": 250,
+          "cagr_pct": 6.13,
+          "sharpe": 0.4552,
+          "max_dd_pct": -51.59
+        },
+        {
+          "top_n": 40,
+          "lookback": 150,
+          "cagr_pct": 6.04,
+          "sharpe": 0.4457,
+          "max_dd_pct": -53.23
+        },
+        {
+          "top_n": 40,
+          "lookback": 200,
+          "cagr_pct": 6.04,
+          "sharpe": 0.4457,
+          "max_dd_pct": -53.23
+        },
+        {
+          "top_n": 40,
+          "lookback": 250,
+          "cagr_pct": 6.04,
+          "sharpe": 0.4457,
+          "max_dd_pct": -53.23
+        }
+      ],
+      "hurdles": {
+        "beats_spy_cagr_plus_2pct": false,
+        "beats_mc_p95_sharpe": false,
+        "beats_ctrl_ew_cagr": false,
+        "max_dd_within_35pct": false,
+        "dsr_cum_ge_080": false,
+        "stressed_10bps_still_beats_spy": false,
+        "subperiods_4_of_4_positive": false,
+        "plateau_ge_7_of_9": false
+      },
+      "gate_a_passed": false
+    },
+    "W2_QUALITY_RESIDUAL_MOM": {
+      "base_5bps": {
+        "cagr_pct": 5.68,
+        "sharpe": 0.3635,
+        "max_dd_pct": -53.71,
+        "calmar": 0.106,
+        "excess_vs_spy_pct": -2.84
+      },
+      "stressed_10bps": {
+        "cagr_pct": 5.16,
+        "sharpe": 0.3409,
+        "max_dd_pct": -53.98,
+        "calmar": 0.096,
+        "excess_vs_spy_pct": -3.36
+      },
+      "annual_turnover_pct": 494.9,
+      "dsr_cum": 0.0,
+      "n_cumulative_trials": 160,
+      "subperiods": {
+        "2007-2010": {
+          "cagr_pct": -5.59,
+          "sharpe": -0.1018,
+          "max_dd_pct": -53.71,
+          "calmar": -0.104,
+          "excess_vs_spy_pct": -4.77
+        },
+        "2011-2014": {
+          "cagr_pct": 13.31,
+          "sharpe": 0.81,
+          "max_dd_pct": -19.2,
+          "calmar": 0.693,
+          "excess_vs_spy_pct": -1.84
+        },
+        "2015-2018": {
+          "cagr_pct": 5.45,
+          "sharpe": 0.4109,
+          "max_dd_pct": -24.55,
+          "calmar": 0.222,
+          "excess_vs_spy_pct": -1.7
+        },
+        "2019-2022": {
+          "cagr_pct": 10.42,
+          "sharpe": 0.5081,
+          "max_dd_pct": -38.18,
+          "calmar": 0.273,
+          "excess_vs_spy_pct": -2.67
+        }
+      },
+      "subperiods_positive": 3,
+      "plateau_pass_count": 0,
+      "plateau_grid": [
+        {
+          "top_n": 20,
+          "lookback": 126,
+          "cagr_pct": 4.17,
+          "sharpe": 0.2964,
+          "max_dd_pct": -61.05
+        },
+        {
+          "top_n": 20,
+          "lookback": 189,
+          "cagr_pct": 5.22,
+          "sharpe": 0.3394,
+          "max_dd_pct": -60.94
+        },
+        {
+          "top_n": 20,
+          "lookback": 252,
+          "cagr_pct": 5.48,
+          "sharpe": 0.3499,
+          "max_dd_pct": -53.45
+        },
+        {
+          "top_n": 30,
+          "lookback": 126,
+          "cagr_pct": 4.07,
+          "sharpe": 0.294,
+          "max_dd_pct": -63.34
+        },
+        {
+          "top_n": 30,
+          "lookback": 189,
+          "cagr_pct": 4.87,
+          "sharpe": 0.3269,
+          "max_dd_pct": -60.84
+        },
+        {
+          "top_n": 30,
+          "lookback": 252,
+          "cagr_pct": 5.68,
+          "sharpe": 0.3635,
+          "max_dd_pct": -53.71
+        },
+        {
+          "top_n": 40,
+          "lookback": 126,
+          "cagr_pct": 4.11,
+          "sharpe": 0.2977,
+          "max_dd_pct": -63.62
+        },
+        {
+          "top_n": 40,
+          "lookback": 189,
+          "cagr_pct": 5.7,
+          "sharpe": 0.3664,
+          "max_dd_pct": -59.42
+        },
+        {
+          "top_n": 40,
+          "lookback": 252,
+          "cagr_pct": 4.72,
+          "sharpe": 0.3236,
+          "max_dd_pct": -54.33
+        }
+      ],
+      "hurdles": {
+        "beats_spy_cagr_plus_2pct": false,
+        "beats_mc_p95_sharpe": false,
+        "beats_ctrl_ew_cagr": false,
+        "max_dd_within_35pct": false,
+        "dsr_cum_ge_080": false,
+        "stressed_10bps_still_beats_spy": false,
+        "subperiods_4_of_4_positive": false,
+        "plateau_ge_7_of_9": false
+      },
+      "gate_a_passed": false
+    },
+    "W3_LOW_BETA_DIP": {
+      "base_5bps": {
+        "cagr_pct": 4.89,
+        "sharpe": 0.3801,
+        "max_dd_pct": -55.9,
+        "calmar": 0.088,
+        "excess_vs_spy_pct": -3.63
+      },
+      "stressed_10bps": {
+        "cagr_pct": 4.02,
+        "sharpe": 0.3277,
+        "max_dd_pct": -56.45,
+        "calmar": 0.071,
+        "excess_vs_spy_pct": -4.5
+      },
+      "annual_turnover_pct": 835.6,
+      "dsr_cum": 0.0,
+      "n_cumulative_trials": 160,
+      "subperiods": {
+        "2007-2010": {
+          "cagr_pct": -12.24,
+          "sharpe": -0.6231,
+          "max_dd_pct": -55.9,
+          "calmar": -0.219,
+          "excess_vs_spy_pct": -11.42
+        },
+        "2011-2014": {
+          "cagr_pct": 17.02,
+          "sharpe": 1.4023,
+          "max_dd_pct": -13.15,
+          "calmar": 1.294,
+          "excess_vs_spy_pct": 1.87
+        },
+        "2015-2018": {
+          "cagr_pct": 9.38,
+          "sharpe": 0.7964,
+          "max_dd_pct": -11.89,
+          "calmar": 0.788,
+          "excess_vs_spy_pct": 2.23
+        },
+        "2019-2022": {
+          "cagr_pct": 8.07,
+          "sharpe": 0.4908,
+          "max_dd_pct": -36.41,
+          "calmar": 0.222,
+          "excess_vs_spy_pct": -5.02
+        }
+      },
+      "subperiods_positive": 3,
+      "plateau_pass_count": 0,
+      "plateau_grid": [
+        {
+          "top_n": 20,
+          "lookback": 150,
+          "cagr_pct": 4.64,
+          "sharpe": 0.3616,
+          "max_dd_pct": -56.54
+        },
+        {
+          "top_n": 20,
+          "lookback": 200,
+          "cagr_pct": 4.64,
+          "sharpe": 0.3616,
+          "max_dd_pct": -56.54
+        },
+        {
+          "top_n": 20,
+          "lookback": 250,
+          "cagr_pct": 4.64,
+          "sharpe": 0.3616,
+          "max_dd_pct": -56.54
+        },
+        {
+          "top_n": 30,
+          "lookback": 150,
+          "cagr_pct": 4.89,
+          "sharpe": 0.3801,
+          "max_dd_pct": -55.9
+        },
+        {
+          "top_n": 30,
+          "lookback": 200,
+          "cagr_pct": 4.89,
+          "sharpe": 0.3801,
+          "max_dd_pct": -55.9
+        },
+        {
+          "top_n": 30,
+          "lookback": 250,
+          "cagr_pct": 4.89,
+          "sharpe": 0.3801,
+          "max_dd_pct": -55.9
+        },
+        {
+          "top_n": 40,
+          "lookback": 150,
+          "cagr_pct": 5.56,
+          "sharpe": 0.4244,
+          "max_dd_pct": -55.82
+        },
+        {
+          "top_n": 40,
+          "lookback": 200,
+          "cagr_pct": 5.56,
+          "sharpe": 0.4244,
+          "max_dd_pct": -55.82
+        },
+        {
+          "top_n": 40,
+          "lookback": 250,
+          "cagr_pct": 5.56,
+          "sharpe": 0.4244,
+          "max_dd_pct": -55.82
+        }
+      ],
+      "hurdles": {
+        "beats_spy_cagr_plus_2pct": false,
+        "beats_mc_p95_sharpe": false,
+        "beats_ctrl_ew_cagr": false,
+        "max_dd_within_35pct": false,
+        "dsr_cum_ge_080": false,
+        "stressed_10bps_still_beats_spy": false,
+        "subperiods_4_of_4_positive": false,
+        "plateau_ge_7_of_9": false
+      },
+      "gate_a_passed": false
+    },
+    "W4_MIDSMALL_MOM_6M1M": {
+      "base_5bps": {
+        "cagr_pct": 4.89,
+        "sharpe": 0.3183,
+        "max_dd_pct": -57.5,
+        "calmar": 0.085,
+        "excess_vs_spy_pct": -3.63
+      },
+      "stressed_10bps": {
+        "cagr_pct": 4.27,
+        "sharpe": 0.2942,
+        "max_dd_pct": -57.82,
+        "calmar": 0.074,
+        "excess_vs_spy_pct": -4.25
+      },
+      "annual_turnover_pct": 590.3,
+      "dsr_cum": 0.0,
+      "n_cumulative_trials": 160,
+      "subperiods": {
+        "2007-2010": {
+          "cagr_pct": -4.12,
+          "sharpe": -0.0041,
+          "max_dd_pct": -57.5,
+          "calmar": -0.072,
+          "excess_vs_spy_pct": -3.3
+        },
+        "2011-2014": {
+          "cagr_pct": 12.93,
+          "sharpe": 0.7051,
+          "max_dd_pct": -22.44,
+          "calmar": 0.576,
+          "excess_vs_spy_pct": -2.22
+        },
+        "2015-2018": {
+          "cagr_pct": 7.17,
+          "sharpe": 0.4856,
+          "max_dd_pct": -22.94,
+          "calmar": 0.313,
+          "excess_vs_spy_pct": 0.02
+        },
+        "2019-2022": {
+          "cagr_pct": 4.26,
+          "sharpe": 0.2904,
+          "max_dd_pct": -43.28,
+          "calmar": 0.099,
+          "excess_vs_spy_pct": -8.83
+        }
+      },
+      "subperiods_positive": 3,
+      "plateau_pass_count": 0,
+      "plateau_grid": [
+        {
+          "top_n": 20,
+          "lookback": 126,
+          "cagr_pct": 5.01,
+          "sharpe": 0.319,
+          "max_dd_pct": -58.97
+        },
+        {
+          "top_n": 20,
+          "lookback": 189,
+          "cagr_pct": 5.82,
+          "sharpe": 0.3483,
+          "max_dd_pct": -63.07
+        },
+        {
+          "top_n": 20,
+          "lookback": 252,
+          "cagr_pct": 3.21,
+          "sharpe": 0.2523,
+          "max_dd_pct": -58.83
+        },
+        {
+          "top_n": 30,
+          "lookback": 126,
+          "cagr_pct": 4.89,
+          "sharpe": 0.3183,
+          "max_dd_pct": -57.5
+        },
+        {
+          "top_n": 30,
+          "lookback": 189,
+          "cagr_pct": 6.8,
+          "sharpe": 0.3911,
+          "max_dd_pct": -59.5
+        },
+        {
+          "top_n": 30,
+          "lookback": 252,
+          "cagr_pct": 3.44,
+          "sharpe": 0.2615,
+          "max_dd_pct": -57.78
+        },
+        {
+          "top_n": 40,
+          "lookback": 126,
+          "cagr_pct": 5.47,
+          "sharpe": 0.3444,
+          "max_dd_pct": -57.81
+        },
+        {
+          "top_n": 40,
+          "lookback": 189,
+          "cagr_pct": 6.89,
+          "sharpe": 0.401,
+          "max_dd_pct": -58.27
+        },
+        {
+          "top_n": 40,
+          "lookback": 252,
+          "cagr_pct": 3.74,
+          "sharpe": 0.2745,
+          "max_dd_pct": -56.95
+        }
+      ],
+      "hurdles": {
+        "beats_spy_cagr_plus_2pct": false,
+        "beats_mc_p95_sharpe": false,
+        "beats_ctrl_ew_cagr": false,
+        "max_dd_within_35pct": false,
+        "dsr_cum_ge_080": false,
+        "stressed_10bps_still_beats_spy": false,
+        "subperiods_4_of_4_positive": false,
+        "plateau_ge_7_of_9": false
+      },
+      "gate_a_passed": false
+    }
+  },
+  "verdict": {
+    "gate_a_all_passed": false,
+    "best_candidate": "W1_LOW_VOL_TREND",
+    "holdout_status": "STRICTLY_SEALED",
+    "deployment_decision": "REJECTED_DO_NOT_DEPLOY_KEEP_US_RETIRED",
+    "survivorship_audit_warning": "Yahoo Finance returns HTTP 404 for delisted/acquired/bankrupt tickers. Therefore, while index membership IS point-in-time across S&P 500/400/600, historical OHLCV coverage still suffers structural delisting attrition quantified above. Any backtest result using Yahoo historical prices carries upward survivorship bias on missing delisted names."
+  }
+}

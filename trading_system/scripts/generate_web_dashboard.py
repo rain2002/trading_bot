@@ -229,7 +229,6 @@ def generate_dashboard_html(data_dir: str = None, output_path: str = None, now_d
     # Fallback to git state branches when running against the default project data directory
     use_git = (os.path.abspath(data_dir) == os.path.abspath(DATA_DIR))
     state_branch = "origin/state" if use_git else None
-    shadow_branch = "origin/state-shadow-us" if use_git else None
     nse_shadow_branch = "origin/state-shadow-nse" if use_git else None
 
     mgr_state = load_json(mgr_file, git_branch=state_branch)
@@ -237,8 +236,9 @@ def generate_dashboard_html(data_dir: str = None, output_path: str = None, now_d
     bond_state = load_json(bond_file, git_branch=state_branch)
     eq_log = load_csv(eq_file, git_branch=state_branch)
     ledger = load_json(ledger_file, git_branch=state_branch)
-    us_shadow = load_json(us_shadow_file, git_branch=shadow_branch)
-    us_eq_log = load_csv(us_eq_file, git_branch=shadow_branch)
+    us_shadow = load_json(us_shadow_file)
+    us_eq_log = load_csv(us_eq_file)
+    phase7_us = load_json(os.path.join(data_dir, "phase7_us_wider_universe_gate_a_results.json"))
     nse_s2_shadow = load_json(os.path.join(data_dir, "nse_s2_shadow_state.json"), git_branch=nse_shadow_branch)
 
     # -------------------------------------------------------------
@@ -544,45 +544,24 @@ def generate_dashboard_html(data_dir: str = None, output_path: str = None, now_d
     # -------------------------------------------------------------
     # 8. SHADOW PODS TAB (PERMANENT EXPLORATORY BANNER)
     # -------------------------------------------------------------
-    us_shadow_cash = us_shadow.get("cash", 100000.0) if isinstance(us_shadow, dict) else 100000.0
-    us_shadow_equity = us_shadow.get("equity", us_shadow_cash) if isinstance(us_shadow, dict) else us_shadow_cash
-    us_shadow_verified = us_shadow.get("day0_verified", False) if isinstance(us_shadow, dict) else False
-    us_shadow_verified_text = "[DAY 0 VERIFIED]" if us_shadow_verified else "[DAY 0 PENDING FIRST SCAN]"
+    us_shadow_cash = us_shadow.get("cash", 0.0) if isinstance(us_shadow, dict) and us_shadow else 0.0
+    us_shadow_equity = us_shadow.get("equity", us_shadow_cash) if isinstance(us_shadow, dict) and us_shadow else 0.0
+    us_verdict = phase7_us.get("verdict", {}) if isinstance(phase7_us, dict) else {}
+    us_audit_sum = phase7_us.get("data_audit_summary", {}) if isinstance(phase7_us, dict) else {}
+    us_best_id = us_verdict.get("best_candidate", "W1_LOW_VOL_TREND")
+    us_best_cagr = phase7_us.get("candidates", {}).get(us_best_id, {}).get("base_5bps", {}).get("cagr_pct") if isinstance(phase7_us, dict) else None
+    us_attrition = us_audit_sum.get("survivorship_attrition_pct")
+    us_shadow_verified_text = "[RETIRED - S&P 500 DECOMMISSIONED / WIDER US FAILED GATE A]"
 
-    us_shadow_rows = ""
-    us_pos = us_shadow.get("positions", {}) if isinstance(us_shadow, dict) else {}
-    if not isinstance(us_pos, dict):
-        us_pos = {}
-
-    if us_pos:
-        for sym, meta in sorted(us_pos.items()):
-            q = meta.get("shares") or meta.get("quantity")
-            entry_p = meta.get("entry_price")
-            peak_p = meta.get("last_price") or meta.get("peak_price") or entry_p
-            e_dt = meta.get("entry_date", "N/A")
-            h_type = meta.get("strategy", meta.get("holding_type", "MOMENTUM"))
-            val = (q * peak_p) if (q is not None and peak_p is not None) else None
-
-            us_shadow_rows += f"""
-            <tr>
-                <td class="font-bold text-amber">{sym}</td>
-                <td>{h_type}</td>
-                <td>{format_num(q, 1)}</td>
-                <td>{format_usd(entry_p)}</td>
-                <td>{format_usd(peak_p)}</td>
-                <td>{format_usd(val)}</td>
-                <td class="text-dim">{e_dt}</td>
-                <td><span class="badge-shadow">[SHADOW TRACK]</span></td>
-            </tr>
-            """
-    else:
-        us_shadow_rows = f"""
-            <tr>
-                <td colspan="8" class="nodata-cell">
-                    CLEAN DAY 0 RESET &bull; 0 OPEN POSITIONS &bull; {format_usd(us_shadow_cash)} CASH &bull; FREEZE CLAUSE ACTIVE &bull; <span class="badge-shadow">{us_shadow_verified_text}</span>
-                </td>
-            </tr>
-        """
+    us_shadow_rows = f"""
+        <tr>
+            <td colspan="8" class="nodata-cell">
+                S&amp;P 500 SHADOW WORKFLOWS RETIRED &bull; WIDER US S&amp;P 1500 NON-ETF GATE A: FAIL
+                (Best {us_best_id}: {format_pct(us_best_cagr, 2)} CAGR, Yahoo Delisting Attrition: {format_pct(us_attrition, 2) if us_attrition is not None else 'N/A'})
+                &bull; HOLDOUT SEALED &bull; $0 CAPITAL DEPLOYED
+            </td>
+        </tr>
+    """
 
     nse_s2_init = nse_s2_shadow.get("initial_capital") if nse_s2_shadow else 80000.0
     nse_s2_cash = nse_s2_shadow.get("cash") if nse_s2_shadow else None
@@ -1592,7 +1571,7 @@ def generate_dashboard_html(data_dir: str = None, output_path: str = None, now_d
             <!-- Pod A: US Momentum Shadow -->
             <div class="terminal-card" style="margin-bottom: 16px;">
                 <div class="card-header">
-                    <span>Pod A: US Growth Momentum Shadow (Alpaca Paper / USD) &bull; Cash: {format_usd(us_shadow_cash)} &bull; Equity: {format_usd(us_shadow_equity)}</span>
+                    <span>Pod A: US Non-ETF Equities Research (S&amp;P 500 Shadow Retired &bull; S&amp;P 1500 Audit) &bull; Capital: $0.00</span>
                     <span class="badge-shadow">{us_shadow_verified_text} &bull; ZERO FUND CAPITAL</span>
                 </div>
                 <div class="table-scroll">

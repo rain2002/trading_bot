@@ -45,9 +45,16 @@ def test_active_workflows_schedule_and_concurrency():
     assert "group: trading-state" in india_content
     assert "cancel-in-progress: false" in india_content
 
-    # 2. Active US Shadow Scan & Execute workflows
-    us_scan_wf = os.path.join(root_dir, ".github", "workflows", "shadow_us_scan.yml")
-    us_exec_wf = os.path.join(root_dir, ".github", "workflows", "shadow_us_execute.yml")
-    assert os.path.isfile(us_scan_wf), "shadow_us_scan.yml must exist"
-    assert os.path.isfile(us_exec_wf), "shadow_us_execute.yml must exist"
+    # 2. Active NSE Whole-Market S2 Shadow workflow (11:02 UTC Mon-Fri)
+    nse_shadow_wf = os.path.join(root_dir, ".github", "workflows", "shadow_nse_s2.yml")
+    assert os.path.isfile(nse_shadow_wf), "shadow_nse_s2.yml must exist"
+    with open(nse_shadow_wf, "r", encoding="utf-8") as f:
+        nse_shadow_content = f.read()
+    assert "02 11 * * 1-5" in nse_shadow_content
+    assert "group: shadow-nse-s2" in nse_shadow_content
+    assert "cancel-in-progress: false" in nse_shadow_content
+
+    # 3. Legacy S&P 500-only US shadow workflows must be retired
+    for retired in ("shadow_us_scan.yml", "shadow_us_execute.yml", "shadow_us_alpaca.yml"):
+        assert not os.path.exists(os.path.join(root_dir, ".github", "workflows", retired)), f"{retired} must stay retired"
 

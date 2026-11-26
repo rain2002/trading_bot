@@ -1,0 +1,414 @@
+{
+  "generated_at_utc": "2026-11-26T23:28:16Z",
+  "universe_id": "US_WIDER_SP1500_PIT_NON_ETF",
+  "panel_start_date": "2006-01-03",
+  "panel_end_date": "2026-11-25",
+  "trading_days": 5258,
+  "strict_non_etf_check": {
+    "forbidden_etf_overlap_count": 0,
+    "overlap_tickers": [],
+    "passed": true
+  },
+  "composite_union_summary": {
+    "total_pit_unique_tickers": 2723,
+    "downloaded_valid_tickers": 1430,
+    "missing_or_delisted_yahoo_404": 1293,
+    "survivorship_attrition_pct": 47.48,
+    "honest_survivorship_caveat": "Yahoo Finance returns HTTP 404 for delisted/acquired/bankrupt tickers. Therefore, while index membership IS point-in-time across S&P 500/400/600, historical OHLCV coverage still suffers structural delisting attrition quantified above. Any backtest result using Yahoo historical prices carries upward survivorship bias on missing delisted names."
+  },
+  "by_index_tier": {
+    "SP500": {
+      "total_pit_unique_tickers": 1213,
+      "downloaded_valid_tickers": 713,
+      "missing_or_delisted_yahoo_404": 500,
+      "survivorship_attrition_pct": 41.22,
+      "sample_missing_tickers": [
+        "AABA",
+        "AAMRQ",
+        "ABC",
+        "ABKFQ",
+        "ABMD",
+        "ABS",
+        "ACAS",
+        "ACKH",
+        "ACS",
+        "ADS",
+        "AET",
+        "AFS-A",
+        "AGC",
+        "AGN",
+        "AHM",
+        "AKS",
+        "AL",
+        "ALTR",
+        "ALXN",
+        "AMCC",
+        "ANDV",
+        "ANDW",
+        "ANRZQ",
+        "ANSS",
+        "ANTM"
+      ]
+    },
+    "SP400": {
+      "total_pit_unique_tickers": 1098,
+      "downloaded_valid_tickers": 553,
+      "missing_or_delisted_yahoo_404": 545,
+      "survivorship_attrition_pct": 49.64,
+      "sample_missing_tickers": [
+        "AAI",
+        "AAN",
+        "AAXN",
+        "ABMD",
+        "ACC",
+        "ACXM",
+        "ADS",
+        "ADVS",
+        "AECOM",
+        "AF",
+        "AHL",
+        "AINV",
+        "AIRC",
+        "AKRX",
+        "ALE",
+        "ALEX",
+        "ALTM",
+        "ALTR",
+        "AMB",
+        "AMED",
+        "ANN",
+        "ANR",
+        "ANSS",
+        "AOL",
+        "APOL"
+      ]
+    },
+    "SP600": {
+      "total_pit_unique_tickers": 1057,
+      "downloaded_valid_tickers": 600,
+      "missing_or_delisted_yahoo_404": 457,
+      "survivorship_attrition_pct": 43.24,
+      "sample_missing_tickers": [
+        "AAN",
+        "AAWW",
+        "ABTX",
+        "ACA",
+        "AEGN",
+        "AEL",
+        "AGTI",
+        "AHH",
+        "AJRD",
+        "AL",
+        "ALEX",
+        "AMBC",
+        "AMEH",
+        "AMWD",
+        "APLS",
+        "ARCH",
+        "ARNC",
+        "ASGN",
+        "ATGE",
+        "AVID",
+        "AVNS",
+        "AVTA",
+        "AXL",
+        "BCEI",
+        "BHLB"
+      ]
+    }
+  },
+  "price_anomalies": {
+    "non_positive_close_cells": 821,
+    "daily_jumps_gt_100pct": 216,
+    "daily_drops_gt_75pct": 54,
+    "duplicate_trading_dates": 0,
+    "auto_adjusted_splits_dividends": true,
+    "non_positive_close_tickers_sanitized": {
+      "DEC": 691,
+      "PARA": 130
+    }
+  },
+  "wikipedia_pit_snapshot_counts": {
+    "SP500_WIKI_EXT": {
+      "num_snapshots": 11,
+      "first": {
+        "target_date": "2024-07-01",
+        "wiki_rev": "2024-06-26",
+        "count": 502
+      },
+      "last": {
+        "target_date": "2026-11-26",
+        "wiki_rev": "2026-11-08",
+        "count": 502
+      }
+    },
+    "SP400": {
+      "num_snapshots": 65,
+      "first": {
+        "target_date": "2011-01-01",
+        "wiki_rev": "2011-01-01",
+        "count": 398
+      },
+      "last": {
+        "target_date": "2026-11-26",
+        "wiki_rev": "2026-11-19",
+        "count": 399
+      }
+    },
+    "SP600": {
+      "num_snapshots": 24,
+      "first": {
+        "target_date": "2021-04-01",
+        "wiki_rev": "2021-04-01",
+        "count": 601
+      },
+      "last": {
+        "target_date": "2026-11-26",
+        "wiki_rev": "2026-11-25",
+        "count": 600
+      }
+    }
+  },
+  "yearly_pit_and_liquidity_coverage": [
+    {
+      "year": 2007,
+      "snapshot_date": "2007-07-01",
+      "pit_sp500": 497,
+      "pit_sp400": 0,
+      "pit_sp600": 0,
+      "pit_union_tickers": 497,
+      "downloaded_active_tickers": 321,
+      "missing_delisted_active_tickers": 176,
+      "active_attrition_pct": 35.41,
+      "liquid_tradable_ge10usd_ge2m_dvol": 199
+    },
+    {
+      "year": 2008,
+      "snapshot_date": "2008-07-01",
+      "pit_sp500": 499,
+      "pit_sp400": 0,
+      "pit_sp600": 0,
+      "pit_union_tickers": 499,
+      "downloaded_active_tickers": 329,
+      "missing_delisted_active_tickers": 170,
+      "active_attrition_pct": 34.07,
+      "liquid_tradable_ge10usd_ge2m_dvol": 188
+    },
+    {
+      "year": 2009,
+      "snapshot_date": "2009-07-01",
+      "pit_sp500": 501,
+      "pit_sp400": 0,
+      "pit_sp600": 0,
+      "pit_union_tickers": 501,
+      "downloaded_active_tickers": 340,
+      "missing_delisted_active_tickers": 161,
+      "active_attrition_pct": 32.14,
+      "liquid_tradable_ge10usd_ge2m_dvol": 173
+    },
+    {
+      "year": 2010,
+      "snapshot_date": "2010-07-01",
+      "pit_sp500": 500,
+      "pit_sp400": 0,
+      "pit_sp600": 0,
+      "pit_union_tickers": 500,
+      "downloaded_active_tickers": 346,
+      "missing_delisted_active_tickers": 154,
+      "active_attrition_pct": 30.8,
+      "liquid_tradable_ge10usd_ge2m_dvol": 191
+    },
+    {
+      "year": 2011,
+      "snapshot_date": "2011-07-01",
+      "pit_sp500": 498,
+      "pit_sp400": 400,
+      "pit_sp600": 0,
+      "pit_union_tickers": 895,
+      "downloaded_active_tickers": 529,
+      "missing_delisted_active_tickers": 366,
+      "active_attrition_pct": 40.89,
+      "liquid_tradable_ge10usd_ge2m_dvol": 328
+    },
+    {
+      "year": 2012,
+      "snapshot_date": "2012-07-01",
+      "pit_sp500": 497,
+      "pit_sp400": 400,
+      "pit_sp600": 0,
+      "pit_union_tickers": 889,
+      "downloaded_active_tickers": 532,
+      "missing_delisted_active_tickers": 357,
+      "active_attrition_pct": 40.16,
+      "liquid_tradable_ge10usd_ge2m_dvol": 330
+    },
+    {
+      "year": 2013,
+      "snapshot_date": "2013-07-01",
+      "pit_sp500": 498,
+      "pit_sp400": 399,
+      "pit_sp600": 0,
+      "pit_union_tickers": 883,
+      "downloaded_active_tickers": 538,
+      "missing_delisted_active_tickers": 345,
+      "active_attrition_pct": 39.07,
+      "liquid_tradable_ge10usd_ge2m_dvol": 359
+    },
+    {
+      "year": 2014,
+      "snapshot_date": "2014-07-01",
+      "pit_sp500": 499,
+      "pit_sp400": 400,
+      "pit_sp600": 0,
+      "pit_union_tickers": 892,
+      "downloaded_active_tickers": 548,
+      "missing_delisted_active_tickers": 344,
+      "active_attrition_pct": 38.57,
+      "liquid_tradable_ge10usd_ge2m_dvol": 389
+    },
+    {
+      "year": 2015,
+      "snapshot_date": "2015-07-01",
+      "pit_sp500": 501,
+      "pit_sp400": 475,
+      "pit_sp600": 0,
+      "pit_union_tickers": 957,
+      "downloaded_active_tickers": 580,
+      "missing_delisted_active_tickers": 377,
+      "active_attrition_pct": 39.39,
+      "liquid_tradable_ge10usd_ge2m_dvol": 418
+    },
+    {
+      "year": 2016,
+      "snapshot_date": "2016-07-01",
+      "pit_sp500": 507,
+      "pit_sp400": 401,
+      "pit_sp600": 0,
+      "pit_union_tickers": 890,
+      "downloaded_active_tickers": 572,
+      "missing_delisted_active_tickers": 318,
+      "active_attrition_pct": 35.73,
+      "liquid_tradable_ge10usd_ge2m_dvol": 407
+    },
+    {
+      "year": 2017,
+      "snapshot_date": "2017-07-01",
+      "pit_sp500": 506,
+      "pit_sp400": 419,
+      "pit_sp600": 0,
+      "pit_union_tickers": 921,
+      "downloaded_active_tickers": 613,
+      "missing_delisted_active_tickers": 308,
+      "active_attrition_pct": 33.44,
+      "liquid_tradable_ge10usd_ge2m_dvol": 466
+    },
+    {
+      "year": 2018,
+      "snapshot_date": "2018-07-01",
+      "pit_sp500": 506,
+      "pit_sp400": 415,
+      "pit_sp600": 0,
+      "pit_union_tickers": 915,
+      "downloaded_active_tickers": 627,
+      "missing_delisted_active_tickers": 288,
+      "active_attrition_pct": 31.48,
+      "liquid_tradable_ge10usd_ge2m_dvol": 488
+    },
+    {
+      "year": 2019,
+      "snapshot_date": "2019-07-01",
+      "pit_sp500": 506,
+      "pit_sp400": 400,
+      "pit_sp600": 0,
+      "pit_union_tickers": 899,
+      "downloaded_active_tickers": 638,
+      "missing_delisted_active_tickers": 261,
+      "active_attrition_pct": 29.03,
+      "liquid_tradable_ge10usd_ge2m_dvol": 503
+    },
+    {
+      "year": 2020,
+      "snapshot_date": "2020-07-01",
+      "pit_sp500": 505,
+      "pit_sp400": 400,
+      "pit_sp600": 0,
+      "pit_union_tickers": 893,
+      "downloaded_active_tickers": 655,
+      "missing_delisted_active_tickers": 238,
+      "active_attrition_pct": 26.65,
+      "liquid_tradable_ge10usd_ge2m_dvol": 501
+    },
+    {
+      "year": 2021,
+      "snapshot_date": "2021-07-01",
+      "pit_sp500": 505,
+      "pit_sp400": 410,
+      "pit_sp600": 617,
+      "pit_union_tickers": 1521,
+      "downloaded_active_tickers": 1009,
+      "missing_delisted_active_tickers": 512,
+      "active_attrition_pct": 33.66,
+      "liquid_tradable_ge10usd_ge2m_dvol": 825
+    },
+    {
+      "year": 2022,
+      "snapshot_date": "2022-07-01",
+      "pit_sp500": 503,
+      "pit_sp400": 412,
+      "pit_sp600": 614,
+      "pit_union_tickers": 1519,
+      "downloaded_active_tickers": 1045,
+      "missing_delisted_active_tickers": 474,
+      "active_attrition_pct": 31.2,
+      "liquid_tradable_ge10usd_ge2m_dvol": 849
+    },
+    {
+      "year": 2023,
+      "snapshot_date": "2023-07-01",
+      "pit_sp500": 503,
+      "pit_sp400": 412,
+      "pit_sp600": 624,
+      "pit_union_tickers": 1526,
+      "downloaded_active_tickers": 1082,
+      "missing_delisted_active_tickers": 444,
+      "active_attrition_pct": 29.1,
+      "liquid_tradable_ge10usd_ge2m_dvol": 892
+    },
+    {
+      "year": 2024,
+      "snapshot_date": "2024-07-01",
+      "pit_sp500": 503,
+      "pit_sp400": 412,
+      "pit_sp600": 611,
+      "pit_union_tickers": 1521,
+      "downloaded_active_tickers": 1114,
+      "missing_delisted_active_tickers": 407,
+      "active_attrition_pct": 26.76,
+      "liquid_tradable_ge10usd_ge2m_dvol": 938
+    },
+    {
+      "year": 2025,
+      "snapshot_date": "2025-07-01",
+      "pit_sp500": 503,
+      "pit_sp400": 404,
+      "pit_sp600": 605,
+      "pit_union_tickers": 1512,
+      "downloaded_active_tickers": 1132,
+      "missing_delisted_active_tickers": 380,
+      "active_attrition_pct": 25.13,
+      "liquid_tradable_ge10usd_ge2m_dvol": 963
+    },
+    {
+      "year": 2026,
+      "snapshot_date": "2026-07-01",
+      "pit_sp500": 510,
+      "pit_sp400": 408,
+      "pit_sp600": 622,
+      "pit_union_tickers": 1532,
+      "downloaded_active_tickers": 1186,
+      "missing_delisted_active_tickers": 346,
+      "active_attrition_pct": 22.58,
+      "liquid_tradable_ge10usd_ge2m_dvol": 1014
+    }
+  ]
+}

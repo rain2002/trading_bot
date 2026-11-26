@@ -1,0 +1,28 @@
+{
+  "universe_id": "US_WIDER_SP1500_PIT_NON_ETF",
+  "description": "Point-in-Time Wider US Individual Equities Universe combining S&P 500 LargeCap (2006+), S&P 400 MidCap (2011+), and S&P 600 SmallCap (2018+) constituents. Strictly excludes all ETFs/ETNs/trusts.",
+  "strictly_no_etfs": true,
+  "etf_exclusion_list_size": 49,
+  "pit_tiers": [
+    {
+      "tier": "SP500",
+      "source": "sp500_ticker_start_end.csv + Wikipedia List_of_S&P_500_companies revisions",
+      "start": "2006-01-03"
+    },
+    {
+      "tier": "SP400",
+      "source": "Wikipedia List_of_S&P_400_companies quarterly revisions",
+      "start": "2011-01-01"
+    },
+    {
+      "tier": "SP600",
+      "source": "Wikipedia List_of_S&P_600_companies quarterly revisions",
+      "start": "2018-09-01"
+    }
+  ],
+  "tradability_filters": {
+    "min_price_usd": 10.0,
+    "min_20d_median_dollar_volume_usd": 2000000.0,
+    "execution_convention": "Signal generated on Close[t], executed at Close[t+1] (or strictly causal t+1) with 5/10 bps slippage/fee stress"
+  }
+}
