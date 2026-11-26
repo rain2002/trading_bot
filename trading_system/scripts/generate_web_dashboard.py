@@ -42,7 +42,6 @@ MANAGER_EQUITY_LOG = os.path.join(DATA_DIR, "manager_equity_log.csv")
 LEDGER_FILE = os.path.join(DATA_DIR, "unitized_nav_ledger.json")
 US_SHADOW_FILE = os.path.join(DATA_DIR, "paper_state_us.json")
 US_SHADOW_LOG = os.path.join(DATA_DIR, "paper_equity_log.csv")
-NSE_SHADOW_FILE = os.path.join(DATA_DIR, "paper_state_india.json")
 
 
 def load_json(path: str, git_branch: str = None) -> dict:
@@ -226,7 +225,6 @@ def generate_dashboard_html(data_dir: str = None, output_path: str = None, now_d
     ledger_file = os.path.join(data_dir, "unitized_nav_ledger.json")
     us_shadow_file = os.path.join(data_dir, "paper_state_us.json")
     us_eq_file = os.path.join(data_dir, "paper_equity_log.csv")
-    nse_shadow_file = os.path.join(data_dir, "paper_state_india.json")
 
     # Fallback to git state branches when running against the default project data directory
     use_git = (os.path.abspath(data_dir) == os.path.abspath(DATA_DIR))
@@ -240,7 +238,6 @@ def generate_dashboard_html(data_dir: str = None, output_path: str = None, now_d
     ledger = load_json(ledger_file, git_branch=state_branch)
     us_shadow = load_json(us_shadow_file, git_branch=shadow_branch)
     us_eq_log = load_csv(us_eq_file, git_branch=shadow_branch)
-    nse_shadow = load_json(nse_shadow_file)
 
     # -------------------------------------------------------------
     # 1. EVALUATE CRITICAL DATA FAULT & HALTED STATUS
@@ -584,10 +581,6 @@ def generate_dashboard_html(data_dir: str = None, output_path: str = None, now_d
                 </td>
             </tr>
         """
-
-    nse_shadow_cash = nse_shadow.get("cash") if nse_shadow else None
-    nse_shadow_init = nse_shadow.get("initial_capital") if nse_shadow else None
-    nse_shadow_hwm = nse_shadow.get("hwm_true") if nse_shadow else None
 
     # -------------------------------------------------------------
     # 9. LOG TAB & CHART DATA (STRICT NaN DATA FAULT ENFORCEMENT)
@@ -1634,11 +1627,11 @@ def generate_dashboard_html(data_dir: str = None, output_path: str = None, now_d
                         </thead>
                         <tbody>
                             <tr>
-                                <td class="font-bold text-amber">NSE Cash Equity Sandboxed Pod</td>
-                                <td>{format_inr(nse_shadow_init)}</td>
-                                <td>{format_inr(nse_shadow_cash)}</td>
-                                <td>{format_inr(nse_shadow_hwm)}</td>
-                                <td><span class="badge-shadow">[RESERVED FOR FUTURE DEPLOYMENT]</span></td>
+                                <td class="font-bold text-amber">NSE Whole-Market Candidate S2</td>
+                                <td>₹0.00 (Unfunded)</td>
+                                <td>₹0.00</td>
+                                <td>&mdash;</td>
+                                <td><span class="badge-shadow">[PENDING S2 CORPORATE-ACTIONS AUDIT]</span></td>
                             </tr>
                         </tbody>
                     </table>
