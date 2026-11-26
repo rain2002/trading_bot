@@ -885,6 +885,28 @@ def test_us_shadow_discord_dispatch_includes_executed_trades(tmp_path, monkeypat
         assert "$100,500.00" in embed["description"]
 
 
+def test_fetch_yfinance_history_drops_trailing_nan_closes(monkeypatch):
+    """
+    Verifies that fetch_yfinance_history drops rows with Close=NaN (common when
+    Yahoo emits an incomplete current-day row with Open/Volume populated),
+    preventing NaN poisoning during US momentum candidate screening.
+    """
+    from trading_system.scripts.run_dual_pod_paper import fetch_yfinance_history
+
+    dates = pd.date_range("2026-06-01", periods=60, freq="B")
+    cols = pd.MultiIndex.from_product([["AAPL"], ["Open", "High", "Low", "Close", "Volume"]])
+    df_mock = pd.DataFrame(100.0, index=dates, columns=cols)
+    df_mock.loc[dates[-1], ("AAPL", "Close")] = float("nan")
+    df_mock.loc[dates[-1], ("AAPL", "Volume")] = 5000000.0
+
+    monkeypatch.setattr("yfinance.download", lambda *a, **kw: df_mock)
+    res = fetch_yfinance_history(["AAPL"], period="1y")
+    assert "AAPL" in res
+    assert len(res["AAPL"]) == 59
+    assert not res["AAPL"]["close"].isna().any()
+
+
+
 
 
 

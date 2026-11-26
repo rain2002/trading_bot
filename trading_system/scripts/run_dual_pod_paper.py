@@ -641,6 +641,11 @@ class PodPaperEngine:
         bench_vol_20d = radar["bench_vol_20d"]
         bench_ret_6m = radar["bench_ret_6m"]
         is_macro_bull = macro_regime != "BEAR_DEFENSE"
+        self.state["macro_regime"] = macro_regime
+        self.state["radar_summary"] = (
+            f"{macro_regime} (Bench {bench_close:.2f} vs 200-SMA {bench_sma200:.2f}, "
+            f"20D Vol {bench_vol_20d*100:.1f}%, MaxExp {max_exposure*100:.0f}%)"
+        )
 
         print(f"\n[{self.pod_name} RADAR] Benchmark: Close={bench_close:.2f} vs 200-SMA={bench_sma200:.2f} | 20D Vol={bench_vol_20d*100:.1f}% | 6M Ret={bench_ret_6m*100:+.1f}% (Scale={vol_scale:.2f}) -> Regime: [{macro_regime}] Max Exposure: {max_exposure*100:.0f}%")
 
@@ -1346,6 +1351,8 @@ def fetch_yfinance_history(tickers: List[str], period: str = "1y") -> Dict[str, 
                 else:
                     df = data.dropna(how="all").copy()
                 df.columns = [str(c).lower() for c in df.columns]
+                if "close" in df.columns:
+                    df = df.dropna(subset=["close"])
                 if len(df) >= 50:
                     out[sym] = df
             except Exception:
@@ -1551,8 +1558,10 @@ def main():
                 bench_us = normalize_df_columns(bench_us)
                 latest_bar_date = ""
                 try:
-                    if not bench_us.empty:
-                        latest_bar_date = str(bench_us.index[-1])[:10]
+                    close_col = "close" if "close" in bench_us.columns else ("adj close" if "adj close" in bench_us.columns else None)
+                    valid_bench = bench_us.dropna(subset=[close_col]) if close_col else bench_us
+                    if not valid_bench.empty:
+                        latest_bar_date = str(valid_bench.index[-1])[:10]
                 except Exception:
                     latest_bar_date = ""
 
@@ -1798,7 +1807,14 @@ def dispatch_notifications_and_dashboard(
             q_buys = [f"`BUY` {b['sym']} (${b['target_alloc']:,.0f})" for b in us_engine.state.get("pending_buys", [])]
             q_sells = [f"`SELL` {s['sym']}" for s in us_engine.state.get("pending_sells", [])]
             queued_all = q_sells + q_buys
-            queued_block = ", ".join(queued_all[:10]) if queued_all else "None queued"
+            macro_reg = us_engine.state.get("macro_regime", "")
+            radar_sum = us_engine.state.get("radar_summary", "N/A")
+            if queued_all:
+                queued_block = ", ".join(queued_all[:10])
+            elif macro_reg == "BEAR_DEFENSE":
+                queued_block = "None (100% Cash Defense Active — 0% Bear Exposure)"
+            else:
+                queued_block = "None queued"
 
             status_lbl = us_cycle_status or phase.upper()
             is_skip = status_lbl.startswith("SKIPPED_")
@@ -1807,6 +1823,7 @@ def dispatch_notifications_and_dashboard(
             embed_msg = (
                 f"**Phase:** `{phase.upper()}` | **Status:** `{status_lbl}` (Delay: {us_cycle_delay}m)\n"
                 f"**Day 0 Verified:** `{day0_ok}` | **Last Scan Bar:** `{us_engine.state.get('last_scan_bar_date') or 'N/A'}`\n"
+                f"🛡️ **Macro Regime:** `{radar_sum}`\n"
                 f"━━━━━━━━━━━━━━━━━━━━\n"
                 f"💰 **Equity:** ${us_eq:,.2f} ({us_pnl_pct:+.2f}% / ${us_pnl:+,.2f})\n"
                 f"💵 **Cash:** ${us_cash:,.2f} | **Positions:** {len(us_pos)} | **Max DD:** {us_dd*100:.2f}%\n"
