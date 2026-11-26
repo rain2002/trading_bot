@@ -1,0 +1,92 @@
+{
+  "strategy_id": "NSE_S2_EXPLORATORY_SHADOW",
+  "currency": "INR",
+  "initial_capital": 80000.0,
+  "cash": 80018.50020485125,
+  "positions": {},
+  "pending_buys": [
+    {
+      "sym": "CUPID.NS",
+      "target_alloc": 5334.57,
+      "score": 5.2631
+    },
+    {
+      "sym": "WELSPUNLIV.NS",
+      "target_alloc": 5334.57,
+      "score": 2.6791
+    },
+    {
+      "sym": "WELCORP.NS",
+      "target_alloc": 5334.57,
+      "score": 2.174
+    },
+    {
+      "sym": "LAURUSLABS.NS",
+      "target_alloc": 5334.57,
+      "score": 1.991
+    },
+    {
+      "sym": "PVRINOX.NS",
+      "target_alloc": 5334.57,
+      "score": 1.7211
+    },
+    {
+      "sym": "ATHERENERG.NS",
+      "target_alloc": 5334.57,
+      "score": 1.681
+    },
+    {
+      "sym": "SANSERA.NS",
+      "target_alloc": 5334.57,
+      "score": 1.5967
+    },
+    {
+      "sym": "DIVISLAB.NS",
+      "target_alloc": 5334.57,
+      "score": 1.3725
+    },
+    {
+      "sym": "GLAND.NS",
+      "target_alloc": 5334.57,
+      "score": 1.2364
+    },
+    {
+      "sym": "PTCIL.NS",
+      "target_alloc": 5334.57,
+      "score": 1.1757
+    },
+    {
+      "sym": "CPPLUS.NS",
+      "target_alloc": 5334.57,
+      "score": 1.0652
+    },
+    {
+      "sym": "PAYTM.NS",
+      "target_alloc": 5334.57,
+      "score": 0.99
+    },
+    {
+      "sym": "COFORGE.NS",
+      "target_alloc": 5334.57,
+      "score": 0.9372
+    },
+    {
+      "sym": "CYIENT.NS",
+      "target_alloc": 5334.57,
+      "score": 0.9272
+    },
+    {
+      "sym": "SAILIFE.NS",
+      "target_alloc": 2133.83,
+      "score": 0.8937
+    }
+  ],
+  "pending_sells": [],
+  "hwm_true": 80018.5,
+  "max_drawdown_pct": 0.0,
+  "macro_regime": "BULL_TRENDING",
+  "radar_summary": "BULL_TRENDING (^NSEI 25819 vs 200-SMA 24000, 20D Vol 16.2%, MaxExp 100%)",
+  "last_bar_date": "2026-11-25",
+  "days_shadowed": 1,
+  "last_updated": "2026-11-26T19:59:40.692560+00:00"
+}
