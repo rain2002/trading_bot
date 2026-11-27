@@ -162,3 +162,5 @@ date,commit_hash,script,universe,kelly_fraction,lookback_days,cagr_pct,max_drawd
 2026-11-27 00:43:25,f1162f1,run_stage0_data_audit.py,NSE_WHOLE_MARKET_PANEL_V2,0.08,90,22.34,-29.04,1.23,False,"Stage0 S2 V2 Baseline (CA_V2=511, PanelSHA=d2806b813423)"
 2026-11-27 00:43:25,f1162f1,run_stage0_data_audit.py,NSE_WHOLE_MARKET_PANEL_V2,0.08,90,21.9,-33.96,1.2,False,Stage0 S2 V2 + 50 Unverified Adjusted (PanelSHA=d2806b813423)
 2026-11-27 00:43:25,f1162f1,run_stage0_data_audit.py,NSE_WHOLE_MARKET_PANEL_V2,0.08,90,21.3,-28.6,1.2,False,Stage0 S2 V2 Top-5-Trades-Removed (PanelSHA=d2806b813423)
+2026-11-27 01:12:12,b0c5901,run_nse_s2_walk_forward.py,NSE_WHOLE_MARKET_WF_2013_2022,0.08,90,14.85,-20.79,1.15,False,"WF Baseline Fixed S2 (2013-2022, N=87, PanelSHA=d2806b813423, ProtoSHA=03ea0ad375cf)"
+2026-11-27 01:12:12,b0c5901,run_nse_s2_walk_forward.py,NSE_WHOLE_MARKET_WF_2013_2022,0.08,90,11.46,-22.99,0.86,False,"WF Stitched OOS S2 (2013-2022, N=88, DSR=0.3782, PanelSHA=d2806b813423, ProtoSHA=03ea0ad375cf)"

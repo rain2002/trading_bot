@@ -1,0 +1,251 @@
+{
+  "timestamp": "2026-11-27T01:12:12.917905+00:00",
+  "protocol_sha256": "03ea0ad375cf30792952a7add7eb184c1c611a77561a6eaffca9888c84de7cf6",
+  "panel_version": "NSE_PANEL_V2",
+  "panel_sha256": "d2806b81342339edcd6debf60a8dfcac7042ab7b9f630db1795b925cb68a2156",
+  "multi_testing_n": 88,
+  "stitched_oos_2013_2022": {
+    "cagr_pct": 11.46,
+    "sharpe_ratio": 0.86,
+    "max_drawdown_pct": -22.99,
+    "skewness": -0.9,
+    "kurtosis": 16.21,
+    "years": 9.99
+  },
+  "stitched_oos_2x_costs": {
+    "cagr_pct": 9.13,
+    "sharpe_ratio": 0.69,
+    "max_drawdown_pct": -35.28,
+    "skewness": -0.94,
+    "kurtosis": 16.69,
+    "years": 9.99
+  },
+  "stitched_oos_top5_removed": {
+    "cagr_pct": 10.73,
+    "sharpe_ratio": 0.82,
+    "max_drawdown_pct": -24.76,
+    "skewness": -1.12,
+    "kurtosis": 16.42,
+    "years": 9.99
+  },
+  "baselines_2013_2022": {
+    "fixed_s2": {
+      "cagr_pct": 14.85,
+      "sharpe_ratio": 1.15,
+      "max_drawdown_pct": -20.79
+    },
+    "control_a": {
+      "p95_sharpe": 0.54,
+      "median_sharpe": 0.28
+    },
+    "control_b_adj": {
+      "cagr_pct": 8.68,
+      "sharpe_ratio": 0.5,
+      "max_drawdown_pct": -45.83,
+      "years": 9.99
+    },
+    "benchmark_tri_cagr_pct": 13.17
+  },
+  "per_fold_table": [
+    {
+      "test_year": 2013,
+      "train_window": "2008-01-01..2011-05-08",
+      "embargo_days": 603,
+      "chosen_lb90": 72,
+      "chosen_sma": 120,
+      "chosen_trail_scale": 1.2,
+      "plateau_sharpe": 0.965,
+      "is_sharpe": 0.75,
+      "oos_cagr_pct": 0.98,
+      "oos_sharpe": 0.17,
+      "oos_max_dd_pct": -13.21,
+      "wf_efficiency": 0.23
+    },
+    {
+      "test_year": 2014,
+      "train_window": "2009-01-01..2012-03-27",
+      "embargo_days": 644,
+      "chosen_lb90": 90,
+      "chosen_sma": 120,
+      "chosen_trail_scale": 1.0,
+      "plateau_sharpe": 1.023,
+      "is_sharpe": 0.95,
+      "oos_cagr_pct": 97.14,
+      "oos_sharpe": 3.45,
+      "oos_max_dd_pct": -10.83,
+      "wf_efficiency": 3.63
+    },
+    {
+      "test_year": 2015,
+      "train_window": "2010-01-01..2013-03-27",
+      "embargo_days": 644,
+      "chosen_lb90": 90,
+      "chosen_sma": 180,
+      "chosen_trail_scale": 0.8,
+      "plateau_sharpe": 0.838,
+      "is_sharpe": 0.84,
+      "oos_cagr_pct": -7.85,
+      "oos_sharpe": -0.5,
+      "oos_max_dd_pct": -21.42,
+      "wf_efficiency": -0.6
+    },
+    {
+      "test_year": 2016,
+      "train_window": "2011-01-01..2013-06-19",
+      "embargo_days": 925,
+      "chosen_lb90": 90,
+      "chosen_sma": 180,
+      "chosen_trail_scale": 1.2,
+      "plateau_sharpe": 0.678,
+      "is_sharpe": 0.72,
+      "oos_cagr_pct": 8.78,
+      "oos_sharpe": 0.62,
+      "oos_max_dd_pct": -13.51,
+      "wf_efficiency": 0.86
+    },
+    {
+      "test_year": 2017,
+      "train_window": "2012-01-01..2014-06-19",
+      "embargo_days": 926,
+      "chosen_lb90": 108,
+      "chosen_sma": 150,
+      "chosen_trail_scale": 0.8,
+      "plateau_sharpe": 1.298,
+      "is_sharpe": 1.17,
+      "oos_cagr_pct": 19.38,
+      "oos_sharpe": 1.32,
+      "oos_max_dd_pct": -11.41,
+      "wf_efficiency": 1.13
+    },
+    {
+      "test_year": 2018,
+      "train_window": "2013-01-01..2016-09-28",
+      "embargo_days": 459,
+      "chosen_lb90": 72,
+      "chosen_sma": 150,
+      "chosen_trail_scale": 1.0,
+      "plateau_sharpe": 1.585,
+      "is_sharpe": 1.73,
+      "oos_cagr_pct": -11.36,
+      "oos_sharpe": -1.26,
+      "oos_max_dd_pct": -13.22,
+      "wf_efficiency": -0.73
+    },
+    {
+      "test_year": 2019,
+      "train_window": "2014-01-01..2017-10-08",
+      "embargo_days": 449,
+      "chosen_lb90": 108,
+      "chosen_sma": 180,
+      "chosen_trail_scale": 1.2,
+      "plateau_sharpe": 1.76,
+      "is_sharpe": 1.81,
+      "oos_cagr_pct": -2.41,
+      "oos_sharpe": -0.39,
+      "oos_max_dd_pct": -13.13,
+      "wf_efficiency": -0.22
+    },
+    {
+      "test_year": 2020,
+      "train_window": "2015-01-01..2017-10-19",
+      "embargo_days": 803,
+      "chosen_lb90": 90,
+      "chosen_sma": 120,
+      "chosen_trail_scale": 1.2,
+      "plateau_sharpe": 0.77,
+      "is_sharpe": 0.81,
+      "oos_cagr_pct": 25.53,
+      "oos_sharpe": 1.6,
+      "oos_max_dd_pct": -16.05,
+      "wf_efficiency": 1.98
+    },
+    {
+      "test_year": 2021,
+      "train_window": "2016-01-01..2018-06-19",
+      "embargo_days": 926,
+      "chosen_lb90": 72,
+      "chosen_sma": 120,
+      "chosen_trail_scale": 1.2,
+      "plateau_sharpe": 1.415,
+      "is_sharpe": 1.3,
+      "oos_cagr_pct": 33.98,
+      "oos_sharpe": 1.7,
+      "oos_max_dd_pct": -10.9,
+      "wf_efficiency": 1.31
+    },
+    {
+      "test_year": 2022,
+      "train_window": "2017-01-01..2020-12-31",
+      "embargo_days": 365,
+      "chosen_lb90": 72,
+      "chosen_sma": 180,
+      "chosen_trail_scale": 1.0,
+      "plateau_sharpe": 1.216,
+      "is_sharpe": 1.48,
+      "oos_cagr_pct": -14.27,
+      "oos_sharpe": -1.36,
+      "oos_max_dd_pct": -17.72,
+      "wf_efficiency": -0.92
+    }
+  ],
+  "checks_13": {
+    "H1_Return": {
+      "passed": false,
+      "val": "11.46% vs 17.17%"
+    },
+    "H2_Sharpe": {
+      "passed": true,
+      "val": 0.86
+    },
+    "H3_Drawdown": {
+      "passed": true,
+      "val": "-22.99%"
+    },
+    "H4_DSR_N88": {
+      "passed": false,
+      "val": 0.3782
+    },
+    "H5_Control_A": {
+      "passed": true,
+      "val": "0.86 > 0.54"
+    },
+    "H6_Control_B": {
+      "passed": true,
+      "val": "11.46%/0.86 vs 8.68%/0.5"
+    },
+    "H7_Stability": {
+      "passed": false,
+      "val": "1/4"
+    },
+    "H8_Plateau": {
+      "passed": true,
+      "val": true
+    },
+    "H9_Cost_Stress_2x": {
+      "passed": false,
+      "val": "9.13% / Sh=0.69"
+    },
+    "W1_Efficiency": {
+      "passed": false,
+      "val": "5/10"
+    },
+    "W2_Beats_Fixed": {
+      "passed": false,
+      "val": "0.86 vs 1.15"
+    },
+    "W3_Top5_Removed": {
+      "passed": false,
+      "val": "10.73% vs 17.17%"
+    },
+    "W4_Settings_Stability": {
+      "passed": false,
+      "val": "jumps=[2, 3, 2]"
+    }
+  },
+  "all_13_passed": false,
+  "only_h4_failed": false,
+  "holdout": {
+    "status": "SEALED",
+    "reason": "All 13 checks did not pass."
+  }
+}

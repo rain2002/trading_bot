@@ -48,7 +48,8 @@ jobs:
             for f in \
               trading_system/data/nse_s2_shadow_state.json \
               trading_system/data/nse_s2_shadow_trades.csv \
-              trading_system/data/nse_s2_shadow_equity_log.csv; do
+              trading_system/data/nse_s2_shadow_equity_log.csv \
+              trading_system/data/nse_s2_shadow_fidelity.csv; do
               git checkout origin/state-shadow-nse -- "$f" 2>/dev/null && echo "  Restored $f" || echo "  $f initializing fresh"
             done
           fi
@@ -64,6 +65,16 @@ jobs:
             FORCE_ARG="--force"
           fi
           python trading_system/scripts/run_nse_s2_shadow.py $FORCE_ARG
+
+      - name: "Run Weekly Shadow Fidelity Replay (Fridays)"
+        env:
+          PYTHONPATH: .
+        run: |
+          if [ "$(date -u +%u)" = "5" ] || [ "${{ github.event.inputs.force }}" = "true" ]; then
+            python trading_system/scripts/run_nse_s2_shadow_replay.py
+          else
+            echo "Not Friday; skipping weekly shadow replay."
+          fi
 
       - name: "Persist NSE S2 Shadow State to state-shadow-nse Branch"
         if: always()
@@ -84,7 +95,8 @@ jobs:
           for f in \
             trading_system/data/nse_s2_shadow_state.json \
             trading_system/data/nse_s2_shadow_trades.csv \
-            trading_system/data/nse_s2_shadow_equity_log.csv; do
+            trading_system/data/nse_s2_shadow_equity_log.csv \
+            trading_system/data/nse_s2_shadow_fidelity.csv; do
             [ -f "$f" ] && cp "$f" /tmp/nse_shadow_repo/trading_system/data/
           done
           cd /tmp/nse_shadow_repo
