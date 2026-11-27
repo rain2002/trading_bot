@@ -107,3 +107,19 @@ The official production Gate B trading fund (`origin/state`, Day 5/91, NAV ₹98
 - Hyperparameters are permanently frozen for `v1.0.0-champion`.
 - Any candidate strategy (Challenger) must be tested on causal survivor-free data with pre-registered protocols.
 - To replace the Champion, a Challenger must achieve a Deflated Sharpe Ratio (DSR) $\ge 0.95$ over an audited out-of-sample incubation period.
+
+---
+
+# UPDATE 2026-11-27: NSE S2 V1 ARCHIVED & FUND TARGET RESET
+
+- **Decision**: Accepted archiving **NSE S2 V1** as research, resetting the whole-fund target to **11–13% CAGR**, and capping S2 near **30%** (pending live shadow evidence) instead of ramping to 70%.
+- **Walk-Forward Evidence (`2013–2022`, `N=88`, `NSE_PANEL_V2`)**:
+  - Protocol `NSE_S2_WALK_FORWARD_PROTOCOL_V1.md` (`03ea0ad3...`, committed alone in `b0c5901`).
+  - Walk-Forward S2: `11.46%` CAGR, `0.86` Sharpe, `-22.99%` MaxDD (`5/13` checks passed; failed `H1`, `H4`, `H7`, `H9`, `W1`, `W2`, `W3`, `W4`).
+  - Fixed S2 (`90/150/1.0`): `14.85%` CAGR, `1.15` Sharpe, `-20.79%` MaxDD vs Nifty 50 TRI `13.17%` CAGR (`H1` required `17.17%`).
+  - The `2023-01-01` to `2024-07-05` holdout remains **strictly sealed**.
+- **Active Posture**:
+  - **Core Fund (ETF + Gold + Bond)** stays untouched through Gate B.
+  - **NSE S2 Shadow** remains at **zero capital** on `state-shadow-nse` with weekly Friday fidelity replay (`run_nse_s2_shadow_replay.py`), with no further re-tuning.
+  - **US price-only stock research** remains closed (US shadow retired in `f1162f1`).
+  - **Next Research Track** (when initiated): uncorrelated edges such as point-in-time fundamentals-based stock selection or F&O premium strategies, each subject to pre-registered protocol + single run + trial log + forward shadow.
