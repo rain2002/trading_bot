@@ -2,91 +2,118 @@
   "strategy_id": "NSE_S2_EXPLORATORY_SHADOW",
   "currency": "INR",
   "initial_capital": 80000.0,
-  "cash": 80018.50020485125,
-  "positions": {},
+  "cash": 23481.526509254818,
+  "positions": {
+    "CUPID.NS": {
+      "shares": 14,
+      "entry_price": 367.9909,
+      "entry_date": "2026-11-26",
+      "peak_price": 371.1,
+      "last_close": 371.1
+    },
+    "WELSPUNLIV.NS": {
+      "shares": 19,
+      "entry_price": 275.8929,
+      "entry_date": "2026-11-26",
+      "peak_price": 280.35,
+      "last_close": 280.35
+    },
+    "WELCORP.NS": {
+      "shares": 2,
+      "entry_price": 2132.7429,
+      "entry_date": "2026-11-26",
+      "peak_price": 2232.8,
+      "last_close": 2232.8
+    },
+    "LAURUSLABS.NS": {
+      "shares": 2,
+      "entry_price": 2464.5362,
+      "entry_date": "2026-11-26",
+      "peak_price": 2505.0,
+      "last_close": 2505.0
+    },
+    "PVRINOX.NS": {
+      "shares": 3,
+      "entry_price": 1714.617,
+      "entry_date": "2026-11-26",
+      "peak_price": 1714.617,
+      "last_close": 1638.2
+    },
+    "ATHERENERG.NS": {
+      "shares": 2,
+      "entry_price": 1879.0598,
+      "entry_date": "2026-11-26",
+      "peak_price": 1906.0,
+      "last_close": 1906.0
+    },
+    "SANSERA.NS": {
+      "shares": 1,
+      "entry_price": 4706.9744,
+      "entry_date": "2026-11-26",
+      "peak_price": 4706.9744,
+      "last_close": 4685.7998
+    },
+    "GLAND.NS": {
+      "shares": 1,
+      "entry_price": 3340.6955,
+      "entry_date": "2026-11-26",
+      "peak_price": 3370.8,
+      "last_close": 3370.8
+    },
+    "CPPLUS.NS": {
+      "shares": 1,
+      "entry_price": 4204.2207,
+      "entry_date": "2026-11-26",
+      "peak_price": 4235.0,
+      "last_close": 4235.0
+    },
+    "PAYTM.NS": {
+      "shares": 3,
+      "entry_price": 1721.7361,
+      "entry_date": "2026-11-26",
+      "peak_price": 1768.9,
+      "last_close": 1768.9
+    },
+    "COFORGE.NS": {
+      "shares": 2,
+      "entry_price": 2091.6322,
+      "entry_date": "2026-11-26",
+      "peak_price": 2091.6322,
+      "last_close": 2000.0
+    },
+    "CYIENT.NS": {
+      "shares": 4,
+      "entry_price": 1156.7147,
+      "entry_date": "2026-11-26",
+      "peak_price": 1156.7147,
+      "last_close": 1149.1
+    },
+    "SAILIFE.NS": {
+      "shares": 1,
+      "entry_price": 1824.8138,
+      "entry_date": "2026-11-26",
+      "peak_price": 1824.8138,
+      "last_close": 1812.6
+    }
+  },
   "pending_buys": [
     {
-      "sym": "CUPID.NS",
-      "target_alloc": 5334.57,
-      "score": 5.2631
-    },
-    {
-      "sym": "WELSPUNLIV.NS",
-      "target_alloc": 5334.57,
-      "score": 2.6791
-    },
-    {
-      "sym": "WELCORP.NS",
-      "target_alloc": 5334.57,
-      "score": 2.174
-    },
-    {
-      "sym": "LAURUSLABS.NS",
-      "target_alloc": 5334.57,
-      "score": 1.991
-    },
-    {
-      "sym": "PVRINOX.NS",
-      "target_alloc": 5334.57,
-      "score": 1.7211
-    },
-    {
-      "sym": "ATHERENERG.NS",
-      "target_alloc": 5334.57,
-      "score": 1.681
-    },
-    {
-      "sym": "SANSERA.NS",
-      "target_alloc": 5334.57,
-      "score": 1.5967
-    },
-    {
       "sym": "DIVISLAB.NS",
-      "target_alloc": 5334.57,
-      "score": 1.3725
-    },
-    {
-      "sym": "GLAND.NS",
-      "target_alloc": 5334.57,
-      "score": 1.2364
+      "target_alloc": 5347.54,
+      "score": 1.3864
     },
     {
       "sym": "PTCIL.NS",
-      "target_alloc": 5334.57,
-      "score": 1.1757
-    },
-    {
-      "sym": "CPPLUS.NS",
-      "target_alloc": 5334.57,
-      "score": 1.0652
-    },
-    {
-      "sym": "PAYTM.NS",
-      "target_alloc": 5334.57,
-      "score": 0.99
-    },
-    {
-      "sym": "COFORGE.NS",
-      "target_alloc": 5334.57,
-      "score": 0.9372
-    },
-    {
-      "sym": "CYIENT.NS",
-      "target_alloc": 5334.57,
-      "score": 0.9272
-    },
-    {
-      "sym": "SAILIFE.NS",
-      "target_alloc": 2133.83,
-      "score": 0.8937
+      "target_alloc": 5347.54,
+      "score": 1.1559
     }
   ],
   "pending_sells": [],
-  "hwm_true": 80018.5,
-  "max_drawdown_pct": 0.0,
+  "hwm_true": 80213.08,
+  "max_drawdown_pct": -0.0,
   "macro_regime": "BULL_TRENDING",
-  "radar_summary": "BULL_TRENDING (^NSEI 25819 vs 200-SMA 24000, 20D Vol 16.2%, MaxExp 100%)",
-  "last_bar_date": "2026-11-25",
-  "days_shadowed": 1,
-  "last_updated": "2026-11-26T19:59:40.692560+00:00"
+  "radar_summary": "BULL_TRENDING (^NSEI 25884 vs 200-SMA 24004, 20D Vol 16.1%, MaxExp 100%)",
+  "last_bar_date": "2026-11-26",
+  "days_shadowed": 2,
+  "last_updated": "2026-11-27T19:48:42.114939+00:00"
 }
