@@ -244,6 +244,7 @@ def simulate_strategy_s2(
     trail_t2_stop: float = 0.20,
     trail_t3_gain: float = 1.00,
     trail_t3_stop: float = 0.25,
+    blocked_entries: Optional[set] = None,
 ) -> Dict[str, Any]:
     """
     Simulates Candidate S2 (Asymmetric Profit-Trail Compounder) over the specified window.
@@ -479,10 +480,15 @@ def simulate_strategy_s2(
             cash += net_proceeds
 
             ret_pct = (eff_sell_price - holdings[sym]["fill_price"]) / max(holdings[sym]["fill_price"], 1e-4)
+            cost_basis = holdings[sym]["shares"] * holdings[sym]["fill_price"]
             trade_log.append({
                 "symbol": sym,
                 "entry_date": holdings[sym]["entry_date"],
                 "exit_date": str(next_date.date()),
+                "entry_price": round(float(holdings[sym]["fill_price"]), 4),
+                "exit_price": round(float(eff_sell_price), 4),
+                "shares": float(holdings[sym]["shares"]),
+                "pnl_rupees": round(float(net_proceeds - cost_basis), 2),
                 "return_pct": ret_pct,
                 "reason": reason
             })
@@ -527,6 +533,9 @@ def simulate_strategy_s2(
 
                     # Rank Top Eligible Stocks
                     sorted_candidates = sorted(scores_dict.items(), key=lambda x: x[1], reverse=True)
+                    if blocked_entries:
+                        next_d_str = str(next_date.date())
+                        sorted_candidates = [(s, sc) for s, sc in sorted_candidates if (s, next_d_str) not in blocked_entries]
                     picks = [s for s, _ in sorted_candidates[:available_slots]]
 
                     # Size Positions Subject to Exposure Cap
@@ -588,7 +597,8 @@ def simulate_strategy_s2(
         "skewness": round(skew, 2),
         "kurtosis": round(kurt, 2),
         "daily_returns": daily_ret,
-        "equity_curve": eq_series
+        "equity_curve": eq_series,
+        "trade_log": trade_log,
     }
 
 

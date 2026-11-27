@@ -1,0 +1,286 @@
+{
+  "timestamp": "2026-11-27T00:43:25.276272+00:00",
+  "panel_version": "NSE_PANEL_V2",
+  "panel_sha256": "d2806b81342339edcd6debf60a8dfcac7042ab7b9f630db1795b925cb68a2156",
+  "component_hashes": {
+    "causal_panel_close.parquet": "e60dabcad4914fd6082d68a6ae46b118024848cfab891101143a36c986361799",
+    "causal_panel_open.parquet": "a8afa30aeb1140ef9daa298e05bfb8eaa2531a8485e9d1c9608b4fcd560a316b",
+    "causal_panel_turnover.parquet": "37c43c90bc00848e5b34d3d95aa8ac770db4db668fec4d15177b916c2359ad8a",
+    "INDEX_NSEI.parquet": "187081b7f410e30a4fe8ecc7969c5bd7c7fb657efbfae426ff87cc58070b000e",
+    "nse_corporate_actions_v2.csv": "a04cd4ac4e64b1813e99855fbd47fa73a1a5c22f909a112ab702e28bc123058d"
+  },
+  "task1_control_b": {
+    "raw_close_cagr_pct": -0.88,
+    "raw_close_sharpe": 0.12,
+    "raw_close_max_dd_pct": -72.55,
+    "v2_split_adj_cagr_pct": 3.59,
+    "v2_split_adj_sharpe": 0.27,
+    "v2_split_adj_max_dd_pct": -71.35,
+    "benchmark_tri_cagr_pct": 10.3,
+    "causes": [
+      "1. Unadjusted-split bug in simulate_control_b_equal_weight_top100: it computed monthly returns on raw close_df instead of split-adjusted adj_close, turning every Top-100 stock split/bonus into a -50% to -90% monthly loss (-0.88% vs +3.59% CAGR).",
+      "2. Default-argument cache bug in corporate_actions.py: csv_path=CORPORATE_ACTIONS_CSV was bound at import time, causing V2 re-runs to silently load V1 (48 events) instead of V2 (511 events).",
+      "3. Missing events in V2: ADANIENT 2015-06 demerger (-87.1%) and HDFCBANK 2011-07 5:1 split (-80.6%) remained unadjusted in V2.",
+      "4. Structural universe mismatch: Control B selects Top 100 by 60d median rupee turnover (not market cap), equal-weights them monthly, and omits dividends (+1.35% p.a. in Nifty TRI). High-turnover NSE stocks in 2008-2013 and 2018-2019 were heavily tilted to distressed/leveraged names (SUZLON, UNITECH, SATYAMCOMP, IVRCLINFRA, DHFL, IBULHSGFIN, YESBANK, GITANJALI, AMTEKAUTO, SINTEX), producing -65.6% (2008), -36.4% (2011), -12.2% (2018), and -8.7% (2019)."
+    ]
+  },
+  "task2_top10_trades": [
+    {
+      "rank": 1,
+      "symbol": "ADANIGREEN",
+      "entry_date": "2020-08-03",
+      "exit_date": "2022-05-16",
+      "return_pct": 549.8,
+      "pnl_rupees": 180980.54,
+      "reason": "PROFIT_TRAIL_STOP",
+      "panel_entry_open_raw": 342.0,
+      "panel_exit_open_raw": 2234.0,
+      "v2_splits_in_trade": [],
+      "yf_ticker": "ADANIGREEN.NS",
+      "yf_entry_open": 342.0,
+      "yf_exit_open": 2234.0,
+      "yf_splits_in_window": [],
+      "panel_gross_mult": 6.532,
+      "yf_gross_mult": 6.532,
+      "rel_diff_pct": 0.0,
+      "status": "CONFIRMED"
+    },
+    {
+      "rank": 2,
+      "symbol": "SUVEN",
+      "entry_date": "2013-11-01",
+      "exit_date": "2015-06-05",
+      "return_pct": 349.69,
+      "pnl_rupees": 45097.27,
+      "reason": "PROFIT_TRAIL_STOP",
+      "panel_entry_open_raw": 54.75,
+      "panel_exit_open_raw": 247.5,
+      "v2_splits_in_trade": [],
+      "yf_ticker": "SUVEN.NS",
+      "yf_entry_open": 2.54,
+      "yf_exit_open": 11.5,
+      "yf_splits_in_window": [],
+      "panel_gross_mult": 4.521,
+      "yf_gross_mult": 4.521,
+      "rel_diff_pct": 0.0,
+      "status": "CONFIRMED"
+    },
+    {
+      "rank": 3,
+      "symbol": "CGPOWER",
+      "entry_date": "2021-02-01",
+      "exit_date": "2022-06-17",
+      "return_pct": 316.75,
+      "pnl_rupees": 49977.91,
+      "reason": "TREND_EXIT_150SMA",
+      "panel_entry_open_raw": 39.85,
+      "panel_exit_open_raw": 166.95,
+      "v2_splits_in_trade": [],
+      "yf_ticker": "CGPOWER.NS",
+      "yf_entry_open": 39.85,
+      "yf_exit_open": 166.95,
+      "yf_splits_in_window": [],
+      "panel_gross_mult": 4.189,
+      "yf_gross_mult": 4.189,
+      "rel_diff_pct": 0.0,
+      "status": "CONFIRMED"
+    },
+    {
+      "rank": 4,
+      "symbol": "GATI",
+      "entry_date": "2014-02-03",
+      "exit_date": "2014-12-26",
+      "return_pct": 282.29,
+      "pnl_rupees": 42716.06,
+      "reason": "PROFIT_TRAIL_STOP",
+      "panel_entry_open_raw": 63.7,
+      "panel_exit_open_raw": 244.8,
+      "v2_splits_in_trade": [],
+      "yf_ticker": null,
+      "yf_entry_open": null,
+      "yf_exit_open": null,
+      "yf_splits_in_window": [],
+      "panel_gross_mult": null,
+      "yf_gross_mult": null,
+      "rel_diff_pct": null,
+      "status": "FLAGGED_NO_YF_DATA"
+    },
+    {
+      "rank": 5,
+      "symbol": "IBVENTURES",
+      "entry_date": "2017-04-03",
+      "exit_date": "2018-02-05",
+      "return_pct": 265.13,
+      "pnl_rupees": 95804.99,
+      "reason": "TREND_EXIT_150SMA",
+      "panel_entry_open_raw": 61.3,
+      "panel_exit_open_raw": 225.0,
+      "v2_splits_in_trade": [],
+      "yf_ticker": null,
+      "yf_entry_open": null,
+      "yf_exit_open": null,
+      "yf_splits_in_window": [],
+      "panel_gross_mult": null,
+      "yf_gross_mult": null,
+      "rel_diff_pct": null,
+      "status": "FLAGGED_NO_YF_DATA"
+    },
+    {
+      "rank": 6,
+      "symbol": "OLECTRA",
+      "entry_date": "2021-03-01",
+      "exit_date": "2022-02-25",
+      "return_pct": 236.99,
+      "pnl_rupees": 186376.89,
+      "reason": "PROFIT_TRAIL_STOP",
+      "panel_entry_open_raw": 183.7,
+      "panel_exit_open_raw": 622.3,
+      "v2_splits_in_trade": [],
+      "yf_ticker": "OLECTRA.NS",
+      "yf_entry_open": 183.7,
+      "yf_exit_open": 622.3,
+      "yf_splits_in_window": [],
+      "panel_gross_mult": 3.388,
+      "yf_gross_mult": 3.388,
+      "rel_diff_pct": 0.0,
+      "status": "CONFIRMED"
+    },
+    {
+      "rank": 7,
+      "symbol": "AUROPHARMA",
+      "entry_date": "2014-02-03",
+      "exit_date": "2016-01-22",
+      "return_pct": 232.55,
+      "pnl_rupees": 35203.33,
+      "reason": "TREND_EXIT_150SMA",
+      "panel_entry_open_raw": 472.0,
+      "panel_exit_open_raw": 788.95,
+      "v2_splits_in_trade": [
+        {
+          "date": "2015-07-20",
+          "mult": 2.0
+        }
+      ],
+      "yf_ticker": "AUROPHARMA.NS",
+      "yf_entry_open": 236.0,
+      "yf_exit_open": 788.95,
+      "yf_splits_in_window": [
+        {
+          "date": "2015-07-20",
+          "ratio": 2.0
+        }
+      ],
+      "panel_gross_mult": 3.343,
+      "yf_gross_mult": 3.343,
+      "rel_diff_pct": 0.0,
+      "status": "CONFIRMED"
+    },
+    {
+      "rank": 8,
+      "symbol": "MPHASIS",
+      "entry_date": "2009-05-04",
+      "exit_date": "2010-03-11",
+      "return_pct": 185.15,
+      "pnl_rupees": 10589.39,
+      "reason": "TREND_EXIT_150SMA",
+      "panel_entry_open_raw": 228.5,
+      "panel_exit_open_raw": 655.0,
+      "v2_splits_in_trade": [],
+      "yf_ticker": "MPHASIS.NS",
+      "yf_entry_open": 228.5,
+      "yf_exit_open": 655.0,
+      "yf_splits_in_window": [],
+      "panel_gross_mult": 2.867,
+      "yf_gross_mult": 2.867,
+      "rel_diff_pct": 0.0,
+      "status": "CONFIRMED"
+    },
+    {
+      "rank": 9,
+      "symbol": "ADANITRANS",
+      "entry_date": "2017-02-01",
+      "exit_date": "2018-03-08",
+      "return_pct": 183.44,
+      "pnl_rupees": 22596.95,
+      "reason": "TREND_EXIT_150SMA",
+      "panel_entry_open_raw": 63.7,
+      "panel_exit_open_raw": 181.5,
+      "v2_splits_in_trade": [],
+      "yf_ticker": "ADANIENSOL.NS",
+      "yf_entry_open": 63.7,
+      "yf_exit_open": 181.5,
+      "yf_splits_in_window": [],
+      "panel_gross_mult": 2.849,
+      "yf_gross_mult": 2.849,
+      "rel_diff_pct": 0.0,
+      "status": "CONFIRMED"
+    },
+    {
+      "rank": 10,
+      "symbol": "VIPIND",
+      "entry_date": "2010-04-01",
+      "exit_date": "2010-12-08",
+      "return_pct": 141.01,
+      "pnl_rupees": 14627.52,
+      "reason": "EMERGENCY_TIER4_LIQUIDATION",
+      "panel_entry_open_raw": 252.6,
+      "panel_exit_open_raw": 612.0,
+      "v2_splits_in_trade": [],
+      "yf_ticker": "VIPIND.NS",
+      "yf_entry_open": 50.52,
+      "yf_exit_open": 122.4,
+      "yf_splits_in_window": [],
+      "panel_gross_mult": 2.423,
+      "yf_gross_mult": 2.423,
+      "rel_diff_pct": 0.0,
+      "status": "CONFIRMED"
+    }
+  ],
+  "task3_50_unverified_events": {
+    "count": 50,
+    "excluded_v2": {
+      "cagr_pct": 22.34,
+      "sharpe_ratio": 1.23,
+      "max_drawdown_pct": -29.04,
+      "kurtosis": 51.28,
+      "total_trades": 403
+    },
+    "adjusted_with_50": {
+      "cagr_pct": 21.9,
+      "sharpe_ratio": 1.2,
+      "max_drawdown_pct": -33.96,
+      "kurtosis": 37.24,
+      "total_trades": 425
+    },
+    "cagr_gap_pct_pts": -0.44
+  },
+  "task4_top5_trades_removed": {
+    "removed_trades": [
+      [
+        "ADANIGREEN",
+        "2020-08-03"
+      ],
+      [
+        "CGPOWER",
+        "2021-02-01"
+      ],
+      [
+        "GATI",
+        "2014-02-03"
+      ],
+      [
+        "IBVENTURES",
+        "2017-04-03"
+      ],
+      [
+        "SUVEN",
+        "2013-11-01"
+      ]
+    ],
+    "cagr_pct": 21.3,
+    "sharpe_ratio": 1.2,
+    "max_drawdown_pct": -28.6,
+    "gate_a_bar_pct": 14.3,
+    "clears_14_3_bar": true
+  }
+}

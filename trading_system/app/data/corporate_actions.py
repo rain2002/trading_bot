@@ -24,22 +24,25 @@ ETF_TICKER_PATTERNS = re.compile(
 )
 
 _ACTIONS_CACHE: Optional[Dict[Tuple[str, str], float]] = None
+_ACTIONS_CACHE_PATH: Optional[str] = None
 
 
-def load_audited_corporate_actions(csv_path: str = CORPORATE_ACTIONS_CSV) -> Dict[Tuple[str, str], float]:
+def load_audited_corporate_actions(csv_path: Optional[str] = None) -> Dict[Tuple[str, str], float]:
     """
     Loads verified corporate actions mapping (date_str, symbol) -> multiplier.
     Returns: Dict[(YYYY-MM-DD, SYMBOL), multiplier]
     """
-    global _ACTIONS_CACHE
-    if _ACTIONS_CACHE is not None:
+    global _ACTIONS_CACHE, _ACTIONS_CACHE_PATH
+    resolved_path = os.path.abspath(csv_path or CORPORATE_ACTIONS_CSV)
+    if _ACTIONS_CACHE is not None and _ACTIONS_CACHE_PATH == resolved_path:
         return _ACTIONS_CACHE
 
-    if not os.path.exists(csv_path):
+    if not os.path.exists(resolved_path):
         _ACTIONS_CACHE = {}
+        _ACTIONS_CACHE_PATH = resolved_path
         return _ACTIONS_CACHE
 
-    df = pd.read_csv(csv_path)
+    df = pd.read_csv(resolved_path)
     df["date"] = pd.to_datetime(df["date"]).dt.strftime("%Y-%m-%d")
     df["symbol"] = df["symbol"].str.strip().str.upper()
 
@@ -49,6 +52,7 @@ def load_audited_corporate_actions(csv_path: str = CORPORATE_ACTIONS_CSV) -> Dic
         actions_map[key] = float(row["multiplier"])
 
     _ACTIONS_CACHE = actions_map
+    _ACTIONS_CACHE_PATH = resolved_path
     return _ACTIONS_CACHE
 
 
@@ -89,7 +93,7 @@ def is_etf_ticker(symbol: str) -> bool:
 
 def build_verified_split_adjustment_matrix(
     close_df: pd.DataFrame,
-    csv_path: str = CORPORATE_ACTIONS_CSV
+    csv_path: Optional[str] = None
 ) -> Tuple[pd.DataFrame, pd.DataFrame]:
     """
     Builds causal adjustment factors based EXCLUSIVELY on verified corporate actions.
