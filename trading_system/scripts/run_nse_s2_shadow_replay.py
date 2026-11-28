@@ -38,6 +38,7 @@ from trading_system.scripts.run_nse_s2_shadow import (
     FLAT_DP_FEE,
     CASH_YIELD_PA,
     calc_clenow_score,
+    fetch_nse_market_data,
     load_nse_s2_equity_universe,
 )
 from trading_system.app.data.corporate_actions import is_etf_ticker
@@ -62,19 +63,29 @@ FIDELITY_COLUMNS = [
 ]
 
 
+def _extract_row_date(row: pd.Series) -> str:
+    """Extract YYYY-MM-DD session date cleanly from either production (`session_date`) or test (`date`) logs."""
+    val = row.get("session_date")
+    if val is None or (isinstance(val, float) and math.isnan(val)) or str(val).strip() == "":
+        val = row.get("date")
+    if val is None or (isinstance(val, float) and math.isnan(val)) or str(val).strip() == "":
+        val = row.get("timestamp", "")
+    return str(val).strip()[:10]
+
+
 def compute_signal_match_rate(
     shadow_trades: pd.DataFrame,
     replay_trades: pd.DataFrame,
 ) -> float:
     """
-    Computes % of (date, symbol, action) signals that match between shadow and replay.
+    Computes % of (session_date, symbol, action) signals that match between shadow and replay.
     Returns 100.0 when both have 0 trades.
     """
     def to_key_set(df: pd.DataFrame) -> set:
         if df is None or df.empty:
             return set()
         return {
-            (str(r["date"])[:10], str(r["symbol"]).strip().upper(), str(r["action"]).strip().upper())
+            (_extract_row_date(r), str(r["symbol"]).strip().upper(), str(r["action"]).strip().upper())
             for _, r in df.iterrows()
         }
 
@@ -109,9 +120,8 @@ def replay_shadow_window(
 
     for dt_str in shadow_dates:
         dt_ts = pd.to_datetime(dt_str)
-        cash *= (1.0 + daily_cash_yield)
 
-        # 1. Execute pending sells at today's open
+        # 1. Execute pending sells at today's open (parity with NSES2ShadowRunner)
         for s_item in pending_sells:
             sym = s_item["sym"]
             if sym not in positions or sym not in universe_data:
@@ -121,7 +131,9 @@ def replay_shadow_window(
             if sub.empty:
                 data_faults.append(f"{dt_str}:{sym}:missing_sell_bar")
                 continue
-            open_p = float(sub.iloc[-1]["open"])
+            open_p = float(sub["open"].dropna().iloc[-1]) if "open" in sub.columns and not sub["open"].dropna().empty else float(sub["close"].iloc[-1])
+            if math.isnan(open_p) or open_p <= 0:
+                continue
             eff_sell = open_p * (1.0 - SELL_FRICTION_BPS / 10000.0)
             shares = positions[sym]["shares"]
             cash += max(0.0, shares * eff_sell - FLAT_DP_FEE)
@@ -134,28 +146,30 @@ def replay_shadow_window(
             })
             del positions[sym]
 
-        # 2. Execute pending buys at today's open
+        # 2. Execute pending buys at today's open (matching cash * 0.96 & MIN_SHARE_PRICE guard)
         for b_item in pending_buys:
             sym = b_item["sym"]
-            if sym in positions or sym not in universe_data:
+            if sym in positions or sym not in universe_data or is_etf_ticker(sym):
                 continue
             df_s = universe_data[sym]
             sub = df_s.loc[df_s.index <= dt_ts]
             if sub.empty:
                 data_faults.append(f"{dt_str}:{sym}:missing_buy_bar")
                 continue
-            open_p = float(sub.iloc[-1]["open"])
-            eff_buy = open_p * (1.0 + BUY_FRICTION_BPS / 10000.0)
-            if eff_buy <= 0:
+            open_p = float(sub["open"].dropna().iloc[-1]) if "open" in sub.columns and not sub["open"].dropna().empty else float(sub["close"].iloc[-1])
+            if math.isnan(open_p) or open_p <= MIN_SHARE_PRICE:
                 continue
-            shares = math.floor(min(b_item["target_alloc"], cash) / eff_buy)
-            if shares > 0 and cash >= shares * eff_buy:
-                cash -= shares * eff_buy
+            eff_buy = open_p * (1.0 + BUY_FRICTION_BPS / 10000.0)
+            alloc = min(float(b_item["target_alloc"]), cash * 0.96)
+            shares = math.floor(alloc / eff_buy)
+            cost = shares * eff_buy
+            if shares > 0 and cash >= cost:
+                cash -= cost
                 positions[sym] = {
                     "shares": shares,
-                    "entry_price": eff_buy,
-                    "peak_price": eff_buy,
-                    "last_close": eff_buy,
+                    "entry_price": round(eff_buy, 4),
+                    "peak_price": round(eff_buy, 4),
+                    "last_close": round(eff_buy, 4),
                 }
                 replay_trades.append({
                     "date": dt_str,
@@ -164,6 +178,9 @@ def replay_shadow_window(
                     "shares": shares,
                     "fill_price": round(eff_buy, 4),
                 })
+
+        # Credit daily overnight yield AFTER open fills (parity with NSES2ShadowRunner)
+        cash *= (1.0 + daily_cash_yield)
 
         # 3. Mark to market at today's close
         port_val = 0.0
@@ -281,31 +298,26 @@ def evaluate_weekly_fidelity(
     if eq_df.empty:
         return {"status": "EMPTY_SHADOW_LOG", "message": "Shadow equity log has 0 rows."}
 
-    shadow_dates = sorted(eq_df["date"].astype(str).str[:10].unique().tolist())
+    # Use canonical `session_date` (market bar date written by NSES2ShadowRunner), falling back to `date`
+    eq_date_col = "session_date" if "session_date" in eq_df.columns else "date"
+    shadow_dates = sorted(eq_df[eq_date_col].astype(str).str[:10].unique().tolist())
     shadow_nav = float(eq_df.iloc[-1]["nav"])
     week_end_date = shadow_dates[-1]
 
     sh_trades_df = pd.read_csv(trades_csv_path) if os.path.exists(trades_csv_path) else pd.DataFrame()
     if not sh_trades_df.empty:
-        sh_trades_df = sh_trades_df[sh_trades_df["date"].astype(str).str[:10].isin(shadow_dates)]
+        tr_date_col = "session_date" if "session_date" in sh_trades_df.columns else ("date" if "date" in sh_trades_df.columns else "timestamp")
+        sh_trades_df = sh_trades_df[sh_trades_df[tr_date_col].astype(str).str[:10].isin(shadow_dates)]
 
     if universe_data is None or bench_df is None:
-        import yfinance as yf
         tickers = load_nse_s2_equity_universe()
-        start_dt = (pd.to_datetime(shadow_dates[0]) - timedelta(days=400)).strftime("%Y-%m-%d")
-        end_dt = (pd.to_datetime(shadow_dates[-1]) + timedelta(days=2)).strftime("%Y-%m-%d")
-        raw = yf.download(tickers + ["^NSEI"], start=start_dt, end=end_dt, group_by="ticker", auto_adjust=True, progress=False, threads=True)
-        universe_data = {}
-        for t in tickers:
-            try:
-                sub = raw[t].dropna(subset=["Close"]).rename(columns={"Open": "open", "High": "high", "Low": "low", "Close": "close", "Volume": "volume"})
-                sub.index = pd.to_datetime(sub.index).tz_localize(None).normalize()
-                if not sub.empty:
-                    universe_data[t] = sub
-            except Exception:
-                continue
-        bench_df = raw["^NSEI"].dropna(subset=["Close"]).rename(columns={"Open": "open", "High": "high", "Low": "low", "Close": "close", "Volume": "volume"})
-        bench_df.index = pd.to_datetime(bench_df.index).tz_localize(None).normalize()
+        if not sh_trades_df.empty and "symbol" in sh_trades_df.columns:
+            tickers = sorted(list(set(tickers) | set(sh_trades_df["symbol"].astype(str).tolist())))
+        universe_data, bench_df = fetch_nse_market_data(tickers)
+        for df_s in universe_data.values():
+            df_s.index = pd.to_datetime(df_s.index).tz_localize(None).normalize()
+        if not bench_df.empty:
+            bench_df.index = pd.to_datetime(bench_df.index).tz_localize(None).normalize()
 
     replay_trades_df, nav_rows, data_faults = replay_shadow_window(shadow_dates, universe_data, bench_df)
     replay_nav = float(nav_rows[-1]["replay_nav"]) if nav_rows else INITIAL_CAPITAL
